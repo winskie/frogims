@@ -23,7 +23,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | a PHP script and you can easily do that on your own.
 |
 */
-$config['base_url'] = '';
+//$config['base_url'] = 'http://localhost:81/frogims/';
+$config['base_url'] = 'http://cpu-13-0110:81/frogims/';
 
 /*
 |--------------------------------------------------------------------------
@@ -314,7 +315,7 @@ $config['cache_query_string'] = FALSE;
 | https://codeigniter.com/user_guide/libraries/encryption.html
 |
 */
-$config['encryption_key'] = '';
+$config['encryption_key'] = 'TheQuickBrownFoxJumpsOverTheLazyDog';
 
 /*
 |--------------------------------------------------------------------------
@@ -511,3 +512,11 @@ $config['rewrite_short_tags'] = FALSE;
 | Array:		array('10.0.1.200', '192.168.5.0/24')
 */
 $config['proxy_ips'] = '';
+
+function __autoload($class)
+{
+	if( file_exists( APPPATH.'models/'.strtolower($class).'.php' ) )
+	{
+		include( APPPATH.'models/'.strtolower($class).'.php' );
+	}
+}

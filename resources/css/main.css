@@ -1,0 +1,94 @@
+body
+{
+	margin-top: 75px;
+}
+.table-details
+{
+    font-size: 95%;
+}
+
+.table thead > tr > th.vert-middle
+{
+	vertical-align: middle;
+}
+
+.table tbody > tr > td.vert-top
+{
+    vertical-align: top;
+}
+
+.table tbody > tr > td
+{
+	vertical-align: middle;
+}
+
+.defective
+{
+	color: #8b0000;
+}
+
+.panel-heading h3
+{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: normal;
+    width: 75%;
+    padding-top: 8px;
+}
+
+.panel-heading
+{
+    padding: 5px 15px;
+}
+
+.form-group.required .control-label:after
+{
+    content: '*';
+    color: red;
+}
+
+.label-as-badge
+{
+    border-radius: 1em;
+}
+
+.deleted
+{
+    text-decoration: line-through;
+    background-color: lightpink;
+}
+
+.capitalize::first-letter
+{
+    text-transform: uppercase;    
+}
+
+th.row-flag
+{
+    width: 5px;
+    padding: 0 !important;
+}
+
+td.row-flag
+{
+    width: 6px;
+    padding: 0 !important;
+}
+
+.allocation-scheduled {
+    background-color: yellow;
+}
+
+.allocation-allocated {
+    background-color: deepskyblue;
+}
+
+.allocation-completed {
+    background-color: green;
+}
+
+.allocation-cancelled {
+    background-color: lightgray;
+}
+

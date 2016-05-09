@@ -83,3 +83,85 @@ defined('EXIT_USER_INPUT')     OR define('EXIT_USER_INPUT', 7); // invalid user 
 defined('EXIT_DATABASE')       OR define('EXIT_DATABASE', 8); // database error
 defined('EXIT__AUTO_MIN')      OR define('EXIT__AUTO_MIN', 9); // lowest automatically-assigned error code
 defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
+
+// Date/Time formats
+defined('TIMESTAMP_FORMAT')	OR define('TIMESTAMP_FORMAT', 'Y-m-d H:i:s');
+defined('DATE_FORMAT')		OR define('DATE_FORMAT', 'Y-m-d');
+
+// Store Types
+defined('STORE_TYPE_GENERAL')       OR define('STORE_TYPE_GENERAL', 1);
+defined('STORE_TYPE_PRODUCTION')    OR define('STORE_TYPE_PRODUCTION', 2);
+defined('STORE_TYPE_TRANSPORT')     OR define('STORE_TYPE_TRANSPORT', 3);
+defined('STORE_TYPE_CASHROOM')      OR define('STORE_TYPE_CASHROOM', 4);
+
+// Transaction types
+defined('TRANSACTION_TRANSFER_OUT')			OR define('TRANSACTION_TRANSFER_OUT', 10);
+defined('TRANSACTION_TRANSFER_IN')			OR define('TRANSACTION_TRANSFER_IN', 11);
+defined('TRANSACTION_TRANSFER_CANCEL')		OR define('TRANSACTION_TRANSFER_CANCEL', 12);
+defined('TRANSACTION_TRANSFER_VOID')		OR define('TRANSACTION_TRANSFER_VOID', 13);
+defined('TRANSACTION_ALLOCATION')			OR define('TRANSACTION_ALLOCATION', 20);
+defined('TRANSACTION_REMITTANCE')			OR define('TRANSACTION_REMITTANCE', 21);
+defined('TRANSACTION_ALLOCATION_VOID')      OR define('TRANSACTION_ALLOCATION_VOID', 22);
+defined('TRANSACTION_REMITTANCE_VOID')      OR define('TRANSACTION_REMITTANCE_VOID', 23);
+defined('TRANSACTION_MOPPING_COLLECTION')	OR define('TRANSACTION_MOPPING_COLLECTION', 30);
+defined('TRANSACTION_MOPPING_VOID')         OR define('TRANSACTION_MOPPING_VOID', 31 );
+defined('TRANSACTION_ADJUSTMENT')			OR define('TRANSACTION_ADJUSTMENT', 40);
+defined('TRANSACTION_CONVERSION_FROM')      OR define('TRANSACTION_CONVERSION_FROM', 50);
+defined('TRANSACTION_CONVERSION_TO')        OR define('TRANSACTION_CONVERSION_TO', 51);
+
+// Transfer status
+defined('TRANSFER_PENDING')		OR define('TRANSFER_PENDING', 1);
+defined('TRANSFER_APPROVED')	OR define('TRANSFER_APPROVED', 2);
+defined('TRANSFER_RECEIVED')	OR define('TRANSFER_RECEIVED', 3);
+defined('TRANSFER_CANCELLED')	OR define('TRANSFER_CANCELLED', 4);
+
+// Transfer item status
+defined('TRANSFER_ITEM_SCHEDULED')  OR define('TRANSFER_ITEM_SCHEDULED', 1);
+defined('TRANSFER_ITEM_APPROVED')   OR define('TRANSFER_ITEM_APPROVED', 2);
+defined('TRANSFER_ITEM_RECEIVED')   OR define('TRANSFER_ITEM_RECEIVED', 3);
+defined('TRANSFER_ITEM_CANCELLED')  OR define('TRANSFER_ITEM_CANCELLED', 4);
+defined('TRANSFER_ITEM_VOIDED')     OR define('TRANSFER_ITEM_VOIDED', 5);
+
+// Adjustment status
+defined('ADJUSTMENT_PENDING')	OR define('ADJUSTMENT_PENDING', 1);
+defined('ADJUSTMENT_APPROVED')	OR define('ADJUSTMENT_APPROVED', 2);
+defined('ADJUSTMENT_CANCELLED')	OR define('ADJUSTMENT_CANCELLED', 3);
+
+// Mopping item status
+defined('MOPPING_ITEM_COLLECTED')   OR define('MOPPING_ITEM_COLLECTED', 1);
+defined('MOPPING_ITEM_VOIDED')      OR define('MOPPING_ITEM_VOIDED', 2);  
+
+// User status
+defined('USER_STATUS_ACTIVE')	OR define('USER_STATUS_ACTIVE', 1);
+defined('USER_STATUS_LOCKED')	OR define('USER_STATUS_LOCKED', 2);
+defined('USER_STATUS_DELETED')	OR define('USER_STATUS_DELETED', 3);
+
+// Allocation status
+defined('ALLOCATION_SCHEDULED')	OR define('ALLOCATION_SCHEDULED', 1);
+defined('ALLOCATION_ALLOCATED')	OR define('ALLOCATION_ALLOCATED', 2);
+defined('ALLOCATION_REMITTED') OR define('ALLOCATION_REMITTED', 3);
+defined('ALLOCATION_CANCELLED') OR define('ALLOCATION_CANCELLED', 4);
+
+// Item categories
+defined('ITEM_CATEGORY_TRANSFER')   OR define('ITEM_CATEGORY_ALLOCATION', 10);
+defined('ITEM_CATEGORY_ALLOCATION')   OR define('ITEM_CATEGORY_ALLOCATION', 20);
+defined('ITEM_CATEGORY_REMITTANCE')   OR define('ITEM_CATEGORY_REMITTANCE', 30);
+
+// Allocation item status
+defined('ALLOCATION_ITEM_SCHEDULED')    OR define('ALLOCATION_ITEM_SCHEDULED', 10);
+defined('ALLOCATION_ITEM_ALLOCATED')    OR define('ALLOCATION_ITEM_ALLOCATED', 11);
+defined('ALLOCATION_ITEM_CANCELLED')    OR define('ALLOCATION_ITEM_CANCELLED', 12);
+defined('ALLOCATION_ITEM_VOIDED')         OR define('ALLOCATION_ITEM_VOIDED', 13);
+
+defined('REMITTANCE_ITEM_PENDING')      OR define('REMITTANCE_ITEM_PENDING', 20);
+defined('REMITTANCE_ITEM_REMITTED')     OR define('REMITTANCE_ITEM_REMITTED', 21);
+defined('REMITTANCE_ITEM_VOIDED')         OR define('REMITTANCE_ITEM_VOIDED', 22);
+
+
+
+// Adjustment types
+defined('ADJUSTMENT_TYPE_ACTUAL')	OR define('ADJUSTMENT_TYPE_ACTUAL', 1);
+
+// Mopped item status
+defined('MOPPED_ITEM_OK')       OR define('MOPPED_ITEM_OK', 1);
+defined('MOPPED_ITEM_VOID')     OR define('MOPPED_ITEM_VOID', 2);
