@@ -496,7 +496,7 @@ class Transfer extends Base_model {
 		$ci->db->trans_start();
 		foreach( $items as $item )
 		{
-			if( in_array( $item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_APPROVED ) ) )
+			if( in_array( $item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_SCHEDULED, TRANSFER_ITEM_APPROVED ) ) )
 			{
 				$inventory = new Inventory();
 				$inventory = $inventory->get_by_store_item( $this->destination_id, $item->get( 'item_id' ) );
