@@ -510,6 +510,11 @@ class Transfer extends Base_model {
 				}
 				
 				$quantity = $item->get( 'quantity_received' ); // Item will be added to the inventory
+				if( is_null( $quantity ) )
+				{
+					$quantity = $item->get( 'quantity' );
+					$item->set( 'quantity_received', $quantity );
+				}
 				$inventory->transact( TRANSACTION_TRANSFER_IN, $quantity, $this->receipt_datetime, $this->id );
 				
 				$item->set( 'transfer_item_status', TRANSFER_ITEM_RECEIVED );
