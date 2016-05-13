@@ -1,5 +1,5 @@
-app.controller( 'StoreController', [ '$scope', '$state', '$sce', '$q', 'UserServices', 'StoreServices', 'TransferServices', 'InventoryServices', 'AllocationServices', 'MiscServices',
-	function( $scope, $state, $sce, $q, UserServices, StoreServices, TransferServices, InventoryServices, AllocationServices, MiscServices )
+app.controller( 'StoreController', [ '$scope', '$window', '$state', '$sce', '$q', 'UserServices', 'StoreServices', 'TransferServices', 'InventoryServices', 'AllocationServices', 'MiscServices',
+	function( $scope, $window, $state, $sce, $q, UserServices, StoreServices, TransferServices, InventoryServices, AllocationServices, MiscServices )
 	{
 		$scope.user = null;
         $scope.stations = [];
@@ -23,6 +23,11 @@ app.controller( 'StoreController', [ '$scope', '$state', '$sce', '$q', 'UserServ
 		$scope.pendingReceipts = 0;
 		$scope.pendingAdjustments = 0;
         
+        // logout
+        $scope.logout = function()
+            {
+                $window.location.href = baseUrl + 'index.php/login/logout';
+            }
         
         // lookups
         $scope.lookupTransactionType = function( type )
@@ -590,6 +595,10 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
                         if( $scope.transferItem.destination_id )
                         {
                             $scope.data.selectedDestination = $filter( 'filter' )( stores, { id: $scope.transferItem.destination_id }, true )[0];
+                        }
+                        else if( $scope.transferItem.destination_name )
+                        { // External transfer
+                            $scope.isExternalDestination = true;
                         }
                         else if( $scope.data.destinations.length )
                         {

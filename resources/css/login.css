@@ -1,0 +1,13 @@
+body {
+    padding: 50px;
+}
+
+.app-title {
+    text-align: center;
+}
+
+.form-sign-in {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 30px;
+}

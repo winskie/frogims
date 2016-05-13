@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Main extends CI_Controller {
+class Main extends MY_Controller {
 
 	/**
 	 * Index Page for this controller.
@@ -20,8 +20,13 @@ class Main extends CI_Controller {
 	 */
 	public function index()
 	{
-		$this->login( 'admin', 1, 1 );
+		//$this->login( 'admin', 1, 1 );
 		$this->load->view( 'main' );
+	}
+	
+	public function test()
+	{
+		echo phpinfo();
 	}
 	
 	public function view( $view )

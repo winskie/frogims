@@ -10,6 +10,9 @@
 		<link rel="stylesheet" type="text/css" href="<?php echo base_url( 'resources/css/bootstrap.min.css' );?>" />
 		<link rel="stylesheet" type="text/css" href="<?php echo base_url( 'resources/css/main.css' );?>" />
 
+		<script>
+			var baseUrl = '<?php echo base_url();?>';
+		</script>
 		<script src="<?php echo base_url( 'resources/js/angular.min.js' );?>"></script>
 		<script src="<?php echo base_url( 'resources/js/angular-animate.min.js' );?>"></script>
 		<script src="<?php echo base_url( 'resources/js/ui-bootstrap-tpls-1.1.2.min.js' );?>"></script>
@@ -46,7 +49,14 @@
                         </select>
                     </form>
 					<ul class="nav navbar-nav navbar-right">
-						<li><a ui-sref="user">{{ user.username }}</a></li>
+						<li>
+							<a href>
+								{{ user.username }}
+							</a>
+						</li>
+						<li>
+							<a href="<?php echo site_url( '/login/logout');?>">Log out</a>
+						</li>
 					</ul>
 				</div>
 			</div>

@@ -59,47 +59,50 @@ app.config( function( $stateProvider, $urlRouterProvider )
 	$stateProvider
 		.state( 'dashboard', {
 			url: '/dashboard',
-			templateUrl: 'index.php/main/view/partial_dashboard_view.php'
+			templateUrl: baseUrl + 'index.php/main/view/partial_dashboard_view'
 		})
 		
 		.state( 'store', {
 			url: '/store',
-			templateUrl: 'index.php/main/view/partial_store_view'
+			templateUrl: baseUrl + 'index.php/main/view/partial_store_view'
 		})
 		
 		.state( 'transfer', {
 			url: '/transfer',
 			params: { transferItem: null, editMode: 'view' },
-			templateUrl: 'index.php/main/view/partial_transfer_form',
+			templateUrl: baseUrl + 'index.php/main/view/partial_transfer_form',
 			controller: 'TransferController'
 		})
 		
 		.state( 'adjust', {
 			url: '/adjust',
 			params: { adjustmentItem: null },
-			templateUrl: 'index.php/main/view/partial_adjustment_form',
+			templateUrl: baseUrl + 'index.php/main/view/partial_adjustment_form',
 			controller: 'AdjustmentController'
 		})
         
         .state( 'convert', {
             url: '/convert',
             params: { conversionItem: null },
-            templateUrl: 'index.php/main/view/partial_conversion_form',
+            templateUrl: baseUrl + 'index.php/main/view/partial_conversion_form',
             controller: 'ConversionController'
         })
         
         .state( 'mopping', {
             url: '/mopping',
             params: { moppingItem: null, editMode: 'view' },
-            templateUrl: 'index.php/main/view/partial_mopping_form',
+            templateUrl: baseUrl + 'index.php/main/view/partial_mopping_form',
             controller: 'MoppingController'
         })
         
         .state( 'allocation', {
             url: '/allocation',
             params: { allocationItem: null, editMode: 'view' },
-            templateUrl: 'index.php/main/view/partial_allocation_form',
+            templateUrl: baseUrl + 'index.php/main/view/partial_allocation_form',
             controller: 'AllocationController'
-        });
-        
+        })
+		
+		.state( 'logout', {
+			url: '/logout'
+		});
 });

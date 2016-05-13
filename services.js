@@ -8,7 +8,7 @@ appServices.service( 'StoreServices', [ '$http', '$q',
 				var deferred = $q.defer();
 				$http({
 					method: 'POST',
-					url: 'index.php/api/store',
+					url: baseUrl + 'index.php/api/store',
 					data: {
 						store_id: store.id
 					}
@@ -30,7 +30,7 @@ appServices.service( 'StoreServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'POST',
-                    url: 'index.php/api/store/change_shift',
+                    url: baseUrl + 'index.php/api/store/change_shift',
                     data: {
                         'shift_id': shift.id
                     }
@@ -52,7 +52,7 @@ appServices.service( 'StoreServices', [ '$http', '$q',
 				var deferred = $q.defer();
 				$http({
 					method: 'GET',
-					url: 'index.php/api/stores'
+					url: baseUrl + 'index.php/api/stores'
 				}).then(
 					function( response )
 					{
@@ -83,7 +83,7 @@ appServices.service( 'StoreServices', [ '$http', '$q',
                 
                 $http({
                     method: 'GET',
-                    url: 'index.php/api/store/shifts',
+                    url: baseUrl + 'index.php/api/store/shifts',
                     params: params
                 }).then(
                     function( response )
@@ -103,7 +103,7 @@ appServices.service( 'StoreServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: 'index.php/api/store/store_shifts',
+                    url: baseUrl + 'index.php/api/store/store_shifts',
                     params: {
                         store_id: store.id,
                         show_all: showAll
@@ -126,7 +126,7 @@ appServices.service( 'StoreServices', [ '$http', '$q',
 				var deferred = $q.defer();
 				$http({
 					method: 'GET',
-					url: 'index.php/api/inventory',
+					url: baseUrl + 'index.php/api/inventory',
 					params: {
 						'store_id': storeId
 					}
@@ -148,7 +148,7 @@ appServices.service( 'StoreServices', [ '$http', '$q',
 				var deferred = $q.defer();
 				$http({
 					method: 'GET',
-					url: 'index.php/api/transactions',
+					url: baseUrl + 'index.php/api/transactions',
 					params: {
 						'store_id': storeId
 					}
@@ -170,7 +170,7 @@ appServices.service( 'StoreServices', [ '$http', '$q',
 				var deferred = $q.defer();
 				$http({
 					method: 'GET',
-					url: 'index.php/api/transfer',
+					url: baseUrl + 'index.php/api/transfer',
 					params: {
 						'store_id': storeId
 					}
@@ -192,7 +192,7 @@ appServices.service( 'StoreServices', [ '$http', '$q',
 				var deferred = $q.defer();
 				$http({
 					method: 'GET',
-					url: 'index.php/api/transfer/receipts',
+					url: baseUrl + 'index.php/api/transfer/receipts',
 					params: {
 						'store_id': storeId
 					}
@@ -214,7 +214,7 @@ appServices.service( 'StoreServices', [ '$http', '$q',
 				var deferred = $q.defer();
 				$http({
 					method: 'GET',
-					url: 'index.php/api/adjustments',
+					url: baseUrl + 'index.php/api/adjustments',
 					params: {
 						'store_id': storeId
 					}
@@ -236,7 +236,7 @@ appServices.service( 'StoreServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: 'index.php/api/mopping/summary',
+                    url: baseUrl + 'index.php/api/mopping/summary',
                     params: {
                         'store_id': storeId
                     }
@@ -258,7 +258,7 @@ appServices.service( 'StoreServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: 'index.php/api/allocations/summary',
+                    url: baseUrl + 'index.php/api/allocations/summary',
                     params: {
                         'store_id': storeId
                     }
@@ -280,7 +280,7 @@ appServices.service( 'StoreServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: 'index.php/api/conversions',
+                    url: baseUrl + 'index.php/api/conversions',
                     params: {
                         'store_id': storeId
                     }
@@ -307,7 +307,7 @@ appServices.service( 'TransferServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: 'index.php/api/transfer/item',
+                    url: baseUrl + 'index.php/api/transfer/item',
                     params: {
                         id: transferId
                     }
@@ -329,7 +329,7 @@ appServices.service( 'TransferServices', [ '$http', '$q',
 				var deferred = $q.defer();
 				$http({
 					method: 'GET',
-					url: 'index.php/api/transfer/items',
+					url: baseUrl + 'index.php/api/transfer/items',
 					params: {
 						id: transferItem.id
 					}
@@ -351,7 +351,7 @@ appServices.service( 'TransferServices', [ '$http', '$q',
 				var deferred = $q.defer(); 
 				$http({
 					method: 'POST',
-					url: 'index.php/api/transfer/create',
+					url: baseUrl + 'index.php/api/transfer/create',
 					data: transferItem,
 				}).then(
 					function( response )
@@ -372,7 +372,7 @@ appServices.service( 'TransferServices', [ '$http', '$q',
 
 				$http({
 					method: 'POST',
-					url: 'index.php/api/transfer/approve',
+					url: baseUrl + 'index.php/api/transfer/approve',
 					data: transferItem
 				}).then(
 					function( response )
@@ -393,7 +393,7 @@ appServices.service( 'TransferServices', [ '$http', '$q',
 				
 				$http({
 					method: 'POST',
-					url: 'index.php/api/transfer/receive',
+					url: baseUrl + 'index.php/api/transfer/receive',
 					data: transferItem
 				}).then(
 					function( response )
@@ -414,7 +414,7 @@ appServices.service( 'TransferServices', [ '$http', '$q',
 				
 				$http({
 					method: 'POST',
-					url: 'index.php/api/transfer/cancel',
+					url: baseUrl + 'index.php/api/transfer/cancel',
 					data: transferItem
 				}).then(
 					function( response )
@@ -439,7 +439,7 @@ appServices.service( 'InventoryServices', [ '$http', '$q',
 				var deferred = $q.defer();
 				$http({
 					method: 'POST',
-					url: 'index.php/api/inventory/adjust',
+					url: baseUrl + 'index.php/api/inventory/adjust',
 					data: adjustmentItem
 				}).then(
 					function( response )
@@ -459,7 +459,7 @@ appServices.service( 'InventoryServices', [ '$http', '$q',
 				var deferred = $q.defer();
 				$http({
 					method: 'POST',
-					url: 'index.php/api/adjustment/approve',
+					url: baseUrl + 'index.php/api/adjustment/approve',
 					data: {
 						id: adjustmentItem.id
 					}
@@ -486,7 +486,7 @@ appServices.service( 'ConversionServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: 'index.php/api/items/conversion_table'
+                    url: baseUrl + 'index.php/api/items/conversion_table'
                 }).then(
                     function( response )
                     {
@@ -505,7 +505,7 @@ appServices.service( 'ConversionServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: 'index.php/api/items/package_conversion'
+                    url: baseUrl + 'index.php/api/items/package_conversion'
                 }).then(
                     function( response )
                     {
@@ -524,7 +524,7 @@ appServices.service( 'ConversionServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: 'index.php/api/conversion/conversion_factor',
+                    url: baseUrl + 'index.php/api/conversion/conversion_factor',
                     params: {
                         source: sourceItem,
                         target: targetItem
@@ -547,7 +547,7 @@ appServices.service( 'ConversionServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'POST',
-                    url: 'index.php/api/conversion/convert',
+                    url: baseUrl + 'index.php/api/conversion/convert',
                     data: conversionItem
                 }).then(
                     function( response )
@@ -572,7 +572,7 @@ appServices.service( 'MoppingServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: 'index.php/api/mopping/item',
+                    url: baseUrl + 'index.php/api/mopping/item',
                     params: {
                         id: moppingItemId
                     }
@@ -594,7 +594,7 @@ appServices.service( 'MoppingServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'POST',
-                    url: 'index.php/api/mopping/process',
+                    url: baseUrl + 'index.php/api/mopping/process',
                     data: moppingItem
                 }).then(
                     function( response )
@@ -619,7 +619,7 @@ appServices.service( 'AllocationServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: 'index.php/api/allocations/item',
+                    url: baseUrl + 'index.php/api/allocations/item',
                     params: {
                         id: allocationId
                     }
@@ -641,7 +641,7 @@ appServices.service( 'AllocationServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'POST',
-                    url: 'index.php/api/allocations/process',
+                    url: baseUrl + 'index.php/api/allocations/process',
                     data: allocationItem
                 }).then(
                     function( response )
@@ -661,7 +661,7 @@ appServices.service( 'AllocationServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'POST',
-                    url: 'index.php/api/allocations/allocate',
+                    url: baseUrl + 'index.php/api/allocations/allocate',
                     data: allocationItem
                 }).then(
                     function( response )
@@ -681,7 +681,7 @@ appServices.service( 'AllocationServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'POST',
-                    url: 'index.php/api/allocations/remit',
+                    url: baseUrl + 'index.php/api/allocations/remit',
                     data: allocationItem
                 }).then(
                     function( response )
@@ -701,7 +701,7 @@ appServices.service( 'AllocationServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'POST',
-                    url: 'index.php/api/allocations/cancel',
+                    url: baseUrl + 'index.php/api/allocations/cancel',
                     data: { id: allocationItem.id }
                 }).then(
                     function( response )
@@ -726,7 +726,7 @@ appServices.service( 'UserServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: 'index.php/api/users'
+                    url: baseUrl + 'index.php/api/users'
                 }).then(
                     function( response )
                     {
@@ -745,7 +745,7 @@ appServices.service( 'UserServices', [ '$http', '$q',
 				var deferred = $q.defer();
 				$http({
 					method: 'GET',
-					url: 'index.php/api/login_info'
+					url: baseUrl + 'index.php/api/login_info'
 				}).then(
 					function( response )
 					{
@@ -842,7 +842,7 @@ appServices.service( 'MiscServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: 'index.php/api/stations'
+                    url: baseUrl + 'index.php/api/stations'
                 }).then(
                     function( response )
                     {
@@ -861,7 +861,7 @@ appServices.service( 'MiscServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: 'index.php/api/items'
+                    url: baseUrl + 'index.php/api/items'
                 }).then(
                     function( response )
                     {
@@ -880,7 +880,7 @@ appServices.service( 'MiscServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: 'index.php/api/inventory',
+                    url: baseUrl + 'index.php/api/inventory',
                     params: {
                         store_id: storeId
                     }
@@ -902,7 +902,7 @@ appServices.service( 'MiscServices', [ '$http', '$q',
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: 'index.php/api/items/categories'
+                    url: baseUrl + 'index.php/api/items/categories'
                 }).then(
                     function( response )
                     {

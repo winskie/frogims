@@ -1,7 +1,12 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Api extends CI_Controller {
+class Api extends MY_Controller {
+
+    public function __construct()
+    {
+        parent::__construct();
+    }
 
 	public function index()
 	{
@@ -22,6 +27,45 @@ class Api extends CI_Controller {
 
 	public function login()
 	{
+        $request_method = $this->input->server( 'REQUEST_METHOD' );
+        
+        if( $request_method == 'POST' )
+        {
+            $username = $this->input->post( 'username' );
+            $password = $this->input->post( 'password' );
+
+            $this->load->library( 'user' );
+            $user = new User();
+            $user = $user->get_by_username( $username );
+            if( $user->validate_password( $password ) )
+            {
+                // Set session data
+                $this->session->current_user_id = $user->get( 'id' );
+                $this->session->current_store_id = 1;
+                $this->session->current_shift_id = 1;
+                
+                redirect( 'main/index' );
+            }
+            else
+            {
+                // Destroy session data
+                $this->session->sess_destroy();
+                
+                $response = array(
+                        'status' => 'fail',
+                        'errorMsg' => 'Invalid username or password'
+                    );
+            }
+        }
+        else
+        {
+            $response = $this->_bad_request( 'Bad request' );
+        }
+        
+        $this->output->set_content_type( 'application/json' );
+		$this->output->set_output( json_encode( $response ) );
+
+        /*   
 		$username = $this->input->post( 'username' );
 		$password = $this->input->post( 'password' );
         $store = $this->input->post( 'store' );
@@ -38,6 +82,7 @@ class Api extends CI_Controller {
         
 		$this->session->current_store_id = $store;
         $this->session->current_shift_id = $shift;
+        */
 	}
 
 
@@ -432,7 +477,7 @@ class Api extends CI_Controller {
 			$store = $store->get_by_id( $store_id );
 			$inventory = $store->get_items();
             
-            $inventory_data = [];
+            $inventory_data = array();
             $additional_fields = array(
                     'item_name' => array( 'type' => 'string' ),
                     'item_description' => array( 'type' => 'string' ),
