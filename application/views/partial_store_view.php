@@ -1,17 +1,3 @@
-<div class="panel panel-default">
-	<div class="panel-body">
-		<form class="form-inline">
-			<div class="form-group">
-				<label for="stores">Select store:</label>
-				<select name="stores" class="form-control"
-						ng-model="currentStore"
-						ng-options="store.store_name for store in stores track by store.id"
-						ng-change="changeStore( currentStore )"></select>
-			</div>
-		</form>
-	</div>
-</div>
-
 <!-- Inventory -->
 <div>
 	<uib-tabset>
@@ -26,7 +12,7 @@
 					</div>
 					<div class="clearfix"></div>
 				</div>
-				<table class="table">
+				<table class="table table-condensed">
 					<thead>
 						<tr>
 							<th>Item</th>
@@ -34,7 +20,6 @@
 							<th class="text-right">Quantity</th>
 							<th class="text-right">Buffer Level</th>
 							<th class="text-right">Reserved</th>
-							<th class="text-right col-sm-2"></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -44,9 +29,6 @@
 							<td class="text-right">{{ item.quantity | number }}</td>
 							<td class="text-right">{{ item.buffer_level | number }}</td>
 							<td class="text-right">{{ item.reserved | number }}</td>
-							<td class="text-right">
-								<button type="button" class="btn btn-default btn-block" ui-sref="adjust( item )">Adjust</button>
-							</td>
 						</tr>
 					</tbody>
 				</table>

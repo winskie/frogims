@@ -1,6 +1,6 @@
 body
 {
-	margin-top: 75px;
+	margin-top: 125px;
 }
 .table-details
 {
@@ -20,6 +20,19 @@ body
 .table tbody > tr > td
 {
 	vertical-align: middle;
+}
+
+.navbar-secondary {
+    margin-top: 50px;
+    min-height: 30px;
+    z-index: 900;
+}
+
+.navbar-secondary ul li a, .navbar-secondary .navbar-text {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
 
 .defective
