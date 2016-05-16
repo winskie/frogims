@@ -13,6 +13,8 @@ class User extends Base_model {
 	protected $date_created;
 	protected $date_modified;
 	protected $last_modified;
+	
+	protected $stores;
 
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
@@ -109,5 +111,22 @@ class User extends Base_model {
 		{
 			return NULL;
 		}
+	}
+	
+	public function get_stores()
+	{
+		if( ! isset( $this->stores ) )
+		{
+			$ci =& get_instance();
+			$ci->load->library( 'store' );
+			
+			$ci->db->select( 's.*' );
+			$ci->db->where( 'user_id', $this->id );
+			$ci->db->join( 'stores AS s', 's.id = su.store_id', 'inner' );
+			$stores = $ci->db->get( 'store_users AS su' );
+			$this->stores = $stores->result( 'Store' );
+		}
+		
+		return $this->stores;
 	}
 }

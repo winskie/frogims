@@ -21,7 +21,7 @@ class Login extends CI_Controller
                     $this->session->current_store_id = 1;
                     $this->session->current_shift_id = 1;
                     
-                    redirect( site_url( '/main/#/store' ) );
+                    redirect( site_url( '/main/#/store/front' ) );
                     //echo site_url( '/main/#/store' );
                 }
                 else

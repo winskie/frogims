@@ -271,6 +271,11 @@ class Api extends MY_Controller {
 		$current_user = $current_user->get_by_id( $this->session->current_user_id );
         $current_shift = $current_shift->get_by_id( $this->session->current_shift_id );
 
+        $user_data = NULL;
+        $store_data = NULL;
+        $stores_data = NULL;
+        $shift_data = NULL;
+        
 		if( $current_store )
 		{
 			$store_data = $current_store->as_array();
@@ -278,6 +283,13 @@ class Api extends MY_Controller {
 
 		if( $current_user )
 		{
+            $stores = $current_user->get_stores();
+            $stores_data = array();
+            
+            foreach( $stores as $store )
+            {
+                $stores_data[] = $store->as_array();
+            }
 			$user_data = $current_user->as_array();
 		}
         
@@ -291,6 +303,7 @@ class Api extends MY_Controller {
 				'data' => array(
 					'user' => $user_data,
 					'store' => $store_data,
+                    'stores' => $stores_data,
                     'shift' => $shift_data
 				)
 			);
@@ -463,6 +476,17 @@ class Api extends MY_Controller {
 		$this->output->set_output( json_encode( $response ) );
 	}
 
+    public function shifts()
+    {
+        $shifts = $this->db->get( 'shifts' );
+        $response = array(
+                'status' => 'ok',
+                'data' => $shifts->result_array()
+            );
+            
+        $this->output->set_content_type( 'application/json' );
+		$this->output->set_output( json_encode( $response ) );
+    }
 
 	public function inventory( $action = NULL )
 	{

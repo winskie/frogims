@@ -1,10 +1,11 @@
-app.controller( 'StoreController', [ '$scope', '$window', '$state', '$sce', '$q', 'UserServices', 'StoreServices', 'TransferServices', 'InventoryServices', 'AllocationServices', 'MiscServices',
-	function( $scope, $window, $state, $sce, $q, UserServices, StoreServices, TransferServices, InventoryServices, AllocationServices, MiscServices )
+app.controller( 'StoreController', [ 'session', 'stations', 'stores', 'shifts', '$scope', '$window', '$state', '$sce', '$q', 'UserServices', 'StoreServices', 'TransferServices', 'InventoryServices', 'AllocationServices', 'MiscServices',
+	function( session, stations, stores, shifts, $scope, $window, $state, $sce, $q, UserServices, StoreServices, TransferServices, InventoryServices, AllocationServices, MiscServices )
 	{
-		$scope.user = null;
-        $scope.stations = [];
-		$scope.stores = [];
-        $scope.shifts = [];
+		$scope.user = session.user;
+        $scope.stations = stations.data;
+		$scope.stores = session.stores;
+        $scope.shifts = shifts.data;
+        
 		$scope.currentStore = $scope.stores[0] || null;
         $scope.currentShift = $scope.shifts[0] || null;
 		$scope.items = [];
@@ -345,19 +346,11 @@ app.controller( 'StoreController', [ '$scope', '$window', '$state', '$sce', '$q'
                     });
             };
             
-		// Get login info
-		UserServices.getLoginInfo().then(
-			function( response )
-			{
-				$scope.user = response.user;
-				$scope.currentStore = response.store;
-			},
-			function( reason )
-			{
-				console.error( reason );
-			});
-
-		// Initialize main controller
+        $scope.changeStore( session.stores[0] );
+            
+       
+        // Initialize main controller
+        /*
         $scope.init = function()
         {
             if( $scope.initialized )
@@ -372,7 +365,7 @@ app.controller( 'StoreController', [ '$scope', '$window', '$state', '$sce', '$q'
                     {
                         if( response.status == 'ok' )
                         {
-                            $scope.stations = response.data
+                            //$scope.stations = response.data
                         }
                         else
                         {
@@ -388,7 +381,7 @@ app.controller( 'StoreController', [ '$scope', '$window', '$state', '$sce', '$q'
                 var initStores = StoreServices.getStores().then(
                     function( response )
                     {
-                        $scope.stores = response.data;
+                        //$scope.stores = response.data;
                         if( ! $scope.currentStore )
                         {
                             $scope.currentStore = response[0];
@@ -411,7 +404,8 @@ app.controller( 'StoreController', [ '$scope', '$window', '$state', '$sce', '$q'
             }
         }
         
-        $scope.init();      
+        $scope.init();
+        */
 	}
 ]);
 

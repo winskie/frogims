@@ -764,6 +764,8 @@ appServices.service( 'UserServices', [ '$http', '$q',
 appServices.service( 'MiscServices', [ '$http', '$q',
     function( $http, $q )
     {
+        this.shifts = undefined;
+        
         this.transactionTypes = {
                 '10': 'Transfer Out',
                 '11': 'Transfer In',
@@ -843,6 +845,25 @@ appServices.service( 'MiscServices', [ '$http', '$q',
                 $http({
                     method: 'GET',
                     url: baseUrl + 'index.php/api/stations'
+                }).then(
+                    function( response )
+                    {
+                        deferred.resolve( response.data );
+                    },
+                    function( reason )
+                    {
+                        deferred.reject( reason );
+                    });
+                    
+                return deferred.promise;
+            };
+            
+        this.getShifts = function()
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'GET',
+                    url: baseUrl + 'index.php/api/shifts'
                 }).then(
                     function( response )
                     {

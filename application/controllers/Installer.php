@@ -660,7 +660,7 @@ class Installer extends CI_Controller {
         
         echo 'Adding test users...';
         flush();
-        $this->load->library( 'User' );
+        $this->load->library( 'user' );
 		$user1 = new User();
 		$user1->set( 'username', 'erhsatingin' );
 		$user1->set( 'full_name', 'Erwin Rommel H. Satingin' );
@@ -669,7 +669,6 @@ class Installer extends CI_Controller {
 		$user1->set( 'user_role', 1 ); // administrator
 		$user1->set_password( 'password123' );
 		$user1->db_save();
-		unset( $user1 );
        
         $user2 = new User();
 		$user2->set( 'username', 'mmduron' );
@@ -679,11 +678,26 @@ class Installer extends CI_Controller {
 		$user2->set( 'user_role', 2 ); // standard user
 		$user2->set_password( 'password123' );
 		$user2->db_save();
-		unset( $user2 );
 		
         echo 'OK<br />';
         flush();
         
+		$this->load->library( 'store' );
+		$store = new Store();
+		$st_depot = $store->get_by_id( 1 );
+		$st_depot->add_member( $user1 );
+		
+		$st_tgm = $store->get_by_id( 2 );
+		$st_tgm->add_member( $user1 );
+		
+		$st_prod = $store->get_by_id( 3 );
+		$st_prod->add_member( $user1 );
+		
+		for( $i = 4; $i < 15; $i++ )
+		{
+			$stn = $store->get_by_id( $i );
+			$stn->add_member( $user2 );
+		}
 	}
 
 	public function reset_database()

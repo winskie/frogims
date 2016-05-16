@@ -54,55 +54,91 @@ var app = angular.module( 'FROGIMS', [ 'ui.router', 'ui.bootstrap', 'appServices
 
 app.config( function( $stateProvider, $urlRouterProvider ) 
 {
-	$urlRouterProvider.otherwise( '/store' );
+	$urlRouterProvider.otherwise( '/store/front' );
 	
-	$stateProvider
-		.state( 'dashboard', {
-			url: '/dashboard',
-			templateUrl: baseUrl + 'index.php/main/view/partial_dashboard_view'
-		})
-		
-		.state( 'store', {
+	var store = {
+			name: 'store',
 			url: '/store',
-			templateUrl: baseUrl + 'index.php/main/view/partial_store_view'
-		})
+			templateUrl: baseUrl + 'index.php/main/view/content',
+			controller: 'StoreController',
+			resolve: {
+				session: [ 'UserServices',
+					function( UserServices )
+					{
+						return UserServices.getLoginInfo();
+					}],
+				stations: [ 'MiscServices',
+					function( MiscServices )
+					{
+						return MiscServices.getStations();
+					}],
+				stores: [ 'StoreServices',
+					function( StoreServices )
+					{
+						return StoreServices.getStores();
+					}],
+				shifts: [ 'MiscServices',
+					function( MiscServices )
+					{
+						return MiscServices.getShifts();
+					}]
+			}
+		}
 		
-		.state( 'transfer', {
-			url: '/transfer',
+	var front = {
+			name: 'store.front',
+			parent: store,
+			url: '/front',
+			templateUrl: baseUrl + 'index.php/main/view/partial_store_view',
+		}
+	
+	var transfer = {
+			name: 'store.transfer',
+			parent: store,
 			params: { transferItem: null, editMode: 'view' },
 			templateUrl: baseUrl + 'index.php/main/view/partial_transfer_form',
 			controller: 'TransferController'
-		})
-		
-		.state( 'adjust', {
-			url: '/adjust',
+		}
+	
+	var adjust = {
+			name: 'store.adjust',
+			parent: store,
 			params: { adjustmentItem: null },
 			templateUrl: baseUrl + 'index.php/main/view/partial_adjustment_form',
 			controller: 'AdjustmentController'
-		})
-        
-        .state( 'convert', {
-            url: '/convert',
-            params: { conversionItem: null },
-            templateUrl: baseUrl + 'index.php/main/view/partial_conversion_form',
-            controller: 'ConversionController'
-        })
-        
-        .state( 'mopping', {
-            url: '/mopping',
-            params: { moppingItem: null, editMode: 'view' },
-            templateUrl: baseUrl + 'index.php/main/view/partial_mopping_form',
-            controller: 'MoppingController'
-        })
-        
-        .state( 'allocation', {
-            url: '/allocation',
-            params: { allocationItem: null, editMode: 'view' },
-            templateUrl: baseUrl + 'index.php/main/view/partial_allocation_form',
-            controller: 'AllocationController'
-        })
+		}
+	
+	var convert = {
+			name: 'store.convert',
+			parent: store,
+			params: { conversionItem: null },
+			templateUrl: baseUrl + 'index.php/main/view/partial_conversion_form',
+			controller: 'ConversionController'
+		}
+	
+	var mopping = {
+			name: 'store.mopping',
+			parent: store,
+			url: '/mopping',
+			params: { moppingItem: null, editMode: 'view' },
+			templateUrl: baseUrl + 'index.php/main/view/partial_mopping_form',
+			controller: 'MoppingController'
+		}
+	
+	var allocation = {
+			name: 'store.allocation',
+			parent: store,
+			params: { allocationItem: null, editMode: 'view' },
+			templateUrl: baseUrl + 'index.php/main/view/partial_allocation_form',
+			controller: 'AllocationController'
+		}
 		
-		.state( 'logout', {
-			url: '/logout'
-		});
+	$stateProvider
+		.state( front )
+		.state( store )
+		.state( transfer )
+		.state( adjust )
+		.state( convert )
+		.state( mopping )
+		.state( allocation );
 });

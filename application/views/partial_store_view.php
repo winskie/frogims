@@ -81,7 +81,7 @@
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left">Transfers</h3>
 					<div class="pull-right">
-						<button class="btn btn-primary btn-sm" ui-sref="transfer({ editMode: 'transfer' })">
+						<button class="btn btn-primary btn-sm" ui-sref="store.transfer({ editMode: 'transfer' })">
 							<i class="glyphicon glyphicon-plus"></i> New transfer
 						</button>&nbsp;
 						<button class="btn btn-default btn-sm" ng-click="updateTransfers()">
@@ -140,7 +140,7 @@
 												<span class="caret"></span>
 											</button>
 											<ul uib-dropdown-menu role="menu">
-												<li role="menuitem"><a ui-sref="transfer({ transferItem: transfer, editMode: 'transfer' })">Edit...</a></li>
+												<li role="menuitem"><a ui-sref="store.transfer({ transferItem: transfer, editMode: 'transfer' })">Edit...</a></li>
 												<li role="menuitem"><a href="#" ng-click="cancelTransfer( transfer )">Cancel</a></li>
 											</ul>
 										</div>
@@ -148,7 +148,7 @@
 
 									<div class="animate-switch" ng-switch-when="<?php echo TRANSFER_APPROVED;?>">
 										<div class="btn-group btn-block" uib-dropdown>
-											<button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="transfer({ transferItem: transfer, mode: 'view' })">View details...</button>
+											<button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="store.transfer({ transferItem: transfer, mode: 'view' })">View details...</button>
 											<button type="button" class="btn btn-default col-sm-3 col-md-2" uib-dropdown-toggle>
 												<span class="caret"></span>
 											</button>
@@ -159,7 +159,7 @@
 									</div>
 
 									<div class="animate-switch" ng-switch-default>
-										<button type="button" class="btn btn-default btn-block" ui-sref="transfer({ transferItem: transfer, mode: 'view' })">View details...</button>
+										<button type="button" class="btn btn-default btn-block" ui-sref="store.transfer({ transferItem: transfer, mode: 'view' })">View details...</button>
 									</div>
 
 								</div>
@@ -182,7 +182,7 @@
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left">Receipts</h3>
 					<div class="pull-right">
-						<button class="btn btn-primary btn-sm" ui-sref="transfer({ editMode: 'externalReceipt' })">
+						<button class="btn btn-primary btn-sm" ui-sref="store.transfer({ editMode: 'externalReceipt' })">
 							<i class="glyphicon glyphicon-plus"></i> New receipt
 						</button>&nbsp;
 						<button class="btn btn-default btn-sm" ng-click="updateReceipts()">
@@ -239,7 +239,7 @@
 									<div class="animate-switch" ng-switch-when="<?php echo TRANSFER_APPROVED;?>">
 										<div class="btn-group btn-block" uib-dropdown>
 											<button id="split-button" type="button" class="btn btn-primary col-sm-9 col-md-10"
-													ui-sref="transfer({ transferItem: receipt, editMode: 'receipt' })">Receive...
+													ui-sref="store.transfer({ transferItem: receipt, editMode: 'receipt' })">Receive...
 											</button>
 											<button type="button" class="btn btn-primary col-sm-3 col-md-2" uib-dropdown-toggle>
 												<span class="caret"></span>
@@ -251,7 +251,7 @@
 									</div>
 
 									<div class="animate-switch" ng-switch-default>
-										<button type="button" class="btn btn-default btn-block" ui-sref="transfer({ transferItem: receipt, mode: 'view' })">View details...</button>
+										<button type="button" class="btn btn-default btn-block" ui-sref="store.transfer({ transferItem: receipt, mode: 'view' })">View details...</button>
 									</div>
 
 								</div>
@@ -274,7 +274,7 @@
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left">Adjustments</h3>
 					<div class="pull-right">
-						<button class="btn btn-primary btn-sm" ui-sref="adjust">
+						<button class="btn btn-primary btn-sm" ui-sref="store.adjust">
 							<i class="glyphicon glyphicon-plus"></i> New adjustment
 						</button>&nbsp;
 						<button class="btn btn-default btn-sm" ng-click="updateAdjustments()">
@@ -313,13 +313,13 @@
 												<span class="caret"></span>
 											</button>
 											<ul uib-dropdown-menu role="menu">
-												<li role="menuitem"><a ui-sref="adjust({ adjustmentItem: adjustment })">Edit Adjustment...</a></li>
+												<li role="menuitem"><a ui-sref="store.adjust({ adjustmentItem: adjustment })">Edit Adjustment...</a></li>
 											</ul>
 										</div>
 									</div>
 
 									<div class="animate-switch" ng-switch-default>
-										<button type="button" class="btn btn-default btn-block" ui-sref="adjust({ adjustmentItem: adjustment })">View details...</button>
+										<button type="button" class="btn btn-default btn-block" ui-sref="store.adjust({ adjustmentItem: adjustment })">View details...</button>
 									</div>
 
 								</div>
@@ -343,7 +343,7 @@
                 <div class="panel-heading">
                     <h3 class="panel-title pull-left">Mopping Collection</h3>
                     <div class="pull-right">
-                        <button class="btn btn-primary btn-sm" ui-sref="mopping({ editMode: 'new' })">
+                        <button class="btn btn-primary btn-sm" ui-sref="store.mopping({ editMode: 'new' })">
                             <i class="glyphicon glyphicon-plus"></i> New collection
                         </button>&nbsp;
                         <button class="btn btn-default btn-sm" ng-click="updateCollections()">
@@ -385,12 +385,12 @@
                             </td>
                             <td class="vert-top">
                                 <div class="btn-group btn-block" uib-dropdown>
-                                    <button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="mopping({ moppingItem: coll, editMode: 'view' })">View details...</button>
+                                    <button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="store.mopping({ moppingItem: coll, editMode: 'view' })">View details...</button>
                                     <button type="button" class="btn btn-default col-sm-3 col-md-2" uib-dropdown-toggle>
                                         <span class="caret"></span>
                                     </button>
                                     <ul uib-dropdown-menu role="menu">
-                                        <li role="menuitem"><a ui-sref="mopping({ moppingItem: coll, editMode: 'edit' })">Edit Collection...</a></li>
+                                        <li role="menuitem"><a ui-sref="store.mopping({ moppingItem: coll, editMode: 'edit' })">Edit Collection...</a></li>
                                     </ul>
                                 </div>
                             </td>
@@ -412,7 +412,7 @@
                 <div class="panel-heading">
                     <h3 class="panel-title pull-left">Allocations</h3>
                     <div class="pull-right">
-                        <button class="btn btn-primary btn-sm" ui-sref="allocation({ editMode: 'new' })">
+                        <button class="btn btn-primary btn-sm" ui-sref="store.allocation({ editMode: 'new' })">
                             <i class="glyphicon glyphicon-plus"></i> New allocation
                         </button>&nbsp;
                         <button class="btn btn-default btn-sm" ng-click="updateAllocations()">
@@ -480,28 +480,28 @@
 							<td class="text-center vert-top">{{ lookupAllocationStatus( row.allocation_status, 'status' ) }}</td>
                             <td class="vert-top" ng-switch on="row.allocation_status">
 								<div class="btn-group btn-block" uib-dropdown ng-switch-when="<?php echo ALLOCATION_SCHEDULED;?>">
-                                    <button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="allocation({ allocationItem: row, editMode: 'edit' })">Edit...</button>
+                                    <button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="store.allocation({ allocationItem: row, editMode: 'edit' })">Edit...</button>
                                     <button type="button" class="btn btn-default col-sm-3 col-md-2" uib-dropdown-toggle>
                                         <span class="caret"></span>
                                     </button>
                                     <ul uib-dropdown-menu role="menu">
 										<li role="menuitem"><a href="#" ng-click="cancelAllocation( row )">Cancel</a></li>
-                                        <li role="menuitem"><a ui-sref="allocation({ allocationItem: row, editMode: 'view' })">View details...</a></li>
+                                        <li role="menuitem"><a ui-sref="store.allocation({ allocationItem: row, editMode: 'view' })">View details...</a></li>
                                     </ul>
                                 </div>
 								
 								<div class="btn-group btn-block" uib-dropdown ng-switch-when="<?php echo ALLOCATION_ALLOCATED;?>">
-                                    <button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="allocation({ allocationItem: row, editMode: 'edit' })">Edit...</button>
+                                    <button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="store.allocation({ allocationItem: row, editMode: 'edit' })">Edit...</button>
                                     <button type="button" class="btn btn-default col-sm-3 col-md-2" uib-dropdown-toggle>
                                         <span class="caret"></span>
                                     </button>
                                     <ul uib-dropdown-menu role="menu">
-                                        <li role="menuitem"><a ui-sref="allocation({ allocationItem: row, editMode: 'view' })">View details...</a></li>
+                                        <li role="menuitem"><a ui-sref="store.allocation({ allocationItem: row, editMode: 'view' })">View details...</a></li>
                                     </ul>
                                 </div>
 								
 								<div class="animate-switch" ng-switch-default>
-									<button type="button" class="btn btn-default btn-block" ui-sref="allocation({ allocationItem: row, editMode: 'view' })">View details...</button>
+									<button type="button" class="btn btn-default btn-block" ui-sref="store.allocation({ allocationItem: row, editMode: 'view' })">View details...</button>
 								</div>
 							</td>
                         </tr>
@@ -522,7 +522,7 @@
                 <div class="panel-heading">
                     <h3 class="panel-title pull-left">Conversions</h3>
                     <div class="pull-right">
-                        <button class="btn btn-primary btn-sm" ui-sref="convert">
+                        <button class="btn btn-primary btn-sm" ui-sref="store.convert">
                             <i class="glyphicon glyphicon-plus"></i> New conversion
                         </button>&nbsp;
                         <button class="btn btn-default btn-sm" ng-click="updateConversions()">
