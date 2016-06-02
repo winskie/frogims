@@ -21,7 +21,7 @@ class Main extends MY_Controller {
 	public function index()
 	{
 		//$this->login( 'admin', 1, 1 );
-		$this->load->view( 'main' );
+		$this->load->view( 'index' );
 	}
 	
 	public function test()

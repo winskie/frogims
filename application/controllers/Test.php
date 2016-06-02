@@ -1,8 +1,14 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Test extends CI_Controller
+class Test extends MY_Controller
 {
+    public function __construct()
+    {
+        $public_methods = array( 'segment', 'session_data' );
+        parent::__construct( $public_methods );
+    }
+    
 	public function index()
 	{		
 		$this->load->library( 'BaseModel' );
@@ -14,11 +20,28 @@ class Test extends CI_Controller
 
 		var_dump( $i );
 	}
+    
+    public function segment()
+    {
+        echo $this->uri->segment(2);
+    }
 	
 	public function session_data()
 	{
 		var_dump( $this->session->userdata() );
 	}
+    
+    public function is_logged_in()
+    {
+        if( ! $this->session->current_user_id )
+        {
+            echo 'Not logged in!';
+        }
+        else
+        {
+            echo 'Logged in';
+        }
+    }
 	
     public function test_conversion()
     {

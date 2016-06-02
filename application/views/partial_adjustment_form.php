@@ -10,8 +10,8 @@
 					
 					<div class="col-sm-5" ng-switch-when="<?php echo ADJUSTMENT_PENDING;?>">
 						<select name="items" class="form-control"							
-							ng-model="selectedItem" ng-change="changeItem( selectedItem )"
-							ng-options="i.item_description for i in items track by i.id">
+							ng-model="data.selectedItem" ng-change="changeItem()"
+							ng-options="i.item_description for i in data.inventoryItems track by i.id">
 						</select>
 					</div>
 					
@@ -27,7 +27,7 @@
 					
 					<div ng-switch-when="<?php echo ADJUSTMENT_PENDING;?>">
 						<label class="control-label col-sm-2">Current balance</label>
-						<p class="form-control-static col-sm-2">{{ selectedItem.quantity | number }}</p>
+						<p class="form-control-static col-sm-2">{{ data.selectedItem.quantity | number }}</p>
 					</div>
 					
 					<div ng-switch-default>
@@ -46,7 +46,7 @@
 						<input name="quantity" type="number" class="form-control text-right" ng-model="adjustmentItem.adjusted_quantity">
 					</div>
 					
-					<div class="col-sm-2" ng-swtich-default>
+					<div class="col-sm-2" ng-switch-default>
 						<p class="form-control-static">{{ adjustmentItem.adjusted_quantity | number }}</p>
 					</div>
 					
@@ -83,11 +83,11 @@
 			<div class="pull-right" ng-switch-when="<?php echo ADJUSTMENT_PENDING;?>">
 				<button class="btn btn-primary" ng-click="saveAdjustment()">Save</button>
 				<button class="btn btn-default" ng-click="approveAdjustment()">Approve</button>
-				<button class="btn btn-default" ui-sref="store">Cancel</button>
+				<button class="btn btn-default" ui-sref="main.store">Cancel</button>
 			</div>
 			
 			<div class="pull-right" ng-switch-default>
-				<button class="btn btn-default" ui-sref="store">Close</button>
+				<button class="btn btn-default" ui-sref="main.store">Close</button>
 			</div>
 		</div>
 		<div class="clearfix"></div>

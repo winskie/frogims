@@ -16,12 +16,27 @@ class Login extends CI_Controller
                 $user = $user->get_by_username( $username );
                 if( $user && $user->validate_password( $password ) )
                 {
+                    // Get store where user is member
+                    $stores = $user->get_stores();
+                    if( $stores )
+                    {
+                        $first_store = $stores[0];
+                        
+                        // Get store shifts
+                        $shifts = $first_store->get_shifts();
+                        
+                        if( $shifts )
+                        {
+                            $first_shift = $shifts[0];
+                        }
+                    }
+                    
                     // Set session data
                     $this->session->current_user_id = $user->get( 'id' );
-                    $this->session->current_store_id = 1;
-                    $this->session->current_shift_id = 1;
+                    $this->session->current_store_id = $first_store->get( 'id' );
+                    $this->session->current_shift_id = $first_shift->get( 'id' );
                     
-                    redirect( site_url( '/main/#/store/front' ) );
+                    redirect( site_url( '/main/#/main/store' ) );
                     //echo site_url( '/main/#/store' );
                 }
                 else

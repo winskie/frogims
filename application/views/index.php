@@ -11,11 +11,11 @@
 		<link rel="stylesheet" type="text/css" href="<?php echo base_url( 'resources/css/main.css' );?>" />
 
 		<script>
-			var baseUrl = '<?php echo base_url();?>';
+			var baseUrl = '<?php echo base_url(); ?>';
 		</script>
 		<script src="<?php echo base_url( 'resources/js/angular.min.js' );?>"></script>
 		<script src="<?php echo base_url( 'resources/js/angular-animate.min.js' );?>"></script>
-		<script src="<?php echo base_url( 'resources/js/ui-bootstrap-tpls-1.1.2.min.js' );?>"></script>
+		<script src="<?php echo base_url( 'resources/js/ui-bootstrap-tpls-1.3.3.min.js' );?>"></script>
 		<script src="<?php echo base_url( 'resources/js/angular-ui-router.min.js');?>"></script>
 		<script src="<?php echo base_url( 'app.js' );?>"></script>
 		<script src="<?php echo base_url( 'controllers.js' );?>"></script>

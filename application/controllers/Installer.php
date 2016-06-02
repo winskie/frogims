@@ -64,6 +64,20 @@ class Installer extends CI_Controller {
 					UNIQUE users_undx (username)
 				)
 				ENGINE=InnoDB" );
+				
+		echo 'Creating groups table...<br />';
+		$this->db->query( "
+				CREATE TABLE IF NOT EXISTS groups
+				(
+					id INTEGER AUTO_INCREMENT NOT NULL,
+					group_name VARCHAR(100) NOT NULL,
+					date_created DATETIME NOT NULL,
+					date_modified DATETIME NOT NULL,
+					last_modified INTEGER NOT NULL,
+					PRIMARY KEY( id ),
+					UNIQUE groups_undx ( group_name )
+				)
+				ENGINE=InnoDB" );
 
 		echo 'Creating stores table...<br />';
 		$this->db->query( "
@@ -465,10 +479,10 @@ class Installer extends CI_Controller {
                 array( 'TGM S1', 3, 'Transport Shift 1', '06:00:00', '13:59:59' ),
                 array( 'TGM S2', 3, 'Transport Shift 2', '14:00:00', '21:59:59' ),
                 array( 'Cashier S1', 4, 'Cashier Shift 1', '06:00:00', '13:59:59' ),
-                array( 'Cashier S2', 4, 'Cashier Shift 2', '02:00:00', '21:59:59' ),
+                array( 'Cashier S2', 4, 'Cashier Shift 2', '14:00:00', '21:59:59' ),
                 array( 'Cashier S3', 4, 'Cashier Shift 3', '22:00:00', '05:59:59' ),
                 array( 'Teller S1', 0, 'Teller Shift 1', '06:00:00', '13:59:59' ),
-                array( 'Teller S2', 0, 'Teller Shift 2', '02:00:00', '21:59:59' ),
+                array( 'Teller S2', 0, 'Teller Shift 2', '14:00:00', '21:59:59' ),
                 array( 'Teller S3', 0, 'Teller Shift 3', '22:00:00', '05:59:59' )
             );
         

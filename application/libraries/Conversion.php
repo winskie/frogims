@@ -32,6 +32,28 @@ class Conversion extends Base_model {
 			);
 	}
     
+    public function get_conversions( $params = array() )
+    {
+        $ci =& get_instance();
+        
+        $format = param( $params, 'format', 'object' );
+        
+        $conversions = $ci->db->get( $this->primary_table );
+        $conversions = $conversions->result( get_class( $this ) );
+        
+        if( $format == 'array' )
+        {
+            $conversions_data = array();
+            foreach( $conversions as $conversion )
+            {
+                $conversions_data[] = $conversion->as_array();
+            }
+            return $conversions_data;
+        }
+        
+        return $conversions;
+    }
+    
     public function db_save()
     {
         // There are no pending changes, just return the record

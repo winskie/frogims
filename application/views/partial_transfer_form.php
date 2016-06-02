@@ -44,20 +44,17 @@
 				</div>
 				
 				<div class="col-sm-4">
-					<!-- Prepared by -->
-					<div class="form-group">
-						<label class="control-label col-sm-4">Prepared by</label>
-						<p class="form-control-static col-sm-7">{{ user.full_name }}</p>
-					</div>
+					
 					
 					<!-- Sweeper -->
 					<div class="form-group">
-						<label class="control-label col-sm-4">Sweeper</label>
+						<label class="control-label col-sm-4">{{ data.sweeperLabel }}</label>
 						<div class="col-sm-7" ng-if="[ 'transfer', 'externalTransfer', 'externalReceipt' ].indexOf( data.editMode ) != -1">
 							<input type="text" class="form-control"
 									ng-model="transferItem.sender_name"
+									ng-model-options="{ debounce: 500 }"
 									typeahead-editable="true"
-									uib-typeahead="user as user.full_name for user in data.sweepers | filter: $viewValue">
+									uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
 						</div>
 						<div class="col-sm-7" ng-if="[ 'transfer', 'externalTransfer', 'externalReceipt' ].indexOf( data.editMode ) == -1">
 							<p class="form-control-static">{{ transferItem.sender_name }}</p>
@@ -69,7 +66,7 @@
 					<!-- Transfer Status -->
 					<div class="form-group">
 						<label class="control-label col-sm-4">Status</label>
-						<p class="form-control-static col-sm-7">{{ lookupTransferStatus( transferItem.transfer_status ) }}</p>
+						<p class="form-control-static col-sm-7">{{ lookup( 'transferStatus', transferItem.transfer_status ) }}</p>
 					</div>
 					
 					<!-- Date of Transfer -->
@@ -224,13 +221,13 @@
 	<div ng-if="[ 'transfer', 'externalTransfer' ].indexOf( data.editMode ) != -1">
 		<button type="button" class="btn btn-primary" ng-click="scheduleTransfer()">Schedule</button>
 		<button type="button" class="btn btn-default" ng-click="approveTransfer()">Approve</button>
-		<button type="button" class="btn btn-default" ui-sref="store">Cancel</button>
+		<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'transfers'})">Cancel</button>
 	</div>
 	<div ng-if="['receipt', 'externalReceipt'].indexOf( data.editMode ) != -1">
 		<button type="button" class="btn btn-primary" ng-click="receiveTransfer()">Receive</button>
-		<button type="button" class="btn btn-default" ui-sref="store">Cancel</button>
+		<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'transfers'})">Cancel</button>
 	</div>
 	<div ng-if="data.editMode == 'view'">
-		<button type="button" class="btn btn-default" ui-sref="store">Close</button>
+		<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'transfers'})">Close</button>
 	</div>
 </div>

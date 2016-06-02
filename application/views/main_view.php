@@ -14,12 +14,12 @@
             <div id="navbar" class="collapse navbar-collapse">
                 <ul class="nav navbar-nav">
                     <li><a ui-sref="dashboard">Dashboard</a></li>
-                    <li class="active"><a ui-sref="store.front">Store</a></li>
+                    <li class="active"><a ui-sref="main.store">Store</a></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <li uib-dropdown>
                         <a href class="navbar-link" uib-dropdown-toggle>
-                            {{ user.username }}
+                            {{ data.currentUser.username }}
                         </a>
                         <ul class="dropdown-menu" uib-dropdown-menu>
                             <li>
@@ -36,10 +36,10 @@
             <ul class="nav navbar-nav">
                 <li uib-dropdown>
                     <a href uib-dropdown-toggle>
-                        {{ currentStore.store_name }} <span class="caret"></span>
+                        {{ data.currentStore.store_name }} <span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu" uib-dropdown-menu>
-                        <li ng-repeat="store in stores">
+                        <li ng-repeat="store in data.userStores">
                             <a href ng-click="changeStore( store )">{{ store.store_name }}</a>
                         </li>
                     </ul>
@@ -48,10 +48,10 @@
             <ul class="nav navbar-nav navbar-right">
                 <li uib-dropdown>
                     <a href uib-dropdown-toggle>
-                        {{ currentShift.description }} <span class="caret"></span>
+                        {{ data.currentShift.description }} <span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu" uib-dropdown-menu>
-                        <li ng-repeat="shift in shifts">
+                        <li ng-repeat="shift in data.storeShifts">
                             <a href ng-click="changeShift( shift )">{{ shift.description }}</a>
                         </li>
                     </ul>

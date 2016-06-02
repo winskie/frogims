@@ -149,6 +149,7 @@ class Transfer extends Base_model {
 		$ci =& get_instance();
 		
 		$ci->load->library( 'inventory' );
+		$Inventory = new Inventory();
 
 		$result = NULL;
 		$ci->db->trans_start();
@@ -164,19 +165,25 @@ class Transfer extends Base_model {
 					{
 						if( $item->db_changes['transfer_item_status']  == TRANSFER_ITEM_SCHEDULED )
 						{
-							$inventory = new Inventory();
-							$inventory = $inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
+							$inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
 							$inventory->reserve( $item->get( 'quantity' ) );
 						}
-						elseif( $item->db_changes['transfer_item_status'] == TRANSFER_ITEM_VOIDED )
+						elseif( in_array( $item->db_changes['transfer_item_status'], array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ) )
 						{
 							if( $item->get( 'previousStatus' ) == TRANSFER_ITEM_SCHEDULED )
 							{
-								$inventory = new Inventory();
-								$inventory = $inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
+								$inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
 								$inventory->reserve( $item->get( 'quantity' ) * -1 );
 							}
 						}
+					}
+					
+					if( array_key_exists( 'transfer_status', $this->db_changes )
+						&& $this->db_changes['transfer_status'] == TRANSFER_CANCELLED
+						&& $this->previousStatus == TRANSFER_PENDING )
+					{
+						$inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
+						$inventory->reserve( $item->get( 'quantity' ) * -1 );
 					}
 					
 					if( ! $item->get( 'id' ) )
@@ -472,7 +479,6 @@ class Transfer extends Base_model {
 			}
 			
 			$quantity = $item->get( 'quantity' ); // Item will be returned to the inventory
-			
 			if( $item->get( 'transfer_item_status' ) == TRANSFER_ITEM_APPROVED )
 			{
 				$inventory->transact( TRANSACTION_TRANSFER_CANCEL, $quantity, $timestamp, $this->id );
@@ -600,10 +606,10 @@ class Transfer extends Base_model {
 		{
 			die( 'Current store is not authorized to cancel the transfer.' );
 		}
-
-		$ci->load->library( 'store' );
-		$current_store = new Store();
-		$current_store = $current_store->get_by_id( $ci->session->current_store_id );
+		
+		//$ci->load->library( 'store' );
+		//$current_store = new Store();
+		//$current_store = $current_store->get_by_id( $ci->session->current_store_id );
 
 		$ci->db->trans_start();
 		$this->set( 'transfer_status', TRANSFER_CANCELLED );

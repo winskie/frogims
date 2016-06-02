@@ -10,7 +10,7 @@
                         <label class="control-label">Input item</label>
                         <select class="form-control"
                                 ng-model="data.sourceInventory"
-                                ng-options="inventory.item_name for inventory in sourceInventory track by inventory.id"
+                                ng-options="inventory.item_name for inventory in data.sourceItems track by inventory.id"
                                 ng-change="updateConversionFactor()">
                         </select>
                     </div>
@@ -23,6 +23,7 @@
                     <div class="form-group">
                         <label class="control-label">Input quantity</label>
                         <input type="number" class="form-control" name="inputQuantity" id="inputQuantity"
+                                step="{{ data.input.step }}" min="{{ data.input.min }}"
                                 ng-model="conversionItem.source_quantity"
                                 ng-change="calculateOutput( 'input' )">
                     </div>
@@ -35,7 +36,7 @@
                         <label class="control-label">Output item</label>
                         <select class="form-control"
                                 ng-model="data.targetInventory"
-                                ng-options="inventory.item_name for inventory in items track by inventory.id"
+                                ng-options="inventory.item_name for inventory in data.targetItems track by inventory.id"
                                 ng-change="updateConversionFactor()">
                         </select>
                     </div>
@@ -48,6 +49,7 @@
                     <div class="form-group">
                         <label class="control-label">Output quantity</label>
                         <input type="number" class="form-control" name="outputQuantity" id="outputQuantity"
+                                step="{{ data.output.step }}" min="{{ data.output.min }}"
                                 ng-model="conversionItem.target_quantity"
                                 ng-change="calculateOutput( 'output' )">
                     </div>
@@ -61,17 +63,17 @@
                 </div>
             </div>
             
-            <div ng-show="messages.length" class="alert alert-danger" role="alert">
+            <div ng-show="data.messages.length" class="alert alert-danger" role="alert">
                 <ul>
-                    <li ng-repeat="message in messages">{{ message }}</li>
+                    <li ng-repeat="message in data.messages">{{ message }}</li>
                 </ul>
             </div>
         </form>
     </div>
     <div class="panel-footer">
         <div class="text-right">
-            <button class="btn btn-primary capitalize" ng-disabled="!valid_conversion" ng-click="convert()">{{ mode ? mode : 'Convert' }}</button>
-            <button class="btn btn-default">Close</button>
+            <button class="btn btn-primary capitalize" ng-disabled="!valid_conversion" ng-click="convertItem()">{{ mode ? mode : 'Convert' }}</button>
+            <button class="btn btn-default" ui-sref="main.store">Close</button>
         </div>
     </div>
 </div>

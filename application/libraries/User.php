@@ -129,4 +129,15 @@ class User extends Base_model {
 		
 		return $this->stores;
 	}
+	
+	public function search( $query )
+	{
+		$ci =& get_instance();
+		
+		$ci->db->like( 'full_name', $query );
+		$ci->db->limit( 10 );
+		$users = $ci->db->get( $this->primary_table );
+		
+		return $users->result( get_class( $this ) );
+	}
 }

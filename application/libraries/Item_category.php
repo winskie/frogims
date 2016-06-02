@@ -28,4 +28,32 @@ class Item_category extends Base_model
 		);
 	}
     
+	public function get_categories( $params = array() )
+	{
+		$ci =& get_instance();
+		$format = param( $params, 'format', 'object' );
+		$status = param( $params, 'status', 1 );
+		
+		if( ! is_null( $status ) )
+		{
+			$ci->db->where( 'category_status', $status );
+		}
+		
+		$categories = $ci->db->get( $this->primary_table )->result( get_class( $this ) );
+		
+		if( $format == 'array' )
+		{
+			$categories_array = array();
+			foreach( $categories as $category )
+			{
+				$categories_array[] = $category->as_array();
+			}
+			
+			return $categories_array;
+		}
+		else
+		{
+			return $categories;
+		}
+	}
 }

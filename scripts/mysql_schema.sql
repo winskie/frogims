@@ -43,6 +43,18 @@ CREATE TABLE IF NOT EXISTS users
 )
 ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS groups
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	group_name VARCHAR(100) NOT NULL,
+	date_created DATETIME NOT NULL,
+	date_modified DATETIME NOT NULL,
+	last_modified INTEGER NOT NULL,
+	PRIMARY KEY( id ),
+	UNIQUE groups_undx ( group_name )
+)
+ENGINE=InnoDB;
+
 -- store_type: 1 - General, 2 - Production, 3 - TGM, 4 - Cashroom
 CREATE TABLE IF NOT EXISTS stores
 (

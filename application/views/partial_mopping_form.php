@@ -109,8 +109,9 @@
                 <label class="control-label">Processed by</label>
                 <input type="text" class="form-control"
                         ng-model="input.processor"
+                        ng-model-options="{ debounce: 500 }"
                         typeahead-editable="false"
-                        uib-typeahead="user as user.full_name for user in data.processors | filter: $viewValue">
+                        uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
             </div>
             
             <div class="form-group col-sm-3">
@@ -169,5 +170,5 @@
 
 <div class="text-right">
     <button type="button" class="btn btn-primary" ng-click="saveCollection()" ng-if="data.editMode != 'view'">Save</button>
-    <button type="button" class="btn btn-default" ui-sref="store">{{ data.editMode == 'view' ? 'Close' : 'Cancel' }}</button>
+    <button type="button" class="btn btn-default" ui-sref="main.store">{{ data.editMode == 'view' ? 'Close' : 'Cancel' }}</button>
 </div>

@@ -75,9 +75,9 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => 'db.afcs.lan',
+	'hostname' => 'localhost',
 	'username' => 'root',
-	'password' => 'BERGEON',
+	'password' => 'dbuser',
 	'database' => 'frogims',
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',

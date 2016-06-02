@@ -15,7 +15,8 @@ class Base_model
 
 	public function __construct()
 	{
-		//$this->CI =& get_instance();
+		$ci =& get_instance();
+		
 		$this->db_metadata = array(
 			$this->date_created_field => array(),
 			$this->date_modified_field => array(),
@@ -35,7 +36,7 @@ class Base_model
 		if( isset( $this->last_modified_field ) )
 		{
 			$last_modified_field = $this->last_modified_field;
-			$this->$last_modified_field = 3;
+			$this->$last_modified_field = NULL;
 		}
 	}
 
@@ -91,7 +92,9 @@ class Base_model
 		$ci =& get_instance();
         
         $select = array( $this->primary_table.'.*' );
-		$ci->db->where( 'id', $id );
+		
+		$ci->db->select( implode(', ', $select ) );
+		$ci->db->where( $this->primary_table.'.id', $id );
 		$ci->db->limit( 1 );
 		$query = $ci->db->get( $this->primary_table );
 
@@ -268,9 +271,16 @@ class Base_model
 			{
 				if( is_array( $field ) )
 				{
-					if( isset( $field['type'] ) )
+					if( property_exists( $this, $k ) )
 					{
-						$data[$k] = param_type( $this->$k, $field['type'] );
+						if( isset( $field['type'] ) )
+						{
+							$data[$k] = param_type( $this->$k, $field['type'] );
+						}
+						else
+						{
+							$data[$k] = $this->$k;
+						}
 					}
 				}
 				else

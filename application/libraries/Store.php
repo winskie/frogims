@@ -7,6 +7,9 @@ class Store extends Base_model
     protected $store_type;
 	protected $store_location;
 	protected $store_contact_number;
+	
+	protected $members;
+	protected $shifts;
 
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
@@ -14,7 +17,6 @@ class Store extends Base_model
 
 	public function __construct()
 	{
-		parent::__construct();
 		$this->primary_table = 'stores';
 		$this->db_fields = array(
 			'store_name' => array( 'type' => 'string' ),
@@ -22,29 +24,9 @@ class Store extends Base_model
 			'store_location' => array( 'type' => 'string' ),
 			'store_contact_number' => array( 'type' => 'string' )
 		);
+		parent::__construct();
 	}
-    
-    static function get_shifts( $store_type = NULL )
-    {
-        $ci =& get_instance();
-        
-        $ci->load->library( 'shift' );
-        if( ! is_null( $store_type ) )
-        {
-            if( is_array( $store_type ) )
-            {
-                $ci->db->where_in( 'store_type', $store_type );
-            }
-            else
-            {
-                $ci->db->where( 'store_type', $store_type );
-            }
-        }
-        $query = $ci->db->get( 'shifts' );
-        
-        return $query->result( 'Shift' );
-    }
-
+	
 	public function get_stores( $params = array() )
 	{
 		$ci =& get_instance();
@@ -64,20 +46,115 @@ class Store extends Base_model
 
 		return NULL;
 	}
+	
+    
+	public function get( $property, $params = array() )
+	{
+		if( $property == 'items' )
+		{
+			return get_items( $params );
+		}
+		elseif( $property == 'shifts' )
+		{
+			return get_shifts();
+		}
+		elseif( $property == 'members' )
+		{
+			return get_members();
+		}
+		if( property_exists( $this, $property ) )
+		{
+			return $this->$property;
+		}
+		else
+		{
+			return NULL;
+		}
+	}
 
-    public function get_store_shifts( $show_all = FALSE )
+	
+    public function get_shifts()
+    {
+		if( ! isset( $shifts ) )
+		{
+			$ci =& get_instance();
+			
+			$ci->load->library( 'shift' );
+			$ci->db->where( 'store_type', $this->store_type );
+			$query = $ci->db->get( 'shifts' );
+			
+			$this->shifts = $query->result( 'Shift' );
+		}
+        
+        return $this->shifts;
+    }
+
+
+    public function get_store_shifts( $params = array() )
     {
         $ci =& get_instance();
-        
         $ci->load->library( 'shift' );
-        if( ! $show_all )
-        {
-            $ci->db->where( 'store_type', $this->store_type );
-        }
+        
+		$order = param( $params, 'order' );
+		
+		if( $order )
+		{
+			$ci->db->order_by( $order );
+		}
+		
+        $ci->db->where( 'store_type', $this->store_type );
         $query = $ci->db->get( 'shifts' );
         
         return $query->result( 'Shift' );
     }
+
+	
+	public function get_suggested_shift( $time = 'now' )
+	{
+		$suggested_shift = NULL;
+		$store_shifts = $this->get_store_shifts( array( 'order' => 'shift_start_time ASC, shift_end_time ASC') );
+		$time = strtotime( $time );
+		$time_seconds = ( (int) date( 'H', $time ) * 3600 ) + ( (int) date( 'M', $time ) * 60 ) + ( (int) date( 's', $time ) );
+		
+		foreach( $store_shifts as $shift )
+		{
+			$start = strtotime( $shift->get( 'shift_start_time' ) );
+			$start_seconds = ( (int) date( 'H', $start ) * 3600 ) + ( (int) date( 'M', $start ) * 60 ) + ( (int) date( 's', $start ) );
+			$end = strtotime( $shift->get( 'shift_end_time' ) );
+			$end_seconds = ( (int) date( 'H', $end ) * 3600 ) + ( (int) date( 'M', $end ) * 60 ) + ( (int) date( 's', $end ) );
+			
+			if( $start <= $end )
+			{
+				if( $time_seconds >= $start_seconds && $time_seconds <= $end_seconds )
+				{
+					$suggested_shift = $shift;
+					break;
+				}
+			}
+			else
+			{
+				if( $time_seconds >= $start_seconds || $time_seconds <= $end_seconds )
+				{
+					$suggested_shift = $shift;
+					break;
+				}
+			}
+		}
+		
+		if( $suggested_shift )
+		{
+			return $suggested_shift;
+		}
+		elseif( $store_shifts )
+		{
+			return $store_shifts[0];
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+
 
 	public function get_members()
 	{
@@ -89,6 +166,18 @@ class Store extends Base_model
 		$query = $ci->db->get( 'store_users' );
         
 		return $query->result( 'User' );
+	}
+
+
+	public function is_member( $user_id )
+	{
+		$ci =& get_instance();
+		
+		$ci->db->where( 'store_id', $this->id );
+		$ci->db->where( 'user_id', $user_id );
+		$query = $ci->db->get( 'store_users' );
+		
+		return $query->num_rows > 0;
 	}
 
 
@@ -190,11 +279,16 @@ class Store extends Base_model
 		return $ci->db->trans_status();
 	}
 	
+
 	public function get_transactions( $params = array() )
 	{
 		$ci =& get_instance();
 		
 		$ci->load->library( 'transaction' );
+		$business_date = param( $params, 'date' );
+		$item_id = param( $params, 'item' );
+		$transaction_type = param( $params, 'type' );
+		
 		$limit = param( $params, 'limit' );
 		$offset = param( $params, 'offset' );
 		$format = param( $params, 'format', 'object' );
@@ -209,13 +303,34 @@ class Store extends Base_model
 			$ci->db->order_by( $order );
 		}
 		
-		$ci->db->select( 't.*, i.item_name, i.item_description' );
+		$ci->db->select( 't.*, i.id AS item_id, i.item_name, i.item_description, s.shift_num' );
 		$ci->db->join( 'store_inventory si', 'si.id = t.store_inventory_id' );
 		$ci->db->join( 'items i', 'i.id = si.item_id' );
+		$ci->db->join( 'shifts s', 's.id = t.transaction_shift' );
 		$ci->db->where( 'store_id', intval( $this->id ) );
+		
+		if( $business_date )
+		{
+			$ci->db->where( 'DATE(transaction_datetime)', $business_date );
+		}
+		else
+		{
+			//$ci->db->where( 'DATE(transaction_datetime)', date( DATE_FORMAT ) );
+		}
+		
+		if( $item_id )
+		{
+			$ci->db->where( 'i.id', $item_id );
+		}
+		
+		if( $transaction_type )
+		{
+			$ci->db->where( 'transaction_type', $transaction_type );
+		}
+		
 		$query = $ci->db->get( 'transactions t' );
 
-		if( $format )
+		if( $format == 'array' )
 		{
 			return $query->result_array();
 		}
@@ -261,6 +376,7 @@ class Store extends Base_model
 		return NULL;
 	}
 
+
 	public function get_receipts( $params = array() )
 	{
 		$ci =& get_instance();
@@ -302,7 +418,8 @@ class Store extends Base_model
 
 		return NULL;
 	}
-	
+
+
 	public function get_adjustments( $params = array() )
 	{
 		$ci =& get_instance();
@@ -327,20 +444,26 @@ class Store extends Base_model
 		$ci->db->join( 'store_inventory si', 'si.id = a.store_inventory_id', 'left' );
 		$ci->db->join( 'items i', 'i.id = si.item_id', 'left' );
         $ci->db->join( 'users u', 'u.id = a.user_id', 'left' );
-		$query = $ci->db->get( 'adjustments a' );
+		$adjustments = $ci->db->get( 'adjustments a' );
+		$adjustments = $adjustments->result( 'Adjustment' );
+		if( $format == 'array' )
+		{
+			$adjustments_data = array();
+			foreach( $adjustments as $adjustment )
+			{
+				$adjustments_data[] = $adjustment->as_array( array(
+					'item_name' => array( 'type' => 'string' ),
+					'item_description' => array( 'type' => 'string' ),
+					'username' => array( 'type' => 'string' ),
+					'full_name' => array( 'type' => 'string' ) ) );
+			}
+			return $adjustments_data;
+		}
 		
-		if( $format == 'object' )
-		{
-			return $query->result( 'Transfer' );
-		}
-		elseif( $format == 'array' )
-		{
-			return $query->result_array();
-		}
-
-		return NULL;
+		return $adjustments;
 	}
-    
+
+
     public function get_collections( $params =array () )
     {
         $ci =& get_instance();
@@ -374,7 +497,8 @@ class Store extends Base_model
         
         return NULL;
     }
-    
+
+
     public function get_collections_summary( $params = array() )
     {
         $ci =& get_instance();
@@ -422,7 +546,8 @@ class Store extends Base_model
         
         return $query->result_array();
     }
-    
+
+
     public function get_allocations( $params = array() )
     {
         $ci =& get_instance();
@@ -458,7 +583,8 @@ class Store extends Base_model
         
         return NULL;
     }
-	
+
+
 	public function get_allocations_summary( $params = array() )
 	{
 		$ci =& get_instance();
@@ -493,7 +619,8 @@ class Store extends Base_model
 		
 		return $query->result_array();
 	}
-	
+
+
     public function get_conversions( $params =array () )
     {
         $ci =& get_instance();
@@ -520,20 +647,27 @@ class Store extends Base_model
         $ci->db->join( 'store_inventory ti', 'ti.id = c.target_inventory_id', 'left' );
         $ci->db->join( 'items src_item', 'src_item.id = si.item_id', 'left' );
         $ci->db->join( 'items tgt_item', 'tgt_item.id = ti.item_id', 'left' );
-        $query = $ci->db->get( 'conversions c' );
+        $conversions = $ci->db->get( 'conversions c' );
+		$conversions = $conversions->result( 'Conversion' );
         
-        if( $format == 'object' )
+        if( $format == 'array' )
         {
-            return $query->result( 'Conversion' );
-        }
-        elseif( $format == 'array' )
-        {
-            return $query->result_array();
+			$conversions_array = array();
+			foreach( $conversions as $conversion )
+			{
+				$conversions_array[] = $conversion->as_array( array(
+					'source_item_name' => array( 'type' => 'string' ),
+					'source_item_description' => array( 'type' => 'string' ),
+					'target_item_name' => array( 'type' => 'string' ),
+					'target_item_description' => array( 'type' => 'string' ) ) );
+			}
+			return $conversions_array;
         }
         
-        return NULL;
+        return $conversions;
     }
-    
+
+
 	public function count_pending_transfers()
 	{
 		$ci =& get_instance();
@@ -544,7 +678,8 @@ class Store extends Base_model
 		
 		return $count;
 	}
-	
+
+
 	public function count_pending_receipts()
 	{
 		$ci =& get_instance();
@@ -555,7 +690,8 @@ class Store extends Base_model
 		
 		return $count;
 	}
-	
+
+
 	public function count_pending_adjustments()
 	{
 		$ci =& get_instance();

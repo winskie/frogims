@@ -70,7 +70,7 @@
                 <!-- Allocation Status -->
                 <div class="form-group">
                     <label class="control-label col-sm-5">Status</label>
-                    <p class="form-control-static">{{ lookupAllocationStatus( allocationItem.allocation_status, 'status' ) }}</p>
+                    <p class="form-control-static">{{ lookup( 'allocationStatus', allocationItem.allocation_status ).status }}</p>
                 </div>
             </div>
         </form>
@@ -106,7 +106,7 @@
                             <td class="text-left">{{ row.category_name }}</td>
                             <td class="text-left">{{ row.item_name }}</td>
                             <td class="text-center">{{ row.allocated_quantity | number }}</td>
-                            <td class="text-center">{{ lookupAllocationItemStatus( row.allocation_item_status ) }}</td>
+                            <td class="text-center">{{ lookup( 'allocationItemStatus', row.allocation_item_status ) }}</td>
                             <td class="text-center" ng-if="data.editMode != 'view'" ng-switch on="row.allocation_item_status">
                                 <a href
                                         ng-if="row.allocation_item_status == <?php echo ALLOCATION_ITEM_SCHEDULED;?> && row.id == undefined"
@@ -153,7 +153,7 @@
                             <td class="text-left">{{ row.category_name }}</td>
                             <td class="text-left">{{ row.item_name }}</td>
                             <td class="text-center">{{ row.allocated_quantity | number }}</td>
-                            <td class="text-center">{{ lookupAllocationItemStatus( row.allocation_item_status ) }}</td>
+                            <td class="text-center">{{ lookup( 'allocationItemStatus', row.allocation_item_status ) }}</td>
                             <td class="text-center" ng-if="data.editMode != 'view'" ng-switch on="row.allocation_item_status">
                                 <a href
                                         ng-if="row.allocation_item_status == <?php echo REMITTANCE_ITEM_PENDING;?> && row.id == undefined"

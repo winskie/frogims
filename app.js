@@ -52,89 +52,98 @@ var app = angular.module( 'FROGIMS', [ 'ui.router', 'ui.bootstrap', 'appServices
 	}];
 });
 
-app.config( function( $stateProvider, $urlRouterProvider ) 
+app.constant( 'baseUrl', baseUrl );
+
+app.config( function( baseUrl, $stateProvider, $urlRouterProvider ) 
 {
-	$urlRouterProvider.otherwise( '/store/front' );
+	$urlRouterProvider.otherwise( '/main/store' );
 	
-	var store = {
-			name: 'store',
-			url: '/store',
-			templateUrl: baseUrl + 'index.php/main/view/content',
-			controller: 'StoreController',
-			resolve: {
-				session: [ 'UserServices',
-					function( UserServices )
-					{
-						return UserServices.getLoginInfo();
-					}],
-				stations: [ 'MiscServices',
-					function( MiscServices )
-					{
-						return MiscServices.getStations();
-					}],
-				stores: [ 'StoreServices',
-					function( StoreServices )
-					{
-						return StoreServices.getStores();
-					}],
-				shifts: [ 'MiscServices',
-					function( MiscServices )
-					{
-						return MiscServices.getShifts();
-					}]
-			}
-		}
+	var dashboard = {
+			name: 'dashboard',
+			url: '/dashboard',
+			templateUrl: baseUrl + 'index.php/main/view/content'
+		};
+	
+	var main = {
+			name: 'main',
+			url: '/main',
+			templateUrl: baseUrl + 'index.php/main/view/main_view',
+			controller: 'MainController'
+		};
 		
-	var front = {
-			name: 'store.front',
-			parent: store,
-			url: '/front',
+	var store = {
+			name: 'main.store',
+			parent: main,
+			url: '/store',
 			templateUrl: baseUrl + 'index.php/main/view/partial_store_view',
-		}
+			controller: 'FrontController',
+			params: { activeTab: 'inventory' }
+		};
 	
 	var transfer = {
-			name: 'store.transfer',
-			parent: store,
+			name: 'main.transfer',
+			parent: main,
+			url: '/transfer',
 			params: { transferItem: null, editMode: 'view' },
 			templateUrl: baseUrl + 'index.php/main/view/partial_transfer_form',
 			controller: 'TransferController'
-		}
+		};
 	
 	var adjust = {
-			name: 'store.adjust',
-			parent: store,
+			name: 'main.adjust',
+			parent: main,
+			url: '/adjust',
 			params: { adjustmentItem: null },
 			templateUrl: baseUrl + 'index.php/main/view/partial_adjustment_form',
 			controller: 'AdjustmentController'
-		}
+		};
 	
 	var convert = {
-			name: 'store.convert',
-			parent: store,
+			name: 'main.convert',
+			parent: main,
+			url: '/convert',
 			params: { conversionItem: null },
 			templateUrl: baseUrl + 'index.php/main/view/partial_conversion_form',
 			controller: 'ConversionController'
-		}
+		};
 	
 	var mopping = {
-			name: 'store.mopping',
-			parent: store,
+			name: 'main.mopping',
+			parent: main,
 			url: '/mopping',
 			params: { moppingItem: null, editMode: 'view' },
 			templateUrl: baseUrl + 'index.php/main/view/partial_mopping_form',
-			controller: 'MoppingController'
-		}
+			controller: 'MoppingController',
+			resolve: {
+				cashierShifts: function( appData )
+					{
+						return appData.getCashierShifts();
+					},
+				packingData: function( appData )
+					{
+						return appData.getPackingData();
+					}
+			}
+		};
 	
 	var allocation = {
-			name: 'store.allocation',
-			parent: store,
+			name: 'main.allocation',
+			parent: main,
+			url: '/allocation',
 			params: { allocationItem: null, editMode: 'view' },
 			templateUrl: baseUrl + 'index.php/main/view/partial_allocation_form',
-			controller: 'AllocationController'
-		}
+			controller: 'AllocationController',
+			resolve: {
+				assigneeShifts: function( appData )
+					{
+						return appData.getAssigneeShifts();
+					}
+			}
+		};
 		
 	$stateProvider
-		.state( front )
+		.state( dashboard )
+		.state( main )
 		.state( store )
 		.state( transfer )
 		.state( adjust )
@@ -142,3 +151,143 @@ app.config( function( $stateProvider, $urlRouterProvider )
 		.state( mopping )
 		.state( allocation );
 });
+
+app.run( [ 'session', 'appData',
+	function( session, appData )
+	{
+		console.log( 'Initializing session data...' );
+		session.getSessionData().then(
+			function( response )
+			{
+				console.log( 'Session data loaded' );
+				
+				// Load session dependent data
+				console.log( 'Loading current inventory...' );
+				appData.getInventory().then(
+					function( response )
+					{
+						// do nothing
+					},
+					function( reason )
+					{
+						console.error( reason );
+					});
+					
+				console.log( 'Loading store transactions...' );
+				appData.getTransactions().then(
+					function( response )
+					{
+						// do nothing
+					},
+					function( reason )
+					{
+						console.error( reason );
+					});
+					
+				console.log( 'Loading transfers...' );
+				appData.getTransfers().then(
+					function( response )
+					{
+						// do nothing
+					},
+					function( reason )
+					{
+						console.error( reason );
+					});
+					
+				console.log( 'Loading receipts...' );
+				appData.getReceipts().then(
+					function( response )
+					{
+						// do nothing
+					},
+					function( reason )
+					{
+						console.error( reason );
+					});
+					
+				console.log( 'Loading adjustments...' );
+				appData.getAdjustments().then(
+					function( response )
+					{
+						// do nothing
+					},
+					function( reason )
+					{
+						console.error( reason );
+					});
+					
+				console.log( 'Loading collections...' );
+				appData.getCollections().then(
+					function( response )
+					{
+						// do nothing
+					},
+					function( reason )
+					{
+						console.error( reason );
+					});
+					
+				console.log( 'Loading allocations...' );
+				appData.getAllocations().then(
+					function( response )
+					{
+						// do nothing
+					},
+					function( reason )
+					{
+						console.error( reason );
+					});
+					
+				console.log( 'Loading conversions...' );
+				appData.getConversions().then(
+					function( response )
+					{
+						// do nothing
+					},
+					function( reason )
+					{
+						console.error( reason );
+					});
+			},
+			function( reject )
+			{
+				console.error( reject );
+			});
+			
+		console.log( 'Loading stations data...' );
+		appData.getStations().then(
+			function( response )
+			{
+				// do nothing
+			},
+			function( reason )
+			{
+				console.error( reason );
+			});
+			
+		console.log( 'Loading available stores...' );
+		appData.getStores().then(
+			function( response )
+			{
+				// do nothing
+			},
+			function( reason )
+			{
+				console.error( reason );
+			});
+			
+		console.log( 'Loading item categories...' );
+		appData.getItemCategories().then(
+			function( response )
+			{
+				// do nothing
+			},
+			function( reason )
+			{
+				console.error( reason );
+			});
+			
+				
+	}
+]);

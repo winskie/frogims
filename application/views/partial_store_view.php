@@ -1,12 +1,12 @@
 <!-- Inventory -->
 <div>
-	<uib-tabset>
-		<uib-tab heading="Inventory">
+	<uib-tabset active="activeTab">
+		<uib-tab heading="Inventory" index="0" select="onTabSelect(0)">
 			<div class="panel panel-default">
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left"> Inventory</h3>
 					<div class="pull-right">
-						<button class="btn btn-default btn-sm" ng-click="updateInventory()">
+						<button class="btn btn-default btn-sm" ng-click="updateInventory( sessionData.currentStore.id )">
 							<i class="glyphicon glyphicon-refresh"></i>
 						</button>
 					</div>
@@ -23,7 +23,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr ng-repeat="item in items" ng-class="{info: currentItem == item}">
+						<tr ng-repeat="item in data.items" ng-class="{info: currentItem == item}">
 							<td>{{ item.item_name }}</td>
 							<td>{{ item.item_description }}</td>
 							<td class="text-right">{{ item.quantity | number }}</td>
@@ -35,56 +35,63 @@
 			</div>
 		</uib-tab>
 		
-		<uib-tab heading="Transactions Summary">
+		<uib-tab heading="Transactions Summary" index="1" select="onTabSelect(1)">
 			<div class="panel panel-default">
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left">Transactions Summary</h3>
-					<button class="btn btn-default btn-sm pull-right" ng-click="updateTransactions()">
+					<button class="btn btn-default btn-sm pull-right" ng-click="updateTransactions( sessionData.currentStore.id )">
 						<i class="glyphicon glyphicon-refresh"></i>
 					</button>
 					<div class="clearfix"></div>
 				</div>
-				<table class="table table-hover">
-					<thead>
-						<tr>
-							<th class="text-left">Date / Time</th>
-							<th class="text-left">Item</th>
-							<th class="text-left">Transaction Type</th>
-							<th class="text-center">Transaction ID</th>
-							<th class="text-right">Quantity</th>
-							<th class="text-right">Balance</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr ng-repeat="transaction in transactions">
-							<td>{{ transaction.transaction_datetime }}</td>
-							<td>{{ transaction.item_name }}</td>
-							<td>{{ lookupTransactionType( transaction.transaction_type ) }}</td>
-							<td class="text-center">{{ transaction.transaction_id }}</td>
-							<td class="text-right">{{ transaction.transaction_quantity | number }}</td>
-							<td class="text-right">{{ transaction.current_quantity | number }}</td>
-						</tr>
-						<tr ng-show="!transactions.length">
-							<td colspan="6" class="text-center">No transaction data available</td>
-						</tr>
-					</tbody>
-				</table>
+				<div class="panel-body">
+					<div class="well">
+						Filter here
+					</div>
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th class="text-left">Date / Time</th>
+								<th class="text-left">Item</th>
+								<th class="text-left">Transaction Type</th>
+								<th class="text-center">Transaction ID</th>
+								<th class="text-center">Shift</th>
+								<th class="text-right">Quantity</th>
+								<th class="text-right">Balance</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="transaction in data.transactions">
+								<td>{{ transaction.transaction_datetime }}</td>
+								<td>{{ transaction.item_name }}</td>
+								<td>{{ lookup( 'transactionTypes', transaction.transaction_type ) }}</td>
+								<td class="text-center">{{ transaction.transaction_id }}</td>
+								<td class="text-center">{{ transaction.shift_num }}</td>
+								<td class="text-right">{{ transaction.transaction_quantity | number }}</td>
+								<td class="text-right">{{ transaction.current_quantity | number }}</td>
+							</tr>
+							<tr ng-show="!data.transactions.length">
+								<td colspan="6" class="text-center">No transaction data available</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
 			</div>
 		</uib-tab>
 
 		<!-- Outgoing -->
-		<uib-tab>
+		<uib-tab index="2" select="onTabSelect(2)">
 			<uib-tab-heading>
-				Outgoing <span ng-show="pendingTransfers > 0" class="label label-danger label-as-badge">{{ pendingTransfers }}</span>
+				Outgoing <span ng-show="data.pendingTransfers > 0" class="label label-danger label-as-badge">{{ data.pendingTransfers }}</span>
 			</uib-tab-heading>
 			<div class="panel panel-default">
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left">Transfers</h3>
 					<div class="pull-right">
-						<button class="btn btn-primary btn-sm" ui-sref="store.transfer({ editMode: 'transfer' })">
+						<button class="btn btn-primary btn-sm" ui-sref="main.transfer({ editMode: 'transfer' })">
 							<i class="glyphicon glyphicon-plus"></i> New transfer
 						</button>&nbsp;
-						<button class="btn btn-default btn-sm" ng-click="updateTransfers()">
+						<button class="btn btn-default btn-sm" ng-click="updateTransfers( sessionData.currentStore.id )">
 							<i class="glyphicon glyphicon-refresh"></i>
 						</button>
 					</div>
@@ -100,7 +107,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr ng-repeat="transfer in transfers">
+						<tr ng-repeat="transfer in data.transfers">
 							<td class="vert-top">{{ transfer.transfer_datetime }}</td>
 							<td class="vert-top">
 								<div>
@@ -129,7 +136,7 @@
 									</table>
 								</div>
 							</td>
-							<td class="text-center vert-top">{{ lookupTransferStatus( transfer.transfer_status ) }}</td>
+							<td class="text-center vert-top">{{ lookup( 'transferStatus', transfer.transfer_status ) }}</td>
 							<td class="text-right vert-top">
 								<div class="animate-switch-container" ng-switch on="transfer.transfer_status">
 
@@ -140,7 +147,7 @@
 												<span class="caret"></span>
 											</button>
 											<ul uib-dropdown-menu role="menu">
-												<li role="menuitem"><a ui-sref="store.transfer({ transferItem: transfer, editMode: 'transfer' })">Edit...</a></li>
+												<li role="menuitem"><a ui-sref="main.transfer({ transferItem: transfer, editMode: 'transfer' })">Edit...</a></li>
 												<li role="menuitem"><a href="#" ng-click="cancelTransfer( transfer )">Cancel</a></li>
 											</ul>
 										</div>
@@ -148,7 +155,7 @@
 
 									<div class="animate-switch" ng-switch-when="<?php echo TRANSFER_APPROVED;?>">
 										<div class="btn-group btn-block" uib-dropdown>
-											<button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="store.transfer({ transferItem: transfer, mode: 'view' })">View details...</button>
+											<button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="main.transfer({ transferItem: transfer, mode: 'view' })">View details...</button>
 											<button type="button" class="btn btn-default col-sm-3 col-md-2" uib-dropdown-toggle>
 												<span class="caret"></span>
 											</button>
@@ -159,13 +166,13 @@
 									</div>
 
 									<div class="animate-switch" ng-switch-default>
-										<button type="button" class="btn btn-default btn-block" ui-sref="store.transfer({ transferItem: transfer, mode: 'view' })">View details...</button>
+										<button type="button" class="btn btn-default btn-block" ui-sref="main.transfer({ transferItem: transfer, mode: 'view' })">View details...</button>
 									</div>
 
 								</div>
 							</td>
 						</tr>
-						<tr ng-show="!transfers.length">
+						<tr ng-show="!data.transfers.length">
 							<td colspan="4" class="text-center">No transfer transaction data available</td>
 						</tr>
 					</tbody>
@@ -174,18 +181,18 @@
 		</uib-tab>
 
 		<!-- Incoming -->
-		<uib-tab>
+		<uib-tab index="3" select="onTabSelect(3)">
 			<uib-tab-heading>
-				Incoming <span ng-show="pendingReceipts > 0" class="label label-danger label-as-badge">{{ pendingReceipts }}</span>
+				Incoming <span ng-show="data.pendingReceipts > 0" class="label label-danger label-as-badge">{{ data.pendingReceipts }}</span>
 			</uib-tab-heading>
 			<div class="panel panel-default">
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left">Receipts</h3>
 					<div class="pull-right">
-						<button class="btn btn-primary btn-sm" ui-sref="store.transfer({ editMode: 'externalReceipt' })">
+						<button class="btn btn-primary btn-sm" ui-sref="main.transfer({ editMode: 'externalReceipt' })">
 							<i class="glyphicon glyphicon-plus"></i> New receipt
 						</button>&nbsp;
-						<button class="btn btn-default btn-sm" ng-click="updateReceipts()">
+						<button class="btn btn-default btn-sm" ng-click="updateReceipts( sessionData.currentStore.id )">
 							<i class="glyphicon glyphicon-refresh"></i>
 						</button>
 					</div>
@@ -201,7 +208,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr ng-repeat="receipt in receipts">
+						<tr ng-repeat="receipt in data.receipts">
 							<td class="vert-top">{{ receipt.transfer_datetime }}</td>
 							<td class="vert-top">
 								<div>
@@ -232,14 +239,14 @@
 									</table>
 								</div>
 							</td>
-							<td class="text-center vert-top">{{ lookupTransferStatus( receipt.transfer_status ) }}</td>
+							<td class="text-center vert-top">{{ lookup( 'transferStatus', receipt.transfer_status ) }}</td>
 							<td class="text-right vert-top">
 								<div class="animate-switch-container" ng-switch on="receipt.transfer_status">
 
 									<div class="animate-switch" ng-switch-when="<?php echo TRANSFER_APPROVED;?>">
 										<div class="btn-group btn-block" uib-dropdown>
 											<button id="split-button" type="button" class="btn btn-primary col-sm-9 col-md-10"
-													ui-sref="store.transfer({ transferItem: receipt, editMode: 'receipt' })">Receive...
+													ui-sref="main.transfer({ transferItem: receipt, editMode: 'receipt' })">Receive...
 											</button>
 											<button type="button" class="btn btn-primary col-sm-3 col-md-2" uib-dropdown-toggle>
 												<span class="caret"></span>
@@ -251,13 +258,13 @@
 									</div>
 
 									<div class="animate-switch" ng-switch-default>
-										<button type="button" class="btn btn-default btn-block" ui-sref="store.transfer({ transferItem: receipt, mode: 'view' })">View details...</button>
+										<button type="button" class="btn btn-default btn-block" ui-sref="main.transfer({ transferItem: receipt, mode: 'view' })">View details...</button>
 									</div>
 
 								</div>
 							</td>
 						</tr>
-						<tr ng-show="!receipts.length">
+						<tr ng-show="!data.receipts.length">
 							<td colspan="4" class="text-center">No receipt transaction data available</td>
 						</tr>
 					</tbody>
@@ -266,18 +273,18 @@
 		</uib-tab>
 
 		<!-- Adjustments -->
-		<uib-tab>
+		<uib-tab index="4" select="onTabSelect(4)">
 			<uib-tab-heading>
-				Adjustments <span ng-show="pendingAdjustments > 0" class="label label-danger label-as-badge">{{ pendingAdjustments }}</span>
+				Adjustments <span ng-show="data.pendingAdjustments > 0" class="label label-danger label-as-badge">{{ data.pendingAdjustments }}</span>
 			</uib-tab-heading>
 			<div class="panel panel-default">
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left">Adjustments</h3>
 					<div class="pull-right">
-						<button class="btn btn-primary btn-sm" ui-sref="store.adjust">
+						<button class="btn btn-primary btn-sm" ui-sref="main.adjust">
 							<i class="glyphicon glyphicon-plus"></i> New adjustment
 						</button>&nbsp;
-						<button class="btn btn-default btn-sm" ng-click="updateAdjustments()">
+						<button class="btn btn-default btn-sm" ng-click="updateAdjustments( sessionData.currentStore.id )">
 							<i class="glyphicon glyphicon-refresh"></i>
 						</button>
 					</div>
@@ -296,13 +303,13 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr ng-repeat="adjustment in adjustments">
+						<tr ng-repeat="adjustment in data.adjustments">
 							<td class="text_left">{{ adjustment.adjustment_timestamp }}</td>
 							<td class="text_left">{{ adjustment.item_name }}</td>
 							<td class="text-right">{{ adjustment.adjusted_quantity | number }}</td>
 							<td class="text-right">{{ adjustment.adjustment_status == 1 ? 'pending' : ( adjustment.previous_quantity | number ) }}</td>
 							<td class="text-left">{{ adjustment.reason }}</td>
-							<td class="text-center">{{ lookupAdjustmentStatus( adjustment.adjustment_status ) }}</td>
+							<td class="text-center">{{ lookup( 'adjustmentStatus', adjustment.adjustment_status ) }}</td>
 							<td>
 								<div class="animate-switch-container" ng-switch on="adjustment.adjustment_status">
 
@@ -313,13 +320,13 @@
 												<span class="caret"></span>
 											</button>
 											<ul uib-dropdown-menu role="menu">
-												<li role="menuitem"><a ui-sref="store.adjust({ adjustmentItem: adjustment })">Edit Adjustment...</a></li>
+												<li role="menuitem"><a ui-sref="main.adjust({ adjustmentItem: adjustment })">Edit Adjustment...</a></li>
 											</ul>
 										</div>
 									</div>
 
 									<div class="animate-switch" ng-switch-default>
-										<button type="button" class="btn btn-default btn-block" ui-sref="store.adjust({ adjustmentItem: adjustment })">View details...</button>
+										<button type="button" class="btn btn-default btn-block" ui-sref="main.adjust({ adjustmentItem: adjustment })">View details...</button>
 									</div>
 
 								</div>
@@ -335,7 +342,7 @@
 		</uib-tab>
         
         <!-- Mopping -->
-        <uib-tab>
+        <uib-tab index="5" select="onTabSelect(5)">
             <uib-tab-heading>
                 Mopping Collection
             </uib-tab-heading>
@@ -343,10 +350,10 @@
                 <div class="panel-heading">
                     <h3 class="panel-title pull-left">Mopping Collection</h3>
                     <div class="pull-right">
-                        <button class="btn btn-primary btn-sm" ui-sref="store.mopping({ editMode: 'new' })">
+                        <button class="btn btn-primary btn-sm" ui-sref="main.mopping({ editMode: 'new' })">
                             <i class="glyphicon glyphicon-plus"></i> New collection
                         </button>&nbsp;
-                        <button class="btn btn-default btn-sm" ng-click="updateCollections()">
+                        <button class="btn btn-default btn-sm" ng-click="updateCollections( sessionData.currentStore.id )">
                             <i class="glyphicon glyphicon-refresh"></i>
                         </button>
                     </div>
@@ -362,9 +369,9 @@
 						</tr>
                     </thead>
                     <tbody>
-                        <tr ng-repeat="coll in colls">
-                            <td class="text-left vert-top">{{ coll.processing_datetime }}<br />{{ coll.shift_num }}</td>
-                            <td class="text-center vert-top">{{ coll.business_date }}<br />{{ coll.cashier_shift_num }}</td>
+                        <tr ng-repeat="collection in data.collections">
+                            <td class="text-left vert-top">{{ collection.processing_datetime }}<br />{{ collection.shift_num }}</td>
+                            <td class="text-center vert-top">{{ collection.business_date }}<br />{{ collection.cashier_shift_num }}</td>
                             <td class="text-left">
 								<div class="panel panel-default">
 									<table class="table table-condensed table-bordered table-details">
@@ -375,7 +382,7 @@
 											</tr>
 										</thead>
 										<tbody>
-											<tr ng-repeat="item in coll.items">
+											<tr ng-repeat="item in collection.items">
 												<td>{{ item.item_description }}</td>
 												<td class="text-right">{{ item.quantity | number }}</td>
 											</tr>
@@ -385,17 +392,17 @@
                             </td>
                             <td class="vert-top">
                                 <div class="btn-group btn-block" uib-dropdown>
-                                    <button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="store.mopping({ moppingItem: coll, editMode: 'view' })">View details...</button>
+                                    <button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="main.mopping({ moppingItem: collection, editMode: 'view' })">View details...</button>
                                     <button type="button" class="btn btn-default col-sm-3 col-md-2" uib-dropdown-toggle>
                                         <span class="caret"></span>
                                     </button>
                                     <ul uib-dropdown-menu role="menu">
-                                        <li role="menuitem"><a ui-sref="store.mopping({ moppingItem: coll, editMode: 'edit' })">Edit Collection...</a></li>
+                                        <li role="menuitem"><a ui-sref="main.mopping({ moppingItem: collection, editMode: 'edit' })">Edit Collection...</a></li>
                                     </ul>
                                 </div>
                             </td>
                         </tr>
-                        <tr ng-show="colls.length == 0">
+                        <tr ng-show="data.collections.length == 0">
                             <td colspan="4" class="text-center">No mopping collection data available</td>
                         </tr>
                     </tbody>
@@ -404,7 +411,7 @@
         </uib-tab>
         
         <!-- Allocation -->
-        <uib-tab>
+        <uib-tab index="6" select="onTabSelect(6)">
             <uib-tab-heading>
                 Allocations
             </uib-tab-heading>
@@ -412,10 +419,10 @@
                 <div class="panel-heading">
                     <h3 class="panel-title pull-left">Allocations</h3>
                     <div class="pull-right">
-                        <button class="btn btn-primary btn-sm" ui-sref="store.allocation({ editMode: 'new' })">
+                        <button class="btn btn-primary btn-sm" ui-sref="main.allocation({ editMode: 'new' })">
                             <i class="glyphicon glyphicon-plus"></i> New allocation
                         </button>&nbsp;
-                        <button class="btn btn-default btn-sm" ng-click="updateAllocations()">
+                        <button class="btn btn-default btn-sm" ng-click="updateAllocations( sessionData.currentStore.id )">
                             <i class="glyphicon glyphicon-refresh"></i>
                         </button>
                     </div>
@@ -433,7 +440,7 @@
 						</tr>
                     </thead>
                     <tbody>
-                        <tr ng-repeat="row in allocations">
+                        <tr ng-repeat="row in data.allocations">
 							<td class="row-flag" ng-class="lookupAllocationStatus( row.allocation_status, 'className' )"></td>
                             <td class="text-left vert-top">{{ row.business_date }}<br />{{ row.shift_num }}</td>
                             <td class="text-left vert-top">{{ row.assignee ? row.assignee : 'Not yet specified' }}<br />{{ row.assignee_type == 1 ? 'Station Teller' : 'Vending Machine' }}</td>
@@ -477,35 +484,35 @@
 									</table>
 								</div>
 							</td>
-							<td class="text-center vert-top">{{ lookupAllocationStatus( row.allocation_status, 'status' ) }}</td>
+							<td class="text-center vert-top">{{ lookup( 'allocationStatus', row.allocation_status ).status }}</td>
                             <td class="vert-top" ng-switch on="row.allocation_status">
 								<div class="btn-group btn-block" uib-dropdown ng-switch-when="<?php echo ALLOCATION_SCHEDULED;?>">
-                                    <button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="store.allocation({ allocationItem: row, editMode: 'edit' })">Edit...</button>
+                                    <button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="main.allocation({ allocationItem: row, editMode: 'edit' })">Edit...</button>
                                     <button type="button" class="btn btn-default col-sm-3 col-md-2" uib-dropdown-toggle>
                                         <span class="caret"></span>
                                     </button>
                                     <ul uib-dropdown-menu role="menu">
 										<li role="menuitem"><a href="#" ng-click="cancelAllocation( row )">Cancel</a></li>
-                                        <li role="menuitem"><a ui-sref="store.allocation({ allocationItem: row, editMode: 'view' })">View details...</a></li>
+                                        <li role="menuitem"><a ui-sref="main.allocation({ allocationItem: row, editMode: 'view' })">View details...</a></li>
                                     </ul>
                                 </div>
 								
 								<div class="btn-group btn-block" uib-dropdown ng-switch-when="<?php echo ALLOCATION_ALLOCATED;?>">
-                                    <button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="store.allocation({ allocationItem: row, editMode: 'edit' })">Edit...</button>
+                                    <button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="main.allocation({ allocationItem: row, editMode: 'edit' })">Edit...</button>
                                     <button type="button" class="btn btn-default col-sm-3 col-md-2" uib-dropdown-toggle>
                                         <span class="caret"></span>
                                     </button>
                                     <ul uib-dropdown-menu role="menu">
-                                        <li role="menuitem"><a ui-sref="store.allocation({ allocationItem: row, editMode: 'view' })">View details...</a></li>
+                                        <li role="menuitem"><a ui-sref="main.allocation({ allocationItem: row, editMode: 'view' })">View details...</a></li>
                                     </ul>
                                 </div>
 								
 								<div class="animate-switch" ng-switch-default>
-									<button type="button" class="btn btn-default btn-block" ui-sref="store.allocation({ allocationItem: row, editMode: 'view' })">View details...</button>
+									<button type="button" class="btn btn-default btn-block" ui-sref="main.allocation({ allocationItem: row, editMode: 'view' })">View details...</button>
 								</div>
 							</td>
                         </tr>
-                        <tr ng-show="allocations.length == 0">
+                        <tr ng-show="data.allocations.length == 0">
                             <td colspan="5" class="text-center">No allocation data available</td>
                         </tr>
                     </tbody>
@@ -514,7 +521,7 @@
         </uib-tab>
         
         <!-- Conversions -->
-        <uib-tab>
+        <uib-tab index="7" select="onTabSelect(7)">
             <uib-tab-heading>
                 Conversions
             </uib-tab-heading>
@@ -522,10 +529,10 @@
                 <div class="panel-heading">
                     <h3 class="panel-title pull-left">Conversions</h3>
                     <div class="pull-right">
-                        <button class="btn btn-primary btn-sm" ui-sref="store.convert">
+                        <button class="btn btn-primary btn-sm" ui-sref="main.convert">
                             <i class="glyphicon glyphicon-plus"></i> New conversion
                         </button>&nbsp;
-                        <button class="btn btn-default btn-sm" ng-click="updateConversions()">
+                        <button class="btn btn-default btn-sm" ng-click="updateConversions( sessionData.currentStore.id )">
                             <i class="glyphicon glyphicon-refresh"></i>
                         </button>
                     </div>
@@ -536,22 +543,22 @@
                         <tr>
 							<th class="text-left">Date / Time</th>
 							<th class="text-left">Input Item</th>
-							<th class="text-right">Input Quantity</th>
+							<th class="text-center">Input Quantity</th>
 							<th class="text-left">Output Item</th>
-							<th class="text-right">Output Quantity</th>
+							<th class="text-center">Output Quantity</th>
 							<th class="text-left">Remarks</th>
 						</tr>
                     </thead>
                     <tbody>
-                        <tr ng-repeat="conversion in conversions">
+                        <tr ng-repeat="conversion in data.conversions">
                             <td class="text-left">{{ conversion.conversion_datetime }}</td>
                             <td class="text-left">{{ conversion.source_item_name }}</td>
-                            <td class="text-right">{{ conversion.source_quantity | number }}</td>
+                            <td class="text-center">{{ conversion.source_quantity | number }}</td>
                             <td class="text-left">{{ conversion.target_item_name }}</td>
-                            <td class="text-right">{{ conversion.target_quantity | number }}</td>
+                            <td class="text-center">{{ conversion.target_quantity | number }}</td>
                             <td class="text-left">{{ conversion.remarks }}</td>
                         </tr>
-                        <tr ng-show="!conversions.length">
+                        <tr ng-show="!data.conversions.length">
                             <td colspan="6" class="text-center">No conversion transaction data available</td>
                         </tr>
                     </tbody>

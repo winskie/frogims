@@ -1,772 +1,1131 @@
 var appServices = angular.module( 'appServices', [] );
 
-appServices.service( 'StoreServices', [ '$http', '$q',
-	function( $http, $q )
-	{
-		this.changeStore = function( store )
-			{
+appServices.service( 'session', [ '$http', '$q', 'baseUrl', 'notifications',
+    function( $http, $q, baseUrl, notifications )
+    {
+        var me = this;
+        
+        me.data = {
+                currentUser: null,
+                currentStore: null,
+                currentShift: null,
+                
+                userStores: [],
+                storeShifts: [],
+            };
+            
+        me.getSessionData = function()
+            {
 				var deferred = $q.defer();
 				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/store',
-					data: {
-						store_id: store.id
-					}
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/login_info'
 				}).then(
 					function( response )
 					{
-						deferred.resolve( response.data.data );
+                        if( response.data.status == 'ok' )
+                        {
+                            var d = response.data.data;
+                            
+                            me.data.currentUser = d.user;
+                            me.data.currentStore = d.store;
+                            me.data.currentShift = d.shift;
+                            me.data.userStores = d.stores;
+                            me.data.storeShifts = d.shifts;
+
+                            deferred.resolve( d );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
 					},
 					function( reason )
 					{
-						deferred.reject( reason.data );
+                        console.error( reason.data.errorMsg );
+						deferred.reject( reason )
 					});
 
 				return deferred.promise;
 			};
             
-        this.changeShift = function( shift )
+        me.changeStore = function( newStore )
+            {
+                var deferred = $q.defer();
+				$http({
+					method: 'PATCH',
+					url: baseUrl + 'index.php/api/v1/session/store/' + newStore.id,
+					data: {
+						store_id: newStore.id
+					}
+				}).then(
+					function( response )
+					{
+                        if( response.data.status == 'ok' )
+                        {
+                            var d = response.data.data;
+                            
+                            me.data.currentStore = d.store;
+                            me.data.storeShifts = d.shifts;
+                            me.data.currentShift = d.suggested_shift;
+                            
+                            notifications.notify( 'onChangeStore' );
+                            deferred.resolve( d );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+						
+					},
+					function( reason )
+					{
+                        console.error( reason.data.errorMsg );
+						deferred.reject( reason.data );
+					});
+
+				return deferred.promise;
+			};
+        
+        me.changeShift = function( newShift )
             {
                 var deferred = $q.defer();
                 $http({
-                    method: 'POST',
-                    url: baseUrl + 'index.php/api/store/change_shift',
-                    data: {
-                        'shift_id': shift.id
-                    }
+                    method: 'PATCH',
+                    url: baseUrl + 'index.php/api/v1/session/shift/' + newShift.id,
                 }).then(
                     function( response )
                     {
-                        deferred.resolve( response.data );
+                        if( response.data.status == 'ok' )
+                        {
+                            var d = response.data.data;
+                            
+                            me.data.currentShift = d;
+                            deferred.resolve( d );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
                     },
                     function( reason )
                     {
+                        console.error( reason.data.errorMsg );
                         deferred.reject( reason )
                     });
                 
                 return deferred.promise;
             };
+    }
+]);
 
-		this.getStores = function()
+appServices.service( 'appData', [ '$http', '$q', 'baseUrl', 'session',
+    function( $http, $q, baseUrl, session )
+    {
+        var me = this;
+        me.data = {
+                stations: [],
+                stores: [],
+                activeUsers: [],
+                
+                itemCategories: [],
+                
+                items: [],
+                transactions: [],
+                transfers: [],
+                receipts: [],
+                adjustments: [],
+                collections: [],
+                allocations: [],
+                conversions: [],
+                
+                pendingTransfers: 0,
+                pendingReceipts: 0,
+                pendingAdjustments: 0,
+                pendingAllocations: 0
+            };
+            
+        me.states = {
+            inventory: {
+                
+            },
+            transactions: {
+                businessDate: new Date(),
+                item: null,
+                type: null
+            },
+            transferOut: {
+                date: new Date(),
+                destination: [],
+                external: null,
+                status: null
+            },
+            transferIn: {
+                date: new Date(),
+                source: [],
+                external: null,
+                status: null
+            },
+            adjustments: {
+                page: 1,
+                date: null,
+                item: null,
+                status: null
+            },
+            collections: {
+                processingDate: new Date(),
+                businessDate: null
+            },
+            allocations: {
+                businessDate: new Date(),
+                assigneeType: null,
+                status: null
+            },
+            conversions: {
+                businessDate: new Date(),
+                inputItem: null,
+                outputItem: null,
+            }
+        };
+        
+        me.getStations = function()
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'GET',
+                    url: baseUrl + 'index.php/api/v1/stations'
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            var d = response.data;
+                            me.data.stations = d.data;
+                            deferred.resolve( d );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                        
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason );
+                    });
+                    
+                return deferred.promise;
+            };
+            
+        me.getStores = function()
 			{
 				var deferred = $q.defer();
 				$http({
 					method: 'GET',
-					url: baseUrl + 'index.php/api/stores'
+					url: baseUrl + 'index.php/api/v1/stores'
 				}).then(
 					function( response )
 					{
-						deferred.resolve( response.data );
+                        if( response.data.status == 'ok' )
+                        {
+						    var d = response.data;
+                            me.data.stores = d.data;
+                            deferred.resolve( d );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
 					},
 					function( reason )
 					{
-						deferred.reject( reason.data );
+                        console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
 					});
 
 				return deferred.promise;
 			};
-        
-        
-        this.getShifts = function( storeType )
+            
+        me.getItemCategories = function()
             {
                 var deferred = $q.defer();
-                var params = null;
-
-                if( storeType instanceof Array )
-                {
-                    params = { "store_type[]": storeType };
-                }
-                else
-                {
-                    params = { store_type: storeType };
-                }
-                
                 $http({
                     method: 'GET',
-                    url: baseUrl + 'index.php/api/store/shifts',
-                    params: params
+                    url: baseUrl + 'index.php/api/v1/categories'
                 }).then(
                     function( response )
                     {
-                        deferred.resolve( response.data );
+                        if( response.data.status == 'ok' )
+                        {
+                            var d = response.data;
+                            me.data.itemCategories = d.data;
+                            deferred.resolve( d );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
                     },
                     function( reason )
                     {
-                        deferred.reject( reason );
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
                     });
-
-                return deferred.promise;
-            };
                     
-        this.getStoreShifts = function( store, showAll )
-            {
-                var deferred = $q.defer();
-                $http({
-                    method: 'GET',
-                    url: baseUrl + 'index.php/api/store/store_shifts',
-                    params: {
-                        store_id: store.id,
-                        show_all: showAll
-                    }
-                }).then(
-                    function( response )
-                    {
-                        deferred.resolve( response.data );
-                    },
-                    function( reason )
-                    {
-                        deferred.reject( reason );
-                    });
-
                 return deferred.promise;
             };
-
-		this.getInventory = function( storeId )
+            
+        me.getInventory = function( storeId )
 			{
-				var deferred = $q.defer();
+				var deferred = $q.defer();             
 				$http({
 					method: 'GET',
-					url: baseUrl + 'index.php/api/inventory',
-					params: {
-						'store_id': storeId
-					}
+					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/items',
 				}).then(
 					function( response )
 					{
-						deferred.resolve( response.data.data );
+                        if( response.data.status == 'ok' )
+                        {
+                            var d = response.data;
+                            
+                            me.data.items = d.data;
+						    deferred.resolve( d );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
 					},
 					function( reason )
 					{
+                        console.error( response.data.errorMsg );
 						deferred.reject( reason.data );
 					} );
 
 				return deferred.promise;
 			};
-
-		this.getTransactions = function( storeId )
+            
+        me.getTransactions = function( storeId )
 			{
 				var deferred = $q.defer();
 				$http({
 					method: 'GET',
-					url: baseUrl + 'index.php/api/transactions',
-					params: {
-						'store_id': storeId
-					}
+					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/transactions',
 				}).then(
 					function( response )
 					{
-						deferred.resolve( response.data.data );
+                        if( response.data.status == 'ok' )
+                        {
+                            var d = response.data;
+                            
+                            me.data.transactions = d.data;
+                            deferred.resolve( d );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
 					},
 					function( reason )
 					{
+                        console.error( reason.data.errorMsg );
 						deferred.reject( reason );
 					});
 
-				return deferred.promise;
-			};
-
-		this.getTransfers = function( storeId )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'GET',
-					url: baseUrl + 'index.php/api/transfer',
-					params: {
-						'store_id': storeId
-					}
-				}).then(
-					function( response )
-					{
-						deferred.resolve( response.data );
-					},
-					function( reason )
-					{
-						deferred.reject( reason );
-					});
-
-				return deferred.promise;
-			};
-
-		this.getReceipts = function( storeId )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'GET',
-					url: baseUrl + 'index.php/api/transfer/receipts',
-					params: {
-						'store_id': storeId
-					}
-				}).then(
-					function( response )
-					{
-						deferred.resolve( response.data );
-					},
-					function( reason )
-					{
-						deferred.reject( reason );
-					});
-
-				return deferred.promise;
-			};
-			
-		this.getAdjustments = function( storeId )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'GET',
-					url: baseUrl + 'index.php/api/adjustments',
-					params: {
-						'store_id': storeId
-					}
-				}).then(
-					function( response )
-					{
-						deferred.resolve( response.data );
-					},
-					function( reason )
-					{
-						deferred.reject( reason );
-					});
-					
 				return deferred.promise;
 			};
             
-        this.getCollections = function( storeId )
+        me.getTransfers = function( storeId )
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/transfers'
+				}).then(
+					function( response )
+					{
+                        if( response.data.status == 'ok' )
+                        {
+                            var d = response.data.data;
+                            
+                            me.data.transfers = d.transfers;
+                            me.data.pendingTransfers = d.pending;
+                            deferred.resolve( d );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+					},
+					function( reason )
+					{
+                        console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
+            
+        me.getReceipts = function( storeId )
+            {
+                var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/receipts',
+				}).then(
+					function( response )
+					{
+                        if( response.data.status == 'ok' )
+                        {
+						    var d = response.data;
+                            
+                            me.data.receipts = d.data.receipts;
+                            me.data.pendingReceipts = d.data.pending;
+                            deferred.resolve( d );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+					},
+					function( reason )
+					{
+                        consol.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+            };
+            
+        me.getAdjustments = function( storeId )
+            {
+                var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/adjustments',
+				}).then(
+					function( response )
+					{
+                        if( response.data.status == 'ok' )
+                        {
+                            var d = response.data;
+                            me.data.adjustments = d.data.adjustments;
+                            me.data.pendingAdjustments = d.data.pending;
+                            deferred.resolve( d );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+					},
+					function( reason )
+					{
+                        console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+					
+				return deferred.promise;
+            };
+            
+        me.getCollections = function( storeId )
             {
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: baseUrl + 'index.php/api/mopping/summary',
-                    params: {
-                        'store_id': storeId
-                    }
+                    url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/collections_summary',
                 }).then(
                     function( response )
                     {
-                        deferred.resolve( response.data );
+                        if( response.data.status == 'ok' )
+                        {
+                            var d = response.data;
+                            me.data.collections = d.data;
+                            deferred.resolve( d );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
                     },
                     function( reason )
                     {
-                        deferred.reject( reason );
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
+                    });
+                    
+                return deferred.promise;
+            };
+            
+        me.getAllocations = function( storeId )
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'GET',
+                    url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/allocations_summary',
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            var d = response.data;
+                            me.data.allocations = d.data;
+                            deferred.resolve( d );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.resolve( reason.data.errorMsg );
+                    });
+                    
+                return deferred.promise;
+            };
+            
+        me.getConversions = function( storeId )
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'GET',
+                    url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/conversions'
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            var d = response.data;
+                            me.data.conversions = d.data; 
+                            deferred.resolve( d );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
+                    });
+                    
+                return deferred.promise;
+            };
+            
+        // Transfers
+        me.getTransfer = function( transferId )
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'GET',
+                    url: baseUrl + 'index.php/api/v1/transfers/' + transferId
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
                     });
                     
                 return deferred.promise;
             };
         
-        this.getAllocations = function( storeId )
+        me.saveTransfer = function( transfer )
+            {
+                var deferred = $q.defer(); 
+				$http({
+                    method: 'POST',
+                    url: baseUrl + 'index.php/api/v1/transfers',
+					data: transfer,
+				}).then(
+					function( response )
+					{
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+					},
+					function( reason )
+					{
+                        console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+            };
+            
+        me.approveTransfer = function( transfer )
             {
                 var deferred = $q.defer();
-                $http({
-                    method: 'GET',
-                    url: baseUrl + 'index.php/api/allocations/summary',
-                    params: {
-                        'store_id': storeId
-                    }
-                }).then(
-                    function( response )
-                    {
-                        deferred.resolve( response.data );
-                    },
-                    function( reason )
-                    {
-                        deferred.resolve( reason );
-                    });
-                    
-                return deferred.promise;
-            }
+				$http({
+					method: 'POST',
+					url: baseUrl + 'index.php/api/v1/transfers/approve',
+					data: transfer
+				}).then(
+					function( response )
+					{
+                        if( response.data.status == 'ok' )
+                        {
+						    deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+					},
+					function( reason )
+					{
+                        console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+            };
+            
+        me.receiveTransfer = function( transfer )
+            {
+                var deferred = $q.defer();	
+				$http({
+					method: 'POST',
+					url: baseUrl + 'index.php/api/v1/transfers/receive',
+					data: transfer
+				}).then(
+					function( response )
+					{
+                        if( response.data.status == 'ok' )
+                        {
+						    deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+					},
+					function( reason )
+					{
+                        console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+            };
+            
+        me.cancelTransfer = function( transfer )
+            {
+                var deferred = $q.defer();
+				$http({
+					method: 'POST',
+					url: baseUrl + 'index.php/api/v1/transfers/cancel',
+					data: transfer
+				}).then(
+					function( response )
+					{
+                        if( response.data.status == 'ok' )
+                        {
+						    deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+					},
+					function( reason )
+					{
+                        console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+            };
         
-        this.getConversions = function( storeId )
+        // Adjustments
+        me.getAdjustment = function( adjustmentId )
             {
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: baseUrl + 'index.php/api/conversions',
-                    params: {
-                        'store_id': storeId
-                    }
+                    url: baseUrl + 'index.php/api/v1/adjustments/' + adjustmentId
                 }).then(
                     function( response )
                     {
-                        deferred.resolve( response.data );
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
                     },
                     function( reason )
                     {
-                        deferred.reject( reason );
-                    });
-                    
-                return deferred.promise;
-            }
-	}
-]);
-
-appServices.service( 'TransferServices', [ '$http', '$q',
-	function( $http, $q )
-	{
-        this.getTransfer = function( transferId )
-            {
-                var deferred = $q.defer();
-                $http({
-                    method: 'GET',
-                    url: baseUrl + 'index.php/api/transfer/item',
-                    params: {
-                        id: transferId
-                    }
-                }).then(
-                    function( response )
-                    {
-                        deferred.resolve( response.data );
-                    },
-                    function( reason )
-                    {
-                        deferred.reject( reason );
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
                     });
                     
                 return deferred.promise;
             };
             
-		this.getItems = function( transferItem )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'GET',
-					url: baseUrl + 'index.php/api/transfer/items',
-					params: {
-						id: transferItem.id
-					}
-				}).then(
-					function( response )
-					{
-						deferred.resolve( response.data );
-					},
-					function( reason )
-					{
-						deferred.reject( reason );
-					});
-					
-				return deferred.promise;
-			};
-			
-		this.create = function( transferItem )
-			{
-				var deferred = $q.defer(); 
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/transfer/create',
-					data: transferItem,
-				}).then(
-					function( response )
-					{
-						deferred.resolve( response.data );
-					},
-					function( reason )
-					{
-						deferred.reject( reason );
-					});
-
-				return deferred.promise;
-			};
-			
-		this.approve = function( transferItem )
-			{
-				var deferred = $q.defer();
-
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/transfer/approve',
-					data: transferItem
-				}).then(
-					function( response )
-					{
-						deferred.resolve( response.data.data );
-					},
-					function( reason )
-					{
-						deferred.reject( reason );
-					});
-
-				return deferred.promise;
-			};
-		
-		this.receive = function( transferItem )
-			{
-				var deferred = $q.defer();
-				
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/transfer/receive',
-					data: transferItem
-				}).then(
-					function( response )
-					{
-						deferred.resolve( response.data );
-					},
-					function( reason )
-					{
-						deferred.reject( reason );
-					});
-
-				return deferred.promise;
-			};
-			
-		this.cancel = function( transferItem )
-			{
-				var deferred = $q.defer();
-				
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/transfer/cancel',
-					data: transferItem
-				}).then(
-					function( response )
-					{
-						deferred.resolve( response.data.data );
-					},
-					function( reason )
-					{
-						deferred.reject( reason );
-					});
-
-				return deferred.promise;
-			};
-	}
-]);
-
-appServices.service( 'InventoryServices', [ '$http', '$q',
-	function( $http, $q )
-	{
-		this.adjust = function( adjustmentItem )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/inventory/adjust',
-					data: adjustmentItem
-				}).then(
-					function( response )
-					{
-						deferred.resolve( response.data.data );
-					},
-					function( reason )
-					{
-						deferred.reject( reason );
-					});
-					
-				return deferred.promise;
-			};
-		
-		this.approveAdjustment = function( adjustmentItem )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/adjustment/approve',
-					data: {
-						id: adjustmentItem.id
-					}
-				}).then(
-					function( response )
-					{
-						deferred.resolve( response.data );
-					},
-					function( reason )
-					{
-						deferred.reject( reason );
-					});
-					
-				return deferred.promise;
-			};
-	}
-]);
-
-appServices.service( 'ConversionServices', [ '$http', '$q',
-    function( $http, $q )
-    {
-        this.getConversionTable = function()
+        me.saveAdjustment = function( adjustmentData )
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'POST',
+                    url: baseUrl + 'index.php/api/v1/adjustments',
+                    data: adjustmentData
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
+                    });
+                
+                return deferred.promise;
+            };
+            
+        me.approveAdjustment = function( adjustmentData )
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'POST',
+                    url: baseUrl + 'index.php/api/v1/adjustments/approve',
+                    data: adjustmentData
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
+                    });
+                
+                return deferred.promise;
+            };
+            
+        // Mopping
+        me.getCashierShifts = function()
             {
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: baseUrl + 'index.php/api/items/conversion_table'
+                    url: baseUrl + 'index.php/api/v1/shifts',
+                    params: {
+                        store_type: 4
+                    }
                 }).then(
                     function( response )
                     {
-                        deferred.resolve( response.data );
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
                     },
                     function( reason )
                     {
-                        deferred.reject( reason );
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
                     });
                     
                 return deferred.promise;
             };
             
-        this.getPackageConversion = function()
+        me.getPackingData = function()
             {
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: baseUrl + 'index.php/api/items/package_conversion'
+                    url: baseUrl + 'index.php/api/v1/conversion_factors/packing'
                 }).then(
                     function( response )
                     {
-                        deferred.resolve( response.data );
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
                     },
                     function( reason )
                     {
-                        deferred.reject( reason );
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
                     });
                     
                 return deferred.promise;
-            }
-
-        this.getConversionFactor = function( sourceItem, targetItem )
+            };
+        
+        me.getCollection = function( collectionId )
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'GET',
+                    url: baseUrl + 'index.php/api/v1/collections/' + collectionId
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
+                    });
+                    
+                return deferred.promise;
+            };
+            
+        me.processCollection = function( collectionData )
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'POST',
+                    url: baseUrl + 'index.php/api/v1/collections',
+                    data: collectionData
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
+                    });
+                    
+                return deferred.promise;
+            };
+            
+        // Allocations
+        me.getAssigneeShifts = function()
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'GET',
+                    url: baseUrl + 'index.php/api/v1/shifts',
+                    params: {
+                        'store_type[]': [ 0, 1 ]
+                    }
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
+                    });
+                    
+                return deferred.promise;
+            };
+            
+        
+        me.getAllocation = function( allocationId )
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'GET',
+                    url: baseUrl + 'index.php/api/v1/allocations/' + allocationId
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
+                    });
+                    
+                return deferred.promise;
+            };
+            
+        me.saveAllocation = function( allocationData )
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'POST',
+                    url: baseUrl + 'index.php/api/v1/allocations',
+                    data: allocationData
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
+                    });
+                    
+                return deferred.promise;
+            };
+            
+        me.allocateAllocation = function( allocationData )
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'POST',
+                    url: baseUrl + 'index.php/api/v1/allocations/allocate',
+                    data: allocationData
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
+                    });
+                    
+                return deferred.promise;
+            };
+            
+        me.remitAllocation = function( allocationData )
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'POST',
+                    url: baseUrl + 'index.php/api/v1/allocations/remit',
+                    data: allocationData
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
+                    });
+                    
+                return deferred.promise;
+            };
+            
+        me.cancelAllocation = function( allocationData )
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'POST',
+                    url: baseUrl + 'index.php/api/v1/allocations/cancel',
+                    data: allocationData
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
+                    });
+                    
+                return deferred.promise;
+            };
+            
+        // Conversions
+        me.getConversionFactor = function( sourceItemId, targetItemId )
             {
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
                     url: baseUrl + 'index.php/api/conversion/conversion_factor',
                     params: {
-                        source: sourceItem,
-                        target: targetItem
+                        source: sourceItemId,
+                        target: targetItemId
                     }
                 }).then(
                     function( response )
                     {
-                        deferred.resolve( response.data );
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
                     },
                     function( reason )
                     {
-                        deferred.reject( reason );
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
                     });
                     
                 return deferred.promise;
             };
             
-        this.convert = function( conversionItem )
+        me.convertItems = function( conversionData )
             {
                 var deferred = $q.defer();
                 $http({
                     method: 'POST',
-                    url: baseUrl + 'index.php/api/conversion/convert',
-                    data: conversionItem
+                    url: baseUrl + 'index.php/api/v1/conversions/convert',
+                    data: conversionData
                 }).then(
                     function( response )
                     {
-                        deferred.resolve( response.data );
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
                     },
                     function( reason )
                     {
-                        deferred.reject( reason );
-                    });
-                    
-                return deferred.promise;
-            };
-    }
-]);
-
-appServices.service( 'MoppingServices', [ '$http', '$q',
-    function( $http, $q )
-    {
-       this.getCollection = function( moppingItemId )
-            {
-                var deferred = $q.defer();
-                $http({
-                    method: 'GET',
-                    url: baseUrl + 'index.php/api/mopping/item',
-                    params: {
-                        id: moppingItemId
-                    }
-                }).then(
-                    function( response )
-                    {
-                        deferred.resolve( response.data );
-                    },
-                    function( reason )
-                    {
-                        deferred.reject( reason );
-                    });
-                    
-                return deferred.promise;
-            };
-            
-       this.processCollection = function( moppingItem )
-            {
-                var deferred = $q.defer();
-                $http({
-                    method: 'POST',
-                    url: baseUrl + 'index.php/api/mopping/process',
-                    data: moppingItem
-                }).then(
-                    function( response )
-                    {
-                        deferred.resolve( response.data );
-                    },
-                    function( reason )
-                    {
-                        deferred.reject( reason );
-                    });
-                    
-                return deferred.promise;
-            };
-    }
-]);
-
-appServices.service( 'AllocationServices', [ '$http', '$q',
-    function( $http, $q )
-    {    
-        this.getAllocation = function( allocationId )
-            {
-                var deferred = $q.defer();
-                $http({
-                    method: 'GET',
-                    url: baseUrl + 'index.php/api/allocations/item',
-                    params: {
-                        id: allocationId
-                    }
-                }).then(
-                    function( response )
-                    {
-                        deferred.resolve( response.data );
-                    },
-                    function( reason )
-                    {
-                        deferred.reject( reason );
-                    });
-                    
-                return deferred.promise;
-            };
-            
-        this.processAllocation = function( allocationItem )
-            {
-                var deferred = $q.defer();
-                $http({
-                    method: 'POST',
-                    url: baseUrl + 'index.php/api/allocations/process',
-                    data: allocationItem
-                }).then(
-                    function( response )
-                    {
-                        deferred.resolve( response.data );
-                    },
-                    function( reason )
-                    {
-                        deferred.reject( reason );
-                    });
-                    
-                return deferred.promise;
-            };
-            
-        this.allocate = function( allocationItem )
-            {
-                var deferred = $q.defer();
-                $http({
-                    method: 'POST',
-                    url: baseUrl + 'index.php/api/allocations/allocate',
-                    data: allocationItem
-                }).then(
-                    function( response )
-                    {
-                        deferred.resolve( response.data );
-                    },
-                    function( reason )
-                    {
-                        deferred.reject( reason );
-                    });
-                    
-                return deferred.promise;
-            };
-            
-        this.remit = function( allocationItem )
-            {
-                var deferred = $q.defer();
-                $http({
-                    method: 'POST',
-                    url: baseUrl + 'index.php/api/allocations/remit',
-                    data: allocationItem
-                }).then(
-                    function( response )
-                    {
-                        deferred.resolve( response.data );
-                    },
-                    function( reason )
-                    {
-                        deferred.reject( reason );
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
                     });
                     
                 return deferred.promise;
             };
         
-        this.cancel = function( allocationItem )
-            {
-                var deferred = $q.defer();
-                $http({
-                    method: 'POST',
-                    url: baseUrl + 'index.php/api/allocations/cancel',
-                    data: { id: allocationItem.id }
-                }).then(
-                    function( response )
-                    {
-                        deferred.resolve( response.data );
-                    },
-                    function( reason )
-                    {
-                        deferred.reject( reason );
-                    });
-                    
-                return deferred.promise;
-            };
     }
 ]);
 
-appServices.service( 'UserServices', [ '$http', '$q',
-	function( $http, $q )
-	{
-        this.getUsers = function()
-            {
-                var deferred = $q.defer();
-                $http({
-                    method: 'GET',
-                    url: baseUrl + 'index.php/api/users'
-                }).then(
-                    function( response )
-                    {
-                        deferred.resolve( response.data );
-                    },
-                    function( reason )
-                    {
-                        deferred.reject( reason );
-                    });
-                    
-                return deferred.promise;
-            };
-            
-		this.getLoginInfo = function()
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'GET',
-					url: baseUrl + 'index.php/api/login_info'
-				}).then(
-					function( response )
-					{
-						deferred.resolve( response.data.data );
-					},
-					function( reason )
-					{
-						deferred.reject( reason )
-					});
-
-				return deferred.promise;
-			};
-	}
-]);
-
-appServices.service( 'MiscServices', [ '$http', '$q',
-    function( $http, $q )
+appServices.service( 'lookup',
+    function()
     {
-        this.shifts = undefined;
-        
-        this.transactionTypes = {
+        var me = this;
+        me.data = {
+            transactionTypes: {
                 '10': 'Transfer Out',
                 '11': 'Transfer In',
                 '12': 'Transfer Cancellation',
@@ -783,48 +1142,25 @@ appServices.service( 'MiscServices', [ '$http', '$q',
                 
                 '50': 'Conversion From',
                 '51': 'Conversion To'
-            };
-            
-        this.lookupTransactionType = function( transactionType ) {
-                return this.transactionTypes[transactionType];
-            };
-            
-        this.transferStatus = {
+            },
+            transferStatus: {
                 '1': 'Pending',
                 '2': 'Approved',
                 '3': 'Received',
                 '4': 'Cancelled'
-            };
-            
-        this.lookupTransferStatus = function( transferStatus )
-            {
-                return this.transferStatus[transferStatus];
-            };
-            
-        this.adjustmentStatus = {
+            },
+            adjustmentStatus: {
                 '1': 'Pending',
                 '2': 'Approved',
                 '3': 'Cancelled'
-            };
-            
-        this.lookupAdjustmentStatus = function( adjustmentStatus )
-            {
-                return this.adjustmentStatus[adjustmentStatus];
-            };
-            
-        this.allocationStatus = {
+            },
+            allocationStatus: {
                 '1': { status: 'Scheduled', className: 'allocation-scheduled' },
                 '2': { status: 'Allocated', className: 'allocation-allocated' },
                 '3': { status: 'Completed', className: 'allocation-completed' },
                 '4': { status: 'Cancelled', className: 'allocation-cancelled' }
-            };
-            
-        this.lookupAllocationStatus = function( allocationStatus, property )
-            {
-                return this.allocationStatus[allocationStatus][property];
-            };
-            
-        this.allocationItemStatus = {
+            },
+            allocationItemStatus: {
                 '10': 'Scheduled',
                 '11': 'Allocated',
                 '12': 'Cancelled',
@@ -832,109 +1168,74 @@ appServices.service( 'MiscServices', [ '$http', '$q',
                 '20': 'Pending',
                 '21': 'Remitted',
                 '22': 'Voided'
-            };
-            
-        this.lookupAllocationItemStatus = function( allocationItemStatus )
-            {
-                return this.allocationItemStatus[allocationItemStatus];
-            };
+            }
+        };
         
-        this.getStations = function()
+        me.getX = function( set, value )
             {
-                var deferred = $q.defer();
-                $http({
-                    method: 'GET',
-                    url: baseUrl + 'index.php/api/stations'
-                }).then(
-                    function( response )
-                    {
-                        deferred.resolve( response.data );
-                    },
-                    function( reason )
-                    {
-                        deferred.reject( reason );
-                    });
-                    
-                return deferred.promise;
+                
+                if( value )
+                {
+                    return me.data[set][value];
+                }
+                else if( set )
+                {
+                    return me.data[set];
+                }
+                else
+                {
+                    return NULL;
+                }
+            };
+    });
+    
+appServices.service( 'notifications', [ '$rootScope',
+    function( $rootScope )
+    {
+        var me = this;
+        me.subscribe = function( scope, eventName, callback )
+            {
+                var eventRegister = $rootScope.$on( eventName, callback );
+                scope.$on( '$destroy', eventRegister );
             };
             
-        this.getShifts = function()
+        me.notify = function( event, args )
             {
-                var deferred = $q.defer();
-                $http({
-                    method: 'GET',
-                    url: baseUrl + 'index.php/api/shifts'
-                }).then(
-                    function( response )
-                    {
-                        deferred.resolve( response.data );
-                    },
-                    function( reason )
-                    {
-                        deferred.reject( reason );
-                    });
-                    
-                return deferred.promise;
+                $rootScope.$emit( event, args );
             };
-            
-        this.getItems = function()
+    }
+]);
+
+appServices.service( 'UserServices', [ '$http', '$q', 'baseUrl',
+	function( $http, $q, baseUrl )
+	{
+        var me = this;
+        
+        me.findUser = function( q )
             {
-                var deferred = $q.defer();
-                $http({
-                    method: 'GET',
-                    url: baseUrl + 'index.php/api/items'
-                }).then(
-                    function( response )
-                    {
-                        deferred.resolve( response.data );
-                    },
-                    function( reason )
-                    {
-                        deferred.reject( reason );
-                    });
-                    
-                return deferred.promise;
-            };
-            
-        this.getInventoryItems = function( storeId )
-            {
-                var deferred = $q.defer();
-                $http({
-                    method: 'GET',
-                    url: baseUrl + 'index.php/api/inventory',
+                return $http.get( baseUrl + 'index.php/api/user/search', {
                     params: {
-                        store_id: storeId
+                        q: q
                     }
                 }).then(
                     function( response )
                     {
-                        deferred.resolve( response.data );
+                        if( response.data.status == 'ok' )
+                        {
+                            return response.data.data.users;
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            return [];
+                        }
                     },
                     function( reason )
                     {
-                        deferred.reject( reason );
-                    });
-                    
-                return deferred.promise;
+                        console.error( reason.data.errorMsg );
+                        return reason;
+                    }
+                );
             };
-            
-        this.getItemCategories = function( mode )
-            {
-                var deferred = $q.defer();
-                $http({
-                    method: 'GET',
-                    url: baseUrl + 'index.php/api/items/categories'
-                }).then(
-                    function( response )
-                    {
-                        deferred.resolve( response.data );
-                    },
-                    function( reason )
-                    {
-                        deferred.reject( reason );
-                    });
-                    
-                return deferred.promise;
-            };
-    }
+	}
 ]);

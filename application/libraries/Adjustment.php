@@ -37,6 +37,27 @@ class Adjustment extends Base_model {
 	}
 	
 	
+	public function get_by_id( $id )
+	{
+		$ci =& get_instance();
+        
+		$ci->db->select( 'a.*, i.item_name, i.item_description, u.full_name' );
+		$ci->db->join( 'store_inventory si', 'si.id = a.store_inventory_id', 'left' );
+		$ci->db->join( 'items i', 'i.id = si.item_id', 'left' );
+		$ci->db->join( 'users u', 'u.id = a.user_id', 'left' );
+		$ci->db->where( 'a.id', $id );
+		$ci->db->limit( 1 );
+		$query = $ci->db->get( 'adjustments a' );
+
+		if( $query->num_rows() )
+		{
+			return $query->row( 0, get_class( $this ) );
+		}
+
+		return NULL;
+	}
+	
+	
 	public function set( $property, $value )
 	{
 		if( $property == 'id' )
@@ -270,6 +291,24 @@ class Adjustment extends Base_model {
 	}
 	
 	public function get_inventory()
+	{
+		$ci =& get_instance();
+		
+		$ci->load->library( 'inventory' );
+		$inventory = new Inventory();
+		$inventory = $inventory->get_by_id( $this->store_inventory_id, array(
+			array(
+				'table' => 'items',
+				'fields' => array( 'item_name', 'item_description' ),
+				'relation' => 'items.id = store_inventory.item_id',
+				'join_type' => 'left'
+			)
+		) );
+		
+		return $inventory;
+	}
+	
+	public function get_user()
 	{
 		$ci =& get_instance();
 		
