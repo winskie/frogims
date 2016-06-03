@@ -529,7 +529,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
                     appData.saveTransfer( data ).then(
                         function( response )
                         {
-                            $state.go( 'main.store' );
+                            $state.go( 'main.store', { activeTab: 'transfers' } );
                         },
                         function( reason )
                         {
@@ -547,7 +547,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
                     appData.approveTransfer( data ).then(
                         function( response )
                         {
-                            $state.go( 'main.store' );
+                            $state.go( 'main.store', { activeTab: 'transfers' } );
                         },
                         function( reason )
                         {
@@ -566,7 +566,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
                     appData.receiveTransfer( data ).then(
                         function( response )
                         {
-                            $state.go( 'main.store' );
+                            $state.go( 'main.store', { activeTab: 'receipts' } );
                         },
                         function( reason )
                         {
@@ -722,7 +722,7 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
                     appData.saveAdjustment( data ).then(
                         function( response )
                         {
-                            $state.go( 'main.store' );
+                            $state.go( 'main.store', { activeTab: 'adjustments' } );
                         },
                         function( reason )
                         {
@@ -740,7 +740,7 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
                     appData.approveAdjustment( data ).then(
                         function( response )
                         {
-                            $state.go( 'main.store' );
+                            $state.go( 'main.store', { activeTab: 'adjustments' } );
                         },
                         function( reason )
                         {
@@ -948,7 +948,7 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
                 appData.convertItems( $scope.conversionItem ).then(
                     function( response )
                     {
-                        $state.go( 'main.store' );
+                        $state.go( 'main.store', { activeTab: 'conversions' } );
                     },
                     function( reason )
                     {
@@ -1226,7 +1226,7 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
                             }
                             else
                             {
-                                $state.go( 'main.store' );
+                                $state.go( 'main.store', { activeTab: 'collections' } );
                             }
                         },
                         function( reason )
@@ -1470,7 +1470,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
         $scope.onAssigneeShiftChange = function()
             {
                 $scope.allocationItem.shift_id = $scope.data.selectedAssigneeShift.id;
-            }
+            };
         
         $scope.addAllocationItem = function()
             {
@@ -1533,7 +1533,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
                 }
             };
             
-        $scope.checkItems = function()
+        $scope.checkItems = function( action )
             {
                 var allocations = $scope.allocationItem.allocations;
                 var remittances = $scope.allocationItem.remittances;
@@ -1547,6 +1547,29 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
                 {
                     alert( 'This allocation does not contain any items.' );
                     return false;
+                }
+                
+                switch( action )
+                {
+                    case 'allocate':
+                        var hasValidAllocationItem = false;
+                        for( var i = 0; i < allocationCount; i++ )
+                        {
+                            if( allocations[i].allocation_item_status == 10 && allocations[i].allocated_quantity > 0 )
+                            {
+                                hasValidAllocationItem = true;
+                                break;
+                            }
+                        }
+                        if( hasValidAllocationItem == false )
+                        {
+                            alert( 'This allocation does not contain any valid items for allocation' );
+                            return false;
+                        }
+                        break;
+                        
+                    default:
+                        // do nothing
                 }
                 
                 switch( $scope.allocationItem.allocation_status )
@@ -1626,7 +1649,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
                     appData.saveAllocation( data ).then(
                         function( response )
                         {
-                            $state.go( 'main.store' );
+                            $state.go( 'main.store', { activeTab: 'allocations' } );
                         },
                         function( reason )
                         {
@@ -1637,7 +1660,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
             
         $scope.allocateAllocation = function()
             {
-                if( $scope.checkItems() )
+                if( $scope.checkItems( 'allocate' ) )
                 {
                     if( ! $scope.allocationItem.assignee )
                     {
@@ -1648,7 +1671,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
                     appData.allocateAllocation( data ).then(
                         function( response )
                         {
-                            $state.go( 'main.store' );
+                            $state.go( 'main.store', { activeTab: 'allocations' } );
                         },
                         function( reason )
                         {
@@ -1665,7 +1688,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
                     appData.remitAllocation( data ).then(
                         function( response )
                         {
-                            $state.go( 'main.store' );
+                            $state.go( 'main.store', { activeTab: 'allocations' } );
                         },
                         function( reason )
                         {

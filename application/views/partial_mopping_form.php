@@ -170,5 +170,5 @@
 
 <div class="text-right">
     <button type="button" class="btn btn-primary" ng-click="saveCollection()" ng-if="data.editMode != 'view'">Save</button>
-    <button type="button" class="btn btn-default" ui-sref="main.store">{{ data.editMode == 'view' ? 'Close' : 'Cancel' }}</button>
+    <button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'collections' })">{{ data.editMode == 'view' ? 'Close' : 'Cancel' }}</button>
 </div>

@@ -73,7 +73,7 @@
     <div class="panel-footer">
         <div class="text-right">
             <button class="btn btn-primary capitalize" ng-disabled="!valid_conversion" ng-click="convertItem()">{{ mode ? mode : 'Convert' }}</button>
-            <button class="btn btn-default" ui-sref="main.store">Close</button>
+            <button class="btn btn-default" ui-sref="main.store({ activeTab: 'conversions' })">Close</button>
         </div>
     </div>
 </div>

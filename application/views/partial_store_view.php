@@ -342,7 +342,7 @@
 		</uib-tab>
         
         <!-- Mopping -->
-        <uib-tab index="5" select="onTabSelect(5)">
+        <uib-tab index="5" select="onTabSelect(5)" ng-if="sessionData.currentStore.store_type == 2"> <!-- Production only -->
             <uib-tab-heading>
                 Mopping Collection
             </uib-tab-heading>
@@ -411,7 +411,7 @@
         </uib-tab>
         
         <!-- Allocation -->
-        <uib-tab index="6" select="onTabSelect(6)">
+        <uib-tab index="6" select="onTabSelect(6)" ng-if="sessionData.currentStore.store_type == 4"> <!-- Cashroom only -->
             <uib-tab-heading>
                 Allocations
             </uib-tab-heading>

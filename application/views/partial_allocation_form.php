@@ -210,20 +210,20 @@
             ng-disabled="allocationItem.allocations.length == 0"
             ng-click="allocateAllocation()">Mark as Allocated
         </button>
-        <button type="button" class="btn btn-default" ui-sref="store">Close</button>
+        <button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'allocations' })">Close</button>
     </div>
     <div ng-switch-when="<?php echo ALLOCATION_ALLOCATED;?>">
         <button type="button" class="btn btn-primary" ng-click="saveAllocation()">Update</button>
         <button type="button" class="btn btn-default"
             ng-click="remitAllocation()">Mark as Completed
         </button>
-        <button type="button" class="btn btn-default" ui-sref="store">Close</button>
+        <button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'allocations' })">Close</button>
     </div>
     <div ng-switch-when="<?php echo ALLOCATION_REMITTED;?>">
-        <button type="button" class="btn btn-default" ui-sref="store">Close</button>
+        <button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'allocations' })">Close</button>
     </div>
 </div>
 
 <div class="text-right" ng-if="data.editMode == 'view'">
-    <button type="button" class="btn btn-default" ui-sref="store">Close</button>
+    <button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'allocations' })">Close</button>
 </div>
