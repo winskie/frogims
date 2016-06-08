@@ -15,6 +15,7 @@ class User extends Base_model {
 	protected $last_modified;
 	
 	protected $stores;
+	protected $role;
 
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
@@ -128,6 +129,22 @@ class User extends Base_model {
 		}
 		
 		return $this->stores;
+	}
+	
+	public function get_role()
+	{
+		if( ! isset( $this->role ) )
+		{
+			$ci =& get_instance();
+			$ci->load->library( 'group' );
+			
+			$ci->db->where( 'id', $this->user_role );
+			$ci->db->limit( 1 );
+			$group = $ci->db->get( 'groups' );
+			$this->role = $group->result( 'Group' );
+		}
+		
+		return $this->role;
 	}
 	
 	public function search( $query )

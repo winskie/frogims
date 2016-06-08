@@ -105,3 +105,46 @@ td.row-flag
     background-color: lightgray;
 }
 
+
+/* Notifications */
+div.notification_wrapper {
+    position: fixed;
+    top: 100px;
+    right: 0;
+    z-index: 1000000
+}
+
+div.notification_wrapper div.notification {
+    position: relative;
+    right: -420px;
+    width: 400px;
+    padding: 10px 30px 10px 15px;
+    margin-bottom: 5px;
+    color: #fefefe;
+    background-color: #ffffff;
+    z-index: 1000000;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    box-shadow: 2px 2px 4px 1px #acacac;
+    transition: right 0.4s ease-in-out;
+}
+
+div.notification_wrapper div.notification.success {
+    background-color: green;
+}
+
+div.notification_wrapper div.notification.warning {
+    background-color: orangered;
+}
+
+div.notification_wrapper div.notification.error {
+    background-color: red;
+}
+
+div.notification_wrapper div.notification.info {
+    background-color: darkcyan;
+}
+
+div.notification_wrapper div.notification.notice-visible {
+    right: 0;
+}

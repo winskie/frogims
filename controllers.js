@@ -1,19 +1,68 @@
-app.controller( 'MainController', [ '$scope', 'session', 'lookup',
-    function( $scope, session, lookup )
+app.controller( 'NotificationController', [ '$scope', '$timeout', 'appData', 'notifications',
+    function( $scope, $timeout, appData, notifications )
     {
-        $scope.data = session.data;
-        $scope.changeStore = session.changeStore;
-        $scope.changeShift = session.changeShift;
-        $scope.lookup = lookup.getX;
+        $scope.data = {
+                messages: []
+            };
+            
+        $scope.visible = true;
+        $scope.alertType = 'success';
+        $scope.title = 'Notification';
+        $scope.message = 'Hello! Welcome to the Fare Revenue Operations Group (FROG) Inventory Management System!';
+        $scope.showNotification = function( event, data )
+            {
+                var newMessage = {
+                        message: data.message,
+                        type: data.type || 'info',
+                        visible: false
+                    };
+                    
+                $scope.data.messages.unshift( newMessage );
+                $timeout( function()
+                    {
+                        newMessage.visible = true;
+                        $timeout( function()
+                            {
+                                newMessage.visible = false;
+                                $timeout( function()
+                                {
+                                    var index = $scope.data.messages.indexOf( newMessage );
+                                    if( index !== -1 )
+                                    {
+                                        $scope.data.messages.splice( index, 1 );
+                                    }
+                                }, 500 );
+                            }, 2300 );
+                        
+                    }, 10 );
+                
+                        
+                
+            };
+            
+        notifications.subscribe( $scope, 'notificationSignal',  $scope.showNotification );
     }
 ]);
 
-app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'session', 'appData', 'lookup', 'notifications',
-	function( $scope, $state, $stateParams, session, appData, lookup, notifications )
-	{
+app.controller( 'MainController', [ '$scope', 'session', 'lookup', 'notifications',
+    function( $scope, session, lookup, notifications )
+    {
         $scope.sessionData = session.data;
+        $scope.changeStore = session.changeStore;
+        $scope.changeShift = session.changeShift;
+        $scope.lookup = lookup.getX;
+        $scope.notify = function( message )
+            {
+                notifications.alert( 'Hello!', 'error', 200 );
+            }
+    }
+]);
+
+app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'session', 'appData', 'lookup', 'notifications', 'sessionData',
+	function( $scope, $state, $stateParams, session, appData, lookup, notifications, sessionData )
+	{
         $scope.data = appData.data;
-            
+        $scope.filters = appData.filters;            
         $scope.tabs = {
                 inventory: { index: 0, title: 'Inventory' },
                 transactions: { index: 1, title: 'Transactions' },
@@ -38,6 +87,80 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
             {
                 // Do nothing for now
             };
+            
+        // Filters
+        $scope.widgets = {
+                transactionsDate: {
+                    opened: false
+                },
+                transactionsItems: angular.copy( appData.data.items ),
+                transactionsTypes: angular.copy( appData.data.transactionTypes ),
+                
+                transfersDate: {
+                    opened: false
+                },
+                transfersDestinations: angular.copy( appData.data.stores ),
+                transfersStatus: angular.copy( appData.data.transferStatus ),
+                
+                receiptsDate: {
+                    opened: false
+                },
+                receiptsSources: angular.copy( appData.data.stores ),
+                receiptsStatus: angular.copy( appData.data.transferStatus ),
+                
+                adjustmentsDate: {
+                    opened: false
+                },
+                adjustmentsItems: angular.copy( appData.data.items ),
+                adjustmentsStatus: angular.copy( appData.data.adjustmentStatus ),
+                adjustmentsPagination: {
+                    currentPage: appData.filters.adjustments.page,
+                    totalItems: appData.data.totals.adjustments,
+                    itemsPerPage: appData.filters.adjustments.limit
+                },
+                
+                collectionsProcessingDate: {
+                    opened: false
+                },
+                collectionsBusinessDate: {
+                    opened: false
+                },
+                
+                allocationsDate: {
+                    opened: false
+                },
+                allocationsAssigneeTypes: angular.copy( appData.data.assigneeTypes ),
+                allocationsStatus: angular.copy( appData.data.allocationStatus ),
+                
+                conversionsDate: {
+                    opened: false
+                },
+                conversionsItems: angular.copy( appData.data.items )
+            };
+           
+        $scope.widgets.transactionsItems.unshift({ id: null, item_name: 'All', item_description: 'All' });
+        $scope.widgets.transactionsTypes.unshift({ id: null, typeName: 'All' });
+        
+        $scope.widgets.transfersDestinations.unshift({ id: null, store_name: 'All' });
+        $scope.widgets.transfersDestinations.push({ id: '_ext_', store_name: 'External Destinations' });
+        $scope.widgets.transfersStatus.unshift({ id: null, statusName: 'All' });
+        
+        $scope.widgets.receiptsSources.unshift({ id: null, store_name: 'All' });
+        $scope.widgets.receiptsSources.push({ id: '_ext_', store_name: 'External Sources' });
+        $scope.widgets.receiptsStatus.unshift({ id: null, statusName: 'All' });
+        
+        $scope.widgets.adjustmentsItems.unshift({ id: null, item_name: 'All', item_description: 'All' });
+        $scope.widgets.adjustmentsStatus.unshift({ id: null, statusName: 'All' });
+        
+        $scope.widgets.allocationsAssigneeTypes.unshift({ id: null, typeName: 'All' });
+        $scope.widgets.allocationsStatus.unshift({ id: null, statusName: 'All' });
+        
+        $scope.widgets.conversionsItems.unshift({ id: null, item_name: 'All', item_description: 'All' });
+            
+        $scope.showDatePicker = function( dp )
+            {
+                $scope.widgets[dp].opened = true;
+            };
         
         // Refresh/update functions
 		$scope.updateInventory = appData.getInventory;
@@ -56,6 +179,7 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
                 switch( data )
                 {
                     case 'transfer':
+                        console.log( 'Updating transfers' );
                         $scope.updateInventory( currentStoreId );
                         $scope.updateTransactions( currentStoreId );
                         $scope.updateTransfers( currentStoreId );
@@ -97,7 +221,8 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
                 appData.approveTransfer( transfer ).then(
                     function( response )
                     {
-                        notifications.notify( 'onUpdateData', 'transfer' );
+                        notifications.alert( 'Transfer approved', 'success' );
+                        appData.refresh( session.data.currentStore.id, 'transfer' );
                     });
             };
             
@@ -106,7 +231,8 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
                 appData.receiveTransfer( transfer ).then(
                     function( response )
                     {
-                        notifications.notify( 'onUpdateData', 'receipt' );
+                        notifications.alert( 'Transfer received', 'success' );
+                        appData.refresh( session.data.currentStore.id, 'receipt' );
                     });
             };
             
@@ -115,7 +241,8 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
                 appData.cancelTransfer( transfer ).then(
                     function( response )
                     {
-                        notifications.notify( 'onUpdateData', 'transfer' )
+                        notifications.alert( 'Transfer cancelled', 'success' );
+                        appData.refresh( session.data.currentStore.id, 'transfer' )
                     });
             };        
 
@@ -125,7 +252,8 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 				appData.approveAdjustment( adjustmentData ).then(
 					function( response )
 					{
-						notifications.notify( 'onUpdateData', 'adjustment' );
+                        notifications.alert( 'Adjustment approved', 'success' );
+						appData.refresh( session.data.currentStore.id, 'adjustment' );
 					});			
 			};
             
@@ -135,16 +263,18 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
                 appData.cancelAllocation( allocationData ).then(
                     function( response )
                     {
-                        notifications.notify( 'onUpdateData', 'allocation' );
+                        notifications.alert( 'Allocation cancelled', 'success' );
+                        appData.refresh( session.data.currentStore.id, 'allocation' );
                     });
             };
         
         // Subscribe to notifications
-        notifications.subscribe( $scope, 'onChangeStore',  $scope.refreshData );
-        notifications.subscribe( $scope, 'onUpdateData',  $scope.refreshData );
+        notifications.subscribe( $scope, 'onChangeStore',  function( event, data )
+            {
+                appData.refresh( session.data.currentStore.id, data );
+            });
             
         // Init controller
-        $scope.refreshData();
 	}
 ]);
 
@@ -529,6 +659,8 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
                     appData.saveTransfer( data ).then(
                         function( response )
                         {
+                            appData.refresh( session.data.currentStore.id, 'transfer' );
+                            notifications.alert( 'Transfer record saved', 'success' );
                             $state.go( 'main.store', { activeTab: 'transfers' } );
                         },
                         function( reason )
@@ -547,6 +679,8 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
                     appData.approveTransfer( data ).then(
                         function( response )
                         {
+                            appData.refresh( session.data.currentStore.id, 'transfer' );
+                            notifications.alert( 'Transfer approved', 'success' );
                             $state.go( 'main.store', { activeTab: 'transfers' } );
                         },
                         function( reason )
@@ -566,6 +700,8 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
                     appData.receiveTransfer( data ).then(
                         function( response )
                         {
+                            appData.refresh( session.data.currentStore.id, 'receipt' );
+                            notifications.alert( 'Transfer received', 'success' );
                             $state.go( 'main.store', { activeTab: 'receipts' } );
                         },
                         function( reason )
@@ -678,7 +814,7 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
 	function( $scope, $filter, $state, $stateParams, session, appData, notifications )
 	{
         $scope.data = {
-                inventoryItems: appData.data.items,
+                inventoryItems: angular.copy( appData.data.items ),
                 selectedItem: appData.data.items[0]
             };
         
@@ -722,6 +858,8 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
                     appData.saveAdjustment( data ).then(
                         function( response )
                         {
+                            appData.refresh( session.data.currentStore.id, 'adjustment' );
+                            notifications.alert( 'Adjustment record saved', 'success' );
                             $state.go( 'main.store', { activeTab: 'adjustments' } );
                         },
                         function( reason )
@@ -740,6 +878,8 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
                     appData.approveAdjustment( data ).then(
                         function( response )
                         {
+                            appData.refresh( session.data.currentStore.id, 'adjustment' );
+                            notifications.alert( 'Adjustment approved', 'success' );
                             $state.go( 'main.store', { activeTab: 'adjustments' } );
                         },
                         function( reason )
@@ -1034,7 +1174,7 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
                             valid: true,
                             
                             mopped_station_id: parseInt( $scope.input.moppedSource.id ),
-                            mopped_item_id: parseInt( $scope.input.moppedItem.id ),
+                            mopped_item_id: parseInt( $scope.input.moppedItem.item_id ),
                             mopped_quantity: parseInt( $scope.input.moppedQuantity ),
                             converted_to: ( $scope.input.packAs && $scope.input.packAs.id ) ? $scope.input.packAs.target_item_id : null,
                             group_id: null,
@@ -1072,7 +1212,7 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 
                 if( item && typeof item === 'object' )
                 {
-                    $scope.data.packAsItems = $filter( 'filter' )( packingData, { source_item_id: item.id }, true );
+                    $scope.data.packAsItems = $filter( 'filter' )( packingData, { source_item_id: item.item_id }, true );
                     if( $scope.data.packAsItems.length )
                     {
                         $scope.data.packAsItems.unshift({
@@ -1222,10 +1362,14 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
                         {
                             if( $scope.data.editMode == 'new' )
                             {
+                                appData.refresh( session.data.currentStore.id, 'collection' );
+                                notifications.alert( 'Collection record saved', 'success' );
                                 $scope.moppingItem.items = [];
                             }
                             else
                             {
+                                appData.refresh( session.data.currentStore.id, 'collection' );
+                                notifications.alert( 'Collection record saved', 'success' );
                                 $state.go( 'main.store', { activeTab: 'collections' } );
                             }
                         },
@@ -1339,7 +1483,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
                     { id: 2, typeName: 'Ticket Vending Machine' }
                 ],
             selectedAssigneeType: { id: 1, typeName: 'Station Teller' },
-            inventoryItems: appData.data.items,
+            inventoryItems: angular.copy( appData.data.items ),
             selectedItem: null,
             categories: angular.copy( appData.data.itemCategories ),
             allocationPhase: 'allocation',
@@ -1649,6 +1793,8 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
                     appData.saveAllocation( data ).then(
                         function( response )
                         {
+                            appData.refresh( session.data.currentStore.id, 'allocation' );
+                            notifications.alert( 'Allocation record saved', 'success' );
                             $state.go( 'main.store', { activeTab: 'allocations' } );
                         },
                         function( reason )
@@ -1671,6 +1817,8 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
                     appData.allocateAllocation( data ).then(
                         function( response )
                         {
+                            appData.refresh( session.data.currentStore.id, 'allocation' );
+                            notifications.alert( 'Marked as Allocated', 'success' );
                             $state.go( 'main.store', { activeTab: 'allocations' } );
                         },
                         function( reason )
@@ -1688,6 +1836,8 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
                     appData.remitAllocation( data ).then(
                         function( response )
                         {
+                            appData.refresh( session.data.currentStore.id, 'allocation' );
+                            notifications.alert( 'Marked as Remitted', 'success' );
                             $state.go( 'main.store', { activeTab: 'allocations' } );
                         },
                         function( reason )

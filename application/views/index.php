@@ -21,7 +21,7 @@
 		<script src="<?php echo base_url( 'controllers.js' );?>"></script>
 		<script src="<?php echo base_url( 'services.js' );?>"></script>
 	</head>
-	<body ui-view>
-		
+	<body>
+		<div ui-view></div>
 	</body>
 </html>

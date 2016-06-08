@@ -290,13 +290,13 @@ class Store extends Base_model
 		$transaction_type = param( $params, 'type' );
 		
 		$limit = param( $params, 'limit' );
-		$offset = param( $params, 'offset' );
+		$page = param( $params, 'page', 1 );
 		$format = param( $params, 'format', 'object' );
 		$order = param( $params, 'order', 'transaction_datetime DESC' );
 
 		if( $limit )
 		{
-			$ci->db->limit( $limit, is_null( $offset ) ? 0 : $offset );
+			$ci->db->limit( $limit, ( $page ? ( ( $page - 1 ) * $limit ) : 0 ) );
 		}
 		if( $order )
 		{
@@ -307,15 +307,11 @@ class Store extends Base_model
 		$ci->db->join( 'store_inventory si', 'si.id = t.store_inventory_id' );
 		$ci->db->join( 'items i', 'i.id = si.item_id' );
 		$ci->db->join( 'shifts s', 's.id = t.transaction_shift' );
-		$ci->db->where( 'store_id', intval( $this->id ) );
+		$ci->db->where( 'si.store_id', intval( $this->id ) );
 		
 		if( $business_date )
 		{
 			$ci->db->where( 'DATE(transaction_datetime)', $business_date );
-		}
-		else
-		{
-			//$ci->db->where( 'DATE(transaction_datetime)', date( DATE_FORMAT ) );
 		}
 		
 		if( $item_id )
@@ -344,20 +340,46 @@ class Store extends Base_model
 		$ci =& get_instance();
 
 		$ci->load->library( 'Transfer' );
+		$business_date = param( $params, 'date' );
+		$destination = param( $params, 'dst' );
+		$status = param( $params, 'status' );
+		
 		$limit = param( $params, 'limit' );
-		$offset = param( $params, 'offset' );
+		$page = param( $params, 'page', 1 );
 		$format = param( $params, 'format', 'object' );
 		$order = param( $params, 'order', 'transfer_datetime DESC' );
-
 
 		//$ci->db->select( 't.*, i.item_name' );
 		if( $limit )
 		{
-			$ci->db->limit( $limit, ( $offset ? $offset : 0 ) );
+			$ci->db->limit( $limit, ( $page ? ( ( $page - 1 ) * $limit ) : 0 ) );
 		}
 		if( $order )
 		{
 			$ci->db->order_by( $order );
+		}
+		
+		if( $business_date )
+		{
+			$ci->db->where( 'DATE(transfer_datetime)', $business_date );
+		}
+		
+		if( $destination )
+		{
+			if( $destination == '_ext_' )
+			{
+				$ci->db->where( 'destination_id IS NULL' );
+				$ci->db->where( 'destination_name IS NOT NULL' );
+			}
+			else
+			{
+				$ci->db->where( 'destination_id', $destination );
+			}
+		}
+		
+		if( $status )
+		{
+			$ci->db->where( 'transfer_status', $status );
 		}
 		
 		$ci->db->where( 'origin_id', $this->id );
@@ -379,13 +401,17 @@ class Store extends Base_model
 
 	public function get_receipts( $params = array() )
 	{
-		$ci =& get_instance();
-
-		$ci->load->library( 'transfer' );
+		$receipt_date = param( $params, 'date' );
+		$source = param( $params, 'src' );
+		$status = param( $params, 'status' );
+		
 		$limit = param( $params, 'limit' );
-		$offset = param( $params, 'offset' );
+		$page = param( $params, 'page', 1 );
 		$order = param( $params, 'order', 'transfer_datetime DESC' );
 		$format = param( $params, 'format', 'object' );
+		
+		$ci =& get_instance();
+		$ci->load->library( 'transfer' );
 
 		// Do not show pending or scheduled transfers
 		$available_status = array( TRANSFER_APPROVED, TRANSFER_RECEIVED, TRANSFER_CANCELLED );
@@ -393,16 +419,38 @@ class Store extends Base_model
 		$ci->db->select( 't.*' );
 		if( $limit )
 		{
-			$ci->db->limit( $limit, ( $offset ? $offset : 0 ) );
+			$ci->db->limit( $limit, ( $page ? ( ( $page - 1 ) * $limit ) : 0 ) );
 		}
 		if( $order )
 		{
 			$ci->db->order_by( $order );
 		}
 		
+		if( $receipt_date )
+		{
+			$ci->db->where( "(DATE(receipt_datetime) = '${receipt_date}' OR receipt_datetime IS NULL )");
+		}
+		
+		if( $source )
+		{
+			if( $source == '_ext_' )
+			{
+				$ci->db->where( 'origin_id IS NULL' );
+				$ci->db->where( 'origin_name IS NOT NULL' );
+			}
+			else
+			{
+				$ci->db->where( 'origin_id', $source );
+			}
+		}
+		
+		if( $status )
+		{
+			$ci->db->where( 'transfer_status', $status );
+		}
+		
 		$ci->db->where_in( 'transfer_status', $available_status );
 		$ci->db->where( 'destination_id', $this->id );
-		//$ci->db->join( 'items i', 'i.id = t.item_id', 'left' );
 		$ci->db->join( 'stores s', 's.id = t.origin_id', 'left' );
 		
 		$query = $ci->db->get( 'transfers t' );
@@ -422,21 +470,40 @@ class Store extends Base_model
 
 	public function get_adjustments( $params = array() )
 	{
-		$ci =& get_instance();
+		$adjustment_date = param( $params, 'date' );
+		$item_id = param( $params, 'item' );
+		$status = param( $params, 'status' );
 		
-		$ci->load->library( 'adjustment' );
 		$limit = param( $params, 'limit' );
-		$offset = param( $params, 'offset' );
+		$page = param( $params, 'page', 1 );
 		$order = param( $params, 'order', 'a.id DESC' );
 		$format = param( $params, 'format', 'object' );
 		
+		$ci =& get_instance();
+		$ci->load->library( 'adjustment' );
+		
 		if( $limit )
 		{
-			$ci->db->limit( $limit, ( $offset ? $offset : 0 ) );
+			$ci->db->limit( $limit, ( $page ? ( ( $page - 1 ) * $limit ) : 0 ) );
 		}
 		if( $order )
 		{
 			$ci->db->order_by( $order );
+		}
+		
+		if( $adjustment_date )
+		{
+			$ci->db->where( 'DATE(adjustment_timestamp)', $adjustment_date );
+		}
+		
+		if( $item_id )
+		{
+			$ci->db->where( 'si.item_id', $item_id );
+		}
+		
+		if( $status )
+		{
+			$ci->db->where( 'adjustment_status', $status );
 		}
 		
 		$ci->db->select( 'a.*, i.item_name, i.item_description, u.username, u.full_name' );
@@ -501,6 +568,11 @@ class Store extends Base_model
 
     public function get_collections_summary( $params = array() )
     {
+		$processing_date = param( $params, 'processing_date' );
+		$business_date = param( $params, 'business_date' );
+		$limit = param( $params, 'limit' );
+		$page = param( $params, 'page', 1 );
+		
         $ci =& get_instance();
         
         $sql = 'SELECT
@@ -528,8 +600,17 @@ class Store extends Base_model
                         RIGHT JOIN mopping AS m
                             ON m.id = mi.mopping_id
                         WHERE
-							m.store_id = ?
-                        GROUP BY mopping_id, m.date_created, business_date, shift_id, cashier_shift_id, mopped_item_id, converted_to
+							m.store_id = ?';
+		if( $processing_date )
+		{
+			$sql .= " AND DATE(processing_datetime) = '${processing_date}'";
+		}
+		
+		if( $business_date )
+		{
+			$sql .= " AND business_date = '${business_date}'";
+		}
+		$sql .= ' GROUP BY mopping_id, m.date_created, business_date, shift_id, cashier_shift_id, mopped_item_id, converted_to
                     ) AS a
                     LEFT JOIN conversion_table AS ct
                         ON ct.source_item_id = a.mopped_item_id AND ct.target_item_id = a.converted_to
@@ -541,6 +622,11 @@ class Store extends Base_model
                     ON s.id = b.shift_id
                 LEFT JOIN shifts AS cs
                     ON cs.id = b.cashier_shift_id';
+					
+		if( $limit )
+		{
+			$sql .= ' LIMIT '.( $page ? ( ( $page - 1 )  * $limit ) : 0 ).', '.$limit;
+		}
                 
         $query = $ci->db->query( $sql, array( $this->id ) );
         
@@ -587,6 +673,12 @@ class Store extends Base_model
 
 	public function get_allocations_summary( $params = array() )
 	{
+		$allocation_date = param( $params, 'date' );
+		$assignee_type = param( $params, 'assignee_type' );
+		$status = param( $params, 'status' );
+		$limit = param( $params, 'limit' );
+		$page = param( $params, 'page', 1 );
+		
 		$ci =& get_instance();
 		
 		$sql = 'SELECT
@@ -603,17 +695,59 @@ class Store extends Base_model
 						SUM( IF( ic.is_allocation_category = TRUE AND category IN ( "Additional Allocation", "Magazine Load" ) AND NOT allocation_item_status = '.ALLOCATION_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS additional,
 						SUM( IF( ic.is_remittance_category = TRUE AND NOT allocation_item_status = '.REMITTANCE_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS remitted
 					FROM allocation_items AS ai
+					LEFT JOIN allocations AS a
+						ON a.id = ai.allocation_id
 					LEFT JOIN items AS i
 						ON i.id = ai.allocated_item_id
 					LEFT JOIN item_categories AS ic
-						ON ic.id = ai.allocation_category_id
-					GROUP BY allocation_id, allocated_item_id, item_name, item_description
+						ON ic.id = ai.allocation_category_id';
+		if( $allocation_date || $assignee_type || $status )
+		{
+			$sql .= ' WHERE a.id IS NOT NULL';
+		}
+		
+		if( $allocation_date )
+		{
+			$sql .= " AND a.business_date = '${allocation_date}'";
+		}
+		
+		if( $assignee_type )
+		{
+			$sql .= " AND a.assignee_type = ${assignee_type}";
+		}
+		
+		if( $status )
+		{
+			$sql .= " AND a.allocation_status = ${status}";
+		}
+		
+		$sql .= ' GROUP BY allocation_id, allocated_item_id, item_name, item_description
 				) AS x
 				RIGHT JOIN allocations AS a
 					ON x.allocation_id = a.id
 				LEFT JOIN shifts AS s
 					ON s.id = a.shift_id
 				WHERE a.store_id = ?';
+				
+		if( $allocation_date )
+		{
+			$sql .= " AND a.business_date = '${allocation_date}'";
+		}
+		
+		if( $assignee_type )
+		{
+			$sql .= " AND a.assignee_type = ${assignee_type}";
+		}
+		
+		if( $status )
+		{
+			$sql .= " AND a.allocation_status = ${status}";
+		}
+		
+		if( $limit )
+		{
+			$sql .= ' LIMIT '.( $page ? ( ( $page - 1 )  * $limit ) : 0 ).', '.$limit;
+		}		
 					
 		$query = $ci->db->query( $sql, array( $this->id ) );
 		
@@ -623,22 +757,41 @@ class Store extends Base_model
 
     public function get_conversions( $params =array () )
     {
-        $ci =& get_instance();
-        
-        $ci->load->library( 'conversion' );
-        $limit = param( $params, 'limit' );
-        $offset = param( $params, 'offset' );
+		$limit = param( $params, 'limit' );
+		$page = param( $params, 'page', 1 );
         $order = param( $params, 'order', 'c.id DESC' );
         $format = param( $params, 'format', 'object' );
+		
+		$conversion_date = param( $params, 'date' );
+		$input_item_id = param( $params, 'input' );
+		$output_item_id = param( $params, 'output' ); 
+		
+        $ci =& get_instance();
+        $ci->load->library( 'conversion' );
         
         if( $limit )
-        {
-            $ci->db->limit( $limit, ( $offset ? $offset : 0 ) );
-        }
+		{
+			$ci->db->limit( $limit, ( $page ? ( ( $page - 1 ) * $limit ) : 0 ) );
+		}
         if( $order )
         {
             $ci->db->order_by( $order );
         }
+		
+		if( $conversion_date )
+		{
+			$ci->db->where( 'DATE(c.conversion_datetime)', $conversion_date );
+		}
+		
+		if( $input_item_id )
+		{
+			$ci->db->where( 'si.item_id', $input_item_id );
+		}
+		
+		if( $output_item_id )
+		{
+			$ci->db->where( 'ti.item_id', $output_item_id );
+		}
         
         $ci->db->select( 'c.*, src_item.item_name AS source_item_name, src_item.item_description AS source_item_description,
                 tgt_item.item_name AS target_item_name, tgt_item.item_description AS target_item_description' );
@@ -667,10 +820,267 @@ class Store extends Base_model
         return $conversions;
     }
 
-
-	public function count_pending_transfers()
+	public function count_transactions( $params = array() )
 	{
 		$ci =& get_instance();
+		$ci->load->library( 'transaction' );
+		
+		$business_date = param( $params, 'date' );
+		$item_id = param( $params, 'item' );
+		$transaction_type = param( $params, 'type' );
+		
+		$ci->db->select( 't.id' );
+		$ci->db->join( 'store_inventory si', 'si.id = t.store_inventory_id' );
+		$ci->db->join( 'items i', 'i.id = si.item_id' );
+		$ci->db->join( 'shifts s', 's.id = t.transaction_shift' );
+		$ci->db->where( 'si.store_id', intval( $this->id ) );
+		
+		if( $business_date )
+		{
+			$ci->db->where( 'DATE(transaction_datetime)', $business_date );
+		}
+		
+		if( $item_id )
+		{
+			$ci->db->where( 'i.id', $item_id );
+		}
+		
+		if( $transaction_type )
+		{
+			$ci->db->where( 'transaction_type', $transaction_type );
+		}
+		
+		$count = $ci->db->count_all_results( 'transactions t' );
+
+		return $count;
+	}
+	
+	public function count_transfers( $params = array() )
+	{
+		$ci =& get_instance();
+		$ci->load->library( 'Transfer' );
+		
+		$business_date = param( $params, 'date' );
+		$destination = param( $params, 'dst' );
+		$status = param( $params, 'status' );
+		
+		if( $business_date )
+		{
+			$ci->db->where( 'DATE(transfer_datetime)', $business_date );
+		}
+		
+		if( $destination )
+		{
+			if( $destination == '_ext_' )
+			{
+				$ci->db->where( 'destination_id IS NULL' );
+				$ci->db->where( 'destination_name IS NOT NULL' );
+			}
+			else
+			{
+				$ci->db->where( 'destination_id', $destination );
+			}
+		}
+		
+		if( $status )
+		{
+			$ci->db->where( 'transfer_status', $status );
+		}
+		
+		$ci->db->where( 'origin_id', $this->id );
+		$count = $ci->db->count_all_results( 'transfers t' );
+
+		return $count;
+	}
+	
+	public function count_receipts( $params = array() )
+	{
+		$receipt_date = param( $params, 'date' );
+		$source = param( $params, 'src' );
+		$status = param( $params, 'status' );
+		
+		$ci =& get_instance();
+		$ci->load->library( 'transfer' );
+
+		// Do not show pending or scheduled transfers
+		$available_status = array( TRANSFER_APPROVED, TRANSFER_RECEIVED, TRANSFER_CANCELLED );
+
+		$ci->db->select( 't.*' );
+		if( $receipt_date )
+		{
+			$ci->db->where( "(DATE(receipt_datetime) = '${receipt_date}' OR receipt_datetime IS NULL )");
+		}
+		
+		if( $source )
+		{
+			if( $source == '_ext_' )
+			{
+				$ci->db->where( 'origin_id IS NULL' );
+				$ci->db->where( 'origin_name IS NOT NULL' );
+			}
+			else
+			{
+				$ci->db->where( 'origin_id', $source );
+			}
+		}
+		
+		if( $status )
+		{
+			$ci->db->where( 'transfer_status', $status );
+		}
+		
+		$ci->db->where_in( 'transfer_status', $available_status );
+		$ci->db->where( 'destination_id', $this->id );
+		$ci->db->join( 'stores s', 's.id = t.origin_id', 'left' );
+		
+		$count = $ci->db->count_all_results( 'transfers t' );
+
+		return $count;
+	}
+	
+	public function count_adjustments( $params = array() )
+	{
+		$adjustment_date = param( $params, 'date' );
+		$item_id = param( $params, 'item' );
+		$status = param( $params, 'status' );
+		
+		$ci =& get_instance();
+		
+		if( $adjustment_date )
+		{
+			$ci->db->where( 'DATE(adjustment_timestamp)', $adjustment_date );
+		}
+		
+		if( $item_id )
+		{
+			$ci->db->where( 'si.item_id', $item_id );
+		}
+		
+		if( $status )
+		{
+			$ci->db->where( 'adjustment_status', $status );
+		}
+		
+		$ci->db->where( 'si.store_id', $this->id );
+		$ci->db->join( 'store_inventory si', 'si.id = a.store_inventory_id', 'left' );
+		$count = $ci->db->count_all_results( 'adjustments a' );
+		
+		return $count;
+	}
+
+	public function count_collections( $params = array() )
+	{
+		$processing_date = param( $params, 'processing_date' );
+		$business_date = param( $params, 'business_date' );
+		
+        $ci =& get_instance();
+        
+		if( $processing_date )
+		{
+			$ci->db->where( 'DATE(processing_datetime)', $processing_date );
+		}
+		
+		if( $business_date )
+		{
+			$ci->db->where( 'business_date', $business_date );
+		}
+		
+        $ci->db->where( 'store_id', $this->id );
+					
+        $count = $ci->db->count_all_results( 'mopping' );
+        
+        return $count;
+	}
+
+	public function count_allocations( $params = array() )
+	{
+		$allocation_date = param( $params, 'date' );
+		$assignee_type = param( $params, 'assignee_type' );
+		$status = param( $params, 'status' );
+		
+		$ci =& get_instance();
+		
+		if( $allocation_date )
+		{
+			$ci->db->where( 'business_date', $allocation_date );
+		}
+		
+		if( $assignee_type )
+		{
+			$ci->db->where( 'assignee_type', $assignee_type );
+		}
+		
+		if( $status )
+		{
+			$ci->db->where( 'allocation_status', $status );
+		}	
+
+		$count = $ci->db->count_all_results( 'allocations' );
+		
+		return $count;
+	}
+
+	public function count_conversions( $params = array() )
+	{
+		$conversion_date = param( $params, 'date' );
+		$input_item_id = param( $params, 'input' );
+		$output_item_id = param( $params, 'output' ); 
+		
+        $ci =& get_instance();
+        $ci->load->library( 'conversion' );
+		
+		if( $conversion_date )
+		{
+			$ci->db->where( 'DATE(c.conversion_datetime)', $conversion_date );
+		}
+		
+		if( $input_item_id )
+		{
+			$ci->db->where( 'si.item_id', $input_item_id );
+		}
+		
+		if( $output_item_id )
+		{
+			$ci->db->where( 'ti.item_id', $output_item_id );
+		}
+        
+        $ci->db->select( 'c.*, src_item.item_name AS source_item_name, src_item.item_description AS source_item_description,
+                tgt_item.item_name AS target_item_name, tgt_item.item_description AS target_item_description' );
+        $ci->db->where( 'c.store_id', $this->id );
+        $ci->db->join( 'store_inventory si', 'si.id = c.source_inventory_id', 'left' );
+        $ci->db->join( 'store_inventory ti', 'ti.id = c.target_inventory_id', 'left' );
+        $ci->db->join( 'items src_item', 'src_item.id = si.item_id', 'left' );
+        $ci->db->join( 'items tgt_item', 'tgt_item.id = ti.item_id', 'left' );
+        $count = $ci->db->count_all_results( 'conversions c' );
+		
+        return $count;
+	}
+
+	public function count_pending_transfers( $params = array() )
+	{
+		$business_date = param( $params, 'date' );
+		$destination = param( $params, 'dst' );
+		
+		$ci =& get_instance();
+		
+		if( $business_date )
+		{
+			$ci->db->where( 'DATE(transfer_datetime)', $business_date );
+		}
+		
+		if( $destination )
+		{
+			if( $destination == '_ext_' )
+			{
+				$ci->db->where( 'destination_id IS NULL' );
+				$ci->db->where( 'destination_name IS NOT NULL' );
+			}
+			else
+			{
+				$ci->db->where( 'destination_id', $destination );
+			}
+		}
+		
 		$ci->db->where( 'transfer_status', TRANSFER_PENDING );
 		$ci->db->where( 'origin_id', $this->id );
 		$ci->db->join( 'stores s', 's.id = t.origin_id', 'left' );
@@ -680,9 +1090,37 @@ class Store extends Base_model
 	}
 
 
-	public function count_pending_receipts()
+	public function count_pending_receipts( $params = array() )
 	{
+		$receipt_date = param( $params, 'date' );
+		$source = param( $params, 'src' );
+		$status = param( $params, 'status' );
+		
 		$ci =& get_instance();
+		
+		if( $receipt_date )
+		{
+			$ci->db->where( "(DATE(receipt_datetime) = '${receipt_date}' OR receipt_datetime IS NULL )");
+		}
+		
+		if( $source )
+		{
+			if( $source == '_ext_' )
+			{
+				$ci->db->where( 'origin_id IS NULL' );
+				$ci->db->where( 'origin_name IS NOT NULL' );
+			}
+			else
+			{
+				$ci->db->where( 'origin_id', $source );
+			}
+		}
+		
+		if( $status )
+		{
+			$ci->db->where( 'transfer_status', $status );
+		}
+		
 		$ci->db->where( 'transfer_status', TRANSFER_APPROVED );
 		$ci->db->where( 'destination_id', $this->id );
 		$ci->db->join( 'stores s', 's.id = t.origin_id', 'left' );
@@ -692,9 +1130,24 @@ class Store extends Base_model
 	}
 
 
-	public function count_pending_adjustments()
+	public function count_pending_adjustments( $params = array() )
 	{
+		$adjustment_date = param( $params, 'date' );
+		$item_id = param( $params, 'item' );
+		$status = param( $params, 'status' );
+		
 		$ci =& get_instance();
+		
+		if( $adjustment_date )
+		{
+			$ci->db->where( 'DATE(adjustment_timestamp)', $adjustment_date );
+		}
+		
+		if( $item_id )
+		{
+			$ci->db->where( 'si.item_id', $item_id );
+		}
+		
 		$ci->db->where( 'si.store_id', $this->id );
 		$ci->db->where( 'a.adjustment_status', ADJUSTMENT_PENDING );
 		$ci->db->join( 'store_inventory si', 'si.id = a.store_inventory_id', 'left' );

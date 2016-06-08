@@ -15,11 +15,18 @@
                 <ul class="nav navbar-nav">
                     <li><a ui-sref="dashboard">Dashboard</a></li>
                     <li class="active"><a ui-sref="main.store">Store</a></li>
+                    <?php
+                    if( is_admin() )
+                    {
+                        echo '<li class="active"><a ui-sref="main.admin">Admin</a></li>';
+                    }
+                    ?>
+                    <li><button type="button" ng-click="notify()">Notice</button></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <li uib-dropdown>
                         <a href class="navbar-link" uib-dropdown-toggle>
-                            {{ data.currentUser.username }}
+                            {{ sessionData.currentUser.username }}
                         </a>
                         <ul class="dropdown-menu" uib-dropdown-menu>
                             <li>
@@ -36,10 +43,10 @@
             <ul class="nav navbar-nav">
                 <li uib-dropdown>
                     <a href uib-dropdown-toggle>
-                        {{ data.currentStore.store_name }} <span class="caret"></span>
+                        {{ sessionData.currentStore.store_name }} <span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu" uib-dropdown-menu>
-                        <li ng-repeat="store in data.userStores">
+                        <li ng-repeat="store in sessionData.userStores">
                             <a href ng-click="changeStore( store )">{{ store.store_name }}</a>
                         </li>
                     </ul>
@@ -48,10 +55,10 @@
             <ul class="nav navbar-nav navbar-right">
                 <li uib-dropdown>
                     <a href uib-dropdown-toggle>
-                        {{ data.currentShift.description }} <span class="caret"></span>
+                        {{ sessionData.currentShift.description }} <span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu" uib-dropdown-menu>
-                        <li ng-repeat="shift in data.storeShifts">
+                        <li ng-repeat="shift in sessionData.storeShifts">
                             <a href ng-click="changeShift( shift )">{{ shift.description }}</a>
                         </li>
                     </ul>
@@ -62,6 +69,11 @@
     
     <!-- Main Content -->
     <div class="container">
+        <div ng-controller="NotificationController" class="notification_wrapper">
+            <div ng-repeat="message in data.messages" class="notification {{ message.type }}" ng-class="{ 'notice-visible': message.visible }">
+                <p>{{ message.message }}</p>
+            </div>
+        </div>
         <div id="content" ui-view></div>
     </div>
     

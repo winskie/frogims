@@ -751,16 +751,34 @@ class Api_v1 extends CI_Controller {
                                 break;
                             
                             case 'adjustments': // adjustments
-                                $adjustments = $store->get_adjustments( array( 'format' => 'array' ) );
-                                $pending_adjustments = $store->count_pending_adjustments();
+                                $params = array(
+                                        'date' => param( $this->input->get(), 'date' ),
+                                        'item' => param( $this->input->get(), 'item' ),
+                                        'status' => param( $this->input->get(), 'status' ),
+                                        'page' => param( $this->input->get(), 'page' ),
+                                        'limit' => param( $this->input->get(), 'limit' ),
+                                        'format' => 'array'
+                                    );
+                                $adjustments = $store->get_adjustments( $params );
+                                $total_adjustments = $store->count_adjustments( $params );
+                                $pending_adjustments = $store->count_pending_adjustments( $params );
                                 
                                 $this->_response( array(
                                     'adjustments' => $adjustments,
+                                    'total' => $total_adjustments,
                                     'pending' => $pending_adjustments ) );
                                 break;
                             
                             case 'allocations_summary': // allocations
-                                $allocations = $store->get_allocations_summary();
+                                $params = array(
+                                    'date' => param( $this->input->get(), 'date' ),
+                                    'assignee_type' => param( $this->input->get(), 'assignee_type' ),
+                                    'status' => param( $this->input->get(), 'status' ),
+                                    'page' => param( $this->input->get(), 'page' ),
+                                    'limit' => param( $this->input->get(), 'limit' ),
+                                );
+                                $allocations = $store->get_allocations_summary( $params );
+                                $total_allocations = $store->count_allocations( $params );
                                 $allocations_data = array();
                                 foreach( $allocations as $allocation )
                                 {
@@ -793,11 +811,20 @@ class Api_v1 extends CI_Controller {
                                     }
                                 }
                                 
-                                $this->_response( array_values( $allocations_data ) );
+                                $this->_response( array(
+                                    'allocations' => array_values( $allocations_data ),
+                                    'total' => $total_allocations ) );
                                 break;
                                 
                             case 'collections_summary': // mopping collections
-                                $collections = $store->get_collections_summary();
+                                $params = array(
+                                        'processing_date' => param( $this->input->get(), 'processing_date' ),
+                                        'business_date' => param( $this->input->get(), 'business_date' ),
+                                        'page' => param( $this->input->get(), 'page' ),
+                                        'limit' => param( $this->input->get(), 'limit' ),
+                                    );
+                                $collections = $store->get_collections_summary( $params );
+                                $total_collections = $store->count_collections( $params ); 
                                 $collections_data = array();
                                 foreach( $collections as $collection )
                                 {
@@ -826,11 +853,24 @@ class Api_v1 extends CI_Controller {
                                         $collections_data[$collection['mopping_id']]['items'] = array( $item );
                                     }
                                 }
-                                $this->_response( array_values( $collections_data ) );
+                                $this->_response( array(
+                                    'collections' => array_values( $collections_data ),
+                                    'total' => $total_collections ) );
                                 break;
-                            case 'conversions':
-                                $conversions = $store->get_conversions( array( 'format' => 'array' ) );
-                                $this->_response( $conversions );
+                            case 'conversions': // item conversions
+                                $params = array(
+                                        'date' => param( $this->input->get(), 'date' ),
+                                        'input' => param( $this->input->get(), 'input' ),
+                                        'output' => param( $this->input->get(), 'output' ),
+                                        'page' => param( $this->input->get(), 'page' ),
+                                        'limit' => param( $this->input->get(), 'limit' ),
+                                        'format' => 'array'
+                                    );
+                                $conversions = $store->get_conversions( $params );
+                                $total_conversions = $store->count_conversions();
+                                $this->_response( array(
+                                    'conversions' => $conversions,
+                                    'total' => $total_conversions ) );
                                 break;
                                 
                             case 'items': // inventory items
@@ -854,10 +894,15 @@ class Api_v1 extends CI_Controller {
                                 
                             case 'receipts': // receipts
                                 $params = array(
-                                    
-                                );
-                                $receipts = $store->get_receipts();
-                                $pending_receipts = $store->count_pending_receipts();
+                                        'date' => param( $this->input->get(), 'date' ),
+                                        'src' => param( $this->input->get(), 'src' ),
+                                        'status' => param( $this->input->get(), 'status' ),
+                                        'page' => param( $this->input->get(), 'page' ),
+                                        'limit' => param( $this->input->get(), 'limit' ),
+                                    );
+                                $receipts = $store->get_receipts( $params );
+                                $total_receipts = $store->count_receipts( $params );
+                                $pending_receipts = $store->count_pending_receipts( $params );
                                 
                                 $receipts_data = array();
                                 foreach( $receipts as $receipt )
@@ -875,6 +920,7 @@ class Api_v1 extends CI_Controller {
                                 
                                 $this->_response( array(
                                     'receipts' => $receipts_data,
+                                    'total' => $total_receipts,
                                     'pending' => $pending_receipts
                                 ) );
                                 break;
@@ -923,10 +969,15 @@ class Api_v1 extends CI_Controller {
                                 else
                                 {
                                     $params = array(
-                                        
+                                        'date' => param( $this->input->get(), 'date' ),
+                                        'dst' => param( $this->input->get(), 'dst' ),
+                                        'status' => param( $this->input->get(), 'status' ),
+                                        'page' => param( $this->input->get(), 'page' ),
+                                        'limit' => param( $this->input->get(), 'limit' ),
                                     );
-                                    $transfers = $store->get_transfers();
-                                    $pending_transfers = $store->count_pending_transfers();
+                                    $transfers = $store->get_transfers( $params );
+                                    $total_transfers = $store->count_transfers( $params );
+                                    $pending_transfers = $store->count_pending_transfers( $params );
                                     
                                     $transfers_data = array();
                                     foreach( $transfers as $transfer )
@@ -944,6 +995,7 @@ class Api_v1 extends CI_Controller {
                                     
                                     $this->_response( array(
                                         'transfers' => $transfers_data,
+                                        'total' => $total_transfers,
                                         'pending' => $pending_transfers
                                     ) );
                                 }
@@ -954,9 +1006,12 @@ class Api_v1 extends CI_Controller {
                                     'item' => param( $this->input->get(), 'item' ),
                                     'type' => param( $this->input->get(), 'type' ),
                                     'date' => param( $this->input->get(), 'date' ),
+                                    'page' => param( $this->input->get(), 'page' ),
+                                    'limit' => param( $this->input->get(), 'limit' ),
                                     'order' => 'transaction_datetime DESC, id DESC'
                                 );
                                 $transactions = $store->get_transactions( $params );
+                                $total_transactions = $store->count_transactions( $params );
                                 $transactions_data = array();
 
                                 $additional_fields = array(
@@ -970,7 +1025,9 @@ class Api_v1 extends CI_Controller {
                                     $transactions_data[] = $transaction->as_array( $additional_fields );
                                 }
                                 
-                                $this->_response( $transactions_data );
+                                $this->_response( array(
+                                    'transactions' => $transactions_data,
+                                    'total' => $total_transactions ) );
                                 break;
                                 
                             default:

@@ -51,3 +51,11 @@ if( ! function_exists( 'current_store' ) )
         }
     }
 }
+
+if( ! function_exists( 'is_admin') )
+{
+    function is_admin()
+    {
+        return isset( $_SESSION['current_userid'] ) && $_SESSION['is_admin'] === TRUE;
+    }
+}
