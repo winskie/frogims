@@ -27,14 +27,14 @@ class Login extends CI_Controller
                         
                         if( $shifts )
                         {
-                            $first_shift = $shifts[0];
+                            $suggested_shift = $first_store->get_suggested_shift();
                         }
                     }
                     
                     // Set session data
                     $this->session->current_user_id = $user->get( 'id' );
                     $this->session->current_store_id = $first_store->get( 'id' );
-                    $this->session->current_shift_id = $first_shift->get( 'id' );
+                    $this->session->current_shift_id = $suggested_shift->get( 'id' );
                     
                     redirect( site_url( '/main/#/main/store' ) );
                     //echo site_url( '/main/#/store' );
