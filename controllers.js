@@ -297,7 +297,8 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
             sweepers: [],
             sweeperLabel: 'Sweeper',
             transferDatepicker: { format: 'yyyy-MM-dd', opened: false },
-            receiptDatepicker: { format: 'yyyy-MM-dd HH:mm:ss', opened: false }
+            receiptDatepicker: { format: 'yyyy-MM-dd HH:mm:ss', opened: false },
+            showCategory: ( session.data.currentStore.store_type == 4 )
         };
             
         $scope.input = {

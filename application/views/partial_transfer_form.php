@@ -148,14 +148,14 @@
 <!-- Input panel -->
 <div class="panel panel-default" ng-if="[ 'transfer', 'externalTransfer', 'externalReceipt' ].indexOf( data.editMode ) != -1">
 	<div class="panel-body row">
-		<div class="form-group col-sm-4">
+		<div class="form-group col-sm-3">
 			<label class="control-label">Item</label>
 			<select class="form-control"
 					ng-model="input.inventoryItem"
 					ng-options="item as item.item_name for item in data.inventoryItems track by item.id">
 			</select>
 		</div>
-		<div class="form-group col-sm-3">
+		<div class="form-group col-sm-3" ng-if="data.showCategory">
 			<label class="control-label">Category</label>
 			<select class="form-control"
 					ng-model="input.itemCategory"
@@ -168,7 +168,7 @@
 					ng-model="input.quantity"
 					ng-keypress="addTransferItem( $event )">
 		</div>
-		<div class="form-group col-sm-3">
+		<div class="form-group" ng-class="{ 'col-sm-4': data.showCategory, 'col-sm-7': !data.showCategory }">
 			<label class="control-label">Remarks</label>
 			<input type="text" class="form-control"
 					ng-model="input.remarks"
