@@ -561,19 +561,19 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
             {
                 if( $scope.transferItem.items.length == 0 )
                 {
-                    alert( 'This transfer does not contain any items.' );
+                    notifications.alert( 'Transfer does not contain any items', 'warning' );
                     return false;
                 }
                 
                 if( ! $scope.transferItem.sender_name )
                 {
-                    alert( 'Please enter name of sweeper' );
+                    notifications.alert( 'Please enter name of ' + $scope.data.sweeperLabel, 'warning' );
                     return false;
                 }
                 
                 if( $scope.data.editMode == 'externalReceipt' && ! $scope.transferItem.origin_name )
                 {
-                    alert( 'Please specify name of origin' );
+                    notifications.alert( 'Please specify source name', 'warning' );
                     return false;
                 }
                 
@@ -835,7 +835,7 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
             {
                 if( ! $scope.adjustmentItem.reason )
                 {
-                    alert( 'You must specify a reason' );
+                    notifications.alert( 'Please specify reason for adjustment', 'warning' );
                     return false;
                 }
                 
@@ -1380,7 +1380,7 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
                 }
                 else
                 {
-                    alert( 'There are invalid item entries!' );
+                    notifications.alert( 'There are invalid item entries', 'error' );
                     console.error( 'There are invalid item entries.' );
                 }
             };
@@ -1689,7 +1689,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
                 
                 if( $scope.allocationItem.allocations.length == 0 )
                 {
-                    alert( 'This allocation does not contain any items.' );
+                    notifications.alert( 'Allocation does not contain any items', 'warning' );
                     return false;
                 }
                 
@@ -1707,7 +1707,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
                         }
                         if( hasValidAllocationItem == false )
                         {
-                            alert( 'This allocation does not contain any valid items for allocation' );
+                            notifications.alert( 'Allocation does not contain any valid items', 'warning' );
                             return false;
                         }
                         break;
@@ -1810,7 +1810,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
                 {
                     if( ! $scope.allocationItem.assignee )
                     {
-                        alert( 'Missing assignee value' );
+                        notifications.alert( 'Please enter ' + $scope.data.assigneeLabel, 'warning' );
                         return false;
                     }
                     var data = $scope.prepareAllocation();

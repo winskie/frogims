@@ -129,12 +129,17 @@ div.notification_wrapper div.notification {
     transition: right 0.4s ease-in-out;
 }
 
+div.notification_wrapper div.notification p {
+    margin: 0;
+}
+
 div.notification_wrapper div.notification.success {
     background-color: green;
 }
 
 div.notification_wrapper div.notification.warning {
-    background-color: orangered;
+    background-color: yellow;
+    color: black;
 }
 
 div.notification_wrapper div.notification.error {
