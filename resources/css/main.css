@@ -35,6 +35,15 @@ body
     padding-bottom: 5px;
 }
 
+.navbar-username {
+    font-weight: bold;
+    color: goldenrod;
+}
+
+.navbar-username:hover {
+    color: gold;
+}
+
 .defective
 {
 	color: #8b0000;

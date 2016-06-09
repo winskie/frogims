@@ -21,12 +21,11 @@
                         echo '<li class="active"><a ui-sref="main.admin">Admin</a></li>';
                     }
                     ?>
-                    <li><button type="button" ng-click="notify()">Notice</button></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <li uib-dropdown>
                         <a href class="navbar-link" uib-dropdown-toggle>
-                            {{ sessionData.currentUser.username }}
+                            <span class="navbar-username">{{ sessionData.currentUser.username }}</span>
                         </a>
                         <ul class="dropdown-menu" uib-dropdown-menu>
                             <li>

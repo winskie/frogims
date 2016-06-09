@@ -1478,10 +1478,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
             businessDatepicker: { format: 'yyyy-MM-dd', opened: false },
             assigneeShifts: angular.copy( assigneeShifts ),
             selectedAssigneeShift: null,
-            assigneeTypes: [
-                    { id: 1, typeName: 'Station Teller' },
-                    { id: 2, typeName: 'Ticket Vending Machine' }
-                ],
+            assigneeTypes: angular.copy( appData.data.assigneeTypes ),
             selectedAssigneeType: { id: 1, typeName: 'Station Teller' },
             inventoryItems: angular.copy( appData.data.items ),
             selectedItem: null,

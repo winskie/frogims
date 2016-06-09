@@ -709,7 +709,7 @@
 								<td class="row-flag" ng-class="lookup( 'allocationStatus', row.allocation_status).className"></td>
 								<td class="text-center vert-top">{{ row.id }}</td>
 								<td class="text-left vert-top">{{ row.business_date }}<br />{{ row.shift_num }}</td>
-								<td class="text-left vert-top">{{ row.assignee ? row.assignee : 'Not yet specified' }}<br />{{ row.assignee_type == 1 ? 'Station Teller' : 'Vending Machine' }}</td>
+								<td class="text-left vert-top">{{ row.assignee ? ( row.assignee_type == 2 ? 'TVM# ' : '' ) + row.assignee : 'Not yet specified' }}<br />{{ row.assignee_type == 1 ? 'Station Teller' : 'Vending Machine' }}</td>
 								<td class="text-left vert-top" ng-switch on="row.assignee_type">
 									<div class="panel panel-default" ng-switch-when=1>
 										<table class="table table-condensed table-bordered table-details">
