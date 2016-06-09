@@ -56,9 +56,9 @@ app.controller( 'LoginController', [ '$scope', 'AuthService',
     function( $scope, AuthService )
     {
         $scope.credentials = {
-            username: null,
-            password: null
-        };
+				username: null,
+				password: null
+			};
         
         $scope.login = function( credentials )
             {
@@ -71,6 +71,6 @@ app.controller( 'LoginController', [ '$scope', 'AuthService',
                     {
                         console.error( reason );
                     });
-            }
+            };
     }
 ]);

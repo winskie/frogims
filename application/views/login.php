@@ -26,7 +26,7 @@
                                 <?php
                                 $username = $this->session->flashdata( 'username' );
                                 ?>
-                                <input type="text" name="username" class="form-control" placeholder="Username" value="<?php echo $username;?>">
+                                <input type="text" name="username" class="form-control" placeholder="Username" value="<?php echo $username;?>" autofocus>
                             </div>
                         </div>
                         <div class="form-group">
