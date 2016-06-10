@@ -190,10 +190,12 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         conversions: 0                        
                     },
                 
-                pendingTransfers: 0,
-                pendingReceipts: 0,
-                pendingAdjustments: 0,
-                pendingAllocations: 0
+                pending: {
+                    transfers: 0,
+                    receipts: 0,
+                    adjustments: 0,
+                    allocations: 0
+                }
             };
             
         me.filters = {
@@ -434,7 +436,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                             
                             me.data.transfers = d.data.transfers;
                             me.data.totals.transfers = d.data.total;
-                            me.data.pendingTransfers = d.data.pending;
+                            me.data.pending.transfers = d.data.pending;
                             deferred.resolve( d );
                         }
                         else
@@ -474,7 +476,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                             
                             me.data.receipts = d.data.receipts;
                             me.data.totals.receipts = d.data.total;
-                            me.data.pendingReceipts = d.data.pending;
+                            me.data.pending.receipts = d.data.pending;
                             deferred.resolve( d );
                         }
                         else
@@ -513,7 +515,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                             var d = response.data;
                             me.data.adjustments = d.data.adjustments;
                             me.data.totals.adjustments = d.data.total;
-                            me.data.pendingAdjustments = d.data.pending;
+                            me.data.pending.adjustments = d.data.pending;
                             deferred.resolve( d );
                         }
                         else
@@ -589,6 +591,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                             var d = response.data;
                             me.data.allocations = d.data.allocations;
                             me.data.totals.allocations = d.data.total;
+                            me.data.pending.allocations = d.data.pending;
                             deferred.resolve( d );
                         }
                         else

@@ -779,6 +779,8 @@ class Api_v1 extends CI_Controller {
                                 );
                                 $allocations = $store->get_allocations_summary( $params );
                                 $total_allocations = $store->count_allocations( $params );
+                                $pending_allocations = $store->count_pending_allocations( $params );
+                                
                                 $allocations_data = array();
                                 foreach( $allocations as $allocation )
                                 {
@@ -813,7 +815,8 @@ class Api_v1 extends CI_Controller {
                                 
                                 $this->_response( array(
                                     'allocations' => array_values( $allocations_data ),
-                                    'total' => $total_allocations ) );
+                                    'total' => $total_allocations,
+                                    'pending' => $pending_allocations ) );
                                 break;
                                 
                             case 'collections_summary': // mopping collections

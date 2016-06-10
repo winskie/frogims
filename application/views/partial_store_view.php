@@ -126,7 +126,7 @@
 		<!-- Outgoing -->
 		<uib-tab index="2" select="onTabSelect(2)">
 			<uib-tab-heading>
-				Outgoing <span ng-show="data.pendingTransfers > 0" class="label label-danger label-as-badge">{{ data.pendingTransfers }}</span>
+				Outgoing <span ng-show="data.pending.transfers > 0" class="label label-danger label-as-badge">{{ data.pending.transfers }}</span>
 			</uib-tab-heading>
 			<div class="panel panel-default">
 				<div class="panel-heading">
@@ -277,7 +277,7 @@
 		<!-- Incoming -->
 		<uib-tab index="3" select="onTabSelect(3)">
 			<uib-tab-heading>
-				Incoming <span ng-show="data.pendingReceipts > 0" class="label label-danger label-as-badge">{{ data.pendingReceipts }}</span>
+				Incoming <span ng-show="data.pending.receipts > 0" class="label label-danger label-as-badge">{{ data.pending.receipts }}</span>
 			</uib-tab-heading>
 			<div class="panel panel-default">
 				<div class="panel-heading">
@@ -409,7 +409,7 @@
 		<!-- Adjustments -->
 		<uib-tab index="4" select="onTabSelect(4)">
 			<uib-tab-heading>
-				Adjustments <span ng-show="data.pendingAdjustments > 0" class="label label-danger label-as-badge">{{ data.pendingAdjustments }}</span>
+				Adjustments <span ng-show="data.pending.adjustments > 0" class="label label-danger label-as-badge">{{ data.pending.adjustments }}</span>
 			</uib-tab-heading>
 			<div class="panel panel-default">
 				<div class="panel-heading">
@@ -640,8 +640,8 @@
         <!-- Allocation -->
         <uib-tab index="6" select="onTabSelect(6)" ng-if="sessionData.currentStore.store_type == 4"> <!-- Cashroom only -->
             <uib-tab-heading>
-                Allocations
-            </uib-tab-heading>
+				Allocations <span ng-show="data.pending.allocations > 0" class="label label-danger label-as-badge">{{ data.pending.allocations }}</span>
+			</uib-tab-heading>
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title pull-left">Allocations</h3>

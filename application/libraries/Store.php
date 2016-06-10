@@ -1155,4 +1155,27 @@ class Store extends Base_model
 		
 		return $count;		
 	}
+	
+	public function count_pending_allocations( $params = array() )
+	{
+		$allocation_date = param( $params, 'date' );
+		$assignee_type = param( $params, 'assignee_type' );
+		
+		$ci =& get_instance();
+		
+		if( $allocation_date )
+		{
+			$ci->db->where( 'business_date', $allocation_date );
+		}
+		
+		if( $assignee_type )
+		{
+			$ci->db->where( 'assignee_type', $assignee_type );
+		}
+		
+		$ci->db->where( 'allocation_status', ALLOCATION_SCHEDULED );
+		$count = $ci->db->count_all_results( 'allocations' );
+		
+		return $count;
+	}
 }
