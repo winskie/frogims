@@ -5,7 +5,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE-edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         
-        <title>FROG Inventory Management System Login</title>
+        <title>FROG Ticket Management Inventory System Login</title>
         
         <link rel="stylesheet" type="text/css" href="<?php echo base_url( 'resources/css/bootstrap.min.css' );?>" />
         <link rel="stylesheet" type="text/css" href="<?php echo base_url( 'resources/css/login.css' );?>" />
@@ -13,7 +13,7 @@
     <body>
         <div class="container">
             <div class="jumbotron app-title">
-                <h2>FROG Inventory Management System</h2>
+                <h2>FROG Ticket Management Inventory System</h2>
             </div>
             <div class="panel panel-default form-sign-in">
                 <div class="panel-body">
