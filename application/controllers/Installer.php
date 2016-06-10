@@ -549,10 +549,13 @@ class Installer extends CI_Controller {
                 array( 'SVC - Defective', 'Defective Stored Value Card', NULL, 0, 1, 0, 1 ),
                 array( 'SVC - Damaged', 'Damaged Stored Value Card', NULL, 0, 1, 0, 1 ),
 				
+				array( 'Senior SVC', 'Senior Citizen Stored Value Card', NULL, 0, 0, 0, 0 ),
+				array( 'PWD SVC', 'Passenger with Disability Store Value Card', NULL, 0, 0, 0, 0 ),
+				
 				array( 'L2 Ticket Coupon', 'Line 2 Ticket Coupon', NULL, 1, 1, 0, 0 ),
                 
-				array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0 ), // ID: 11
-                array( 'L1 SJT', 'Line 1 Single Journey Ticket', 11, 0, 1, 0, 0 )
+				array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0 ), // ID: 13
+                array( 'L1 SJT', 'Line 1 Single Journey Ticket', 13, 0, 1, 0, 0 )
 			);
 
 		foreach( $items as $i )
