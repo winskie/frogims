@@ -431,6 +431,10 @@ class Installer extends CI_Controller {
 	{
 		echo heading( 'Creating default data', 3 );
 		$this->db->trans_start();
+		$current_shift_id = $this->session->current_shift_id;
+		
+		// Temporary set current shift 
+		$this->session->current_shift_id = 1;
 
 		// Create admin user
 		echo 'Creating default admin user...';
@@ -586,7 +590,8 @@ class Installer extends CI_Controller {
 		{
 			foreach( $items as $item )
 			{
-				$store->add_item( $item );
+				$inventory = $store->add_item( $item );
+				$inventory->transact( TRANSACTION_INIT, 1000, date( TIMESTAMP_FORMAT ), 0 );
 			}
 		}
 		echo 'OK<br />';
@@ -659,7 +664,11 @@ class Installer extends CI_Controller {
 		}
 		echo 'OK<br />';
 		flush();
-
+		
+		
+		// Restore shift
+		$this->session->current_shift_id = $current_shift_id;
+		
 		$this->db->trans_complete();
 	}
 
@@ -667,6 +676,7 @@ class Installer extends CI_Controller {
 	{
 		echo heading( 'Creating test data...', 3 );
 
+		/*
 		echo 'Setting initial inventory quantities...';
         flush();
 		$this->db->query( "
@@ -674,6 +684,7 @@ class Installer extends CI_Controller {
 					SET	quantity = 1000" );
 		echo 'OK<br />';
         flush();
+		*/
         
         echo 'Adding test users...';
         flush();

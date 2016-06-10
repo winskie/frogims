@@ -58,6 +58,97 @@ app.controller( 'MainController', [ '$scope', 'session', 'lookup', 'notification
     }
 ]);
 
+app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state', '$stateParams', 'baseUrl', 'session', 'notifications', 
+    function( $scope, $filter, $http, $state, $stateParams, baseUrl, session, notifications )
+    {
+        this.$scope = $scope;
+        $scope.startDate = new Date('2016-06-09 00:00:00');
+        
+        var processData = function( data )
+            {
+                var series = [];
+                
+                var startTime = parseInt(data.start_time) * 1000;
+                var endTime = parseInt(data.end_time) * 1000;
+                var seriesData = data.series;
+                
+                for( var i = 0; i < seriesData.length; i++ )
+                {
+                    series.push({ type: 'line', name: seriesData[i].name, data: [], visible: false });
+                }
+                
+                for( var t = startTime; t <= endTime; t += ( 60 * 1000 ) )
+                {
+                    for( var s = 0; s < seriesData.length; s++ )
+                    {
+                        if( seriesData[s].data[t/1000] )
+                        {
+                            series[s].data.push( [t, parseInt( seriesData[s].data[t/1000] )] );
+                            seriesData[s].init_balance = seriesData[s].data[t/1000];
+                        }
+                        else
+                        {
+                            series[s].data.push( [t, parseInt( seriesData[s].init_balance )]  );
+                        }
+                    }
+                }
+                
+                return series;
+            };
+        
+        $http({
+            method: 'GET',
+            url: baseUrl + 'index.php/api/v1/reports/history',
+            params: {
+                date: $filter( 'date' )( $scope.startDate, 'yyyy-MM-dd HH:mm:ss'),
+                store: session.data.currentStore.id
+            }
+        }).then(
+            function( response )
+            {
+                $scope.chartConfig = {
+                        title: { text: 'Past 24 hours' },
+                        xAxis: {
+                                type: 'datetime',
+                                title: { text: 'Time' },
+                                minorTickInterval: 1000 * 60 * 24, // every hour
+                                tickInterval: 1000 * 60 * 6 * 24
+                            },
+                        yAxis: { title: { text: 'Item Count' } },
+                        tooltip: { valueSuffix: ' celsius' },
+                        legend: { align: 'center', verticalAlign: 'bottom', borderWidth: 0 },
+                        plotOptions: {
+                            area: {
+                                fillColor: {
+                                    linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1},
+                                    stops: [
+                                        [0, Highcharts.getOptions().colors[0]],
+                                        [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                                    ]
+                                },
+                                marker: {
+                                    radius: 2
+                                },
+                                lineWidth: 1,
+                                states: {
+                                    hover: {
+                                        lineWidth: 1
+                                    }
+                                },
+                                threshold: null
+                            }
+                        },
+                        series: processData( response.data.data )
+                            
+                    };
+            },
+            function( reason )
+            {
+                console.error( 'Something went wrong' );
+            });
+    }
+]);
+
 app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'session', 'appData', 'lookup', 'notifications', 'sessionData',
 	function( $scope, $state, $stateParams, session, appData, lookup, notifications, sessionData )
 	{

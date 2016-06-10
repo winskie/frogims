@@ -58,12 +58,6 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 {
 	$urlRouterProvider.otherwise( '/main/store' );
 	
-	var dashboard = {
-			name: 'dashboard',
-			url: '/dashboard',
-			templateUrl: baseUrl + 'index.php/main/view/content'
-		};
-	
 	var main = {
 			name: 'main',
 			url: '/main',
@@ -184,6 +178,14 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 			}
 		};
 		
+	var dashboard = {
+			name: 'dashboard',
+			parent: main,
+			url: '/dashboard',
+			templateUrl: baseUrl + 'index.php/main/view/dashboard_view',
+			controller: 'DashboardController'
+		};
+		
 	var store = {
 			name: 'main.store',
 			parent: main,
@@ -264,6 +266,8 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 		.state( mopping )
 		.state( allocation );
 });
+
+app.directive( 'chart', chartDirective );
 
 app.run( [ 'session', 'appData',
 	function( session, appData )

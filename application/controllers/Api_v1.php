@@ -565,6 +565,66 @@ class Api_v1 extends CI_Controller {
 		$this->output->set_output( json_encode( $response ) );
 	}
     
+    public function reports()
+    {
+        $request_method = $this->input->method();
+        $report_name = param_type( $this->uri->rsegment( 3 ), 'string' );
+        
+        $this->load->library( 'report' );
+        $Report = new Report();
+        
+        switch( $request_method )
+        {
+            case 'get':
+                switch( $report_name )
+                {
+                    case 'history':
+                        $params = array(
+                                'date' => param( $this->input->get(), 'date' ),
+                                'store' => param( $this->input->get(), 'store' )
+                            );
+                        $data = $Report->history( $params );
+                        
+                        $data_array = array();
+                        
+                        foreach( $data as $row )
+                        {
+                            if( isset( $data_array[$row['item_id']] ) )
+                            {
+                                $data_array[$row['item_id']]['data'][$row['timestamp']] = $row['balance'];
+                            }
+                            else
+                            {
+                                $data_array[$row['item_id']] = array(
+                                    'data' => array( $row['timestamp'] => $row['balance'] ),
+                                    'init_balance' => $row['balance'] - $row['quantity'],
+                                    'name' => $row['item_name'],
+                                    'id' => $row['item_id'] );
+                            }
+                        }
+                        
+                        $start_time = round( strtotime( 'now - 1 day' ) / 60 ) * 60 ;
+                        $end_time = round( strtotime( 'now' ) / 60 ) * 60;
+                        
+                        $this->_response( array(
+                            'series' => array_values( $data_array ),
+                            'start_time' => $start_time,
+                            'end_time' => $end_time ) );
+                        //$this->_response( $data );
+                        break;
+                        
+                    default:
+                        $this->_error( 404, 'Report not found' );
+                }
+                break;
+                
+            default:
+                $this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
+        }
+        
+        $this->_send_response();
+    }
+    
     public function session()
     {
         /*

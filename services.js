@@ -133,6 +133,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                 
                 itemCategories: [],
                 transactionTypes: [
+                        { id: 1, typeName: 'Initial Balance' },
                         { id: 10, typeName: 'Transfer Out' },
                         { id: 11, typeName: 'Transfer In' },
                         { id: 12, typeName: 'Transfer Cancellation' },
@@ -1298,6 +1299,7 @@ appServices.service( 'lookup',
         var me = this;
         me.data = {
             transactionTypes: {
+                '1': 'Initial Balance',
                 '10': 'Transfer Out',
                 '11': 'Transfer In',
                 '12': 'Transfer Cancellation',
