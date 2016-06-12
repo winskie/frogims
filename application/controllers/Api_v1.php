@@ -4,53 +4,53 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class Api_v1 extends CI_Controller {
 
     public $response = NULL;
- 
+
     private function _response( $data, $status_code = 200 )
     {
         $this->response = array(
             'status' => 'ok',
             'data' => $data
         );
-        
+
         $this->output->set_status_header( $status_code );
     }
-    
-    
+
+
     private function _error( $status_code = NULL, $description = NULL )
     {
         $this->response = array(
             'status' => 'fail',
             'errorMsg' => isset( $description ) ? $description : 'Unknown error'
         );
-        
+
         $this->output->set_status_header( $status_code );
     }
-    
-    
+
+
     private function _send_response()
     {
         $this->output->set_content_type( 'application/json' );
 		$this->output->set_output( json_encode( $this->response ) );
     }
-    
-    
+
+
     public function test( $v )
     {
         var_dump( $this->uri->rsegment( 3 ) );
     }
-    
+
     public function adjustments()
     {
         $request_method = $this->input->method();
-        
+
         $this->load->library( 'adjustment' );
         $Adjustment = new Adjustment();
-        
+
         switch( $request_method )
         {
             case 'get':
                 $adjustment_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
-                
+
                 if( $adjustment_id )
                 {
                     $adjustment = $Adjustment->get_by_id( $adjustment_id );
@@ -60,9 +60,9 @@ class Api_v1 extends CI_Controller {
                             'item_name' => array( 'type' => 'string' ),
                             'item_description' => array( 'type' => 'string' ),
                             'full_name' => array( 'type' => 'string' ) ) );
-                            
-                        
-                        
+
+
+
                         $this->_response( $adjustment_data );
                     }
                     else
@@ -75,29 +75,29 @@ class Api_v1 extends CI_Controller {
                     $this->_error( 400, 'Missing required adjustment ID' );
                 }
                 break;
-                
+
             case 'post':
                 $action = param_type( $this->uri->rsegment( 3 ), 'string' );
                 $adjustment_id = param( $this->input->post(), 'id' );
                 $adjustment = $Adjustment->load_from_data( $this->input->post() );
-                
+
                 $this->db->trans_start();
                 switch( $action )
                 {
                     case 'approve':
                         $adjustment->approve();
                         break;
-                        
+
                     case 'cancel':
                         $adjustment->cancel();
                         break;
-                        
+
                     default:
                         $adjustment->db_save();
                 }
                 $adjustment_data = $adjustment->as_array();
                 $this->db->trans_complete();
-                
+
                 if( $this->db->trans_status() )
                 {
                     $this->_response( $adjustment_data, $adjustment_id ? 200 : 201 );
@@ -107,26 +107,26 @@ class Api_v1 extends CI_Controller {
                     $this->_error( 500, 'A database error has occurred while trying to save adjustment record' );
                 }
                 break;
-            
+
             default:
                 $this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
         }
-        
+
         $this->_send_response();
     }
-    
+
     public function allocations()
     {
         $request_method = $this->input->method();
-        
+
         $this->load->library( 'allocation' );
         $Allocation = new Allocation();
-        
+
         switch( $request_method )
         {
             case 'get':
                 $allocation_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
-                
+
                 if( $allocation_id )
                 {
                     $allocation = $Allocation->get_by_id( $allocation_id );
@@ -137,7 +137,7 @@ class Api_v1 extends CI_Controller {
                         $remittance_items = $allocation->get_remittances();
                         $allocation_items_data = array();
                         $remittance_items_data = array();
-                        
+
                         foreach( $allocation_items as $item )
                         {
                             $allocation_items_data[] = $item->as_array( array(
@@ -150,7 +150,7 @@ class Api_v1 extends CI_Controller {
                                 'cashier_shift_num' => array( 'type' => 'string' ) ) );
                         }
                         $allocation_data['allocations'] = $allocation_items_data;
-                        
+
                         foreach( $remittance_items as $item )
                         {
                             $remittance_items_data[] = $item->as_array( array(
@@ -163,7 +163,7 @@ class Api_v1 extends CI_Controller {
                                 'cashier_shift_num' => array( 'type' => 'string' ) ) );
                         }
                         $allocation_data['remittances'] = $remittance_items_data;
-                        
+
                         $this->_response( $allocation_data );
                     }
                     else
@@ -176,32 +176,32 @@ class Api_v1 extends CI_Controller {
                     $this->_error( 400, 'Missing required allocation ID' );
                 }
                 break;
-                
+
             case 'post':
                 $action = param_type( $this->uri->rsegment( 3 ), 'string' );
                 $allocation_id = param( $this->input->post(), 'id' );
                 $allocation = $Allocation->load_from_data( $this->input->post() );
-                
+
                 $this->db->trans_start();
                 switch( $action )
                 {
                     case 'allocate':
                         $allocation->allocate();
                         break;
-                        
+
                     case 'remit':
                         $allocation->remit();
                         break;
-                        
+
                     case 'cancel':
                         $allocation->cancel();
                         break;
-                        
+
                     default:
                         $allocation->db_save();
                 }
                 $this->db->trans_complete();
-                
+
                 if( $this->db->trans_status() )
                 {
                     $this->_response( $allocation->as_array(), $allocation_id ? 200 : 201 );
@@ -211,29 +211,29 @@ class Api_v1 extends CI_Controller {
                     $this->_error( 500, 'A database error has occurred while trying to save transfer record' );
                 }
                 break;
-                
+
             default:
                 $this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
         }
-        
+
         $this->_send_response();
     }
-    
+
     public function categories()
     {
         $request_method = $this->input->method();
-        
+
         $category_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
-        
+
         $this->load->library( 'item_category' );
         $Category = new Item_category();
-        
+
         switch( $request_method )
         {
             case 'get':
                 if( $category_id )
                 {
-                    
+
                 }
                 else
                 {
@@ -241,27 +241,27 @@ class Api_v1 extends CI_Controller {
                     $this->_response( $categories );
                 }
                 break;
-                
+
             default:
                 $this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
         }
-        
+
         $this->_send_response();
     }
-    
+
     public function collections()
     {
         $request_method = $this->input->method();
-        
+
         $this->load->library( 'mopping' );
         $Collection = new Mopping();
-        
+
         switch( $request_method )
         {
             case 'get':
                 $collection_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
                 $relation = param_type( $this->uri->rsegment( 4 ), 'string' );
-                
+
                 if( $collection_id )
                 {
                     $collection = $Collection->get_by_id( $collection_id );
@@ -291,12 +291,12 @@ class Api_v1 extends CI_Controller {
                     $this->_error( 400, 'Missing required collection ID' );
                 }
                 break;
-                
+
             case 'post':
                 $action = param_type( $this->uri->rsegment( 3 ), 'string' );
                 $collection_id = param( $this->input->post(), 'id' );
                 $collection = $Collection->load_from_data( $this->input->post() );
-                
+
                 $this->db->trans_start();
                 switch( $action )
                 {
@@ -304,7 +304,7 @@ class Api_v1 extends CI_Controller {
                         $collection->db_save();
                 }
                 $this->db->trans_complete();
-                
+
                 if( $this->db->trans_status() )
                 {
                     $this->_response( $collection->as_array(), $collection_id ? 200 : 201 );
@@ -314,32 +314,32 @@ class Api_v1 extends CI_Controller {
                     $this->_error( 500, 'A database error has occurred while trying to save transfer record' );
                 }
                 break;
-                
+
             default:
                 $this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
         }
-        
+
         $this->_send_response();
     }
-    
+
     public function conversion_factors()
     {
         $request_method = $this->input->method();
         $sub_resource = $this->uri->rsegment( 3 );
-        
+
         $this->load->library( 'conversion_table' );
         $Table = new Conversion_table();
-        
+
         switch( $request_method )
         {
             case 'get':
                 switch( $sub_resource )
-                {                        
+                {
                     case 'packing':
                         $data = $Table->get_packing_data( array( 'format' => 'array' ) );
                         $this->_response( $data );
                         break;
-                        
+
                     default:
                         $conversion_factor_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
                         if( $conversion_factor_id )
@@ -361,21 +361,21 @@ class Api_v1 extends CI_Controller {
                         }
                 }
                 break;
-                
+
             default:
                 $this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
         }
-        
+
         $this->_send_response();
     }
-    
+
     public function conversions()
     {
-        $request_method = $this->input->method(); 
-        
+        $request_method = $this->input->method();
+
         $this->load->library( 'conversion' );
         $Conversion = new Conversion();
-        
+
         switch( $request_method )
         {
             case 'get':
@@ -385,7 +385,7 @@ class Api_v1 extends CI_Controller {
                     case 'factor':
                         $source_item_id = $this->input->get( 'source' );
                         $target_item_id = $this->input->get( 'target' );
-                        
+
                         if( ! $source_item_id || ! $target_item_id )
                         {
                             $this->_error( 400, 'Missing required item ID' );
@@ -405,7 +405,7 @@ class Api_v1 extends CI_Controller {
                             }
                         }
                         break;
-                        
+
                     default:
                         $conversion_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
                         if( $conversion_id )
@@ -425,9 +425,9 @@ class Api_v1 extends CI_Controller {
                             $conversions = $Conversion->get_conversions( array( 'format' => 'array' ) );
                             $this->_response( $conversions );
                         }
-                }             
+                }
                 break;
-                
+
             case 'post':
                 $action = $this->uri->rsegment( 3 );
                 switch( $action )
@@ -437,7 +437,7 @@ class Api_v1 extends CI_Controller {
                         $conversion = $Conversion->load_from_data( $this->input->post() );
                         $conversion->db_save();
                         $this->db->trans_complete();
-                        
+
                         if( $this->db->trans_status() )
                         {
                             $this->_response( $conversion->as_array() );
@@ -447,56 +447,56 @@ class Api_v1 extends CI_Controller {
                             $this->_error( 500, 'A database error has occured while trying to record the conversion' );
                         }
                         break;
-                        
+
                     default:
                         $this->_error( 400, 'Required action parameter missing' );
                 }
                 break;
-                
+
             default:
                 $this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
         }
-        
+
         $this->_send_response();
     }
-    
+
     public function inventory()
     {
         $request_method = $this->input->method();
         $inventory_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
         $relation = param_type( $this->uri->rsegment( 4 ), 'string' );
-        
+
         $this->load->library( 'inventory' );
         $Inventory = new Inventory();
-        
+
         switch( $request_method )
         {
             case 'get':
                 break;
-                
+
             default:
                 $this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
         }
-        
+
         $this->_send_response();
     }
-    
+
     public function items()
     {
         $request_method = $this->input->method();
-        
+
         switch( $request_method )
         {
             case 'get':
                 break;
-                
+
             default:
                 $this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
         }
-        
+
         $this->_send_response();
     }
-    
+
     public function login_info()
 	{
 		$store_data = NULL;
@@ -520,12 +520,12 @@ class Api_v1 extends CI_Controller {
         $stores_data = NULL;
         $shift_data = NULL;
         $shifts_data = NULL;
-        
+
 		if( $current_store )
 		{
             $shifts = $current_store->get_store_shifts();
             $shifts_data = array();
-            
+
             foreach( $shifts as $shift )
             {
                 $shifts_data[] = $shift->as_array();
@@ -537,14 +537,14 @@ class Api_v1 extends CI_Controller {
 		{
             $stores = $current_user->get_stores();
             $stores_data = array();
-            
+
             foreach( $stores as $store )
             {
                 $stores_data[] = $store->as_array();
             }
 			$user_data = $current_user->as_array();
 		}
-        
+
         if( $current_shift )
         {
             $shift_data = $current_shift->as_array();
@@ -564,15 +564,15 @@ class Api_v1 extends CI_Controller {
 		$this->output->set_content_type( 'application/json' );
 		$this->output->set_output( json_encode( $response ) );
 	}
-    
+
     public function reports()
     {
         $request_method = $this->input->method();
         $report_name = param_type( $this->uri->rsegment( 3 ), 'string' );
-        
+
         $this->load->library( 'report' );
         $Report = new Report();
-        
+
         switch( $request_method )
         {
             case 'get':
@@ -584,9 +584,9 @@ class Api_v1 extends CI_Controller {
                                 'store' => param( $this->input->get(), 'store' )
                             );
                         $data = $Report->history( $params );
-                        
+
                         $data_array = array();
-                        
+
                         foreach( $data as $row )
                         {
                             if( isset( $data_array[$row['item_id']] ) )
@@ -602,29 +602,29 @@ class Api_v1 extends CI_Controller {
                                     'id' => $row['item_id'] );
                             }
                         }
-                        
+
                         $start_time = round( strtotime( 'now - 1 day' ) / 60 ) * 60 ;
                         $end_time = round( strtotime( 'now' ) / 60 ) * 60;
-                        
+
                         $this->_response( array(
                             'series' => array_values( $data_array ),
                             'start_time' => $start_time,
                             'end_time' => $end_time ) );
                         //$this->_response( $data );
                         break;
-                        
+
                     default:
                         $this->_error( 404, 'Report not found' );
                 }
                 break;
-                
+
             default:
                 $this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
         }
-        
+
         $this->_send_response();
     }
-    
+
     public function session()
     {
         /*
@@ -632,30 +632,30 @@ class Api_v1 extends CI_Controller {
         change store: /session/store/:store_id
         */
         $request_method = $this->input->method();
-        
+
         $action = param_type( $this->uri->rsegment( 3 ), 'string' );
 
         switch( $request_method )
         {
             case 'get': // retrieves
                 break;
-                
+
             case 'patch': // partial updates
                 switch( $action )
                 {
                     case 'shift': // change current shift
                         $shift_id = param_type( $this->uri->rsegment( 4 ), 'integer' );
-                        
+
                         if( $shift_id )
                         {
                             $this->load->library( 'shift' );
                             $Shift = new Shift();
                             $new_shift = $Shift->get_by_id( $shift_id );
-                            
+
                             $this->load->library( 'store' );
                             $Store = new Store();
                             $current_store = $Store->get_by_id( $this->session->current_store_id );
-                            
+
                             if( $current_store )
                             {
                                 if( $new_shift->get( 'store_type' ) == $current_store->get( 'store_type') )
@@ -677,19 +677,19 @@ class Api_v1 extends CI_Controller {
                         {
                             $this->_error( 400, 'Unspecified shift ID to switch to' );
                         }
-                        
+
                         break;
-                        
+
                     case 'store': // change current store
                         $store_id = param_type( $this->uri->rsegment( 4 ), 'integer' );
                         $previous_store_id = current_store();
-                        
+
                         if( $store_id )
                         {
                             $this->load->library( 'store' );
                             $Store = new Store();
                             $new_store = $Store->get_by_id( $store_id );
-                            
+
                             if( $new_store )
                             {
                                 if( $new_store->is_member( current_user() ) || TRUE )
@@ -726,66 +726,66 @@ class Api_v1 extends CI_Controller {
                         break;
                 }
                 break;
-                
+
             default:
         }
-        
+
         $this->_send_response();
     }
-    
+
     public function shifts()
     {
         $request_method = $this->input->method();
         $shift_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
-        
+
         $this->load->library( 'shift' );
         $Shift = new Shift();
-        
+
         switch( $request_method )
         {
             case 'get':
                 if( $shift_id )
                 {
-                    
+
                 }
                 else
                 {
                     $params = array_merge( array(
                         'format' => 'array'
                     ), $this->input->get() );
-                    
+
                     $shifts = $Shift->get_shifts( $params );
                     $this->_response( $shifts );
                 }
                 break;
-                
+
             default:
                 $this->_error( 405, sprintf( '%s request not allowed', $request_method) );
         }
-        
+
         $this->_send_response();
     }
-    
+
     public function stations()
     {
         $request_method = $this->input->method();
-        
+
         switch( $request_method )
         {
             case 'get':
                 $query = $this->db->get( 'stations' );
                 $stations = $query->result_array();
-                
+
                 $this->_response( $stations );
                 break;
-                
+
             default:
                 $this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
         }
-        
+
         $this->_send_response();
     }
-    
+
     public function stores()
     {
         $request_method = $this->input->method();
@@ -795,7 +795,7 @@ class Api_v1 extends CI_Controller {
 
         $this->load->library( 'store' );
         $Store = new Store();
-        
+
         switch( $request_method )
         {
             case 'get': // retrieves
@@ -809,7 +809,7 @@ class Api_v1 extends CI_Controller {
                             case NULL: // store data
                                 $this->_response( $store->as_array() );
                                 break;
-                            
+
                             case 'adjustments': // adjustments
                                 $params = array(
                                         'date' => param( $this->input->get(), 'date' ),
@@ -822,13 +822,13 @@ class Api_v1 extends CI_Controller {
                                 $adjustments = $store->get_adjustments( $params );
                                 $total_adjustments = $store->count_adjustments( $params );
                                 $pending_adjustments = $store->count_pending_adjustments( $params );
-                                
+
                                 $this->_response( array(
                                     'adjustments' => $adjustments,
                                     'total' => $total_adjustments,
                                     'pending' => $pending_adjustments ) );
                                 break;
-                            
+
                             case 'allocations_summary': // allocations
                                 $params = array(
                                     'date' => param( $this->input->get(), 'date' ),
@@ -840,7 +840,7 @@ class Api_v1 extends CI_Controller {
                                 $allocations = $store->get_allocations_summary( $params );
                                 $total_allocations = $store->count_allocations( $params );
                                 $pending_allocations = $store->count_pending_allocations( $params );
-                                
+
                                 $allocations_data = array();
                                 foreach( $allocations as $allocation )
                                 {
@@ -852,7 +852,7 @@ class Api_v1 extends CI_Controller {
                                         'additional' => $allocation['additional'],
                                         'remitted' => $allocation['remitted']
                                     );
-                                    
+
                                     if( isset( $allocations_data[$allocation['id']] ) )
                                     {
                                         $allocations_data[$allocation['id']]['items'][] = $item;
@@ -872,13 +872,13 @@ class Api_v1 extends CI_Controller {
                                         $allocations_data[$allocation['id']]['items'] = array( $item );
                                     }
                                 }
-                                
+
                                 $this->_response( array(
                                     'allocations' => array_values( $allocations_data ),
                                     'total' => $total_allocations,
                                     'pending' => $pending_allocations ) );
                                 break;
-                                
+
                             case 'collections_summary': // mopping collections
                                 $params = array(
                                         'processing_date' => param( $this->input->get(), 'processing_date' ),
@@ -887,7 +887,7 @@ class Api_v1 extends CI_Controller {
                                         'limit' => param( $this->input->get(), 'limit' ),
                                     );
                                 $collections = $store->get_collections_summary( $params );
-                                $total_collections = $store->count_collections( $params ); 
+                                $total_collections = $store->count_collections( $params );
                                 $collections_data = array();
                                 foreach( $collections as $collection )
                                 {
@@ -897,7 +897,7 @@ class Api_v1 extends CI_Controller {
                                         'item_description' => $collection['item_description'],
                                         'quantity' => $collection['quantity']
                                     );
-                                    
+
                                     if( isset( $collections_data[$collection['mopping_id']] ) )
                                     {
                                         $collections_data[$collection['mopping_id']]['items'][] = $item;
@@ -935,7 +935,52 @@ class Api_v1 extends CI_Controller {
                                     'conversions' => $conversions,
                                     'total' => $total_conversions ) );
                                 break;
-                                
+
+                            case 'inventory_history':
+                                $start_time = param( $this->input->get(), 'start', date( TIMESTAMP_FORMAT, strtotime( 'now - 1 day' ) ) );
+                                $end_time =  param( $this->input->get(), 'end', date( TIMESTAMP_FORMAT ) );
+
+                                // TODO: Check if $start < $end
+
+                                $data = $store->get_transactions_date_range( $start_time, $end_time );
+                                $starting_balances = $store->get_inventory_balances( $start_time );
+
+                                $data_array = array();
+
+                                foreach( $starting_balances as $row )
+                                {
+                                    $data_array[$row['item_id']] = array(
+                                        'data' => array(),
+                                        'init_balance' => $row['balance'],
+                                        'name' => $row['item_name'],
+                                        'id' => $row['item_id'] );
+                                }
+
+                                foreach( $data as $row )
+                                {
+                                    if( isset( $data_array[$row['item_id']] ) )
+                                    {
+                                        $data_array[$row['item_id']]['data'][$row['timestamp']] = $row['balance'];
+                                    }
+                                    else
+                                    {
+                                        $data_array[$row['item_id']] = array(
+                                            'data' => array( $row['timestamp'] => $row['balance'] ),
+                                            'init_balance' => $row['balance'] - $row['quantity'],
+                                            'name' => $row['item_name'],
+                                            'id' => $row['item_id'] );
+                                    }
+                                }
+
+                                $start_time = round( strtotime( $start_time ) / 60 ) * 60 ;
+                                $end_time = round( strtotime( $end_time ) / 60 ) * 60;
+
+                                $this->_response( array(
+                                    'series' => array_values( $data_array ),
+                                    'start_time' => $start_time ,
+                                    'end_time' => $end_time ) );
+                                break;
+
                             case 'items': // inventory items
                                 $items = $store->get_items();
                                 $items_data = array();
@@ -951,10 +996,10 @@ class Api_v1 extends CI_Controller {
                                 {
                                     $items_data[] = $item->as_array( $additional_fields );
                                 }
-                                
+
                                 $this->_response( $items_data );
                                 break;
-                                
+
                             case 'receipts': // receipts
                                 $params = array(
                                         'date' => param( $this->input->get(), 'date' ),
@@ -966,7 +1011,7 @@ class Api_v1 extends CI_Controller {
                                 $receipts = $store->get_receipts( $params );
                                 $total_receipts = $store->count_receipts( $params );
                                 $pending_receipts = $store->count_pending_receipts( $params );
-                                
+
                                 $receipts_data = array();
                                 foreach( $receipts as $receipt )
                                 {
@@ -980,14 +1025,14 @@ class Api_v1 extends CI_Controller {
                                     }
                                     $receipts_data[] = $r;
                                 }
-                                
+
                                 $this->_response( array(
                                     'receipts' => $receipts_data,
                                     'total' => $total_receipts,
                                     'pending' => $pending_receipts
                                 ) );
                                 break;
-                                
+
                             case 'shifts': // store shifts
                                 $shifts = $store->get_shifts();
                                 $shifts_data = array();
@@ -995,10 +1040,10 @@ class Api_v1 extends CI_Controller {
                                 {
                                     $shifts_data[] = $shift->as_array();
                                 }
-                                
+
                                 $this->_response( $shifts_data );
                                 break;
-                                
+
                             case 'transfers': // transfers
                                 $transfer_id = param_type( $this->uri->rsegment( 5 ), 'integer' );
                                 if( $transfer_id )
@@ -1009,7 +1054,7 @@ class Api_v1 extends CI_Controller {
                                     if( $transfer )
                                     {
                                         $transfer_data = $transfer->as_array();
-                                        
+
                                         $transfer_items = $transfer->get_items();
                                         $transfer_items_data = array();
                                         foreach( $transfer_items as $item )
@@ -1021,7 +1066,7 @@ class Api_v1 extends CI_Controller {
                                                 'is_transfer_category' => array( 'type' => 'boolean' ) ) );
                                         }
                                         $transfer_data['items'] = $transfer_items_data;
-                                        
+
                                         $this->_response( $transfer_data );
                                     }
                                     else
@@ -1041,7 +1086,7 @@ class Api_v1 extends CI_Controller {
                                     $transfers = $store->get_transfers( $params );
                                     $total_transfers = $store->count_transfers( $params );
                                     $pending_transfers = $store->count_pending_transfers( $params );
-                                    
+
                                     $transfers_data = array();
                                     foreach( $transfers as $transfer )
                                     {
@@ -1055,7 +1100,7 @@ class Api_v1 extends CI_Controller {
                                         }
                                         $transfers_data[] = $r;
                                     }
-                                    
+
                                     $this->_response( array(
                                         'transfers' => $transfers_data,
                                         'total' => $total_transfers,
@@ -1063,7 +1108,7 @@ class Api_v1 extends CI_Controller {
                                     ) );
                                 }
                                 break;
-                                
+
                             case 'transactions': // transactions
                                 $params = array(
                                     'item' => param( $this->input->get(), 'item' ),
@@ -1082,17 +1127,17 @@ class Api_v1 extends CI_Controller {
                                     'item_description' => array( 'type' => 'string' ),
                                     'shift_num' => array( 'type' => 'string' )
                                 );
-                                
+
                                 foreach( $transactions as $transaction )
                                 {
                                     $transactions_data[] = $transaction->as_array( $additional_fields );
                                 }
-                                
+
                                 $this->_response( array(
                                     'transactions' => $transactions_data,
                                     'total' => $total_transactions ) );
                                 break;
-                                
+
                             default:
                                 $this->_error( 404, sprintf( '%s resource not found', $relation ) );
                         }
@@ -1110,12 +1155,12 @@ class Api_v1 extends CI_Controller {
                     {
                         $stores_data[] = $store->as_array();
                     }
-                    
+
                     $this->_response( $stores_data );
                 }
-                
+
                 break;
-                
+
             case 'post': // creates
                 if( $store_id )
                 {
@@ -1129,10 +1174,10 @@ class Api_v1 extends CI_Controller {
                                 $Adjustment = new Adjustment();
                                 $adjustment = $Adjustment->load_from_data( $this->input->post() );
                                 $r = $adjustment->db_save();
-                                
+
                                 $this->_response( $r->as_array(), 201 );
                                 break;
-                                
+
                             default:
                                 $this->_error( 404, sprintf( '%s resource not found', $relation ) );
                         }
@@ -1147,27 +1192,27 @@ class Api_v1 extends CI_Controller {
                     $this->_error( 400, 'Missing required store ID' );
                 }
                 break;
-                
+
             default:
                 $this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
         }
-        
+
         $this->_send_response();
     }
-    
+
     public function transfers()
     {
         $request_method = $this->input->method();
 
         $this->load->library( 'transfer' );
         $Transfer = new Transfer();
-        
+
         switch( $request_method )
         {
             case 'get':
                 $transfer_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
                 $relation = param_type( $this->uri->rsegment( 4 ), 'string' );
-                
+
                 if( $transfer_id )
                 {
                     $transfer = $Transfer->get_by_id( $transfer_id );
@@ -1189,10 +1234,10 @@ class Api_v1 extends CI_Controller {
                                 $transfer_data['items'] = $items_data;
                                 $this->_response( $transfer_data );
                                 break;
-                                
+
                             case 'items':
                                 break;
-                                
+
                             default:
                                 $this->_error( 404, sprintf( '%s resource not found', $relation ) );
                         }
@@ -1207,31 +1252,31 @@ class Api_v1 extends CI_Controller {
                     $this->_error( 400, 'Missing required transfer ID' );
                 }
                 break;
-                
+
             case 'post':
                 $action = param_type( $this->uri->rsegment( 3 ), 'string' );
                 $transfer_id = param( $this->input->post(), 'id' );
                 $transfer = $Transfer->load_from_data( $this->input->post() );
-                
+
                 $this->db->trans_start();
                 switch( $action )
                 {
                     case 'approve':
                         $transfer->approve();
                         break;
-                        
+
                     case 'cancel':
                         $transfer->cancel();
                         break;
-                        
+
                     case 'receive':
                         $transfer->receive();
                         break;
-                        
+
                     default:
                         $transfer->db_save();
                 }
-                
+
                 $transfer_items = $transfer->get_items();
                 $transfer_data = $transfer->as_array();
                 foreach( $transfer_items as $item )
@@ -1239,7 +1284,7 @@ class Api_v1 extends CI_Controller {
                     $transfer_data['items'][$item->get( 'id' )] = $item->as_array();
                 }
                 $this->db->trans_complete();
-                
+
                 if( $this->db->trans_status() )
                 {
                     $this->_response( $transfer_data, $transfer_id ? 200 : 201 );
@@ -1249,25 +1294,25 @@ class Api_v1 extends CI_Controller {
                     $this->_error( 500, 'A database error has occurred while trying to save transfer record' );
                 }
                 break;
-                
+
             default:
                 $this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
         }
-        
+
         $this->_send_response();
     }
-    
+
     public function users()
     {
         $request_method = $this->input->method();
-        
+
         $user_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
         $relation = param_type( $this->uri->rsegment( 4 ), 'string' );
         $q = param_type( $this->input->get( 'q' ), 'string' );
-        
+
         $this->load->library( 'user' );
         $User = new User();
-        
+
         switch( $request_method )
         {
             case 'get':
@@ -1281,7 +1326,7 @@ class Api_v1 extends CI_Controller {
                             case NULL:
                                 $this->_response( $user->as_array() );
                                 break;
-                            
+
                             default:
                                 $this->_error( 404, sprintf( '%s resource not found', $relation ) );
                         }
@@ -1301,21 +1346,21 @@ class Api_v1 extends CI_Controller {
                     { // get all
                         $users = $User->get_users();
                     }
-                    
+
                     $users_data = array();
                     foreach( $users as $user )
                     {
                         $users_data[] = $user->as_array();
                     }
-                    
+
                     $this->_response( array( 'users' => $users_data ) );
                 }
                 break;
-                
+
             default:
                 $this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
         }
-        
+
         $this->_send_response();
     }
 }

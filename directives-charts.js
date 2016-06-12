@@ -5,41 +5,26 @@ var chartDirective = function()
                 replace: true,
                 template: '<div></div>',
                 scope: {
+                        chart: '=',
                         config: '='
                     },
                 link: function( scope, element, attrs )
                     {
-                        var chart;
                         var process = function()
                             {
                                 var defaultOptions = {
                                         chart: { renderTo: element[0] }
                                     };
                                 var config = angular.extend( defaultOptions, scope.config );
-                                chart = new Highcharts.Chart( config );
+                                Highcharts.setOptions({
+                                        global: {
+                                            useUTC: false
+                                        }
+                                    });
+                                scope.chart = new Highcharts.Chart( config );
                             };
-                        
+
                         process();
-                        scope.$watch( 'config.series', function( loading )
-                            {
-                                process();
-                            });
-                            
-                        scope.$watch( 'config.loading', function( loading )
-                            {
-                                if( ! chart )
-                                {
-                                    return;
-                                }
-                                if( loading )
-                                {
-                                    chart.showLoading();
-                                }
-                                else
-                                {
-                                    chart.hideLoading();
-                                }
-                            });
                     }
             };
     };

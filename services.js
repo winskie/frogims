@@ -4,16 +4,16 @@ appServices.service( 'session', [ '$http', '$q', 'baseUrl', 'notifications',
     function( $http, $q, baseUrl, notifications )
     {
         var me = this;
-        
+
         me.data = {
                 currentUser: null,
                 currentStore: null,
                 currentShift: null,
-                
+
                 userStores: [],
                 storeShifts: [],
             };
-            
+
         me.getSessionData = function()
             {
 				var deferred = $q.defer();
@@ -26,7 +26,7 @@ appServices.service( 'session', [ '$http', '$q', 'baseUrl', 'notifications',
                         if( response.data.status == 'ok' )
                         {
                             var d = response.data.data;
-                            
+
                             me.data.currentUser = d.user;
                             me.data.currentStore = d.store;
                             me.data.currentShift = d.shift;
@@ -49,7 +49,7 @@ appServices.service( 'session', [ '$http', '$q', 'baseUrl', 'notifications',
 
 				return deferred.promise;
 			};
-            
+
         me.changeStore = function( newStore )
             {
                 var deferred = $q.defer();
@@ -65,11 +65,11 @@ appServices.service( 'session', [ '$http', '$q', 'baseUrl', 'notifications',
                         if( response.data.status == 'ok' )
                         {
                             var d = response.data.data;
-                            
+
                             me.data.currentStore = d.store;
                             me.data.storeShifts = d.shifts;
                             me.data.currentShift = d.suggested_shift;
-                            
+
                             notifications.notify( 'onChangeStore' );
                             deferred.resolve( d );
                         }
@@ -78,7 +78,7 @@ appServices.service( 'session', [ '$http', '$q', 'baseUrl', 'notifications',
                             console.error( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
-						
+
 					},
 					function( reason )
 					{
@@ -88,7 +88,7 @@ appServices.service( 'session', [ '$http', '$q', 'baseUrl', 'notifications',
 
 				return deferred.promise;
 			};
-        
+
         me.changeShift = function( newShift )
             {
                 var deferred = $q.defer();
@@ -101,7 +101,7 @@ appServices.service( 'session', [ '$http', '$q', 'baseUrl', 'notifications',
                         if( response.data.status == 'ok' )
                         {
                             var d = response.data.data;
-                            
+
                             me.data.currentShift = d;
                             deferred.resolve( d );
                         }
@@ -116,7 +116,7 @@ appServices.service( 'session', [ '$http', '$q', 'baseUrl', 'notifications',
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason )
                     });
-                
+
                 return deferred.promise;
             };
     }
@@ -130,7 +130,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                 stations: [],
                 stores: [],
                 activeUsers: [],
-                
+
                 itemCategories: [],
                 transactionTypes: [
                         { id: 1, typeName: 'Initial Balance' },
@@ -159,19 +159,19 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         { id: 2, statusName: 'Approved' },
                         { id: 3, statusName: 'Cancelled' }
                     ],
-                    
+
                 allocationStatus: [
                         { id: 1, statusName: 'Scheduled' },
                         { id: 2, statusName: 'Allocated' },
                         { id: 3, statusName: 'Remitted' },
                         { id: 4, statusName: 'Cancelled' }
                     ],
-                    
+
                 assigneeTypes: [
                         { id: 1, typeName: 'Station Teller' },
                         { id: 2, typeName: 'Ticket Vending Machine' }
                     ],
-                
+
                 items: [],
                 transactions: [],
                 transfers: [],
@@ -180,7 +180,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                 collections: [],
                 allocations: [],
                 conversions: [],
-                
+
                 totals: {
                         transactions: 0,
                         transfers: 0,
@@ -188,9 +188,9 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         adjustments: 0,
                         collections: 0,
                         allocations: 0,
-                        conversions: 0                        
+                        conversions: 0
                     },
-                
+
                 pending: {
                     transfers: 0,
                     receipts: 0,
@@ -198,28 +198,28 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                     allocations: 0
                 }
             };
-            
+
         me.filters = {
             dateFormat: 'yyyy-MM-dd',
             itemsPerPage: 10,
-            
+
             inventory: {
-                
+
             },
             transactions: {
-                date: new Date(),
+                date: null,
                 item: { id: null, item_name: 'All', item_description: 'All' },
                 type: { id: null, typeName: 'All' },
                 page: 1
             },
             transfers: {
-                date: new Date(),
+                date: null,
                 destination: { id: null, store_name: 'All' },
                 status: { id: null, statusName: 'All' },
                 page: 1
             },
             receipts: {
-                date: new Date(),
+                date: null,
                 source: { id: null, store_name: 'All' },
                 status: { id: null, statusName: 'All' },
                 page: 1
@@ -231,29 +231,29 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                 page: 1
             },
             collections: {
-                processingDate: new Date(),
+                processingDate: null,
                 businessDate: null,
                 page: 1
             },
             allocations: {
-                date: new Date(),
+                date: null,
                 assigneeType: { id: null, typeName: 'All' },
                 status: { id: null, statusName: 'All' },
                 page: 1
             },
             conversions: {
-                date: new Date(),
+                date: null,
                 inputItem: { id: null, item_name: 'All', item_description: 'All' },
                 outputItem: { id: null, item_name: 'All', item_description: 'All' },
                 page: 1
             }
         };
-        
+
         me.get = function( data )
             {
                 return angular.copy( me.data[data] );
             };
-        
+
         me.getStations = function()
             {
                 var deferred = $q.defer();
@@ -274,17 +274,17 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                             console.error( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
-                        
+
                     },
                     function( reason )
                     {
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason );
                     });
-                    
+
                 return deferred.promise;
             };
-            
+
         me.getStores = function()
 			{
 				var deferred = $q.defer();
@@ -314,7 +314,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
 				return deferred.promise;
 			};
-            
+
         me.getItemCategories = function()
             {
                 var deferred = $q.defer();
@@ -341,13 +341,13 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason.data.errorMsg );
                     });
-                    
+
                 return deferred.promise;
             };
-            
+
         me.getInventory = function( storeId )
 			{
-				var deferred = $q.defer();             
+				var deferred = $q.defer();
 				$http({
 					method: 'GET',
 					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/items',
@@ -357,7 +357,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         if( response.data.status == 'ok' )
                         {
                             var d = response.data;
-                            
+
                             me.data.items = d.data;
 						    deferred.resolve( d );
                         }
@@ -375,7 +375,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
 				return deferred.promise;
 			};
-            
+
         me.getTransactions = function( storeId )
 			{
 				var deferred = $q.defer();
@@ -395,7 +395,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         if( response.data.status == 'ok' )
                         {
                             var d = response.data;
-                            
+
                             me.data.transactions = d.data.transactions;
                             me.data.totals.transactions = d.data.total;
                             deferred.resolve( d );
@@ -414,7 +414,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
 				return deferred.promise;
 			};
-            
+
         me.getTransfers = function( storeId )
 			{
 				var deferred = $q.defer();
@@ -434,7 +434,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         if( response.data.status == 'ok' )
                         {
                             var d = response.data;
-                            
+
                             me.data.transfers = d.data.transfers;
                             me.data.totals.transfers = d.data.total;
                             me.data.pending.transfers = d.data.pending;
@@ -454,7 +454,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
 				return deferred.promise;
 			};
-            
+
         me.getReceipts = function( storeId )
             {
                 var deferred = $q.defer();
@@ -474,7 +474,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         if( response.data.status == 'ok' )
                         {
 						    var d = response.data;
-                            
+
                             me.data.receipts = d.data.receipts;
                             me.data.totals.receipts = d.data.total;
                             me.data.pending.receipts = d.data.pending;
@@ -494,7 +494,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
 				return deferred.promise;
             };
-            
+
         me.getAdjustments = function( storeId )
             {
                 var deferred = $q.defer();
@@ -530,10 +530,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
 						deferred.reject( reason.data.errorMsg );
 					});
-					
+
 				return deferred.promise;
             };
-            
+
         me.getCollections = function( storeId )
             {
                 var deferred = $q.defer();
@@ -567,10 +567,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason.data.errorMsg );
                     });
-                    
+
                 return deferred.promise;
             };
-            
+
         me.getAllocations = function( storeId )
             {
                 var deferred = $q.defer();
@@ -582,7 +582,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         assignee_type: me.filters.allocations.assigneeType ? me.filters.allocations.assigneeType.id : null,
                         status: me.filters.allocations.status ? me.filters.allocations.status.id : null,
                         page: me.filters.allocations.page ? me.filters.allocations.page : null,
-                        limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null 
+                        limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
                     }
                 }).then(
                     function( response )
@@ -606,10 +606,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
                         deferred.resolve( reason.data.errorMsg );
                     });
-                    
+
                 return deferred.promise;
             };
-            
+
         me.getConversions = function( storeId )
             {
                 var deferred = $q.defer();
@@ -644,10 +644,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason.data.errorMsg );
                     });
-                    
+
                 return deferred.promise;
             };
-            
+
         // Transfers
         me.getTransfer = function( transferId )
             {
@@ -673,13 +673,13 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason.data.errorMsg );
                     });
-                    
+
                 return deferred.promise;
             };
-        
+
         me.saveTransfer = function( transfer )
             {
-                var deferred = $q.defer(); 
+                var deferred = $q.defer();
 				$http({
                     method: 'POST',
                     url: baseUrl + 'index.php/api/v1/transfers',
@@ -705,7 +705,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
 				return deferred.promise;
             };
-            
+
         me.approveTransfer = function( transfer )
             {
                 var deferred = $q.defer();
@@ -734,10 +734,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
 				return deferred.promise;
             };
-            
+
         me.receiveTransfer = function( transfer )
             {
-                var deferred = $q.defer();	
+                var deferred = $q.defer();
 				$http({
 					method: 'POST',
 					url: baseUrl + 'index.php/api/v1/transfers/receive',
@@ -763,7 +763,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
 				return deferred.promise;
             };
-            
+
         me.cancelTransfer = function( transfer )
             {
                 var deferred = $q.defer();
@@ -792,7 +792,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
 				return deferred.promise;
             };
-        
+
         // Adjustments
         me.getAdjustment = function( adjustmentId )
             {
@@ -818,10 +818,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason.data.errorMsg );
                     });
-                    
+
                 return deferred.promise;
             };
-            
+
         me.saveAdjustment = function( adjustmentData )
             {
                 var deferred = $q.defer();
@@ -847,10 +847,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason.data.errorMsg );
                     });
-                
+
                 return deferred.promise;
             };
-            
+
         me.approveAdjustment = function( adjustmentData )
             {
                 var deferred = $q.defer();
@@ -876,10 +876,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason.data.errorMsg );
                     });
-                
+
                 return deferred.promise;
             };
-            
+
         // Mopping
         me.getCashierShifts = function()
             {
@@ -908,10 +908,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason.data.errorMsg );
                     });
-                    
+
                 return deferred.promise;
             };
-            
+
         me.getPackingData = function()
             {
                 var deferred = $q.defer();
@@ -936,10 +936,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason.data.errorMsg );
                     });
-                    
+
                 return deferred.promise;
             };
-        
+
         me.getCollection = function( collectionId )
             {
                 var deferred = $q.defer();
@@ -964,10 +964,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason.data.errorMsg );
                     });
-                    
+
                 return deferred.promise;
             };
-            
+
         me.processCollection = function( collectionData )
             {
                 var deferred = $q.defer();
@@ -993,10 +993,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason.data.errorMsg );
                     });
-                    
+
                 return deferred.promise;
             };
-            
+
         // Allocations
         me.getAssigneeShifts = function()
             {
@@ -1025,11 +1025,11 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason.data.errorMsg );
                     });
-                    
+
                 return deferred.promise;
             };
-            
-        
+
+
         me.getAllocation = function( allocationId )
             {
                 var deferred = $q.defer();
@@ -1054,10 +1054,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason.data.errorMsg );
                     });
-                    
+
                 return deferred.promise;
             };
-            
+
         me.saveAllocation = function( allocationData )
             {
                 var deferred = $q.defer();
@@ -1083,10 +1083,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason.data.errorMsg );
                     });
-                    
+
                 return deferred.promise;
             };
-            
+
         me.allocateAllocation = function( allocationData )
             {
                 var deferred = $q.defer();
@@ -1112,10 +1112,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason.data.errorMsg );
                     });
-                    
+
                 return deferred.promise;
             };
-            
+
         me.remitAllocation = function( allocationData )
             {
                 var deferred = $q.defer();
@@ -1141,10 +1141,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason.data.errorMsg );
                     });
-                    
+
                 return deferred.promise;
             };
-            
+
         me.cancelAllocation = function( allocationData )
             {
                 var deferred = $q.defer();
@@ -1170,10 +1170,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason.data.errorMsg );
                     });
-                    
+
                 return deferred.promise;
             };
-            
+
         // Conversions
         me.getConversionFactor = function( sourceItemId, targetItemId )
             {
@@ -1203,10 +1203,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason.data.errorMsg );
                     });
-                    
+
                 return deferred.promise;
             };
-            
+
         me.convertItems = function( conversionData )
             {
                 var deferred = $q.defer();
@@ -1232,10 +1232,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason.data.errorMsg );
                     });
-                    
+
                 return deferred.promise;
             };
-            
+
         // Refresh
         me.refresh = function( currentStoreId, group )
             {
@@ -1246,37 +1246,37 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         me.getTransactions( currentStoreId );
                         me.getTransfers( currentStoreId );
                         break;
-                        
+
                     case 'receipt':
                         me.getInventory( currentStoreId );
                         me.getTransactions( currentStoreId );
                         me.getReceipts( currentStoreId );
                         break;
-                        
+
                     case 'adjustment':
                         me.getInventory( currentStoreId );
                         me.getTransactions( currentStoreId );
                         me.getAdjustments(currentStoreId );
                         break;
-                        
+
                     case 'collection':
                         me.getInventory( currentStoreId );
                         me.getTransactions( currentStoreId );
                         me.getCollections( currentStoreId );
                         break;
-                        
+
                     case 'allocation':
                         me.getInventory( currentStoreId );
                         me.getTransactions( currentStoreId );
                         me.getAllocations( currentStoreId );
                         break
-                        
+
                     case 'conversion':
                         me.getInventory( currentStoreId );
                         me.getTransactions( currentStoreId );
                         me.getConversions( currentStoreId );
                         break;
-                        
+
                     case 'all':
                     default:
                         me.getInventory( currentStoreId );
@@ -1289,7 +1289,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         me.getConversions( currentStoreId );
                 }
             };
-        
+
     }
 ]);
 
@@ -1304,17 +1304,17 @@ appServices.service( 'lookup',
                 '11': 'Transfer In',
                 '12': 'Transfer Cancellation',
                 '13': 'Void Transfer',
-                
+
                 '20': 'Allocation',
                 '21': 'Remittance',
                 '22': 'Void Allocation',
                 '23': 'Void Remittance',
-                
+
                 '30': 'Mopping Collection',
                 '31': 'Void Collection',
-                
+
                 '40': 'Adjustment',
-                
+
                 '50': 'Conversion From',
                 '51': 'Conversion To'
             },
@@ -1345,10 +1345,10 @@ appServices.service( 'lookup',
                 '22': 'Voided'
             }
         };
-        
+
         me.getX = function( set, value )
             {
-                
+
                 if( value )
                 {
                     return me.data[set][value];
@@ -1363,7 +1363,7 @@ appServices.service( 'lookup',
                 }
             };
     });
-    
+
 appServices.service( 'notifications', [ '$rootScope',
     function( $rootScope )
     {
@@ -1373,12 +1373,12 @@ appServices.service( 'notifications', [ '$rootScope',
                 var eventRegister = $rootScope.$on( eventName, callback );
                 scope.$on( '$destroy', eventRegister );
             };
-            
+
         me.notify = function( event, args )
             {
                 $rootScope.$emit( event, args );
             };
-            
+
         me.alert = function( message, type, duration )
             {
                 $rootScope.$emit( 'notificationSignal', {
@@ -1390,11 +1390,27 @@ appServices.service( 'notifications', [ '$rootScope',
     }
 ]);
 
+appServices.service( 'utilities',
+    function()
+    {
+        var me = this;
+        me.findWithAttr = function( array, attr, value )
+            {
+                for( var i = 0; i < array.length; i++ )
+                {
+                    if( array[i][attr] === value )
+                    {
+                        return i;
+                    }
+                }
+                return -1;
+            };
+    });
 appServices.service( 'UserServices', [ '$http', '$q', 'baseUrl',
 	function( $http, $q, baseUrl )
 	{
         var me = this;
-        
+
         me.findUser = function( q )
             {
                 return $http.get( baseUrl + 'index.php/api/user/search', {
