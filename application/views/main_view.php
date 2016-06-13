@@ -42,11 +42,11 @@
             <ul class="nav navbar-nav">
                 <li uib-dropdown>
                     <a href uib-dropdown-toggle>
-                        {{ sessionData.currentStore.store_name }} <span class="caret"></span>
+                        {{ sessionData.currentStore.store_name }} <span class="label label-info">{{ sessionData.currentStore.store_code}}</span><span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu" uib-dropdown-menu>
                         <li ng-repeat="store in sessionData.userStores">
-                            <a href ng-click="changeStore( store )">{{ store.store_name }}</a>
+                            <a href ng-click="changeStore( store )">{{ store.store_name }} <span class="label label-info">{{ store.store_code }}</span></a>
                         </li>
                     </ul>
                 </li>
@@ -65,7 +65,7 @@
             </ul>
         </div>
     </nav>
-    
+
     <!-- Main Content -->
     <div class="container">
         <div ng-controller="NotificationController" class="notification_wrapper">
@@ -75,7 +75,7 @@
         </div>
         <div id="content" ui-view></div>
     </div>
-    
+
     <!-- Debug -->
     <div ng-bind-html="debug"></div>
 </div>

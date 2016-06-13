@@ -4,6 +4,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class Store extends Base_model
 {
 	protected $store_name;
+	protected $store_code;
     protected $store_type;
 	protected $store_location;
 	protected $store_contact_number;
@@ -20,6 +21,7 @@ class Store extends Base_model
 		$this->primary_table = 'stores';
 		$this->db_fields = array(
 			'store_name' => array( 'type' => 'string' ),
+			'store_code' => array( 'type' => 'string' ),
             'store_type' => array( 'type' => 'integer' ),
 			'store_location' => array( 'type' => 'string' ),
 			'store_contact_number' => array( 'type' => 'string' )

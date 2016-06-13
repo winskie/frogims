@@ -474,7 +474,7 @@ class Api_v1 extends CI_Controller {
                 switch( $relation )
                     {
                         case 'system':
-                            $this->db->select( 's.store_name, i.item_name, si.quantity' );
+                            $this->db->select( 's.store_name, s.store_code, i.item_name, si.quantity' );
                             $this->db->join( 'stores s', 's.id = si.store_id', 'left' );
                             $this->db->join( 'items i', 'i.id = si.item_id', 'left' );
                             $this->db->order_by( 'si.store_id ASC, si.item_id ASC' );
@@ -491,7 +491,7 @@ class Api_v1 extends CI_Controller {
 
                             foreach( $data as $row )
                             {
-                                $index = array_search( $row['store_name'], $stores );
+                                $index = array_search( $row['store_code'], $stores );
                                 if( $index !== FALSE )
                                 {
                                     $series[$row['item_name']]['item'] = $row['item_name'];
@@ -499,7 +499,7 @@ class Api_v1 extends CI_Controller {
                                 }
                                 else
                                 {
-                                    $stores[] = $row['store_name'];
+                                    $stores[] = $row['store_code'];
                                     $series[$row['item_name']]['item'] = $row['item_name'];
                                     $series[$row['item_name']]['data'][] = (int) $row['quantity'];
                                 }

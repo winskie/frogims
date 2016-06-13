@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS shifts
     description TEXT,
     shift_start_time TIME NOT NULL,
     shift_end_time TIME NOT NULL,
-    PRIMARY KEY (id)    
+    PRIMARY KEY (id)
 )
 ENGINE=InnoDB;
 
@@ -60,13 +60,15 @@ CREATE TABLE IF NOT EXISTS stores
 (
 	id INTEGER AUTO_INCREMENT NOT NULL,
 	store_name VARCHAR(100) NOT NULL,
+	store_code VARCHAR(6) NOT NULL,
     store_type INTEGER NOT NULL,
 	store_location VARCHAR(100) NOT NULL,
 	store_contact_number VARCHAR(25) NULL,
 	date_created DATETIME NOT NULL,
 	date_modified DATETIME NOT NULL,
 	last_modified INTEGER NOT NULL,
-	PRIMARY KEY (id)
+	PRIMARY KEY (id),
+	UNIQUE stores_undx (store_code)
 )
 ENGINE=InnoDB;
 
