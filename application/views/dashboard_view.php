@@ -10,4 +10,4 @@
     </div>
 </div>
 
-<button type="button" ng-click="history.updateHistory()">Refresh!</button>
+<button type="button" ng-click="updateDashboard()">Refresh!</button>
