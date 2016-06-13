@@ -951,7 +951,7 @@ class Api_v1 extends CI_Controller {
                                 {
                                     $data_array[$row['item_id']] = array(
                                         'data' => array(),
-                                        'init_balance' => $row['balance'],
+                                        'init_balance' => is_null( $row['balance'] ) ? 0 : $row['balance'],
                                         'name' => $row['item_name'],
                                         'id' => $row['item_id'] );
                                 }
