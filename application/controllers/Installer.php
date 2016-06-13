@@ -41,10 +41,10 @@ class Installer extends CI_Controller {
                     shift_start_time TIME NOT NULL,
                     shift_end_time TIME NOT NULL,
                     description TEXT,
-                    PRIMARY KEY (id)    
+                    PRIMARY KEY (id)
                 )
                 ENGINE=InnoDB" );
-                
+
 		echo 'Creating users table...<br />';
 		$this->db->query( "
 				CREATE TABLE IF NOT EXISTS users
@@ -64,7 +64,7 @@ class Installer extends CI_Controller {
 					UNIQUE users_undx (username)
 				)
 				ENGINE=InnoDB" );
-				
+
 		echo 'Creating groups table...<br />';
 		$this->db->query( "
 				CREATE TABLE IF NOT EXISTS groups
@@ -238,7 +238,7 @@ class Installer extends CI_Controller {
 						ON DELETE SET NULL
 				)
 				ENGINE=InnoDB" );
-				
+
 		echo 'Creating transfer items table... <br />';
 		$this->db->query("
 				CREATE TABLE IF NOT EXISTS transfer_items
@@ -260,7 +260,7 @@ class Installer extends CI_Controller {
 						ON DELETE CASCADE
 				)
 				ENGINE=InnoDB" );
-                
+
         echo 'Creating conversion table table... <br />';
         $this->db->query("
                 CREATE TABLE IF NOT EXISTS conversion_table
@@ -405,7 +405,7 @@ class Installer extends CI_Controller {
 						ON DELETE RESTRICT
 				)
 				ENGINE=InnoDB" );
-				
+
 		echo 'Creating item_categories table...<br />';
 		$this->db->query( "
 				CREATE TABLE IF NOT EXISTS item_categories
@@ -432,8 +432,8 @@ class Installer extends CI_Controller {
 		echo heading( 'Creating default data', 3 );
 		$this->db->trans_start();
 		$current_shift_id = $this->session->current_shift_id;
-		
-		// Temporary set current shift 
+
+		// Temporary set current shift
 		$this->session->current_shift_id = 1;
 
 		// Create admin user
@@ -452,7 +452,7 @@ class Installer extends CI_Controller {
 		unset( $admin );
 		echo 'OK<br />';
         flush();
-        
+
         // Create default stations
         echo 'Creating default stations...';
         flush();
@@ -471,7 +471,7 @@ class Installer extends CI_Controller {
                     ( 11, "Santolan", "STL" )' );
         echo 'OK<br />';
         flush();
-        
+
         // Create default shifts
         echo 'Creating default shifts...';
         flush();
@@ -489,7 +489,7 @@ class Installer extends CI_Controller {
                 array( 'Teller S2', 0, 'Teller Shift 2', '14:00:00', '21:59:59' ),
                 array( 'Teller S3', 0, 'Teller Shift 3', '22:00:00', '05:59:59' )
             );
-        
+
         foreach( $shifts as $s )
         {
             $shift = new Shift();
@@ -547,17 +547,17 @@ class Installer extends CI_Controller {
 				array( 'L2 SJT - Ticket Magazine', 'Line 2 Single Journey Ticket in Ticket Magazine', 1, 0, 0, 1, 0 ),
 				array( 'L2 SJT - Defective', 'Defective Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1 ),
 				array( 'L2 SJT - Damaged', 'Damaged Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1 ),
-				
+
 				array( 'SVC', 'Stored Value Card', NULL, 0, 1, 0, 0 ), // ID: 6
 				array( 'SVC - Rigid Box', 'Stored Value Ticket in Rigid Box', 6, 1, 1, 0, 0 ),
                 array( 'SVC - Defective', 'Defective Stored Value Card', NULL, 0, 1, 0, 1 ),
                 array( 'SVC - Damaged', 'Damaged Stored Value Card', NULL, 0, 1, 0, 1 ),
-				
+
 				array( 'Senior SVC', 'Senior Citizen Stored Value Card', NULL, 0, 0, 0, 0 ),
 				array( 'PWD SVC', 'Passenger with Disability Store Value Card', NULL, 0, 0, 0, 0 ),
-				
+
 				array( 'L2 Ticket Coupon', 'Line 2 Ticket Coupon', NULL, 1, 1, 0, 0 ),
-                
+
 				array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0 ), // ID: 13
                 array( 'L1 SJT', 'Line 1 Single Journey Ticket', 13, 0, 1, 0, 0 )
 			);
@@ -591,12 +591,12 @@ class Installer extends CI_Controller {
 			foreach( $items as $item )
 			{
 				$inventory = $store->add_item( $item );
-				$inventory->transact( TRANSACTION_INIT, 1000, date( TIMESTAMP_FORMAT ), 0 );
+				$inventory->transact( TRANSACTION_INIT, 50, date( TIMESTAMP_FORMAT ), 0 );
 			}
 		}
 		echo 'OK<br />';
         flush();
-        
+
         // Create default conversion table
         echo 'Creating default conversion table...';
         flush();
@@ -608,35 +608,35 @@ class Installer extends CI_Controller {
             array( 'L2 SJT', 'L2 SJT - Defective', 1 ),
             array( 'L2 SJT', 'L2 SJT - Damaged', 1 ),
             array( 'L2 SJT - Defective', 'L2 SJT - Damaged', 1 ),
-            
+
 			// SVC
             array( 'SVC', 'SVC - Rigid Box', 10 ),
             array( 'SVC', 'SVC - Defective', 1 ),
             array( 'SVC', 'SVC - Damaged', 1 ),
             array( 'SVC - Defective', 'SVC - Damaged', 1 ),
-			
+
 			// Other cards
 			array( 'L1 SJT', 'Others', 1 )
         );
-        
+
         $item = new Item();
         foreach( $values as $value )
         {
             $source = $item->get_by_name( $value[0] );
             $target = $item->get_by_name( $value[1] );
-            
+
             $this->db->set( 'source_item_id', $source->get( 'id' ) );
             $this->db->set( 'target_item_id', $target->get( 'id' ) );
             $this->db->set( 'conversion_factor', $value[2] );
-            $this->db->insert( 'conversion_table' );   
+            $this->db->insert( 'conversion_table' );
         }
         echo 'OK<br />';
         flush();
-		
+
 		// Create default item categories
 		echo 'Creating default item categories...';
 		flush();
-		
+
 		$values = array(
 				array( 'Initial Allocation', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1 ),
 				array( 'Additional Allocation', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1 ),
@@ -649,7 +649,7 @@ class Installer extends CI_Controller {
 				array( 'Expired', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
 				array( 'Black Box', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 )
 			);
-			
+
 		foreach( $values as $value )
 		{
 			$this->db->set( 'category', $value[0] );
@@ -664,11 +664,11 @@ class Installer extends CI_Controller {
 		}
 		echo 'OK<br />';
 		flush();
-		
-		
+
+
 		// Restore shift
 		$this->session->current_shift_id = $current_shift_id;
-		
+
 		$this->db->trans_complete();
 	}
 
@@ -685,7 +685,7 @@ class Installer extends CI_Controller {
 		echo 'OK<br />';
         flush();
 		*/
-        
+
         echo 'Adding test users...';
         flush();
         $this->load->library( 'user' );
@@ -697,7 +697,7 @@ class Installer extends CI_Controller {
 		$user1->set( 'user_role', 1 ); // administrator
 		$user1->set_password( 'password123' );
 		$user1->db_save();
-       
+
         $user2 = new User();
 		$user2->set( 'username', 'mmduron' );
 		$user2->set( 'full_name', 'Marlon M. Duron' );
@@ -706,21 +706,21 @@ class Installer extends CI_Controller {
 		$user2->set( 'user_role', 2 ); // standard user
 		$user2->set_password( 'password123' );
 		$user2->db_save();
-		
+
         echo 'OK<br />';
         flush();
-        
+
 		$this->load->library( 'store' );
 		$store = new Store();
 		$st_depot = $store->get_by_id( 1 );
 		$st_depot->add_member( $user1 );
-		
+
 		$st_tgm = $store->get_by_id( 2 );
 		$st_tgm->add_member( $user1 );
-		
+
 		$st_prod = $store->get_by_id( 3 );
 		$st_prod->add_member( $user1 );
-		
+
 		for( $i = 4; $i < 15; $i++ )
 		{
 			$stn = $store->get_by_id( $i );

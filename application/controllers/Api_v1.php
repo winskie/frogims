@@ -463,8 +463,7 @@ class Api_v1 extends CI_Controller {
     public function inventory()
     {
         $request_method = $this->input->method();
-        $inventory_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
-        $relation = param_type( $this->uri->rsegment( 4 ), 'string' );
+        $relation = param_type( $this->uri->rsegment( 3 ), 'string' );
 
         $this->load->library( 'inventory' );
         $Inventory = new Inventory();
@@ -472,6 +471,51 @@ class Api_v1 extends CI_Controller {
         switch( $request_method )
         {
             case 'get':
+                switch( $relation )
+                    {
+                        case 'system':
+                            $this->db->select( 's.store_name, i.item_name, si.quantity' );
+                            $this->db->join( 'stores s', 's.id = si.store_id', 'left' );
+                            $this->db->join( 'items i', 'i.id = si.item_id', 'left' );
+                            $this->db->order_by( 'si.store_id ASC, si.item_id ASC' );
+                            $data = $this->db->get( 'store_inventory si');
+                            $data = $data->result_array();
+
+                            $data_array = array(
+                                    'stores' => array(),
+                                    'series' => array()
+                                );
+
+                            $stores = array();
+                            $series = array();
+
+                            foreach( $data as $row )
+                            {
+                                $index = array_search( $row['store_name'], $stores );
+                                if( $index !== FALSE )
+                                {
+                                    $series[$row['item_name']]['item'] = $row['item_name'];
+                                    $series[$row['item_name']]['data'][] = (int) $row['quantity'];
+                                }
+                                else
+                                {
+                                    $stores[] = $row['store_name'];
+                                    $series[$row['item_name']]['item'] = $row['item_name'];
+                                    $series[$row['item_name']]['data'][] = (int) $row['quantity'];
+                                }
+                            }
+
+                            $data_array = array(
+                                    'stores' => $stores,
+                                    'series' => array_values( $series )
+                                );
+
+                            $this->_response( $data_array );
+                            break;
+
+                        default:
+                            $this->_error( 404, sprintf( '%s resource not found', $relation ) );
+                    }
                 break;
 
             default:

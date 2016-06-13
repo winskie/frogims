@@ -7,7 +7,7 @@ var app = angular.module( 'FROGIMS', [ 'ui.router', 'ui.bootstrap', 'appServices
 	 * The workhorse; converts an object to x-www-form-urlencoded serialization.
 	 * @param {Object} obj
 	 * @return {String}
-	 */ 
+	 */
   	var param = function(obj)
 	  	{
     		var query = '', name, value, fullSubName, subName, subValue, innerObj, i;
@@ -54,10 +54,10 @@ var app = angular.module( 'FROGIMS', [ 'ui.router', 'ui.bootstrap', 'appServices
 
 app.constant( 'baseUrl', baseUrl );
 
-app.config( function( baseUrl, $stateProvider, $urlRouterProvider ) 
+app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 {
 	$urlRouterProvider.otherwise( '/main/store' );
-	
+
 	var main = {
 			name: 'main',
 			url: '/main',
@@ -72,9 +72,9 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 							{
 								var currentStoreId = response.store.id;
 								var sessionData = response;
-								
+
 								console.log( 'Session data loaded' );
-								
+
 								// Load session dependent data
 								console.log( 'Loading current inventory...' );
 								var initInventory = appData.getInventory( currentStoreId ).then(
@@ -86,7 +86,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 									{
 										console.error( reason );
 									});
-									
+
 								console.log( 'Loading store transactions...' );
 								var initTransactions = appData.getTransactions( currentStoreId ).then(
 									function( response )
@@ -97,7 +97,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 									{
 										console.error( reason );
 									});
-									
+
 								console.log( 'Loading transfers...' );
 								var initTransfers = appData.getTransfers( currentStoreId ).then(
 									function( response )
@@ -108,7 +108,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 									{
 										console.error( reason );
 									});
-									
+
 								console.log( 'Loading receipts...' );
 								var initReceipts = appData.getReceipts( currentStoreId ).then(
 									function( response )
@@ -119,7 +119,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 									{
 										console.error( reason );
 									});
-									
+
 								console.log( 'Loading adjustments...' );
 								var initAdjustments = appData.getAdjustments( currentStoreId ).then(
 									function( response )
@@ -130,7 +130,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 									{
 										console.error( reason );
 									});
-									
+
 								console.log( 'Loading collections...' );
 								var initCollections = appData.getCollections( currentStoreId ).then(
 									function( response )
@@ -141,7 +141,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 									{
 										console.error( reason );
 									});
-									
+
 								console.log( 'Loading allocations...' );
 								var initAllocations = appData.getAllocations( currentStoreId ).then(
 									function( response )
@@ -152,7 +152,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 									{
 										console.error( reason );
 									});
-									
+
 								console.log( 'Loading conversions...' );
 								var initConversions = appData.getConversions( currentStoreId ).then(
 									function( response )
@@ -163,7 +163,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 									{
 										console.error( reason );
 									});
-									
+
 								$q.all( [ initInventory, initTransactions, initTransfers, initReceipts, initAdjustments, initCollections, initAllocations, initConversions ] ).then(
 									function( promises )
 									{
@@ -177,7 +177,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 					}
 			}
 		};
-		
+
 	var dashboard = {
 			name: 'dashboard',
 			parent: main,
@@ -185,7 +185,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 			templateUrl: baseUrl + 'index.php/main/view/dashboard_view',
 			controller: 'DashboardController'
 		};
-		
+
 	var store = {
 			name: 'main.store',
 			parent: main,
@@ -194,7 +194,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 			controller: 'FrontController',
 			params: { activeTab: 'inventory' }
 		};
-	
+
 	var transfer = {
 			name: 'main.transfer',
 			parent: main,
@@ -203,7 +203,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 			templateUrl: baseUrl + 'index.php/main/view/partial_transfer_form',
 			controller: 'TransferController'
 		};
-	
+
 	var adjust = {
 			name: 'main.adjust',
 			parent: main,
@@ -212,7 +212,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 			templateUrl: baseUrl + 'index.php/main/view/partial_adjustment_form',
 			controller: 'AdjustmentController'
 		};
-	
+
 	var convert = {
 			name: 'main.convert',
 			parent: main,
@@ -221,7 +221,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 			templateUrl: baseUrl + 'index.php/main/view/partial_conversion_form',
 			controller: 'ConversionController'
 		};
-	
+
 	var mopping = {
 			name: 'main.mopping',
 			parent: main,
@@ -240,7 +240,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 					}
 			}
 		};
-	
+
 	var allocation = {
 			name: 'main.allocation',
 			parent: main,
@@ -255,7 +255,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 					}
 			}
 		};
-		
+
 	$stateProvider
 		.state( dashboard )
 		.state( main )
@@ -267,11 +267,11 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 		.state( allocation );
 });
 
-app.directive( 'chart', chartDirective );
+app.directive( 'highcharts', chartDirective );
 
 app.run( [ 'session', 'appData',
 	function( session, appData )
-	{	
+	{
 		console.log( 'Loading stations data...' );
 		appData.getStations().then(
 			function( response )
@@ -282,7 +282,7 @@ app.run( [ 'session', 'appData',
 			{
 				console.error( reason );
 			});
-			
+
 		console.log( 'Loading available stores...' );
 		appData.getStores().then(
 			function( response )
@@ -293,7 +293,7 @@ app.run( [ 'session', 'appData',
 			{
 				console.error( reason );
 			});
-			
+
 		console.log( 'Loading item categories...' );
 		appData.getItemCategories().then(
 			function( response )
@@ -303,6 +303,6 @@ app.run( [ 'session', 'appData',
 			function( reason )
 			{
 				console.error( reason );
-			});	
+			});
 	}
 ]);

@@ -1,10 +1,13 @@
 <div class="panel panel-default">
-    <div class="panel-heading">
-        <h3 class="panel-title">Inventory History</h3>
-    </div>
     <div class="panel-body">
-        <chart chart="history.chart" config="history.config"></chart>
+        <highcharts chart="history"></highcharts>
     </div>
 </div>
 
-<button type="button" ng-click="redrawHistory()">Refresh!</button>
+<div class="panel panel-default">
+    <div class="panel-body">
+        <highcharts chart="inventory"></highcharts>
+    </div>
+</div>
+
+<button type="button" ng-click="history.updateHistory()">Refresh!</button>
