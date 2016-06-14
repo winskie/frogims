@@ -17,7 +17,7 @@
 							<p class="form-control-static">{{ transferItem.origin_name }}</p>
 						</div>
 					</div>
-					
+
 					<!-- Destination -->
 					<div class="form-group">
 						<label class="control-label col-sm-3">Destination</label>
@@ -42,10 +42,10 @@
 						</div>
 					</div>
 				</div>
-				
+
 				<div class="col-sm-4">
-					
-					
+
+
 					<!-- Sweeper -->
 					<div class="form-group">
 						<label class="control-label col-sm-4">{{ data.sweeperLabel }}</label>
@@ -61,14 +61,14 @@
 						</div>
 					</div>
 				</div>
-				
+
 				<div class="col-sm-3">
 					<!-- Transfer Status -->
 					<div class="form-group">
 						<label class="control-label col-sm-4">Status</label>
 						<p class="form-control-static col-sm-7">{{ lookup( 'transferStatus', transferItem.transfer_status ) }}</p>
 					</div>
-					
+
 					<!-- Date of Transfer -->
 					<div class="form-group">
 						<label class="control-label col-sm-4">Date</label>
@@ -79,7 +79,7 @@
 							<span class="input-group-btn">
 								<button type="button" class="btn btn-default" ng-click="showDatePicker( 'transfer' )"><i class="glyphicon glyphicon-calendar"></i></button>
 							</span>
-						</div>						
+						</div>
 						<div class="col-sm-7" ng-if="[ 'transfer', 'externalTransfer', 'externalReceipt' ].indexOf( data.editMode ) == -1">
 							<p class="form-control-static">{{ transferItem.transfer_datetime | date: 'yyyy-MM-dd HH:mm:ss' }}</p>
 						</div>
@@ -121,7 +121,7 @@
 					}">
 				<td class="text-center">{{ $index + 1 }}</td>
 				<td class="text-left">{{ row.item_name }}</td>
-				<td class="text-left">{{ row.category_name }}</td>
+				<td class="text-left">{{ row.category_name ? row.category_name : '- None -' }}</td>
 				<td class="text-center">{{ row.quantity | number }}</td>
 				<td class="text-center" ng-if="['receipt', 'externalReceipt', 'view' ].indexOf( data.editMode ) != -1">
 					<input type="number" class="form-control"
@@ -160,7 +160,7 @@
 			<select class="form-control"
 					ng-model="input.itemCategory"
 					ng-options="category as category.category for category in data.itemCategories track by category.id">
-			</select>		
+			</select>
 		</div>
 		<div class="form-group col-sm-2">
 			<label class="control-label">Quantity</label>
@@ -193,7 +193,7 @@
 					<span class="input-group-btn">
 						<button type="button" class="btn btn-default" ng-click="showDatePicker( 'receipt' )"><i class="glyphicon glyphicon-calendar"></i></button>
 					</span>
-				</div>						
+				</div>
 				<div ng-if="[ 'receipt', 'externalReceipt' ].indexOf( data.editMode ) == -1">
 					<p class="form-control-static">{{ transferItem.transfer_datetime | date: 'yyyy-MM-dd HH:mm:ss' }}</p>
 				</div>

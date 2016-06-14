@@ -710,7 +710,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.data.destinations = $filter( 'filter' )( appData.data.stores, { id: '!' + session.data.currentStore.id }, function(a, e) { return angular.equals( parseInt(a), parseInt(e) ) } );
 						if( $scope.transferItem.destination_id )
 						{
-							$scope.data.selectedDestination = $filter( 'filter' )( stores, { id: $scope.transferItem.destination_id }, true )[0];
+							$scope.data.selectedDestination = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.destination_id }, true )[0];
 						}
 						else if( $scope.transferItem.destination_name )
 						{ // External transfer
@@ -813,7 +813,10 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		$scope.checkItems = function()
 			{
-				if( $scope.transferItem.items.length == 0 )
+				var transferItems = $scope.transferItem.items
+				var transferItemCount = transferItems.length;
+
+				if( transferItemCount == 0 )
 				{
 					notifications.alert( 'Transfer does not contain any items', 'warning' );
 					return false;
@@ -828,6 +831,21 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				if( $scope.data.editMode == 'externalReceipt' && ! $scope.transferItem.origin_name )
 				{
 					notifications.alert( 'Please specify source name', 'warning' );
+					return false;
+				}
+
+				var hasValidTransferItem = false;
+				for( var i = 0; i < transferItemCount; i++ )
+				{
+					if( transferItems[i].transfer_item_status == 1 && transferItems[i].quantity > 0 && !transferItems[i].transferItemVoid )
+					{
+						hasValidTransferItem = true;
+						break;
+					}
+				}
+				if( hasValidTransferItem == false )
+				{
+					notifications.alert( 'Transfer does not contain any valid items', 'warning' );
 					return false;
 				}
 
