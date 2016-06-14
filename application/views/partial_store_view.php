@@ -1,5 +1,5 @@
 <div>
-	<uib-tabset active="activeTab">
+	<uib-tabset id="mainTabSet" active="activeTab">
 		<!-- Inventory -->
 		<uib-tab heading="Inventory" index="0" select="onTabSelect(0)">
 			<div class="panel panel-default">
@@ -62,7 +62,6 @@
 								</div>
 							</div>
 						</div>
-
 
 						<div class="col-sm-4">
 							<div class="form-group">

@@ -44,6 +44,10 @@ body
     color: gold;
 }
 
+#mainTabSet > div.tab-content {
+    padding-top: 20px;
+}
+
 .defective
 {
 	color: #8b0000;
@@ -83,7 +87,7 @@ body
 
 .capitalize::first-letter
 {
-    text-transform: uppercase;    
+    text-transform: uppercase;
 }
 
 th.row-flag
