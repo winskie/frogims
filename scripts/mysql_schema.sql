@@ -93,6 +93,7 @@ CREATE TABLE IF NOT EXISTS items
 	id INTEGER AUTO_INCREMENT NOT NULL,
 	item_name VARCHAR(100) NOT NULL,
 	item_description VARCHAR(255) NULL,
+	item_group VARCHAR(100) NULL,
     base_item_id INTEGER NULL DEFAULT NULL,
 	teller_allocatable BOOLEAN NOT NULL DEFAULT 0,
 	teller_remittable BOOLEAN NOT NULL DEFAULT 0,
