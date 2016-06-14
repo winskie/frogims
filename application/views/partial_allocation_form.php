@@ -36,7 +36,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-sm-4">
                 <!-- Assignee Type -->
                 <div class="form-group">
@@ -53,7 +53,7 @@
                         <p class="form-control-static">{{ data.selectedAssigneeType.typeName }}</p>
                     </div>
                 </div>
-                
+
                 <!-- Assignee -->
                 <div class="form-group">
                     <label class="control-label col-sm-5">{{ data.assigneeLabel }}</label>
@@ -65,7 +65,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-sm-4">
                 <!-- Allocation Status -->
                 <div class="form-group">
@@ -78,7 +78,7 @@
 </div>
 
 <div>
-    <uib-tabset justified="false">        
+    <uib-tabset justified="false">
         <uib-tab heading="Allocations" select="updatePhase( 'allocation' )">
             <div class="panel panel-default" style="margin: 20px 0; height: 300px; overflow-y: auto;">
                 <table class="table table-condensed">
@@ -91,7 +91,7 @@
                             <th class="text-left">Item Description</th>
                             <th class="text-center">Quantity</th>
                             <th class="text-center">Status</th>
-                            <th ng-if="data.editMode != 'view'"></th>
+                            <th class="text-center" ng-if="data.editMode != 'view'">Void</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -122,7 +122,7 @@
                 </table>
             </div>
         </uib-tab>
-        
+
         <uib-tab select="updatePhase( 'remittance' )" disable="allocationItem.allocation_status == 1">
             <uib-tab-heading>
                 {{ data.remittancesTabLabel }}
@@ -138,7 +138,7 @@
                             <th class="text-left">Item Description</th>
                             <th class="text-center">Quantity</th>
                             <th class="text-center">Status</th>
-                            <th ng-if="data.editMode != 'view'"></th>
+                            <th class="text-center" ng-if="data.editMode != 'view'">Void</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -183,7 +183,7 @@
                         ng-options="category as category.category for category in data.categories track by category.id">
                 </select>
             </div>
-            
+
             <div class="form-group col-sm-5">
                 <label class="control-label">Item</label>
                 <select class="form-control"
@@ -192,7 +192,7 @@
                         ng-options="item as item.item_name for item in data.inventoryItems track by item.id">
                 </select>
             </div>
-            
+
             <div class="form-group col-sm-2">
                 <label class="control-label">Quantity</label>
                 <input type="number" class="form-control" min="1"

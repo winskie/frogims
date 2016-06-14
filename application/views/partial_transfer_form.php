@@ -110,7 +110,7 @@
 				<th class="text-center" style="width: 100px;"
 						ng-if="['receipt', 'externalReceipt', 'view' ].indexOf( data.editMode ) != -1">Received</th>
 				<th class="text-left">Remarks</th>
-				<th class="text-center" ng-if="[ 'view', 'receipt' ].indexOf( data.editMode ) == -1"></th>
+				<th class="text-center" ng-if="[ 'view', 'receipt' ].indexOf( data.editMode ) == -1">Void</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -130,7 +130,7 @@
 					<span ng-if="data.editMode == 'view'">{{ row.quantity_received == null ? '---' : ( row.quantity_received | number ) }}</span>
 				</td>
 				<td class="text-left">{{ row.remarks }}</td>
-				<td class="text-right" ng-if="[ 'view', 'receipt' ].indexOf( data.editMode ) == -1">
+				<td class="text-center" ng-if="[ 'view', 'receipt' ].indexOf( data.editMode ) == -1">
 					<a href
 							ng-if="row.transfer_item_status == <?php echo TRANSFER_ITEM_SCHEDULED; ?> && row.id == undefined"
 							ng-click="removeTransferItem( row )">
