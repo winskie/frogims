@@ -16,6 +16,7 @@
 					<thead>
 						<tr>
 							<th>Item</th>
+							<th>Group</th>
 							<th>Description</th>
 							<th class="text-right">Quantity</th>
 							<th class="text-right">Buffer Level</th>
@@ -25,6 +26,7 @@
 					<tbody>
 						<tr ng-repeat="item in data.items" ng-class="{info: currentItem == item}">
 							<td>{{ item.item_name }}</td>
+							<td>{{ item.item_group }}</td>
 							<td>{{ item.item_description }}</td>
 							<td class="text-right">{{ item.quantity | number }}</td>
 							<td class="text-right">{{ item.buffer_level | number }}</td>
@@ -34,7 +36,7 @@
 				</table>
 			</div>
 		</uib-tab>
-		
+
 		<!-- Transactions -->
 		<uib-tab heading="Transactions Summary" index="1" select="onTabSelect(1)">
 			<div class="panel panel-default">
@@ -60,8 +62,8 @@
 								</div>
 							</div>
 						</div>
-					
-					
+
+
 						<div class="col-sm-4">
 							<div class="form-group">
 								<label class="control-label">Item</label>
@@ -71,7 +73,7 @@
 								</select>
 							</div>
 						</div>
-						
+
 						<div class="col-sm-4 col-md-3 col-lg-3">
 							<div class="form-group">
 								<label class="control-label">Transaction Type</label>
@@ -156,7 +158,7 @@
 								</div>
 							</div>
 						</div>
-					
+
 						<div class="col-sm-4">
 							<div class="form-group">
 								<label class="control-label">Destination</label>
@@ -166,7 +168,7 @@
 								</select>
 							</div>
 						</div>
-						
+
 						<div class="col-sm-4 col-md-3 col-lg-2">
 							<div class="form-group">
 								<label class="control-label">Status</label>
@@ -176,7 +178,7 @@
 								</select>
 							</div>
 						</div>
-						
+
 					</div>
 					<table class="table table-hover">
 						<thead>
@@ -307,7 +309,7 @@
 								</div>
 							</div>
 						</div>
-					
+
 						<div class="col-sm-4">
 							<div class="form-group">
 								<label class="control-label">Source</label>
@@ -317,7 +319,7 @@
 								</select>
 							</div>
 						</div>
-						
+
 						<div class="col-sm-4 col-md-3 col-lg-2">
 							<div class="form-group">
 								<label class="control-label">Status</label>
@@ -327,7 +329,7 @@
 								</select>
 							</div>
 						</div>
-						
+
 					</div>
 					<table class="table">
 						<thead>
@@ -439,7 +441,7 @@
 								</div>
 							</div>
 						</div>
-					
+
 						<div class="col-sm-4">
 							<div class="form-group">
 								<label class="control-label">Item</label>
@@ -449,7 +451,7 @@
 								</select>
 							</div>
 						</div>
-						
+
 						<div class="col-sm-4 col-md-3 col-lg-2">
 							<div class="form-group">
 								<label class="control-label">Status</label>
@@ -459,7 +461,7 @@
 								</select>
 							</div>
 						</div>
-						
+
 					</div>
 					<table class="table">
 						<thead>
@@ -503,7 +505,7 @@
 										</div>
 
 									</div>
-									
+
 								</td>
 							</tr>
 							<tr ng-show="!data.adjustments.length">
@@ -522,7 +524,7 @@
 				</div>
 			</div>
 		</uib-tab>
-        
+
         <!-- Mopping -->
         <uib-tab index="5" select="onTabSelect(5)" ng-if="sessionData.currentStore.store_type == 2"> <!-- Production only -->
             <uib-tab-heading>
@@ -556,7 +558,7 @@
 								</div>
 							</div>
 						</div>
-						
+
 						<div class="col-sm-4 col-md-3 col-lg-2">
 							<div class="form-group">
 								<label class="control-label">Business Date</label>
@@ -570,9 +572,9 @@
 								</div>
 							</div>
 						</div>
-						
+
 					</div>
-					
+
 					<table class="table">
 						<thead>
 							<tr>
@@ -636,7 +638,7 @@
 				</div>
             </div>
         </uib-tab>
-        
+
         <!-- Allocation -->
         <uib-tab index="6" select="onTabSelect(6)" ng-if="sessionData.currentStore.store_type == 4"> <!-- Cashroom only -->
             <uib-tab-heading>
@@ -670,7 +672,7 @@
 								</div>
 							</div>
 						</div>
-					
+
 						<div class="col-sm-4 col-md-3 col-lg-3">
 							<div class="form-group">
 								<label class="control-label">Assignee Type</label>
@@ -680,7 +682,7 @@
 								</select>
 							</div>
 						</div>
-						
+
 						<div class="col-sm-4 col-md-3 col-lg-2">
 							<div class="form-group">
 								<label class="control-label">Status</label>
@@ -690,7 +692,7 @@
 								</select>
 							</div>
 						</div>
-						
+
 					</div>
 					<table class="table">
 						<thead>
@@ -762,7 +764,7 @@
 											<li role="menuitem"><a ui-sref="main.allocation({ allocationItem: row, editMode: 'view' })">View details...</a></li>
 										</ul>
 									</div>
-									
+
 									<div class="btn-group btn-block" uib-dropdown ng-switch-when="<?php echo ALLOCATION_ALLOCATED;?>">
 										<button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="main.allocation({ allocationItem: row, editMode: 'edit' })">Edit...</button>
 										<button type="button" class="btn btn-default col-sm-3 col-md-2" uib-dropdown-toggle>
@@ -772,7 +774,7 @@
 											<li role="menuitem"><a ui-sref="main.allocation({ allocationItem: row, editMode: 'view' })">View details...</a></li>
 										</ul>
 									</div>
-									
+
 									<div class="animate-switch" ng-switch-default>
 										<button type="button" class="btn btn-default btn-block" ui-sref="main.allocation({ allocationItem: row, editMode: 'view' })">View details...</button>
 									</div>
@@ -796,7 +798,7 @@
 				</div>
             </div>
         </uib-tab>
-        
+
         <!-- Conversions -->
         <uib-tab index="7" select="onTabSelect(7)">
             <uib-tab-heading>
@@ -830,8 +832,8 @@
 								</div>
 							</div>
 						</div>
-					
-					
+
+
 						<div class="col-sm-4 col-md-3 col-lg-3">
 							<div class="form-group">
 								<label class="control-label">Input Item</label>
@@ -841,7 +843,7 @@
 								</select>
 							</div>
 						</div>
-						
+
 						<div class="col-sm-4 col-md-3 col-lg-3">
 							<div class="form-group">
 								<label class="control-label">Output Item</label>
@@ -891,6 +893,6 @@
 					</div>
 				</div>
         </uib-tab>
-        
+
 	</uib-tabset>
 </div>

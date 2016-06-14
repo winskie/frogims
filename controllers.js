@@ -225,7 +225,11 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 					chart: { type: 'bar' },
 					title: { text: 'Card Distribution' },
 					xAxis: {
-							categories: null
+							categories: null,
+							title: { text: 'Group' },
+							labels: {
+								rotation: -90
+							}
 						},
 					yAxis: {
 							min: 0,
