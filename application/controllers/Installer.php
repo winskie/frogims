@@ -520,11 +520,11 @@ class Installer extends CI_Controller {
 				array( 'V.Mapa Cashroom', 'V.Mapa Station', 'VMP', 4 ),
 				array( 'J.Ruiz Cashroom', 'J.Ruiz Station', 'JRZ', 4 ),
 				array( 'Gilmore Cashroom', 'Gilmore Station', 'GLMR', 4 ),
-				array( 'Betty Go - Belmonte Cashroom', 'Betty Go - Belmonte Station', 'BTYGB', 4 ),
+				array( 'Betty Go - Belmonte Cashroom', 'Betty Go - Belmonte Station', 'BTYG', 4 ),
 				array( 'Araneta Center - Cubao Cashroom', 'Araneta Center - Cubao Station', 'ACCB', 4 ),
 				array( 'Anonas Cashroom', 'Anonas Station', 'ANNS', 4 ),
-				array( 'Katipunan Cashroom', 'Katipunan  Station', 'KTPNN', 4 ),
-				array( 'Santolan Cashroom', 'Santolan Station', 'SNTLN', 4 )
+				array( 'Katipunan Cashroom', 'Katipunan  Station', 'KTPN', 4 ),
+				array( 'Santolan Cashroom', 'Santolan Station', 'STLN', 4 )
 			);
 
 		foreach( $stores as $s )
@@ -595,7 +595,33 @@ class Installer extends CI_Controller {
 			foreach( $items as $item )
 			{
 				$inventory = $store->add_item( $item );
-				$inventory->transact( TRANSACTION_INIT, 50, date( TIMESTAMP_FORMAT ), 0 );
+				$quantity = 0;
+				switch( $item->get( 'item_name' ) )
+				{
+					case 'L2 SJT - Rigid Box':
+						$quantity = rand(10, 50);
+						break;
+
+					case 'L2 SJT - Ticket Magazine':
+						$quantity = rand(1, 8);
+						break;
+
+					case 'SVC - Rigid Box':
+						$quantity = rand(1, 8);
+						break;
+
+					default:
+						switch( $item->get( 'item_group' ) )
+						{
+							case 'SJT':
+								$quantity = rand(5, 50);
+								break;
+
+							default:
+								$quantity = rand(0, 5);
+						}
+				}
+				$inventory->transact( TRANSACTION_INIT, $quantity, date( TIMESTAMP_FORMAT ), 0 );
 			}
 		}
 		echo 'OK<br />';

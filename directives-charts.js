@@ -5,7 +5,7 @@ var chartDirective = function()
                 replace: true,
                 template: '<div></div>',
                 scope: {
-                        chart: '=',
+                        chart: '='
                     },
                 link: function( scope, element, attrs )
                     {
@@ -15,12 +15,6 @@ var chartDirective = function()
                                         chart: { renderTo: element[0] }
                                     };
                                 var config = angular.merge( defaultOptions, scope.chart.config );
-                                Highcharts.setOptions({
-                                        global: {
-                                            useUTC: false
-                                        }
-                                    });
-
                                 scope.chart.chart = new Highcharts.Chart( config );
                             };
 

@@ -481,11 +481,6 @@ class Api_v1 extends CI_Controller {
                             $data = $this->db->get( 'store_inventory si');
                             $data = $data->result_array();
 
-                            $data_array = array(
-                                    'stores' => array(),
-                                    'series' => array()
-                                );
-
                             $stores = array();
                             $series = array();
 
@@ -507,6 +502,46 @@ class Api_v1 extends CI_Controller {
 
                             $data_array = array(
                                     'stores' => $stores,
+                                    'series' => array_values( $series )
+                                );
+
+                            $this->_response( $data_array );
+                            break;
+
+                        case 'circulated':
+                            $this->db->select( 'i.item_group, s.store_code,
+                                    SUM( IF( ct.conversion_factor IS NULL, si.quantity, si.quantity * ct.conversion_factor ) ) AS quantity' );
+                            $this->db->join( 'items i', 'i.id = si.item_id', 'left' );
+                            $this->db->join( 'conversion_table ct', 'ct.source_item_id = i.base_item_id AND ct.target_item_id = i.id', 'left' );
+                            $this->db->join( 'stores s', 's.id = si.store_id', 'left' );
+                            $this->db->where( 'i.item_group IS NOT NULL' );
+                            $this->db->group_by( 'i.item_group, s.store_code' );
+                            $this->db->order_by( 'i.item_group DESC, s.id DESC' );
+                            $data = $this->db->get( 'store_inventory si' );
+                            $data = $data->result_array();
+
+
+                            $groups = array();
+                            $series = array();
+
+                            foreach( $data as $row )
+                            {
+                                $index = array_search( $row['item_group'], $groups );
+                                if( $index !== FALSE )
+                                {
+                                    $series[$row['store_code']]['store'] = $row['store_code'];
+                                    $series[$row['store_code']]['data'][] = (int) $row['quantity'];
+                                }
+                                else
+                                {
+                                    $groups[] = $row['item_group'];
+                                    $series[$row['store_code']]['store'] = $row['store_code'];
+                                    $series[$row['store_code']]['data'][] = (int) $row['quantity'];
+                                }
+                            }
+
+                            $data_array = array(
+                                    'groups' => $groups,
                                     'series' => array_values( $series )
                                 );
 

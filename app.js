@@ -304,5 +304,14 @@ app.run( [ 'session', 'appData',
 			{
 				console.error( reason );
 			});
+
+		Highcharts.setOptions({
+				global: {
+					useUTC: false
+				},
+				lang: {
+					thousandsSep: ','
+				}
+			});
 	}
 ]);

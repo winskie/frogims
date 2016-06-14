@@ -147,7 +147,7 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 					chart: {
 						type: 'column'
 					},
-					title: { text: 'System Inventory Levels' },
+					title: { text: 'Store Inventory Levels' },
 					xAxis: {
 						categories: null,
 						crosshair: true
@@ -219,11 +219,89 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 					}
 			};
 
+		$scope.distribution = {
+				chart: null,
+				config: {
+					chart: { type: 'bar' },
+					title: { text: 'Card Distribution' },
+					xAxis: {
+							categories: null
+						},
+					yAxis: {
+							min: 0,
+							title: { text: 'Percent' }
+						},
+					legend: { reversed: true },
+					plotOptions: {
+							series: {
+									dataLabels: { enabled: true },
+									stacking: 'percent'
+								}
+						},
+					tooltip: {
+						headerFormat: '<b>{series.name}</b>: ',
+						pointFormat: '{point.y:,.0f} of {point.total:,.0f} ({point.percentage:,.2f}%)'
+					},
+					series: null
+				},
+				processData: function( data )
+					{
+						console.log( data );
+						var me = this;
+						me.chart.xAxis[0].setCategories( data.groups, false );
+
+						var currentSeries = me.chart.series;
+						var series = data.series;
+
+						for( var i = currentSeries.length - 1; i >= 0; i-- )
+						{
+							currentSeries[i].remove( false );
+						}
+
+						// Add new series
+						for( var j = 0; j < series.length; j++ )
+						{
+							me.chart.addSeries({
+									name: series[j].store,
+									data: series[j].data,
+									dataLabels: {
+										inside: true
+									}
+								}, false );
+						}
+
+						me.chart.redraw()
+					},
+				updateChart: function()
+					{
+						var me = this;
+						$http({
+							method: 'GET',
+							url: baseUrl + 'index.php/api/v1/inventory/circulated'
+						}).then(
+							function( response )
+							{
+								me.processData( response.data.data );
+							},
+							function( reason )
+							{
+								console.error( 'Something went wrong ' );
+							});
+					}
+			};
+
 		$scope.updateDashboard = function()
 			{
 				$scope.history.updateChart();
 				$scope.inventory.updateChart();
+				$scope.distribution.updateChart();
 			};
+
+		// Subscribe to notifications
+		notifications.subscribe( $scope, 'onChangeStore',  function( event, data )
+			{
+				$scope.updateDashboard();
+			});
 
 		$scope.updateDashboard();
 	}
