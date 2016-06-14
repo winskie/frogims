@@ -12,7 +12,7 @@
 
 <div class="panel panel-default">
     <div class="panel-body">
-        <highcharts chart="cards"></highcharts>
+        <highcharts chart="distribution"></highcharts>
     </div>
 </div>
 
