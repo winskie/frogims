@@ -1964,11 +1964,12 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 
 				switch( action )
 				{
+					case 'schedule':
 					case 'allocate':
 						var hasValidAllocationItem = false;
 						for( var i = 0; i < allocationCount; i++ )
 						{
-							if( allocations[i].allocation_item_status == 10 && allocations[i].allocated_quantity > 0 )
+							if( allocations[i].allocation_item_status == 10 && allocations[i].allocated_quantity > 0 && !allocations[i].allocationItemVoid )
 							{
 								hasValidAllocationItem = true;
 								break;
@@ -2056,7 +2057,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 
 		$scope.saveAllocation = function()
 			{
-				if( $scope.checkItems() )
+				if( $scope.checkItems( 'schedule' ) )
 				{
 					var data = $scope.prepareAllocation();
 					appData.saveAllocation( data ).then(
