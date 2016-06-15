@@ -13,12 +13,12 @@
             </div>
             <div id="navbar" class="collapse navbar-collapse">
                 <ul class="nav navbar-nav">
-                    <li><a ui-sref="dashboard">Dashboard</a></li>
-                    <li class="active"><a ui-sref="main.store">Store</a></li>
+                    <li><a ui-sref="main.dashboard">Dashboard</a></li>
+                    <li><a ui-sref="main.store">Store</a></li>
                     <?php
-                    if( is_admin() )
+                    if( is_admin() || true )
                     {
-                        echo '<li class="active"><a ui-sref="main.admin">Admin</a></li>';
+                        echo '<li><a ui-sref="main.admin">Admin</a></li>';
                     }
                     ?>
                 </ul>

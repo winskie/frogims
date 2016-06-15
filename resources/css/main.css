@@ -44,7 +44,7 @@ body
     color: gold;
 }
 
-#mainTabSet > div.tab-content {
+#mainTabSet > div.tab-content, #adminTabSet > div.tab-content {
     padding-top: 20px;
 }
 

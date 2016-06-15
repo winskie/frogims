@@ -179,10 +179,10 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 		};
 
 	var dashboard = {
-			name: 'dashboard',
+			name: 'main.dashboard',
 			parent: main,
 			url: '/dashboard',
-			templateUrl: baseUrl + 'index.php/main/view/dashboard_view',
+			templateUrl: baseUrl + 'index.php/main/view/partial_dashboard_view',
 			controller: 'DashboardController'
 		};
 
@@ -193,6 +193,15 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 			templateUrl: baseUrl + 'index.php/main/view/partial_store_view',
 			controller: 'FrontController',
 			params: { activeTab: 'inventory' }
+		};
+
+	var admin = {
+			name: 'main.admin',
+			parent: main,
+			url: '/admin',
+			templateUrl: baseUrl + 'index.php/main/view/partial_admin_view',
+			controller: 'AdminController',
+			params: { activeTab: 'general' }
 		};
 
 	var transfer = {
@@ -264,7 +273,8 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 		.state( adjust )
 		.state( convert )
 		.state( mopping )
-		.state( allocation );
+		.state( allocation )
+		.state( admin );
 });
 
 app.directive( 'highcharts', chartDirective );

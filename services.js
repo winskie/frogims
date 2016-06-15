@@ -192,11 +192,11 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                     },
 
                 pending: {
-                    transfers: 0,
-                    receipts: 0,
-                    adjustments: 0,
-                    allocations: 0
-                }
+                        transfers: 0,
+                        receipts: 0,
+                        adjustments: 0,
+                        allocations: 0
+                    }
             };
 
         me.filters = {
@@ -1290,6 +1290,30 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                 }
             };
 
+    }
+]);
+
+appServices.service( 'adminData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'appData',
+    function( $http, $q, $filter, baseUrl, session, appData )
+    {
+        var me = this;
+        me.data = {
+                users: [],
+                stores: [],
+                items: []
+            };
+
+        me.filters = {
+                users: {},
+                stores: {},
+                items: {},
+
+                totals: {
+                        users: 0,
+                        stores: 0,
+                        items: 0
+                    }
+            };
     }
 ]);
 

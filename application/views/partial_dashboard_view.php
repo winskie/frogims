@@ -1,8 +1,19 @@
 <div class="panel panel-default">
-	<div class="panel-heading">
-		<h3 class="panel-title">Dashboard</h3>
-	</div>
-	<div class="panel-body">
-		<p>Hello Dashboard!</p>
-	</div>
+    <div class="panel-body">
+        <highcharts chart="history"></highcharts>
+    </div>
 </div>
+
+<div class="panel panel-default">
+    <div class="panel-body">
+        <highcharts chart="inventory"></highcharts>
+    </div>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-body">
+        <highcharts chart="distribution"></highcharts>
+    </div>
+</div>
+
+<button type="button" ng-click="updateDashboard()">Refresh!</button>

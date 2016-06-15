@@ -4,9 +4,9 @@
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		
+
 		<title>FROG Ticket Management Inventory System</title>
-		
+
 		<link rel="stylesheet" type="text/css" href="<?php echo base_url( 'resources/css/bootstrap.min.css' );?>" />
 		<link rel="stylesheet" type="text/css" href="<?php echo base_url( 'resources/css/main.css' );?>" />
 
@@ -22,6 +22,7 @@
 		<script type="text/javascript" src="<?php echo base_url( 'directives-charts.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'app.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'controllers.js' );?>"></script>
+		<script type="text/javascript" src="<?php echo base_url( 'resources/js/admin-controllers.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'services.js' );?>"></script>
 	</head>
 	<body>
