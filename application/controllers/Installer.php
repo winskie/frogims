@@ -516,6 +516,8 @@ class Installer extends CI_Controller {
 				array( 'Line 2 Depot', 'Line 2 Depot', 'TIMD', 1 ),
 				array( 'TVM and Gates Management', 'Anonas Station', 'TGM', 3 ),
 				array( 'Ticket Production', 'J.Ruiz Station', 'TIMS', 2 ),
+				array( 'TASCU East', 'Anonas Station', 'TASCE', 3),
+				array( 'TASCU West', 'J.Ruiz Station', 'TASCW', 3),
 				array( 'Recto Cashroom', 'Recto Station', 'RCT', 4 ),
 				array( 'Legarda Cashroom', 'Legarda Station', 'LGRD', 4 ),
 				array( 'Pureza Cashroom', 'Pureza Station', 'PRZ', 4 ),
@@ -753,7 +755,7 @@ class Installer extends CI_Controller {
 		$st_prod = $store->get_by_id( 3 );
 		$st_prod->add_member( $user1 );
 
-		for( $i = 4; $i < 15; $i++ )
+		for( $i = 4; $i < 17; $i++ )
 		{
 			$stn = $store->get_by_id( $i );
 			$stn->add_member( $user2 );
