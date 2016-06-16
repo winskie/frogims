@@ -1175,6 +1175,34 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
             };
 
         // Conversions
+        me.getConversion = function( conversionId )
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'GET',
+                    url: baseUrl + 'index.php/api/v1/conversions/' + conversionId
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
+                    });
+
+                return deferred.promise;
+            };
+
         me.getConversionFactor = function( sourceItemId, targetItemId )
             {
                 var deferred = $q.defer();
@@ -1207,12 +1235,41 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                 return deferred.promise;
             };
 
-        me.convertItems = function( conversionData )
+        me.saveConversion = function( conversionData )
             {
                 var deferred = $q.defer();
                 $http({
                     method: 'POST',
-                    url: baseUrl + 'index.php/api/v1/conversions/convert',
+                    url: baseUrl + 'index.php/api/v1/conversions/save',
+                    data: conversionData
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
+                    });
+
+                return deferred.promise;
+            }
+
+        me.approveConversion = function( conversionData )
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'POST',
+                    url: baseUrl + 'index.php/api/v1/conversions/approve',
                     data: conversionData
                 }).then(
                     function( response )
@@ -1263,6 +1320,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         me.getInventory( currentStoreId );
                         me.getTransactions( currentStoreId );
                         me.getCollections( currentStoreId );
+                        me.getConversions( currentStoreId );
                         break;
 
                     case 'allocation':
@@ -1349,6 +1407,11 @@ appServices.service( 'lookup',
                 '4': 'Cancelled'
             },
             adjustmentStatus: {
+                '1': 'Pending',
+                '2': 'Approved',
+                '3': 'Cancelled'
+            },
+            conversionStatus: {
                 '1': 'Pending',
                 '2': 'Approved',
                 '3': 'Cancelled'

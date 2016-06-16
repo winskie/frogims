@@ -259,6 +259,8 @@ CREATE TABLE IF NOT EXISTS conversions
     source_quantity INTEGER NOT NULL,
     target_quantity INTEGER NOT NULL,
     remarks TEXT NULL DEFAULT NULL,
+	conversion_status SMALLINT NOT NULL DEFAULT 1,
+	created_by INTEGER NOT NULL,
     date_created DATETIME NOT NULL,
     date_modified TIMESTAMP NOT NULL,
     last_modified INTEGER NOT NULL,

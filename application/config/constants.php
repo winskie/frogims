@@ -130,12 +130,17 @@ defined('ADJUSTMENT_CANCELLED')	OR define('ADJUSTMENT_CANCELLED', 3);
 
 // Mopping item status
 defined('MOPPING_ITEM_COLLECTED')   OR define('MOPPING_ITEM_COLLECTED', 1);
-defined('MOPPING_ITEM_VOIDED')      OR define('MOPPING_ITEM_VOIDED', 2);  
+defined('MOPPING_ITEM_VOIDED')      OR define('MOPPING_ITEM_VOIDED', 2);
 
 // User status
 defined('USER_STATUS_ACTIVE')	OR define('USER_STATUS_ACTIVE', 1);
 defined('USER_STATUS_LOCKED')	OR define('USER_STATUS_LOCKED', 2);
 defined('USER_STATUS_DELETED')	OR define('USER_STATUS_DELETED', 3);
+
+// Conversion status
+defined('CONVERSION_PENDING')	OR define('CONVERSION_PENDING', 1);
+defined('CONVERSION_APPROVED')	OR define('CONVERSION_APPROVED', 2);
+defined('CONVERSION_CANCELLED')	OR define('CONVERSION_CANCELLED', 3);
 
 // Allocation status
 defined('ALLOCATION_SCHEDULED')	OR define('ALLOCATION_SCHEDULED', 1);

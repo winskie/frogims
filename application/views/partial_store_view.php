@@ -859,10 +859,12 @@
 								<th class="text-center">ID</th>
 								<th class="text-left">Date / Time</th>
 								<th class="text-left">Input Item</th>
-								<th class="text-center">Input Quantity</th>
+								<th class="text-center">Input Qty</th>
 								<th class="text-left">Output Item</th>
-								<th class="text-center">Output Quantity</th>
+								<th class="text-center">Output Qty</th>
 								<th class="text-left">Remarks</th>
+								<th class="text-center">Status</th>
+								<th></th>
 							</tr>
 						</thead>
 						<tbody>
@@ -874,9 +876,32 @@
 								<td class="text-left">{{ conversion.target_item_name }}</td>
 								<td class="text-center">{{ conversion.target_quantity | number }}</td>
 								<td class="text-left">{{ conversion.remarks }}</td>
+								<td class="text-center">{{ lookup( 'conversionStatus', conversion.conversion_status ) }}</td>
+								<td>
+									<div class="animate-switch-container" ng-switch on="conversion.conversion_status">
+
+										<div class="animate-switch" ng-switch-when="<?php echo CONVERSION_PENDING;?>">
+											<div class="btn-group btn-block" uib-dropdown>
+												<button id="split-button" type="button" class="btn btn-primary col-sm-9 col-md-10" ng-click="approveConversion( conversion )">Approve</button>
+												<button type="button" class="btn btn-primary col-sm-3 col-md-2" uib-dropdown-toggle>
+													<span class="caret"></span>
+												</button>
+												<ul uib-dropdown-menu role="menu">
+													<li role="menuitem"><a ui-sref="main.convert({ conversionItem: conversion })">Edit Conversion...</a></li>
+												</ul>
+											</div>
+										</div>
+
+										<div class="animate-switch" ng-switch-default>
+											<button type="button" class="btn btn-default btn-block" ui-sref="main.convert({ conversionItem: conversion })">View details...</button>
+										</div>
+
+									</div>
+
+								</td>
 							</tr>
 							<tr ng-show="!data.conversions.length">
-								<td colspan="7" class="text-center">No conversion transaction data available</td>
+								<td colspan="8" class="text-center">No conversion transaction data available</td>
 							</tr>
 						</tbody>
 					</table>

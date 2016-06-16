@@ -499,7 +499,7 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 					});
 			};
 
-		// Approve adjustment
+		// Adjustments
 		$scope.approveAdjustment = function( adjustmentData )
 			{
 				appData.approveAdjustment( adjustmentData ).then(
@@ -507,6 +507,17 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 					{
 						notifications.alert( 'Adjustment approved', 'success' );
 						appData.refresh( session.data.currentStore.id, 'adjustment' );
+					});
+			};
+
+		// Conversions
+		$scope.approveConversion = function( conversionData )
+			{
+				appData.approveConversion( conversionData ).then(
+					function( response )
+					{
+						notifications.alert( 'Conversion approved', 'success' );
+						appData.refresh( session.data.currentStore.id, 'conversion' );
 					});
 			};
 
@@ -1192,6 +1203,7 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 		var items = angular.copy( appData.data.items );
 
 		$scope.data = {
+				conversionDatepicker: { format: 'yyyy-MM-dd HH:mm:ss', opened: false },
 				sourceItems: items,
 				targetItems: items,
 				sourceInventory: items[0],
@@ -1206,11 +1218,18 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 
 		$scope.conversionItem = {
 				store_id: session.data.currentStore.id,
+				conversion_datetime: new Date(),
 				source_inventory_id: $scope.data.sourceInventory.id || null,
 				target_inventory_id: $scope.data.targetInventory.id || null,
 				source_quantity: 1,
 				target_quantity: null,
-				remarks: null
+				remarks: null,
+				conversion_status: 1 // CONVERSION_PENDING
+			};
+
+		$scope.showDatePicker = function()
+			{
+				$scope.data.conversionDatepicker.opened = true;
 			};
 
 		$scope.checkConversion = function()
@@ -1259,7 +1278,6 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 				appData.getConversionFactor( $scope.data.sourceInventory.item_id, $scope.data.targetInventory.item_id ).then(
 					function( response )
 					{
-						console.debug( response );
 						if( response.status == 'ok' )
 						{
 							$scope.data.valid_conversion = true;
@@ -1355,11 +1373,28 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 				$scope.checkConversion();
 			};
 
-		$scope.convertItem = function()
+		$scope.saveConversion = function()
 			{
-				appData.convertItems( $scope.conversionItem ).then(
+				appData.saveConversion( $scope.conversionItem ).then(
 					function( response )
 					{
+						appData.refresh( session.data.currentStore.id, 'conversion' );
+						notifications.alert( 'Conversion record saved', 'success' );
+						$state.go( 'main.store', { activeTab: 'conversions' } );
+					},
+					function( reason )
+					{
+						console.error( reason );
+					});
+			}
+
+		$scope.approveConversion = function()
+			{
+				appData.approveConversion( $scope.conversionItem ).then(
+					function( response )
+					{
+						appData.refresh( session.data.currentStore.id, 'conversion' );
+						notifications.alert( 'Item converted successfully', 'success' );
 						$state.go( 'main.store', { activeTab: 'conversions' } );
 					},
 					function( reason )
@@ -1369,7 +1404,29 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 			};
 
 		// Initialize
-		$scope.updateConversionFactor();
+		if( $stateParams.conversionItem )
+		{
+			appData.getConversion( $stateParams.conversionItem.id ).then(
+				function( response )
+				{
+					if( response.status == 'ok' )
+					{
+						$scope.conversionItem = response.data;
+						$scope.conversionItem.conversion_datetime = Date.parse( $stateParams.conversionItem.conversion_datetime );
+						$scope.conversionItem.source_quantity = parseInt( $stateParams.conversionItem.source_quantity );
+						$scope.conversionItem.target_quantity = parseInt( $stateParams.conversionItem.target_quantity );
+						$scope.data.sourceInventory = $filter( 'filter' )( appData.data.items, { id: $stateParams.conversionItem.source_inventory_id }, true )[0];
+						$scope.data.targetInventory = $filter( 'filter' )( appData.data.items, { id: $stateParams.conversionItem.target_inventory_id }, true )[0];
+						$scope.updateConversionFactor();
+					}
+				}
+			)
+		}
+		else
+		{
+			$scope.updateConversionFactor();
+		}
+
 	}
 ]);
 

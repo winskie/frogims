@@ -9,6 +9,7 @@ class Base_model
 	protected $db_fields = array();
 	protected $children = array();
 
+	protected $creator_field;
 	protected $date_created_field;
 	protected $date_modified_field;
 	protected $last_modified_field;
@@ -16,13 +17,19 @@ class Base_model
 	public function __construct()
 	{
 		$ci =& get_instance();
-		
+
 		$this->db_metadata = array(
+			$this->creator_field => array(),
 			$this->date_created_field => array(),
 			$this->date_modified_field => array(),
 			$this->last_modified_field => array()
 		);
-		
+
+		if( isset( $this->creator_field ) )
+		{
+			$creator_field = $this->creator_field;
+			$this->$creator_field = NULL;
+		}
 		if( isset( $this->date_created_field ) )
 		{
 			$date_created_field = $this->date_created_field;
@@ -90,9 +97,9 @@ class Base_model
 	public function get_by_id( $id )
 	{
 		$ci =& get_instance();
-        
+
         $select = array( $this->primary_table.'.*' );
-		
+
 		$ci->db->select( implode(', ', $select ) );
 		$ci->db->where( $this->primary_table.'.id', $id );
 		$ci->db->limit( 1 );
@@ -148,9 +155,9 @@ class Base_model
 		{
 			return $this;
 		}
-		
+
 		$ci =& get_instance();
-		
+
 		$result = NULL;
 		$ci->db->trans_start();
 		if( isset( $this->id ) )
@@ -164,7 +171,7 @@ class Base_model
 			$result = $this->_db_insert();
 		}
 		$ci->db->trans_complete();
-		
+
 		if( $ci->db->trans_status() )
 		{
 			$this->_reset_db_changes();
@@ -179,7 +186,7 @@ class Base_model
 
 	public function _db_change( $property, $value )
 	{
-		
+
 		if( array_key_exists( $property, $this->db_fields ) || array_key_exists( $property, $this->db_metadata ) )
 		{
 			$this->db_changes[$property] = $value;
@@ -197,6 +204,11 @@ class Base_model
 	{
 		$ci =& get_instance();
 
+		if( isset( $this->creator_field ) && $is_new && current_user() )
+		{
+			$this->set( $this->creator_field, current_user() );
+		}
+
 		if( isset( $this->date_created_field ) && $is_new )
 		{
 			$this->set( $this->date_created_field, date( TIMESTAMP_FORMAT ) );
@@ -207,9 +219,9 @@ class Base_model
 			$this->set( $this->date_modified_field, date( TIMESTAMP_FORMAT ) );
 		}
 
-		if( isset( $this->last_modified_field ) && isset( $ci->session->current_user_id ) )
+		if( isset( $this->last_modified_field ) && current_user() )
 		{
-			$this->set( $this->last_modified_field, $ci->session->current_user_id );
+			$this->set( $this->last_modified_field, current_user() );
 		}
 	}
 
@@ -228,19 +240,19 @@ class Base_model
 	{
 		// IDs are always integers!
 		$data = array( 'id' => param_type( $this->id, 'integer' ) );
-		
+
 		foreach( $this->db_fields as $field => $value )
 		{
 			if( isset( $value['exclude'] ) && $value['exclude'] )
 			{ // do not include this field
 				continue;
 			}
-			
+
 			// set value to proper type
 			$v = param_type( $this->$field, $value['type'] );
 
 			if( isset( $value['property'] ) )
-			{	
+			{
 				$data[$value['property']] = $v;
 			}
 			else
@@ -248,7 +260,7 @@ class Base_model
 				$data[$field] = $v;
 			}
 		}
-        
+
         // has children
         if( $include_children && isset( $this->children ) )
         {
@@ -264,7 +276,7 @@ class Base_model
                 $data[$v['field']] = $child_data;
             }
         }
-		
+
 		if( $additional_fields )
 		{
 			foreach( $additional_fields as $k => $field )
@@ -295,8 +307,8 @@ class Base_model
 
 		return $data;
 	}
-	
-	
+
+
 	public function load_from_data( $data = array(), $overwrite = TRUE )
 	{
 		// Try to get existing value first if ID exists
@@ -308,7 +320,7 @@ class Base_model
 		{
 			$r = $this;
 		}
-		
+
 		foreach( $data as $field => $value )
 		{
 			if( $field == 'id' )
@@ -328,24 +340,24 @@ class Base_model
 				$r->$field = $value;
 			}
 		}
-		
+
 		return $r;
 	}
 
 	public function prune_children( $child )
 	{
 		$ci =& get_instance();
-		
+
 		if( isset( $this->children[$child] ) )
 		{
 			$ci->db->trans_start();
 			$ci->db->where( $this->children[$child]['key'], $this->id );
 			$ci->db->delete( $this->children[$child]['table'] );
 			$ci->db->trans_complete();
-			
+
 			return $ci->db->trans_status();
 		}
-		
+
 		return NULL;
 	}
 }

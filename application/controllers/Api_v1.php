@@ -429,27 +429,34 @@ class Api_v1 extends CI_Controller {
                 break;
 
             case 'post':
-                $action = $this->uri->rsegment( 3 );
+                $action = param_type( $this->uri->rsegment( 3 ), 'string' );
+                $conversion_id = param( $this->input->post(), 'id' );
+                $conversion = $Conversion->load_from_data( $this->input->post() );
+
+                $this->db->trans_start();
                 switch( $action )
                 {
-                    case 'convert':
-                        $this->db->trans_start();
-                        $conversion = $Conversion->load_from_data( $this->input->post() );
-                        $conversion->db_save();
-                        $this->db->trans_complete();
+                    case 'approve':
+                        $conversion->approve();
+                        break;
 
-                        if( $this->db->trans_status() )
-                        {
-                            $this->_response( $conversion->as_array() );
-                        }
-                        else
-                        {
-                            $this->_error( 500, 'A database error has occured while trying to record the conversion' );
-                        }
+                    case 'cancel':
+                        $conversion->cancel();
                         break;
 
                     default:
-                        $this->_error( 400, 'Required action parameter missing' );
+                        $conversion->db_save();
+                }
+                $conversion_data = $conversion->as_array();
+                $this->db->trans_complete();
+
+                if( $this->db->trans_status() )
+                {
+                    $this->_response( $conversion_data, $conversion_id ? 200 : 201 );
+                }
+                else
+                {
+                    $this->_error( 500, 'A database error has occurred while trying to save adjustment record' );
                 }
                 break;
 
