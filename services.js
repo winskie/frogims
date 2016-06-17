@@ -1203,12 +1203,12 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                 return deferred.promise;
             };
 
-        me.getConversionFactor = function( sourceItemId, targetItemId )
+        me.getConversionFactors = function( sourceItemId, targetItemId )
             {
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: baseUrl + 'index.php/api/conversion/conversion_factor',
+                    url: baseUrl + 'index.php/api/v1/conversion_factors',
                     params: {
                         source: sourceItemId,
                         target: targetItemId

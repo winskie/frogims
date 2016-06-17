@@ -35,36 +35,13 @@
                             <select class="form-control"
                                     ng-model="data.sourceInventory"
                                     ng-options="inventory.item_name for inventory in data.sourceItems track by inventory.id"
-                                    ng-change="updateConversionFactor()"
+                                    ng-change="onInputItemChange()"
                                     ng-switch-when="<?php echo CONVERSION_PENDING;?>">
                             </select>
                             <p class="form-control-static" ng-switch_default>{{ data.sourceInventory.item_description }}</p>
                         </div>
                     </div>
 
-                    <!-- Input balance -->
-                    <div class="form-group">
-                        <label class="control-label">Current balance</label>
-                        <p class="form-control-static">{{ data.sourceInventory.quantity | number }}</p>
-                    </div>
-
-                    <!-- Input quantity -->
-                    <div class="form-group">
-                        <label class="control-label">Input quantity</label>
-                        <div class="animate-switch-container" ng-switch on="conversionItem.conversion_status">
-                            <input type="number" class="form-control" name="inputQuantity" id="inputQuantity"
-                                    step="{{ data.input.step }}" min="{{ data.input.min }}"
-                                    ng-model="conversionItem.source_quantity"
-                                    ng-change="calculateOutput( 'input' )"
-                                    ng-switch-when="<?php echo CONVERSION_PENDING;?>">
-                            <p class="form-control-static" ng-switch_default>{{ conversionItem.source_quantity | number }}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-sm-1">
-
-                </div>
-                <div class="col-sm-4">
                     <!-- Output item -->
                     <div class="form-group">
                         <label class="control-label">Output item</label>
@@ -72,35 +49,51 @@
                             <select class="form-control"
                                     ng-model="data.targetInventory"
                                     ng-options="inventory.item_name for inventory in data.targetItems track by inventory.id"
-                                    ng-change="updateConversionFactor()"
+                                    ng-change="onOutputItemChange()"
                                     ng-switch-when="<?php echo CONVERSION_PENDING;?>">
                             </select>
                             <p class="form-control-static" ng-switch_default>{{ data.targetInventory.item_description }}</p>
                         </div>
                     </div>
+                </div>
+
+                <div class="col-sm-2">
+                    <!-- Input balance -->
+                    <div class="form-group text-center">
+                        <label class="control-label">Current balance</label>
+                        <p class="form-control-static">{{ data.sourceInventory.quantity | number }}</p>
+                    </div>
 
                     <!-- Output balance -->
-                    <div class="form-group">
+                    <div class="form-group text-center">
                         <label class="control-label">Current balance</label>
                         <p class="form-control-static">{{ data.targetInventory.quantity | number }}</p>
+                    </div>
+                </div>
+
+                <div class="col-sm-2">
+                    <!-- Input quantity -->
+                    <div class="form-group">
+                        <label class="control-label">Input quantity</label>
+                        <div class="animate-switch-container" ng-switch on="conversionItem.conversion_status">
+                            <input type="number" class="form-control" name="inputQuantity" id="inputQuantity"
+                                    step="{{ data.input.step }}" min="{{ data.input.min }}"
+                                    ng-model="conversionItem.source_quantity"
+                                    ng-change="calculateOutput()"
+                                    ng-switch-when="<?php echo CONVERSION_PENDING;?>">
+                            <p class="form-control-static" ng-switch_default>{{ conversionItem.source_quantity | number }}</p>
+                        </div>
                     </div>
 
                     <!-- Output quantity -->
                     <div class="form-group">
                         <label class="control-label">Output quantity</label>
-                        <div class="animate-switch-container" ng-switch on="conversionItem.conversion_status">
-                            <input type="number" class="form-control" name="outputQuantity" id="outputQuantity"
-                                    step="{{ data.output.step }}" min="{{ data.output.min }}"
-                                    ng-model="conversionItem.target_quantity"
-                                    ng-change="calculateOutput( 'output' )"
-                                    ng-switch-when="<?php echo CONVERSION_PENDING;?>">
-                            <p class="form-control-static" ng-switch_default>{{ conversionItem.target_quantity | number }}</p>
-                        </div>
+                        <p class="form-control-static text-center">{{ conversionItem.target_quantity | number }}</p>
                     </div>
                 </div>
             </div>
             <div class="row">
-                <!-- Rremarks -->
+                <!-- Remarks -->
                 <div class="form-group col-sm-9">
                     <label class="control-label">Remarks</label>
                     <div class="animate-switch-container" ng-switch on="conversionItem.conversion_status">
@@ -124,7 +117,7 @@
 
             <div class="text-right" ng-switch-when="<?php echo CONVERSION_PENDING;?>">
                 <button class="btn btn-default" ng-click="saveConversion()">Save</button>
-                <button class="btn btn-primary capitalize" ng-disabled="!valid_conversion" ng-click="approveConversion()">{{ mode ? mode : 'Approve' }}</button>
+                <button class="btn btn-primary capitalize" ng-disabled="!data.valid_conversion" ng-click="approveConversion()">{{ mode ? mode : 'Convert' }}</button>
                 <button class="btn btn-default" ui-sref="main.store({ activeTab: 'conversions' })">Close</button>
             </div>
 

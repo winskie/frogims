@@ -228,7 +228,13 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 			url: '/convert',
 			params: { conversionItem: null },
 			templateUrl: baseUrl + 'index.php/main/view/partial_conversion_form',
-			controller: 'ConversionController'
+			controller: 'ConversionController',
+			resolve: {
+				conversionTable: function( appData )
+					{
+						return appData.getConversionFactors();
+					}
+			}
 		};
 
 	var mopping = {

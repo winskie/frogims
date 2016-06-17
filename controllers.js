@@ -1194,13 +1194,16 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
 	}
 ]);
 
-app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications',
-	function( $scope, $filter, $state, $stateParams, session, appData, notifications )
+app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'conversionTable',
+	function( $scope, $filter, $state, $stateParams, session, appData, notifications, conversionTable )
 	{
-		var inputQuantity = angular.element( document.querySelector( "input#inputQuantity" ) );
-		var outputQuantity = angular.element( document.querySelector( "input#outputQuantity" ) );
+		function outputItemFilter( value, index, array )
+		{
+			return convertibleItems.indexOf( value.item_id ) !== -1;
+		}
 
 		var items = angular.copy( appData.data.items );
+		var convertibleItems = [];
 
 		$scope.data = {
 				conversionDatepicker: { format: 'yyyy-MM-dd HH:mm:ss', opened: false },
@@ -1213,7 +1216,8 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 				messages: [],
 				factor: null,
 				mode: null,
-				valid_conversion: false
+				valid_conversion: false,
+				conversionFactors: []
 			};
 
 		$scope.conversionItem = {
@@ -1234,8 +1238,14 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 
 		$scope.checkConversion = function()
 			{
-				$scope.valid_conversion = true;
+				$scope.data.valid_conversion = true;
 				$scope.data.messages = [];
+
+				if( ! $scope.data.targetInventory )
+				{
+					$scope.valid_conversion = false;
+					$scope.data.messages.push( 'Item cannot be converted' );
+				}
 
 				if( $scope.conversionItem.source_quantity === 0 || $scope.conversionItem.target_quantity === 0 )
 				{
@@ -1243,22 +1253,22 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 					$scope.data.messages.push( 'Input quantity and output quantity cannot be 0.' );
 				}
 
-				if( $scope.conversionItem.source_quantity % 1 !== 0 || $scope.conversionItem.target_quantity % 1 !== 0 )
+				if( $scope.conversionItem.source_quantity && $scope.conversionItem.source_quantity % 1 !== 0 )
 				{
 					$scope.data.valid_conversion = false;
 					$scope.data.messages.push( 'Input quantity and output quantity cannot be non-integer values.' );
-				}
-
-				if( $scope.data.sourceInventory.item_id == $scope.data.targetInventory.item_id )
-				{
-					$scope.data.valid_conversion = false;
-					$scope.data.messages.push( 'Input item and output item cannot be the same.' );
 				}
 
 				if( $scope.conversionItem.source_quantity > $scope.data.sourceInventory.quantity )
 				{
 					$scope.data.valid_conversion = false;
 					$scope.data.messages.push( 'Insufficient inventory for input item to convert.' );
+				}
+
+				if( $scope.conversionItem.target_quantity % 1 !== 0 )
+				{
+					$scope.data.valid_conversion = false;
+					$scope.data.messages.push( 'Conversion requires input quantity to be in multiples of ' + $scope.data.input.min );
 				}
 
 				if( ! $scope.data.factor )
@@ -1270,104 +1280,102 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 				return $scope.data.valid_conversion;
 			};
 
-		$scope.updateConversionFactor = function()
+
+
+		$scope.onOutputItemChange = function()
 			{
-				$scope.conversionItem.source_inventory_id = $scope.data.sourceInventory.id;
-				$scope.conversionItem.target_inventory_id = $scope.data.targetInventory.id;
-
-				appData.getConversionFactor( $scope.data.sourceInventory.item_id, $scope.data.targetInventory.item_id ).then(
-					function( response )
-					{
-						if( response.status == 'ok' )
-						{
-							$scope.data.valid_conversion = true;
-							$scope.data.factor = response.factor;
-							$scope.data.mode = response.mode;
-
-							switch( $scope.data.mode )
-							{
-								case 'pack':
-									$scope.data.input.step = $scope.data.factor;
-									$scope.data.input.min = $scope.data.factor;
-
-									$scope.data.output.step = 1;
-									$scope.data.output.min = 0;
-
-									$scope.conversionItem.target_quantity = 1;
-									$scope.calculateOutput( 'output' );
-									break;
-
-								case 'unpack':
-									$scope.data.input.step = 1;
-									$scope.data.input.min = 0;
-
-									$scope.data.output.step = $scope.data.factor;
-									$scope.data.output.min = $scope.data.factor;
-
-									$scope.conversionItem.source_quantity = 1;
-									$scope.calculateOutput( 'input' );
-									break;
-
-								default:
-									$scope.data.input.step = 1;
-									$scope.data.input.min = 1;
-
-									$scope.data.output.step = 1;
-									$scope.data.output.min = 1;
-									$scope.calculateOutput( 'input' );
-							}
-						}
-						else if( response.status == 'fail' )
-						{
-							$scope.data.factor = null;
-							$scope.data.mode = null;
-							$scope.data.valid_conversion = false;
-						}
-
-						$scope.checkConversion();
-				},
-				function( reason )
+				var cf = [];
+				$scope.data.mode = null;
+				if( $scope.data.targetInventory )
 				{
-					console.error( reason );
-				});
+					cf = $filter( 'filter' )( conversionTable.data, { source_item_id: $scope.data.sourceInventory.item_id, target_item_id: $scope.data.targetInventory.item_id }, true );
+					if( cf.length )
+					{
+						$scope.data.factor = cf[0].conversion_factor;
+						$scope.data.mode = ( $scope.data.factor == 1 ? 'convert' : 'pack' );
+						$scope.data.input.step = $scope.data.factor;
+						$scope.data.input.min = $scope.data.factor;
+
+						if( $scope.conversionItem.source_quantity < $scope.data.input.min )
+						{
+							$scope.conversionItem.source_quantity = $scope.data.input.min;
+						}
+					}
+					else
+					{
+						cf = $filter( 'filter' )( conversionTable.data, { target_item_id: $scope.data.sourceInventory.item_id, source_item_id: $scope.data.targetInventory.item_id }, true );
+						if( cf.length )
+						{
+							$scope.data.factor = cf[0].conversion_factor;
+							$scope.data.mode = ( $scope.data.factor == 1 ? 'convert' : 'unpack' );
+							$scope.data.input.step = 1;
+							$scope.data.input.min = 1;
+						}
+					}
+				}
+				else
+				{
+					$scope.data.valid_conversion = false;
+					$scope.conversionItem.target_quantity = null;
+					$scope.data.input.step = 1;
+					$scope.data.input.min = 1;
+				}
+
+				$scope.calculateOutput();
 			};
 
-		$scope.calculateOutput = function( inputType )
+		$scope.onInputItemChange = function()
+			{
+				var cfData = conversionTable.data;
+				$scope.conversionItem.source_inventory_id = $scope.data.sourceInventory.id;
+
+				// Get list of items where source item is convertible to
+				convertibleItems = [];
+				for( var i = 0; i < cfData.length; i++ )
+				{
+					if( cfData[i].source_item_id == $scope.data.sourceInventory.item_id
+							&& convertibleItems.indexOf( cfData[i].target_item_id ) == -1 )
+					{
+						convertibleItems.push( cfData[i].target_item_id );
+					}
+					else if( cfData[i].target_item_id == $scope.data.sourceInventory.item_id
+							&& convertibleItems.indexOf( cfData[i].source_item_id ) == -1)
+					{
+						convertibleItems.push( cfData[i].source_item_id );
+					}
+				}
+
+				$scope.data.targetItems = $filter( 'filter' )( items, outputItemFilter, true );
+
+				if( $scope.data.targetItems.length )
+				{
+					$scope.data.targetInventory = $scope.data.targetItems[0];
+					$scope.conversionItem.target_inventory_id = $scope.data.targetInventory.id;
+				}
+				else
+				{
+					$scope.data.targetInventory = null;
+					$scope.conversionItem.target_inventory_id = null;
+				}
+
+				$scope.onOutputItemChange();
+			};
+
+		$scope.calculateOutput = function()
 			{
 				var factor = $scope.data.factor;
 
 				if( $scope.data.mode == 'pack' )
 				{
-					if( inputType == 'input' )
-					{
-						$scope.conversionItem.target_quantity = $scope.conversionItem.source_quantity / factor;
-					}
-					else
-					{
-						$scope.conversionItem.source_quantity = $scope.conversionItem.target_quantity * factor;
-					}
+					$scope.conversionItem.target_quantity = $scope.conversionItem.source_quantity / factor;
 				}
 				else if( $scope.data.mode == 'unpack' )
 				{
-					if( inputType == 'input' )
-					{
-						$scope.conversionItem.target_quantity = $scope.conversionItem.source_quantity * factor;
-					}
-					else
-					{
-						$scope.conversionItem.source_quantity = $scope.conversionItem.target_quantity / factor;
-					}
+					$scope.conversionItem.target_quantity = $scope.conversionItem.source_quantity * factor;
 				}
 				else if( $scope.data.mode == 'convert' )
 				{
-					if( inputType == 'input' )
-					{
-						$scope.conversionItem.target_quantity = $scope.conversionItem.source_quantity;
-					}
-					else
-					{
-						$scope.conversionItem.source_quantity = $scope.conversionItem.target_quantity;
-					}
+					$scope.conversionItem.target_quantity = $scope.conversionItem.source_quantity;
 				}
 
 				$scope.checkConversion();
@@ -1417,14 +1425,14 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 						$scope.conversionItem.target_quantity = parseInt( $stateParams.conversionItem.target_quantity );
 						$scope.data.sourceInventory = $filter( 'filter' )( appData.data.items, { id: $stateParams.conversionItem.source_inventory_id }, true )[0];
 						$scope.data.targetInventory = $filter( 'filter' )( appData.data.items, { id: $stateParams.conversionItem.target_inventory_id }, true )[0];
-						$scope.updateConversionFactor();
+						$scope.onInputItemChange();
 					}
 				}
 			)
 		}
 		else
 		{
-			$scope.updateConversionFactor();
+			$scope.onInputItemChange();
 		}
 
 	}
