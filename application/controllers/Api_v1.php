@@ -1392,10 +1392,7 @@ class Api_v1 extends CI_Controller {
     public function users()
     {
         $request_method = $this->input->method();
-
-        $user_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
-        $relation = param_type( $this->uri->rsegment( 4 ), 'string' );
-        $q = param_type( $this->input->get( 'q' ), 'string' );
+        $action = $this->uri->rsegment( 3 );
 
         $this->load->library( 'user' );
         $User = new User();
@@ -1403,44 +1400,61 @@ class Api_v1 extends CI_Controller {
         switch( $request_method )
         {
             case 'get':
-                if( $user_id )
-                { // get specific user
-                    $user = $User->get_by_id( $user_id );
-                    if( $user )
-                    {
-                        switch( $relation )
-                        {
-                            case NULL:
-                                $this->_response( $user->as_array() );
-                                break;
-
-                            default:
-                                $this->_error( 404, sprintf( '%s resource not found', $relation ) );
-                        }
-                    }
-                    else
-                    {
-                        $this->_error( 404, 'User record not found' );
-                    }
-                }
-                else
-                { // get list of users
-                    if( $q )
-                    { // search
+                switch( $action )
+                {
+                    case 'search':
+                        $q = param_type( $this->input->get( 'q' ), 'string' );
                         $users = $User->search( $q );
-                    }
-                    else
-                    { // get all
-                        $users = $User->get_users();
-                    }
+                        $users_data = array();
+                        foreach( $users as $user )
+                        {
+                            $users_data[] = $user->as_array();
+                        }
 
-                    $users_data = array();
-                    foreach( $users as $user )
-                    {
-                        $users_data[] = $user->as_array();
-                    }
+                        $this->_response( $users_data );
+                        break;
 
-                    $this->_response( array( 'users' => $users_data ) );
+                    default:
+                        $user_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
+                        $relation = param_type( $this->uri->rsegment( 4 ), 'string' );
+
+                        if( $user_id )
+                        { // get specific user
+                            $user = $User->get_by_id( $user_id );
+                            if( $user )
+                            {
+                                switch( $relation )
+                                {
+                                    case NULL:
+                                        $this->_response( $user->as_array() );
+                                        break;
+
+                                    default:
+                                        $this->_error( 404, sprintf( '%s resource not found', $relation ) );
+                                }
+                            }
+                            else
+                            {
+                                $this->_error( 404, 'User record not found' );
+                            }
+                        }
+                        else
+                        { // get list of users
+                            $params = array(
+                                'q' => param( $this->input->get(), 'q' ),
+                                'role' => param( $this->input->get(), 'role' ),
+                                'group' => param( $this->input->get(), 'group' ),
+                                'status' => param( $this->input->get(), 'status' ) );
+
+                            $users = $User->get_users( $params );
+                            $users_data = array();
+                            foreach( $users as $user )
+                            {
+                                $users_data[] = $user->as_array();
+                            }
+
+                            $this->_response( array( 'users' => $users_data ) );
+                        }
                 }
                 break;
 

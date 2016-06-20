@@ -1500,7 +1500,7 @@ appServices.service( 'UserServices', [ '$http', '$q', 'baseUrl',
 
         me.findUser = function( q )
             {
-                return $http.get( baseUrl + 'index.php/api/user/search', {
+                return $http.get( baseUrl + 'index.php/api/v1/users/search', {
                     params: {
                         q: q
                     }
@@ -1509,7 +1509,7 @@ appServices.service( 'UserServices', [ '$http', '$q', 'baseUrl',
                     {
                         if( response.data.status == 'ok' )
                         {
-                            return response.data.data.users;
+                            return response.data.data;
                         }
                         else
                         {
