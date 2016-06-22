@@ -201,7 +201,19 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 			url: '/admin',
 			templateUrl: baseUrl + 'index.php/main/view/partial_admin_view',
 			controller: 'AdminController',
-			params: { activeTab: 'general' }
+			params: { activeTab: 'general' },
+			resolve: {
+				adminDataLoaded: function( $q, session, adminData )
+					{
+						console.log( 'Initializing admin data...' );
+						var initUsers = adminData.getUsers();
+						$q.all( [ initUsers ] ).then(
+							function( promises )
+							{
+								return true;
+							});
+					}
+			}
 		};
 
 	var transfer = {
@@ -271,6 +283,15 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 			}
 		};
 
+	var user = {
+		name: 'main.user',
+		parent: main,
+		url: '/user',
+		params: { userItem: null, editMode: 'edit' },
+		templateUrl: baseUrl + 'index.php/main/view/partial_user_form.php',
+		controller: 'UserController'
+	}
+
 	$stateProvider
 		.state( dashboard )
 		.state( main )
@@ -280,7 +301,10 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 		.state( convert )
 		.state( mopping )
 		.state( allocation )
-		.state( admin );
+
+		.state( admin )
+		.state( user );
+
 });
 
 app.directive( 'highcharts', chartDirective );

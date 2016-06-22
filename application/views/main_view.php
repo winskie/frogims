@@ -29,6 +29,7 @@
                         </a>
                         <ul class="dropdown-menu" uib-dropdown-menu>
                             <li>
+                                <a class="navbar-link" ui-sref="main.user({ userItem: sessionData.currentUser })">User account</a>
                                 <a class="navbar-link" href="<?php echo site_url( '/login/logout');?>">Log out</a>
                             </li>
                         </ul>

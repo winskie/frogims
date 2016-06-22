@@ -240,6 +240,8 @@ class Conversion extends Base_model {
             die( 'Cannot approve non-pending conversions' );
         }
 
+        // TODO: Check if there is sufficient input inventory
+
         $ci->db->trans_start();
         $this->set( 'conversion_status', CONVERSION_APPROVED );
         $this->db_save();

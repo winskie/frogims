@@ -1358,13 +1358,17 @@ appServices.service( 'adminData', [ '$http', '$q', '$filter', 'baseUrl', 'sessio
         me.data = {
                 users: [],
                 stores: [],
-                items: []
-            };
+                items: [],
 
-        me.filters = {
-                users: {},
-                stores: {},
-                items: {},
+                userRoles: [
+                        { id: 1, roleName: 'Administrator' },
+                        { id: 2, roleName: 'User' }
+                    ],
+                userStatus: [
+                        { id: 1, statusName: 'Active' },
+                        { id: 2, statusName: 'Locked' },
+                        { id: 3, statusName: 'Disabled' }
+                    ],
 
                 totals: {
                         users: 0,
@@ -1372,6 +1376,128 @@ appServices.service( 'adminData', [ '$http', '$q', '$filter', 'baseUrl', 'sessio
                         items: 0
                     }
             };
+
+        me.filters = {
+                itemsPerPage: 15,
+                users: {
+                    q: null,
+                    role: null,
+                    group: null,
+                    status: null,
+                    page: 1
+                },
+                stores: {},
+                items: {}
+            };
+
+        me.getUsers = function()
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'GET',
+                    url: baseUrl + 'index.php/api/v1/users',
+                    params: {
+                        q: me.filters.users.q ? me.filters.users.q : null,
+                        role: me.filters.users.role ? me.filters.users.role : null,
+                        group: me.filters.users.group ? me.filters.users.group.id : null,
+                        status: me.filters.users.status ? me.filters.users.status.id : null
+                    }
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            var d = response.data;
+                            me.data.users = d.data.users;
+                            me.data.totals.users = d.data.total;
+                            deferred.resolve( d );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason );
+                    });
+
+                return deferred.promise;
+            };
+
+        me.refresh = function( group )
+            {
+                switch( group )
+                {
+                    case 'user':
+                        me.getUsers();
+                        break;
+
+                    case 'all':
+                    default:
+                        me.getUsers();
+                }
+            }
+
+        // Users
+        me.getUser = function( userId )
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'GET',
+                    url: baseUrl + 'index.php/api/v1/users/' + userId
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
+                    });
+
+                return deferred.promise;
+            };
+        me.saveUser = function( userData )
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'POST',
+                    url: baseUrl + 'index.php/api/v1/users/',
+                    data: userData
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
+                    });
+
+                return deferred.promise;
+            }
     }
 ]);
 
@@ -1430,6 +1556,15 @@ appServices.service( 'lookup',
                 '20': 'Pending',
                 '21': 'Remitted',
                 '22': 'Voided'
+            },
+            userRoles: {
+                '1': 'Administrator',
+                '2': 'User'
+            },
+            userStatus: {
+                '1': 'Active',
+                '2': 'Locked',
+                '3': 'Disabled'
             }
         };
 

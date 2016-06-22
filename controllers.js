@@ -250,7 +250,6 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 				},
 				processData: function( data )
 					{
-						console.log( data );
 						var me = this;
 						me.chart.xAxis[0].setCategories( data.groups, false );
 

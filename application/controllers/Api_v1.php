@@ -1444,7 +1444,11 @@ class Api_v1 extends CI_Controller {
                                 'q' => param( $this->input->get(), 'q' ),
                                 'role' => param( $this->input->get(), 'role' ),
                                 'group' => param( $this->input->get(), 'group' ),
-                                'status' => param( $this->input->get(), 'status' ) );
+                                'status' => param( $this->input->get(), 'status' ),
+                                'limit' => param( $this->input->get(), 'limit'),
+                                'page' => param( $this->input->get(), 'page' ),
+                                'format' => param( $this->input->get(), 'format' ),
+                                'order' => param( $this->input->get(), 'order' ) );
 
                             $users = $User->get_users( $params );
                             $users_data = array();
@@ -1453,8 +1457,65 @@ class Api_v1 extends CI_Controller {
                                 $users_data[] = $user->as_array();
                             }
 
-                            $this->_response( array( 'users' => $users_data ) );
+                            $this->_response( array(
+                                'users' => $users_data,
+                                'total' => 0 ) );
                         }
+                }
+                break;
+
+            case 'post':
+                $action = param_type( $this->uri->rsegment( 3 ), 'string' );
+                $password = param( $this->input->post(), 'password' );
+                $user_id = param( $this->input->post(), 'id' );
+
+                if( $user_id && $password )
+                {
+                    // old password must be specified
+                    $old_password = param( $this->input->post(), 'old_password' );
+                    if( $old_password )
+                    {
+                        $user = $User->get_by_id( $user_id );
+                        if( ! $user->validate_password( $old_password ) )
+                        {
+                            $this->_error( 403, 'Username or password is invalid' );
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        $this->_error( 403, 'Missing required previous password' );
+                        break;
+                    }
+                }
+
+                $user = $User->load_from_data( $this->input->post() );
+
+                $this->db->trans_start();
+                switch( $action )
+                {
+                    case 'lock':
+                        $user->lock();
+                        break;
+
+                    case 'disable':
+                        $user->disable();
+                        break;
+
+                    default:
+                        $user->db_save();
+                }
+
+                $user_data = $user->as_array();
+                $this->db->trans_complete();
+
+                if( $this->db->trans_status() )
+                {
+                    $this->_response( $user_data, $user_id ? 200 : 201 );
+                }
+                else
+                {
+                    $this->_error( 500, 'A database error has occurred while trying to save user record' );
                 }
                 break;
 

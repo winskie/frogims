@@ -13,7 +13,7 @@ class User extends Base_model {
 	protected $date_created;
 	protected $date_modified;
 	protected $last_modified;
-	
+
 	protected $stores;
 	protected $role;
 
@@ -35,12 +35,56 @@ class User extends Base_model {
 			'user_role' => array( 'type' => 'integer' )
 		);
 	}
-    
-    public function get_users()
+
+    public function get_users( $params = array() )
 	{
+		$query = param( $params, 'q' );
+		$role = param( $params, 'role' );
+		$group_id = param( $params, 'group' );
+		$status = param( $params, 'status' );
+		$limit = param( $params, 'limit' );
+		$page = param( $params, 'page' );
+		$format = param( $params, 'format', 'object' );
+		$order = param( $params, 'order', 'full_name ASC, username ASC' );
+
 		$ci =& get_instance();
 
+		if( $query )
+		{
+			$ci->db->like( 'full_name', $query );
+		}
+
+		if( $role )
+		{
+			$ci->db->where( 'user_role', $role );
+		}
+
+		if( $group_id )
+		{
+			$ci->db->where( 'group_id', $group_id );
+		}
+
+		if( $status )
+		{
+			$ci->db->where( 'status', $status );
+		}
+
+		if( $limit )
+		{
+			$ci->db->limit( $limit, ( $page ? ( ( $page - 1 ) * $limit ) : 0 ) );
+		}
+
+		if( $order )
+		{
+			$ci->db->order_by( $order );
+		}
+
 		$query = $ci->db->get( $this->primary_table );
+
+		if( $format == 'array' )
+		{
+			return $query->result_array();
+		}
 
 		return $query->result( get_class( $this ) );
 	}
@@ -113,48 +157,122 @@ class User extends Base_model {
 			return NULL;
 		}
 	}
-	
+
 	public function get_stores()
 	{
 		if( ! isset( $this->stores ) )
 		{
 			$ci =& get_instance();
 			$ci->load->library( 'store' );
-			
+
 			$ci->db->select( 's.*' );
 			$ci->db->where( 'user_id', $this->id );
 			$ci->db->join( 'stores AS s', 's.id = su.store_id', 'inner' );
 			$stores = $ci->db->get( 'store_users AS su' );
 			$this->stores = $stores->result( 'Store' );
 		}
-		
+
 		return $this->stores;
 	}
-	
+
 	public function get_role()
 	{
 		if( ! isset( $this->role ) )
 		{
 			$ci =& get_instance();
 			$ci->load->library( 'group' );
-			
+
 			$ci->db->where( 'id', $this->user_role );
 			$ci->db->limit( 1 );
 			$group = $ci->db->get( 'groups' );
 			$this->role = $group->result( 'Group' );
 		}
-		
+
 		return $this->role;
 	}
-	
+
 	public function search( $query )
 	{
 		$ci =& get_instance();
-		
+
 		$ci->db->like( 'full_name', $query );
 		$ci->db->limit( 10 );
 		$users = $ci->db->get( $this->primary_table );
-		
+
 		return $users->result( get_class( $this ) );
+	}
+
+	public function load_from_data( $data = array(), $overwrite = TRUE )
+	{
+		// Try to get existing value first if ID exists
+		if( array_key_exists( 'id', $data ) && $data['id'] )
+		{
+			$r = $this->get_by_id( $data['id'] );
+		}
+		else
+		{
+			$r = $this;
+		}
+
+		foreach( $data as $field => $value )
+		{
+			if( $field == 'id' )
+			{
+				continue;
+			}
+			elseif( $field == 'password' )
+			{
+				$r->set_password( $value );
+			}
+			elseif( array_key_exists( $field, $this->db_fields ) )
+			{
+				if( ! isset( $r->$field ) || $overwrite )
+				{
+					//echo 'Setting '.$field.' from '.$this->$field.' to '.$value.'...<br />';
+					$r->set( $field, $value );
+				}
+			}
+			elseif( property_exists( $this, $field ) )
+			{
+				$r->$field = $value;
+			}
+		}
+
+		return $r;
+	}
+
+	public function db_save()
+	{
+		// There are no pending changes, just return the record
+		if( ! $this->db_changes )
+		{
+			return $this;
+		}
+
+		$ci =& get_instance();
+
+		$result = NULL;
+		$ci->db->trans_start();
+		if( isset( $this->id ) )
+		{
+			$ci->db->set( $this->db_changes );
+			$result = $this->_db_update();
+		}
+		else
+		{
+			$ci->db->set( $this->db_changes );
+			$result = $this->_db_insert();
+		}
+		$ci->db->trans_complete();
+
+		if( $ci->db->trans_status() )
+		{
+			$this->_reset_db_changes();
+			return $result;
+		}
+		else
+		{
+			return FALSE;
+		}
 	}
 }

@@ -21,23 +21,29 @@ class Login extends CI_Controller
                     if( $stores )
                     {
                         $first_store = $stores[0];
-                        
+
                         // Get store shifts
                         $shifts = $first_store->get_shifts();
-                        
+
                         if( $shifts )
                         {
                             $suggested_shift = $first_store->get_suggested_shift();
                         }
+
+                        // Set session data
+                        $this->session->current_user_id = $user->get( 'id' );
+                        $this->session->current_store_id = $first_store->get( 'id' );
+                        $this->session->current_shift_id = $suggested_shift->get( 'id' );
+
+                        redirect( site_url( '/main/#/main/store' ) );
                     }
-                    
-                    // Set session data
-                    $this->session->current_user_id = $user->get( 'id' );
-                    $this->session->current_store_id = $first_store->get( 'id' );
-                    $this->session->current_shift_id = $suggested_shift->get( 'id' );
-                    
-                    redirect( site_url( '/main/#/main/store' ) );
-                    //echo site_url( '/main/#/store' );
+                    else
+                    {
+                        $this->session->sess_destroy();
+                        $this->session->set_flashdata( 'username', $username );
+                        $this->session->set_flashdata( 'error', 'You are not registered to a store. Please contact your system adminstrator.' );
+                        $this->load->view( 'login' );
+                    }
                 }
                 else
                 {
@@ -48,13 +54,13 @@ class Login extends CI_Controller
                     $this->load->view( 'login' );
                 }
                 break;
-                
+
             default:
                 $this->load->view( 'login' );
                 break;
         }
 	}
-    
+
     public function logout()
     {
         $this->session->sess_destroy();
