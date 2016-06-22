@@ -60,7 +60,7 @@
 
 			<!-- Password -->
 			<div class="form-group" ng-if="data.viewMode == 'edit'">
-				<label class="control-label col-sm-2">Password</label>
+				<label class="control-label col-sm-2">New password</label>
 				<div class="col-sm-6 col-md-3 col-lg-2">
 					<input type="password" class="form-control"
 							ng-model="userItem.password">
@@ -75,6 +75,11 @@
 							ng-model="data.passwordConfirmation">
 				</div>
 			</div>
+
+			<?php
+			if( is_admin() )
+			{
+			?>
 
 			<!-- User role -->
 			<div class="form-group">
@@ -132,6 +137,10 @@
 
 				</div>
 			</div>
+
+			<?php
+			}
+			?>
 		</form>
 	</div>
 	<div class="panel-footer">

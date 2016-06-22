@@ -35,6 +35,7 @@ class Login extends CI_Controller
                         $this->session->current_store_id = $first_store->get( 'id' );
                         $this->session->current_shift_id = $suggested_shift->get( 'id' );
 
+                        $this->session->is_admin = ( param_type( $user->get( 'user_role' ), 'integer' ) === USER_ROLE_ADMIN );
                         redirect( site_url( '/main/#/main/store' ) );
                     }
                     else

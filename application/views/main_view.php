@@ -16,7 +16,7 @@
                     <li><a ui-sref="main.dashboard">Dashboard</a></li>
                     <li><a ui-sref="main.store">Store</a></li>
                     <?php
-                    if( is_admin() || true )
+                    if( is_admin() )
                     {
                         echo '<li><a ui-sref="main.admin">Admin</a></li>';
                     }
