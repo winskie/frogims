@@ -2,7 +2,9 @@
 	<uib-tabset id="adminTabSet" active="activeTab">
 		<!-- General Settings -->
 		<uib-tab heading="General" index="0" select="onTabSelect(0)">
-
+			<div class="alert alert-warning">
+				<i class="glyphicon glyphicon-alert"></i> This section is still under development
+			</div>
 		</uib-tab>
 
 		<!-- Users -->
@@ -43,16 +45,7 @@
 							<td>{{ user.group_id }}</td>
 							<td>{{ lookup( 'userStatus', user.user_status ) }}</td>
 							<td>
-								<div class="btn-group btn-block" uib-dropdown>
-									<button id="split-button" type="button" class="btn btn-primary col-sm-8 col-md-9" ui-sref="main.user({ userItem: user })">Edit</button>
-									<button type="button" class="btn btn-primary col-sm-3 col-md-3" uib-dropdown-toggle>
-										<span class="caret"></span>
-									</button>
-									<ul uib-dropdown-menu role="menu">
-										<li role="menuitem"><a ui-sref="main.adjust({ adjustmentItem: adjustment })">Edit Adjustment...</a></li>
-									</ul>
-								</div>
-
+								<button id="split-button" type="button" class="btn btn-default btn-block" ui-sref="main.user({ userItem: user })">Edit</button>
 							</td>
 						</tr>
 					</tbody>
@@ -72,14 +65,23 @@
 
 		<!-- Groups -->
 		<uib-tab heading="Groups" index="2" select="onTabSelect(2)">
+			<div class="alert alert-warning">
+				<i class="glyphicon glyphicon-alert"></i> This section is still under development
+			</div>
 		</uib-tab>
 
 		<!-- Stores -->
 		<uib-tab heading="Stores" index="3" select="onTabSelect(3)">
+			<div class="alert alert-warning">
+				<i class="glyphicon glyphicon-alert"></i> This section is still under development
+			</div>
 		</uib-tab>
 
 		<!-- Items -->
 		<uib-tab heading="Items" index="4" select="onTabSelect(4)">
+			<div class="alert alert-warning">
+				<i class="glyphicon glyphicon-alert"></i> This section is still under development
+			</div>
 		</uib-tab>
 	</uib-tabset>
 </div>

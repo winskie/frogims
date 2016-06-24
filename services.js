@@ -1,7 +1,7 @@
 var appServices = angular.module( 'appServices', [] );
 
-appServices.service( 'session', [ '$http', '$q', 'baseUrl', 'notifications',
-    function( $http, $q, baseUrl, notifications )
+appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifications',
+    function( $http, $q, $filter, baseUrl, notifications )
     {
         var me = this;
 
@@ -49,6 +49,43 @@ appServices.service( 'session', [ '$http', '$q', 'baseUrl', 'notifications',
 
 				return deferred.promise;
 			};
+
+        me.updateCurrentStores = function()
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'GET',
+                    url: baseUrl + 'index.php/api/v1/users/' + me.data.currentUser.id + '/stores'
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            var d = response.data.data;
+
+                            me.data.userStores = d;
+                            var currentStore = $filter( 'filter' )( me.data.userStores, { id: me.data.currentStore.id }, true );
+                            if( currentStore.length == 0 && me.data.userStores.length )
+                            { // no longer assigned to current store, let's update current to the first store
+                                me.data.currentStore = me.data.userStores[0];
+                            }
+
+                            deferred.resolve( d );
+                        }
+                        else
+                        {
+                            console.error( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+					},
+					function( reason )
+					{
+                        console.error( reason.data.errorMsg );
+						deferred.reject( reason )
+					});
+
+				return deferred.promise;
+            };
 
         me.changeStore = function( newStore )
             {
@@ -1400,7 +1437,9 @@ appServices.service( 'adminData', [ '$http', '$q', '$filter', 'baseUrl', 'sessio
                         q: me.filters.users.q ? me.filters.users.q : null,
                         role: me.filters.users.role ? me.filters.users.role : null,
                         group: me.filters.users.group ? me.filters.users.group.id : null,
-                        status: me.filters.users.status ? me.filters.users.status.id : null
+                        status: me.filters.users.status ? me.filters.users.status.id : null,
+                        page: me.filters.users.page ? me.filters.users.page : null,
+                        limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
                     }
                 }).then(
                     function( response )
@@ -1443,12 +1482,13 @@ appServices.service( 'adminData', [ '$http', '$q', '$filter', 'baseUrl', 'sessio
             }
 
         // Users
-        me.getUser = function( userId )
+        me.getUser = function( userId, params )
             {
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: baseUrl + 'index.php/api/v1/users/' + userId
+                    url: baseUrl + 'index.php/api/v1/users/' + userId,
+                    params: params
                 }).then(
                     function( response )
                     {
@@ -1556,6 +1596,12 @@ appServices.service( 'lookup',
                 '20': 'Pending',
                 '21': 'Remitted',
                 '22': 'Voided'
+            },
+            storeTypes: {
+                '1': 'General',
+                '2': 'Production',
+                '3': 'Logistics',
+                '4': 'Cashroom'
             },
             userRoles: {
                 '1': 'Administrator',

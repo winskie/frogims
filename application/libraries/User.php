@@ -89,6 +89,41 @@ class User extends Base_model {
 		return $query->result( get_class( $this ) );
 	}
 
+	public function count_users( $params = array() )
+	{
+		$query = param( $params, 'q' );
+		$role = param( $params, 'role' );
+		$group_id = param( $params, 'group' );
+		$status = param( $params, 'status' );
+
+		$ci =& get_instance();
+
+		if( $query )
+		{
+			$ci->db->like( 'full_name', $query );
+		}
+
+		if( $role )
+		{
+			$ci->db->where( 'user_role', $role );
+		}
+
+		if( $group_id )
+		{
+			$ci->db->where( 'group_id', $group_id );
+		}
+
+		if( $status )
+		{
+			$ci->db->where( 'status', $status );
+		}
+
+
+		$count = $ci->db->count_all_results( $this->primary_table );
+
+		return $count;
+	}
+
 	public function set( $property, $value )
 	{
 		if( property_exists( $this, $property ) )
@@ -168,6 +203,7 @@ class User extends Base_model {
 			$ci->db->select( 's.*' );
 			$ci->db->where( 'user_id', $this->id );
 			$ci->db->join( 'stores AS s', 's.id = su.store_id', 'inner' );
+			$ci->db->order_by( 's.id' );
 			$stores = $ci->db->get( 'store_users AS su' );
 			$this->stores = $stores->result( 'Store' );
 		}
@@ -189,6 +225,51 @@ class User extends Base_model {
 		}
 
 		return $this->role;
+	}
+
+	public function assign_store( $stores )
+	{
+		$ci =& get_instance();
+
+		if( $stores )
+		{
+			if( ! is_array( $stores ) )
+			{
+				$stores = array( $stores );
+			}
+
+			$ci->db->trans_start();
+
+			$ci->db->where( 'user_id', $this->id );
+			if( $stores )
+			{
+				$ci->db->where_not_in( 'store_id', $stores );
+			}
+			$ci->db->delete( 'store_users' );
+
+			if( $stores )
+			{
+				$timestamp = date( TIMESTAMP_FORMAT );
+				$values = array();
+				foreach( $stores as $store )
+				{
+					$values[] = sprintf("(%d, %d, '%s')", $store, $this->id, $timestamp );
+				}
+
+
+				$sql = 'INSERT INTO store_users( store_id, user_id, date_joined ) VALUES '.implode(', ', $values)
+						.' ON DUPLICATE KEY UPDATE date_joined = date_joined';
+				$ci->db->query( $sql );
+			}
+
+			$ci->db->trans_complete();
+
+			return $ci->db->trans_status();
+		}
+		else
+		{
+			return FALSE;
+		}
 	}
 
 	public function search( $query )

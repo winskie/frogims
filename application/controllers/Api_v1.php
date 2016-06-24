@@ -1400,6 +1400,8 @@ class Api_v1 extends CI_Controller {
         switch( $request_method )
         {
             case 'get':
+                $includes = explode( ',', param( $this->input->get(), 'include' ) );
+
                 switch( $action )
                 {
                     case 'search':
@@ -1425,8 +1427,32 @@ class Api_v1 extends CI_Controller {
                             {
                                 switch( $relation )
                                 {
+                                    case 'stores':
+                                        $user_stores = $user->get_stores();
+                                        $user_stores_array = array();
+                                        foreach( $user_stores as $store )
+                                        {
+                                            $user_stores_array[] = $store->as_array();
+                                        }
+
+                                        $this->_response( $user_stores_array );
+                                        break;
+
                                     case NULL:
-                                        $this->_response( $user->as_array() );
+                                        $user_data = $user->as_array();
+
+                                        if( in_array( 'stores', $includes ) )
+                                        {
+                                            $user_stores = $user->get_stores();
+                                            $user_stores_array = array();
+                                            foreach( $user_stores as $store )
+                                            {
+                                                $user_stores_array[] = $store->as_array();
+                                            }
+                                            $user_data['stores'] = $user_stores_array;
+                                        }
+
+                                        $this->_response( $user_data );
                                         break;
 
                                     default:
@@ -1451,6 +1477,7 @@ class Api_v1 extends CI_Controller {
                                 'order' => param( $this->input->get(), 'order' ) );
 
                             $users = $User->get_users( $params );
+                            $total_users = $User->count_users( $params );
                             $users_data = array();
                             foreach( $users as $user )
                             {
@@ -1459,7 +1486,7 @@ class Api_v1 extends CI_Controller {
 
                             $this->_response( array(
                                 'users' => $users_data,
-                                'total' => 0 ) );
+                                'total' => $total_users ) );
                         }
                 }
                 break;
@@ -1490,6 +1517,7 @@ class Api_v1 extends CI_Controller {
                 }
 
                 $user = $User->load_from_data( $this->input->post() );
+                $stores = param( $this->input->post(), 'stores' );
 
                 $this->db->trans_start();
                 switch( $action )
@@ -1505,6 +1533,7 @@ class Api_v1 extends CI_Controller {
                     default:
                         $user->db_save();
                 }
+                $user->assign_store( $stores );
 
                 $user_data = $user->as_array();
                 $this->db->trans_complete();

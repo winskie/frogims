@@ -105,6 +105,7 @@ class Installer extends CI_Controller {
 					user_id INTEGER NOT NULL,
 					date_joined DATETIME NOT NULL,
 					PRIMARY KEY (id),
+					UNIQUE (store_id, user_id)
 					FOREIGN KEY store_users_store_fk (store_id) REFERENCES stores (id)
 						ON UPDATE CASCADE
 						ON DELETE CASCADE,

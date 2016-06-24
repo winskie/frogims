@@ -17,7 +17,7 @@
 		<script type="text/javascript" src="<?php echo base_url( 'resources/js/angular-animate.min.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'resources/js/ui-bootstrap-tpls-1.3.3.min.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'resources/js/angular-ui-router.min.js');?>"></script>
-		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+		<script type="text/javascript" src="<?php echo base_url( 'resources/js/jquery-3.0.0.min.js');?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'resources/js/highcharts.js');?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'directives-charts.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'app.js' );?>"></script>
