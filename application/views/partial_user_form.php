@@ -177,7 +177,9 @@
 					</thead>
 					<tbody>
 						<tr ng-repeat="store in userItem.stores">
-							<td class="text-center"><input type="checkbox" ng-model="store.registered"></td>
+							<td class="text-center">
+								<input type="checkbox" ng-model="store.registered" ng-if="sessionData.data.isAdmin">
+							</td>
 							<td>{{ store.store_name }}</td>
 							<td>{{ lookup( 'storeTypes', store.store_type ) }}</td>
 							<td>{{ store.store_location }}</td>

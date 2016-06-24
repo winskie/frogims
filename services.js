@@ -12,6 +12,8 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
 
                 userStores: [],
                 storeShifts: [],
+
+                isAdmin: false
             };
 
         me.getSessionData = function()
@@ -32,6 +34,7 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
                             me.data.currentShift = d.shift;
                             me.data.userStores = d.stores;
                             me.data.storeShifts = d.shifts;
+                            me.data.isAdmin = d.is_admin;
 
                             deferred.resolve( d );
                         }

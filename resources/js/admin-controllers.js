@@ -29,12 +29,26 @@ app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter
 				registeredStoreIds.push( registeredStores[i].id );
 			}
 
-			for( var i = 0; i < n; i++ )
+			if( session.data.isAdmin )
 			{
-				var s = appData.data.stores[i];
-				s['registered'] = registeredStoreIds.indexOf( s.id ) != -1;
-				stores.push( s );
+				for( var i = 0; i < n; i++ )
+				{
+					var s = appData.data.stores[i];
+					s['registered'] = registeredStoreIds.indexOf( s.id ) != -1;
+					stores.push( s );
+				}
 			}
+			else
+			{
+				for( var i = 0; i < n; i++ )
+				{
+					if( registeredStoreIds.indexOf( s.id ) != -1 )
+					{
+						$stores.push( appData.data.stores[i] );
+					}
+				}
+			}
+
 			return stores;
 		}
 

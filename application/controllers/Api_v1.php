@@ -643,7 +643,8 @@ class Api_v1 extends CI_Controller {
 					'store' => $store_data,
                     'stores' => $stores_data,
                     'shift' => $shift_data,
-                    'shifts' => $shifts_data
+                    'shifts' => $shifts_data,
+                    'is_admin' => is_admin()
 				)
 			);
 
