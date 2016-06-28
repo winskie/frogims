@@ -225,7 +225,8 @@ class Conversion extends Base_model {
         }
         else
         { // Unable to convert source item to target item
-            die( 'Unable to convert source item to target item' );
+            set_message( 'Unable to convert source item to target item', 'error' );
+            return FALSE;
         }
     }
 
@@ -241,6 +242,22 @@ class Conversion extends Base_model {
         }
 
         // TODO: Check if there is sufficient input inventory
+        $ci->load->library( 'inventory' );
+        $Inventory = new Inventory();
+        $source_inventory = $Inventory->get_by_id( $this->source_inventory_id );
+
+        if( $source_inventory )
+        {
+            if( $source_inventory->get( 'quantity' ) < $this->source_quantity )
+            {
+                set_message( 'Insufficient inventory for input item to convert', 'error' );
+                return FALSE;
+            }
+        }
+        else
+        {
+            return FALSE;
+        }
 
         $ci->db->trans_start();
         $this->set( 'conversion_status', CONVERSION_APPROVED );
@@ -395,7 +412,7 @@ class Conversion extends Base_model {
             {
                 $row = $query->row_array();
                 return array(
-                        $target_item_id => $quantity * $row['conversion_factor']
+                        $source_item_id => $quantity * $row['conversion_factor']
                     );
             }
             else

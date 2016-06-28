@@ -437,26 +437,35 @@ class Api_v1 extends CI_Controller {
                 switch( $action )
                 {
                     case 'approve':
-                        $conversion->approve();
+                        $result = $conversion->approve();
                         break;
 
                     case 'cancel':
-                        $conversion->cancel();
+                        $result = $conversion->cancel();
                         break;
 
                     default:
-                        $conversion->db_save();
+                        $result = $conversion->db_save();
                 }
-                $conversion_data = $conversion->as_array();
-                $this->db->trans_complete();
 
-                if( $this->db->trans_status() )
+                if( $result )
                 {
-                    $this->_response( $conversion_data, $conversion_id ? 200 : 201 );
+                    $conversion_data = $conversion->as_array();
+                    $this->db->trans_complete();
+
+                    if( $this->db->trans_status() )
+                    {
+                        $this->_response( $conversion_data, $conversion_id ? 200 : 201 );
+                    }
+                    else
+                    {
+                        $this->_error( 500, 'A database error has occurred while trying to save adjustment record' );
+                    }
                 }
                 else
                 {
-                    $this->_error( 500, 'A database error has occurred while trying to save adjustment record' );
+                    $messages = get_messages();
+                    $this->_error( 200, $messages );
                 }
                 break;
 

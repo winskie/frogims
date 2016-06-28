@@ -162,8 +162,8 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
     }
 ]);
 
-appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session',
-    function( $http, $q, $filter, baseUrl, session )
+appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications',
+    function( $http, $q, $filter, baseUrl, session, notifications )
     {
         var me = this;
         me.data = {
@@ -1320,6 +1320,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
+                            notifications.showMessages( response.data.errorMsg );
                             console.error( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
@@ -1658,6 +1659,15 @@ appServices.service( 'notifications', [ '$rootScope',
                         duration: duration
                     });
             };
+
+        me.showMessages = function( messages )
+            {
+                var n = messages.length;
+                for( var i = 0; i < n; i++ )
+                {
+                    me.alert( messages[i].msg, messages[i].type );
+                }
+            }
     }
 ]);
 

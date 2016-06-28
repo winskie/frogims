@@ -1287,6 +1287,7 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 				$scope.data.mode = null;
 				if( $scope.data.targetInventory )
 				{
+					$scope.conversionItem.target_inventory_id = $scope.data.targetInventory.id;
 					cf = $filter( 'filter' )( conversionTable.data, { source_item_id: $scope.data.sourceInventory.item_id, target_item_id: $scope.data.targetInventory.item_id }, true );
 					if( cf.length )
 					{
@@ -1424,7 +1425,6 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 						$scope.conversionItem.target_quantity = parseInt( $stateParams.conversionItem.target_quantity );
 						$scope.data.sourceInventory = $filter( 'filter' )( appData.data.items, { id: $stateParams.conversionItem.source_inventory_id }, true )[0];
 						$scope.data.targetInventory = $filter( 'filter' )( appData.data.items, { id: $stateParams.conversionItem.target_inventory_id }, true )[0];
-						$scope.onInputItemChange();
 					}
 				}
 			)

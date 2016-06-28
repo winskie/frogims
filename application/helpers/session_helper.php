@@ -59,3 +59,39 @@ if( ! function_exists( 'is_admin') )
         return isset( $_SESSION['current_user_id'] ) && $_SESSION['is_admin'] === TRUE;
     }
 }
+
+if( ! function_exists( 'set_message' ) )
+{
+    function set_message( $msg, $msg_type = 'error', $response_code = 500 )
+    {
+        if( ! isset( $_SESSION['messages'] ) )
+        {
+            $_SESSION['messages'] = array();
+        }
+
+        $_SESSION['messages'][] = array(
+            'msg' => $msg,
+            'type' => $msg_type,
+            'code' => $response_code );
+    }
+}
+
+if( ! function_exists( 'get_messages' ) )
+{
+    function get_messages( $clear = TRUE )
+    {
+        if( isset( $_SESSION['messages'] ) )
+        {
+            $messages = $_SESSION['messages'];
+            if( $clear )
+            {
+                unset( $_SESSION['messages'] );
+            }
+            return $messages;
+        }
+        else
+        {
+            return NULL;
+        }
+    }
+}
