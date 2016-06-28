@@ -61,8 +61,6 @@ class Api_v1 extends CI_Controller {
                             'item_description' => array( 'type' => 'string' ),
                             'full_name' => array( 'type' => 'string' ) ) );
 
-
-
                         $this->_response( $adjustment_data );
                     }
                     else
@@ -85,26 +83,35 @@ class Api_v1 extends CI_Controller {
                 switch( $action )
                 {
                     case 'approve':
-                        $adjustment->approve();
+                        $result = $adjustment->approve();
                         break;
 
                     case 'cancel':
-                        $adjustment->cancel();
+                        $result = $adjustment->cancel();
                         break;
 
                     default:
-                        $adjustment->db_save();
+                        $result = $adjustment->db_save();
                 }
-                $adjustment_data = $adjustment->as_array();
-                $this->db->trans_complete();
 
-                if( $this->db->trans_status() )
+                if( $result )
                 {
-                    $this->_response( $adjustment_data, $adjustment_id ? 200 : 201 );
+                    $adjustment_data = $adjustment->as_array();
+                    $this->db->trans_complete();
+
+                    if( $this->db->trans_status() )
+                    {
+                        $this->_response( $adjustment_data, $adjustment_id ? 200 : 201 );
+                    }
+                    else
+                    {
+                        $this->_error( 500, 'A database error has occurred while trying to save adjustment record' );
+                    }
                 }
                 else
                 {
-                    $this->_error( 500, 'A database error has occurred while trying to save adjustment record' );
+                    $messages = get_messages();
+                    $this->_error( 200, $messages );
                 }
                 break;
 
@@ -186,29 +193,38 @@ class Api_v1 extends CI_Controller {
                 switch( $action )
                 {
                     case 'allocate':
-                        $allocation->allocate();
+                        $result = $allocation->allocate();
                         break;
 
                     case 'remit':
-                        $allocation->remit();
+                        $result = $allocation->remit();
                         break;
 
                     case 'cancel':
-                        $allocation->cancel();
+                        $result = $allocation->cancel();
                         break;
 
                     default:
-                        $allocation->db_save();
+                        $result = $allocation->db_save();
                 }
-                $this->db->trans_complete();
 
-                if( $this->db->trans_status() )
+                if( $result )
                 {
-                    $this->_response( $allocation->as_array(), $allocation_id ? 200 : 201 );
+                    $this->db->trans_complete();
+
+                    if( $this->db->trans_status() )
+                    {
+                        $this->_response( $allocation->as_array(), $allocation_id ? 200 : 201 );
+                    }
+                    else
+                    {
+                        $this->_error( 500, 'A database error has occurred while trying to save transfer record' );
+                    }
                 }
                 else
                 {
-                    $this->_error( 500, 'A database error has occurred while trying to save transfer record' );
+                    $messages = get_messages();
+                    $this->_error( 200, $messages );
                 }
                 break;
 
@@ -301,17 +317,25 @@ class Api_v1 extends CI_Controller {
                 switch( $action )
                 {
                     default:
-                        $collection->db_save();
+                        $result = $collection->db_save();
                 }
-                $this->db->trans_complete();
-
-                if( $this->db->trans_status() )
+                if( $result )
                 {
-                    $this->_response( $collection->as_array(), $collection_id ? 200 : 201 );
+                    $this->db->trans_complete();
+
+                    if( $this->db->trans_status() )
+                    {
+                        $this->_response( $collection->as_array(), $collection_id ? 200 : 201 );
+                    }
+                    else
+                    {
+                        $this->_error( 500, 'A database error has occurred while trying to save transfer record' );
+                    }
                 }
                 else
                 {
-                    $this->_error( 500, 'A database error has occurred while trying to save transfer record' );
+                    $messages = get_messages();
+                    $this->_error( 200, $messages );
                 }
                 break;
 
@@ -1359,36 +1383,44 @@ class Api_v1 extends CI_Controller {
                 switch( $action )
                 {
                     case 'approve':
-                        $transfer->approve();
+                        $result = $transfer->approve();
                         break;
 
                     case 'cancel':
-                        $transfer->cancel();
+                        $result = $transfer->cancel();
                         break;
 
                     case 'receive':
-                        $transfer->receive();
+                        $result = $transfer->receive();
                         break;
 
                     default:
-                        $transfer->db_save();
+                        $result = $transfer->db_save();
                 }
 
-                $transfer_items = $transfer->get_items();
-                $transfer_data = $transfer->as_array();
-                foreach( $transfer_items as $item )
+                if( $result )
                 {
-                    $transfer_data['items'][$item->get( 'id' )] = $item->as_array();
-                }
-                $this->db->trans_complete();
+                    $transfer_items = $transfer->get_items();
+                    $transfer_data = $transfer->as_array();
+                    foreach( $transfer_items as $item )
+                    {
+                        $transfer_data['items'][$item->get( 'id' )] = $item->as_array();
+                    }
+                    $this->db->trans_complete();
 
-                if( $this->db->trans_status() )
-                {
-                    $this->_response( $transfer_data, $transfer_id ? 200 : 201 );
+                    if( $this->db->trans_status() )
+                    {
+                        $this->_response( $transfer_data, $transfer_id ? 200 : 201 );
+                    }
+                    else
+                    {
+                        $this->_error( 500, 'A database error has occurred while trying to save transfer record' );
+                    }
                 }
                 else
                 {
-                    $this->_error( 500, 'A database error has occurred while trying to save transfer record' );
+                    $messages = get_messages();
+                    $this->_error( 200, $messages );
                 }
                 break;
 
@@ -1533,28 +1565,36 @@ class Api_v1 extends CI_Controller {
                 switch( $action )
                 {
                     case 'lock':
-                        $user->lock();
+                        $result = $user->lock();
                         break;
 
                     case 'disable':
-                        $user->disable();
+                        $result = $user->disable();
                         break;
 
                     default:
-                        $user->db_save();
+                        $result = $user->db_save();
                 }
-                $user->assign_store( $stores );
-
-                $user_data = $user->as_array();
-                $this->db->trans_complete();
-
-                if( $this->db->trans_status() )
+                if( $result )
                 {
-                    $this->_response( $user_data, $user_id ? 200 : 201 );
+                    $user->assign_store( $stores );
+
+                    $user_data = $user->as_array();
+                    $this->db->trans_complete();
+
+                    if( $this->db->trans_status() )
+                    {
+                        $this->_response( $user_data, $user_id ? 200 : 201 );
+                    }
+                    else
+                    {
+                        $this->_error( 500, 'A database error has occurred while trying to save user record' );
+                    }
                 }
                 else
                 {
-                    $this->_error( 500, 'A database error has occurred while trying to save user record' );
+                    $messages = get_messages();
+                    $this->_error( 200, $messages );
                 }
                 break;
 

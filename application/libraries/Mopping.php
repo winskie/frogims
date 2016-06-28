@@ -273,6 +273,7 @@ class Mopping extends Base_model {
         {
             $this->packed_items = NULL;
             $this->void_items = NULL;
+            set_message( 'Failed item checking', 'error' );
             return FALSE;
         }
     }
@@ -300,7 +301,8 @@ class Mopping extends Base_model {
                 }
                 else
                 {
-                    die( sprintf( 'Inventory record not found for store %s and item %s.', $this->store_id, $item->get( 'mopped_item_id' ) ) );
+                    set_message( sprintf( 'Inventory record not found for store %s and item %s.', $this->store_id, $item->get( 'mopped_item_id' ) ), 'error' );
+                    return FALSE;
                 }
             }
         }

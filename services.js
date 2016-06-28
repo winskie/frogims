@@ -40,14 +40,14 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
 					},
 					function( reason )
 					{
                         console.error( reason.data.errorMsg );
-						deferred.reject( reason )
+						deferred.reject( reason.data.errorMsg )
 					});
 
 				return deferred.promise;
@@ -77,14 +77,14 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
 					},
 					function( reason )
 					{
                         console.error( reason.data.errorMsg );
-						deferred.reject( reason )
+						deferred.reject( reason.data.errorMsg )
 					});
 
 				return deferred.promise;
@@ -115,15 +115,14 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
-
 					},
 					function( reason )
 					{
                         console.error( reason.data.errorMsg );
-						deferred.reject( reason.data );
+						deferred.reject( reason.data.errorMsg );
 					});
 
 				return deferred.promise;
@@ -147,14 +146,14 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
                     function( reason )
                     {
                         console.error( reason.data.errorMsg );
-                        deferred.reject( reason )
+                        deferred.reject( reason.data.errorMsg );
                     });
 
                 return deferred.promise;
@@ -311,15 +310,14 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
-
                     },
                     function( reason )
                     {
                         console.error( reason.data.errorMsg );
-                        deferred.reject( reason );
+                        deferred.reject( reason.data.errorMsg );
                     });
 
                 return deferred.promise;
@@ -342,7 +340,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
 					},
@@ -372,7 +370,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -403,15 +401,15 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
 					},
 					function( reason )
 					{
-                        console.error( response.data.errorMsg );
-						deferred.reject( reason.data );
-					} );
+                        console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
 
 				return deferred.promise;
 			};
@@ -442,14 +440,14 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
 					},
 					function( reason )
 					{
                         console.error( reason.data.errorMsg );
-						deferred.reject( reason );
+						deferred.reject( reason.data.errorMsg );
 					});
 
 				return deferred.promise;
@@ -482,7 +480,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
 					},
@@ -522,13 +520,13 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
 					},
 					function( reason )
 					{
-                        consol.error( reason.data.errorMsg );
+                        console.error( reason.data.errorMsg );
 						deferred.reject( reason.data.errorMsg );
 					});
 
@@ -561,7 +559,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
 					},
@@ -598,7 +596,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -637,14 +635,14 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
                     function( reason )
                     {
                         console.error( reason.data.errorMsg );
-                        deferred.resolve( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
                     });
 
                 return deferred.promise;
@@ -675,7 +673,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -704,7 +702,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -733,7 +731,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
 					},
@@ -762,7 +760,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
 					},
@@ -791,7 +789,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
 					},
@@ -820,7 +818,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
 					},
@@ -849,7 +847,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -878,7 +876,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -907,7 +905,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -939,7 +937,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -967,7 +965,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -995,7 +993,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -1024,7 +1022,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -1056,7 +1054,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -1085,7 +1083,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -1114,7 +1112,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -1143,7 +1141,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -1172,7 +1170,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -1201,7 +1199,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -1230,7 +1228,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -1262,7 +1260,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -1291,7 +1289,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -1321,7 +1319,6 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         else
                         {
                             notifications.showMessages( response.data.errorMsg );
-                            console.error( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -1457,15 +1454,14 @@ appServices.service( 'adminData', [ '$http', '$q', '$filter', 'baseUrl', 'sessio
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
-
                     },
                     function( reason )
                     {
                         console.error( reason.data.errorMsg );
-                        deferred.reject( reason );
+                        deferred.reject( reason.data.errorMsg );
                     });
 
                 return deferred.promise;
@@ -1502,7 +1498,7 @@ appServices.service( 'adminData', [ '$http', '$q', '$filter', 'baseUrl', 'sessio
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -1530,7 +1526,7 @@ appServices.service( 'adminData', [ '$http', '$q', '$filter', 'baseUrl', 'sessio
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             deferred.reject( response.data.errorMsg );
                         }
                     },
@@ -1662,10 +1658,17 @@ appServices.service( 'notifications', [ '$rootScope',
 
         me.showMessages = function( messages )
             {
-                var n = messages.length;
-                for( var i = 0; i < n; i++ )
+                if( messages.constructor === Array )
                 {
-                    me.alert( messages[i].msg, messages[i].type );
+                    var n = messages.length;
+                    for( var i = 0; i < n; i++ )
+                    {
+                        me.alert( messages[i].msg, messages[i].type );
+                    }
+                }
+                else if( message.constructor === String )
+                {
+                    me.alert( messages, 'error' );
                 }
             }
     }
@@ -1707,7 +1710,7 @@ appServices.service( 'UserServices', [ '$http', '$q', 'baseUrl',
                         }
                         else
                         {
-                            console.error( response.data.errorMsg );
+                            notifications.showMessages( response.data.errorMsg );
                             return [];
                         }
                     },
