@@ -114,7 +114,7 @@ class Transfer extends Base_model {
 	}
 
 
-	public function _check_items()
+	public function _check_data()
 	{
 		$ci =& get_instance();
 		$items = $this->get_items();
@@ -124,6 +124,13 @@ class Transfer extends Base_model {
 		if( ! $items )
 		{
 			set_message( 'Transfer does not contain any items', 'error' );
+			return FALSE;
+		}
+
+		$valid_new_status = array( TRANSFER_PENDING, TRANSFER_APPROVED, TRANSFER_RECEIVED );
+		if( is_null( $this->id ) && ! in_array( $this->transfer_status, $valid_new_status ) )
+		{
+			set_message( 'Invalid transfer status for new record', 'error' );
 			return FALSE;
 		}
 
@@ -162,9 +169,8 @@ class Transfer extends Base_model {
 
 		if( isset( $this->id ) )
 		{ // Update transfer record
-			if( $this->_check_items() )
+			if( $this->_check_data() )
 			{
-
 				foreach( $this->items as $item )
 				{
 					if( array_key_exists( 'transfer_item_status', $item->db_changes ) )
@@ -257,15 +263,8 @@ class Transfer extends Base_model {
 		}
 		else
 		{ // Check for valid new transfer status
-			if( $this->_check_items() )
+			if( $this->_check_data() )
 			{
-				$valid_new_status = array( TRANSFER_PENDING, TRANSFER_APPROVED, TRANSFER_RECEIVED );
-				if( ! in_array( $this->transfer_status, $valid_new_status ) )
-				{
-					set_message( 'Invalid transfer status for new record', 'error' );
-					return FALSE;
-				}
-
 				// Adjust inventory reservation level for new transfer request
 				if( isset( $this->origin_id ) && ( $this->origin_id == $ci->session->current_store_id ) )
 				{

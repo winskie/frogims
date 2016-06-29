@@ -56,11 +56,13 @@ app.controller( 'MainController', [ '$rootScope', '$scope', '$state', 'session',
 				notifications.alert( 'Hello!', 'error', 200 );
 			};
 
-		$rootScope.$on( '$stateChangeSuccess',
+		var clnStateChangeSuccess = $rootScope.$on( '$stateChangeSuccess',
 			function( event, toState, toParams, fromState, fromParams )
 			{
 				$scope.canChangeStore = allowStoreChange.indexOf( $state.current.name ) != -1;
 			});
+
+		$scope.$on( '$destroy', clnStateChangeSuccess );
 	}
 ]);
 
