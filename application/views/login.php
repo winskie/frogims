@@ -4,9 +4,9 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE-edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        
+
         <title>FROG Ticket Management Inventory System Login</title>
-        
+
         <link rel="stylesheet" type="text/css" href="<?php echo base_url( 'resources/css/bootstrap.min.css' );?>" />
         <link rel="stylesheet" type="text/css" href="<?php echo base_url( 'resources/css/login.css' );?>" />
     </head>
@@ -26,7 +26,7 @@
                                 <?php
                                 $username = $this->session->flashdata( 'username' );
                                 ?>
-                                <input type="text" name="username" class="form-control" placeholder="Username" value="<?php echo $username;?>" autofocus>
+                                <input type="text" name="username" class="form-control" placeholder="Username" value="<?php echo $username;?>" <?php echo ( $username ? '' : 'autofocus' );?>>
                             </div>
                         </div>
                         <div class="form-group">
@@ -34,7 +34,7 @@
                                 <span class="input-group-addon">
                                     <i class="glyphicon glyphicon-asterisk"></i>
                                 </span>
-                                <input type="password" name="password" class="form-control" placeholder="Password">
+                                <input type="password" name="password" class="form-control" placeholder="Password" <?php echo ( $username ? 'autofocus' : '' );?>>
                             </div>
                         </div>
                         <div class="form-group">
@@ -47,7 +47,7 @@
                         <div class="alert alert-danger" role="alert">
                             <?php echo $this->session->flashdata( 'error' );?>
                         </div>
-                        <?php    
+                        <?php
                         }
                         ?>
                     </form>
