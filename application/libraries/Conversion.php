@@ -112,111 +112,121 @@ class Conversion extends Base_model {
 
         if( $target_quantity )
         {
-            // Set converted target quantity
-            $this->set( 'target_quantity', $target_quantity );
-
-            $ci->db->trans_start();
-            if( isset( $this->id ) )
+            if( $this->_check_data() )
             {
-                $pre_approved_status = array( CONVERSION_PENDING );
+                // Set converted target quantity
+                $this->set( 'target_quantity', $target_quantity );
 
-                // If this conversion is going to be approved set the conversion timestamp and the
-                if( array_key_exists( 'conversion_status', $this->db_changes )
-                        && $this->db_changes['conversion_status'] == CONVERSION_APPROVED
-                        && isset( $this->previous_status )
-                        && in_array( $this->previous_status, $pre_approved_status ) )
+                $ci->db->trans_start();
+                if( isset( $this->id ) )
                 {
-                    $this->set( 'conversion_datetime', date( TIMESTAMP_FORMAT ) );
-                    $this->Set( 'conversion_shift', $ci->session->current_shift_id );
-                }
+                    $pre_approved_status = array( CONVERSION_PENDING );
 
-                // Set fields and update record metadata
-                $this->_update_timestamps( FALSE );
-                $ci->db->set( $this->db_changes );
-
-                $result = $this->_db_update();
-
-                // Approved conversion, transact with inventory
-                if( array_key_exists( 'conversion_status', $this->db_changes )
-                        && $this->db_changes['conversion_status'] == CONVERSION_APPROVED
-                        && isset( $this->previous_status )
-                        && in_array( $this->previous_status, $pre_approved_status ) )
-                {
-                    $this->_transact_conversion();
-                }
-            }
-            else
-            {
-                // Check for valid new conversion status
-                $valid_new_status = array( CONVERSION_PENDING, CONVERSION_APPROVED );
-                if( ! ( array_key_exists( 'conversion_status', $this->db_changes )
-                        && in_array( $this->db_changes['conversion_status'], $valid_new_status ) ) )
-                {
-                    die( 'Invalid conversion status for new record' );
-                }
-
-                // If this conversion is going to be approved convert
-                if( array_key_exists( 'conversion_status', $this->db_changes )
-                        && $this->db_changes['conversion_status'] == CONVERSION_APPROVED )
-                {
-                    $ci->load->library( 'inventory' );
-                    $inventory = new Inventory();
-                    $source_inventory = $inventory->get_by_id( $this->source_inventory_id );
-                    $target_inventory = $inventory->get_by_id( $this->target_inventory_id );
-
-                    if( $source_inventory && $target_inventory )
+                    // If this conversion is going to be approved set the conversion timestamp and the
+                    if( array_key_exists( 'conversion_status', $this->db_changes )
+                            && $this->db_changes['conversion_status'] == CONVERSION_APPROVED
+                            && isset( $this->previous_status )
+                            && in_array( $this->previous_status, $pre_approved_status ) )
                     {
-                        $source_item_id = $source_inventory->get( 'item_id' );
-                        $target_item_id = $target_inventory->get( 'item_id' );
+                        $this->set( 'conversion_datetime', date( TIMESTAMP_FORMAT ) );
+                        $this->Set( 'conversion_shift', $ci->session->current_shift_id );
+                    }
 
-                        $output = $this->convert( $source_item_id, $target_item_id, $this->source_quantity );
+                    // Set fields and update record metadata
+                    $this->_update_timestamps( FALSE );
+                    $ci->db->set( $this->db_changes );
 
-                        if( is_array( $output ) )
+                    $result = $this->_db_update();
+
+                    // Approved conversion, transact with inventory
+                    // TODO: Check if there is sufficient inventory to convert, probably needs to refactor checking of item
+
+                    if( array_key_exists( 'conversion_status', $this->db_changes )
+                            && $this->db_changes['conversion_status'] == CONVERSION_APPROVED
+                            && isset( $this->previous_status )
+                            && in_array( $this->previous_status, $pre_approved_status ) )
+                    {
+                        $this->_transact_conversion();
+                    }
+                }
+                else
+                {
+                    // Check for valid new conversion status
+                    $valid_new_status = array( CONVERSION_PENDING, CONVERSION_APPROVED );
+                    if( ! ( array_key_exists( 'conversion_status', $this->db_changes )
+                            && in_array( $this->db_changes['conversion_status'], $valid_new_status ) ) )
+                    {
+                        die( 'Invalid conversion status for new record' );
+                    }
+
+                    // If this conversion is going to be approved convert
+                    if( array_key_exists( 'conversion_status', $this->db_changes )
+                            && $this->db_changes['conversion_status'] == CONVERSION_APPROVED )
+                    {
+                        $ci->load->library( 'inventory' );
+                        $inventory = new Inventory();
+                        $source_inventory = $inventory->get_by_id( $this->source_inventory_id );
+                        $target_inventory = $inventory->get_by_id( $this->target_inventory_id );
+
+                        if( $source_inventory && $target_inventory )
                         {
-                            if( isset( $output[$target_item_id] ) )
-                            {
-                                $this->set( 'target_quantity', $output[$target_item_id] );
-                            }
+                            $source_item_id = $source_inventory->get( 'item_id' );
+                            $target_item_id = $target_inventory->get( 'item_id' );
 
-                            if( isset( $output[$source_item_id] ) )
+                            $output = $this->convert( $source_item_id, $target_item_id, $this->source_quantity );
+
+                            if( is_array( $output ) )
                             {
-                                // Not all of the source/ requested quantity were converted
-                                $requested_quantity = $this->source_quantity;
-                                $this->set( 'source_quantity', $requested_quantity - $output[$source_item_id] );
+                                if( isset( $output[$target_item_id] ) )
+                                {
+                                    $this->set( 'target_quantity', $output[$target_item_id] );
+                                }
+
+                                if( isset( $output[$source_item_id] ) )
+                                {
+                                    // Not all of the source/ requested quantity were converted
+                                    $requested_quantity = $this->source_quantity;
+                                    $this->set( 'source_quantity', $requested_quantity - $output[$source_item_id] );
+                                }
                             }
                         }
+                        else
+                        {
+                            die( 'Inventory record not found.' );
+                        }
                     }
-                    else
+
+                    // Always set default values
+                    $this->set( 'conversion_datetime', date( TIMESTAMP_FORMAT ) );
+                    $this->set( 'conversion_shift', $ci->session->current_shift_id );
+
+                    // Set fields and update record metadata
+                    $this->_update_timestamps( TRUE );
+                    $ci->db->set( $this->db_changes );
+
+                    $result = $this->_db_insert();
+
+                    // Approved conversion, Transact with inventory
+                    // TODO: Check if there is sufficient inventory
+                    if( $this->conversion_status == CONVERSION_APPROVED )
                     {
-                        die( 'Inventory record not found.' );
+                        $this->_transact_conversion();
                     }
                 }
+                $ci->db->trans_complete();
 
-                // Always set default values
-                $this->set( 'conversion_datetime', date( TIMESTAMP_FORMAT ) );
-                $this->set( 'conversion_shift', $ci->session->current_shift_id );
-
-                // Set fields and update record metadata
-                $this->_update_timestamps( TRUE );
-                $ci->db->set( $this->db_changes );
-
-                $result = $this->_db_insert();
-
-                // Approved conversion, Transact with inventory
-                if( $this->conversion_status == CONVERSION_APPROVED )
+                if( $ci->db->trans_status() )
                 {
-                    $this->_transact_conversion();
+                    // Reset record changes
+                    $this->_reset_db_changes();
+                    $this->previous_status = NULL;
+
+                    return $result;
                 }
-            }
-            $ci->db->trans_complete();
-
-            if( $ci->db->trans_status() )
-            {
-                // Reset record changes
-                $this->_reset_db_changes();
-                $this->previous_status = NULL;
-
-                return $result;
+                else
+                {
+                    return FALSE;
+                }
             }
             else
             {
@@ -234,23 +244,20 @@ class Conversion extends Base_model {
     {
         $ci =& get_instance();
 
-        // Only allow approval from the following previous status:
-        $allowed_prev_status = array( CONVERSION_PENDING );
-        if( ! in_array( $this->conversion_status, $allowed_prev_status ) )
+        $ci->db->trans_start();
+        $this->set( 'conversion_status', CONVERSION_APPROVED );
+        $result = $this->db_save();
+        if( $result )
         {
-            die( 'Cannot approve non-pending conversions' );
-        }
+            $ci->db->trans_complete();
 
-        // TODO: Check if there is sufficient input inventory
-        $ci->load->library( 'inventory' );
-        $Inventory = new Inventory();
-        $source_inventory = $Inventory->get_by_id( $this->source_inventory_id );
-
-        if( $source_inventory )
-        {
-            if( $source_inventory->get( 'quantity' ) < $this->source_quantity )
+            if( $ci->db->trans_status() )
             {
-                set_message( 'Insufficient inventory for input item to convert', 'error' );
+                return $this;
+            }
+            else
+            {
+                set_message( 'A database error has occurred while trying to approve the conversion.', 'error' );
                 return FALSE;
             }
         }
@@ -258,18 +265,6 @@ class Conversion extends Base_model {
         {
             return FALSE;
         }
-
-        $ci->db->trans_start();
-        $this->set( 'conversion_status', CONVERSION_APPROVED );
-        $this->db_save();
-        $ci->db->trans_complete();
-
-        if( $ci->db->trans_status() )
-        {
-            return $this;
-        }
-
-        return FALSE;
     }
 
     public function cancel()
@@ -292,6 +287,45 @@ class Conversion extends Base_model {
         }
 
         return FALSE;
+    }
+
+    public function _check_data()
+    {
+        $ci =& get_instance();
+
+        // Checks before approval
+        if( array_key_exists( 'conversion_status', $this->db_changes )
+            && $this->db_changes['conversion_status'] == CONVERSION_APPROVED )
+        {
+            // Only allow approval from the following previous status:
+            $allowed_prev_status = array( CONVERSION_PENDING );
+            if( ! in_array( $this->previous_status, $allowed_prev_status ) )
+            {
+                set_message( 'Cannot approve non-pending conversions' );
+                return FALSE;
+            }
+
+            // Check if there is sufficient source inventory for conversion
+            $ci->load->library( 'inventory' );
+            $Inventory = new Inventory();
+            $source_inventory = $Inventory->get_by_id( $this->source_inventory_id );
+
+            if( $source_inventory )
+            {
+                if( $source_inventory->get( 'quantity' ) < $this->source_quantity )
+                {
+                    set_message( 'Insufficient inventory for input item to convert', 'error' );
+                    return FALSE;
+                }
+            }
+            else
+            {
+                set_message( 'Inventory record not found', 'error' );
+                return FALSE;
+            }
+        }
+
+        return TRUE;
     }
 
     public function _transact_conversion()
