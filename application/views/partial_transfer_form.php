@@ -221,11 +221,11 @@
 	<div ng-if="[ 'transfer', 'externalTransfer' ].indexOf( data.editMode ) != -1">
 		<button type="button" class="btn btn-primary" ng-click="scheduleTransfer()">Schedule</button>
 		<button type="button" class="btn btn-default" ng-click="approveTransfer()">Approve</button>
-		<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'transfers'})">Cancel</button>
+		<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'transfers'})">Close</button>
 	</div>
 	<div ng-if="['receipt', 'externalReceipt'].indexOf( data.editMode ) != -1">
 		<button type="button" class="btn btn-primary" ng-click="receiveTransfer()">Receive</button>
-		<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'transfers'})">Cancel</button>
+		<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'transfers'})">Close</button>
 	</div>
 	<div ng-if="data.editMode == 'view'">
 		<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'transfers'})">Close</button>

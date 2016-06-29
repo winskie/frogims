@@ -20,7 +20,7 @@
                 </div>
 
             </div>
-            
+
             <!-- Business Date -->
             <div class="form-group col-sm-4" ng-switch on="data.editMode">
                 <label class="control-label col-sm-5">Business Date</label>
@@ -36,7 +36,7 @@
                     </span>
                 </div>
             </div>
-            
+
             <!-- Cashier Shift -->
             <div class="form-group col-sm-4" ng-switch on="data.editMode">
                 <label class="control-label col-sm-5">Pullout Shift</label>
@@ -113,7 +113,7 @@
                         typeahead-editable="false"
                         uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
             </div>
-            
+
             <div class="form-group col-sm-3">
                 <label class="control-label">Processed Item</label>
                 <select class="form-control"
@@ -129,7 +129,7 @@
                         uib-typeahead="item as item.item_name for item in data.moppedItems | filter: $viewValue">
                 -->
             </div>
-            
+
             <div class="form-group col-sm-3">
                 <label class="control-label">Package into</label>
                 <select class="form-control"
@@ -145,7 +145,7 @@
                         uib-typeahead="item as item.item_name for item in data.packAsItems | filter: $viewValue">
                 -->
             </div>
-            
+
             <div class="form-group col-sm-2">
                 <label class="control-label">Source</label>
                 <!--
@@ -159,16 +159,16 @@
                         ng-options="station.station_name for station in data.moppedSource track by station.id">
                 </select>
             </div>
-            
+
             <div class="form-group col-sm-2">
                 <label class="control-label">Quantity</label>
                 <input type="number" class="form-control" ng-keypress="addMoppingItem( $event )" ng-model="input.moppedQuantity">
-            </div>      
+            </div>
         </div>
     </form>
 </div>
 
 <div class="text-right">
     <button type="button" class="btn btn-primary" ng-click="saveCollection()" ng-if="data.editMode != 'view'">Save</button>
-    <button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'collections' })">{{ data.editMode == 'view' ? 'Close' : 'Cancel' }}</button>
+    <button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'collections' })">Close</button>
 </div>

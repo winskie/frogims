@@ -83,7 +83,7 @@
 			<div class="pull-right" ng-switch-when="<?php echo ADJUSTMENT_PENDING;?>">
 				<button class="btn btn-primary" ng-click="saveAdjustment()">Save</button>
 				<button class="btn btn-default" ng-click="approveAdjustment()">Approve</button>
-				<button class="btn btn-default" ui-sref="main.store({ activeTab: 'adjustments' })">Cancel</button>
+				<button class="btn btn-default" ui-sref="main.store({ activeTab: 'adjustments' })">Close</button>
 			</div>
 
 			<div class="pull-right" ng-switch-default>
