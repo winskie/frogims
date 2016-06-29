@@ -40,8 +40,8 @@
     </nav>
     <nav class="navbar navbar-default navbar-fixed-top navbar-secondary" role="navigation">
         <div class="container">
-            <ul class="nav navbar-nav">
-                <li uib-dropdown>
+            <ul class="nav navbar-nav" ng-switch on="canChangeStore">
+                <li uib-dropdown ng-switch-when="true">
                     <a href uib-dropdown-toggle>
                         {{ sessionData.currentStore.store_name }} <span class="label label-info">{{ sessionData.currentStore.store_code}}</span><span class="caret"></span>
                     </a>
@@ -50,6 +50,9 @@
                             <a href ng-click="changeStore( store )">{{ store.store_name }} <span class="label label-info">{{ store.store_code }}</span></a>
                         </li>
                     </ul>
+                </li>
+                <li ng-switch-when="false">
+                    <a href>{{ sessionData.currentStore.store_name }} <span class="label label-info">{{ sessionData.currentStore.store_code}}</span></a>
                 </li>
             </ul>
             <ul class="nav navbar-nav navbar-right">

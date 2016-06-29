@@ -41,9 +41,12 @@ app.controller( 'NotificationController', [ '$scope', '$timeout', 'appData', 'no
 	}
 ]);
 
-app.controller( 'MainController', [ '$scope', 'session', 'lookup', 'notifications',
-	function( $scope, session, lookup, notifications )
+app.controller( 'MainController', [ '$rootScope', '$scope', '$state', 'session', 'lookup', 'notifications',
+	function( $rootScope, $scope, $state, session, lookup, notifications )
 	{
+		var allowStoreChange = [ 'main.dashboard', 'main.store' ];
+
+		$scope.canChangeStore = allowStoreChange.indexOf( $state.current.name ) != -1;
 		$scope.sessionData = session.data;
 		$scope.changeStore = session.changeStore;
 		$scope.changeShift = session.changeShift;
@@ -51,7 +54,13 @@ app.controller( 'MainController', [ '$scope', 'session', 'lookup', 'notification
 		$scope.notify = function( message )
 			{
 				notifications.alert( 'Hello!', 'error', 200 );
-			}
+			};
+
+		$rootScope.$on( '$stateChangeSuccess',
+			function( event, toState, toParams, fromState, fromParams )
+			{
+				$scope.canChangeStore = allowStoreChange.indexOf( $state.current.name ) != -1;
+			});
 	}
 ]);
 
