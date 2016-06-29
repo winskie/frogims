@@ -127,6 +127,7 @@ class Transfer extends Base_model {
 			return FALSE;
 		}
 
+		// Check if status is valid for new records
 		$valid_new_status = array( TRANSFER_PENDING, TRANSFER_APPROVED, TRANSFER_RECEIVED );
 		if( is_null( $this->id ) && ! in_array( $this->transfer_status, $valid_new_status ) )
 		{
@@ -134,8 +135,17 @@ class Transfer extends Base_model {
 			return FALSE;
 		}
 
+		$has_valid_transfer_item = false;
+
 		foreach( $items as $item )
 		{
+			if( ! $has_valid_transfer_item
+				&& ! in_array( $item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) )
+				&& $item->get( 'quantity' ) > 0 )
+			{
+				$has_valid_transfer_item = true;
+			}
+
 			if( array_key_exists( 'transfer_item_status', $item->db_changes )
 				&& $item->db_changes['transfer_item_status'] == TRANSFER_ITEM_VOIDED
 				&& $item->get( 'previousStatus' ) == TRANSFER_ITEM_APPROVED  )
@@ -150,6 +160,13 @@ class Transfer extends Base_model {
 					$voided_items[$item_id] = $item->get( 'quantity' );
 				}
 			}
+		}
+
+		// Check if transfer has valid items to transfer
+		if( ! $has_valid_transfer_item )
+		{
+			set_message( 'Transfer does not contain any valid items', 'error' );
+			return FALSE;
 		}
 
 		$this->voided_items = $voided_items;

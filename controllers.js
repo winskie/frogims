@@ -1026,13 +1026,16 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 					{
 						$scope.transferItem = response.data;
 
-						if( ! $scope.transferItem.origin_id && $scope.transferItem.origin_name )
+						if( $stateParams.editMode != 'view' )
 						{
-							$scope.data.editMode = 'externalReceipt';
-						}
-						else if( ! $scope.transferItem.destination_id && $scope.transferItem.destination_name )
-						{
-							$scope.data.editMode = 'externalTransfer';
+							if( ! $scope.transferItem.origin_id && $scope.transferItem.origin_name )
+							{
+								$scope.data.editMode = 'externalReceipt';
+							}
+							else if( ! $scope.transferItem.destination_id && $scope.transferItem.destination_name )
+							{
+								$scope.data.editMode = 'externalTransfer';
+							}
 						}
 
 						if( $scope.transferItem.transfer_datetime )

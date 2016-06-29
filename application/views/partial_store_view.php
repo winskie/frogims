@@ -392,7 +392,7 @@
 										</div>
 
 										<div class="animate-switch" ng-switch-default>
-											<button type="button" class="btn btn-default btn-block" ui-sref="main.transfer({ transferItem: receipt, mode: 'view' })">View details...</button>
+											<button type="button" class="btn btn-default btn-block" ui-sref="main.transfer({ transferItem: receipt, editMode: 'view' })">View details...</button>
 										</div>
 
 									</div>

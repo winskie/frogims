@@ -178,7 +178,7 @@
 </div>
 
 <!-- Receipt information -->
-<div class="panel panel-default" ng-if="['receipt', 'externalReceipt'].indexOf( data.editMode ) != -1">
+<div class="panel panel-default" ng-if="['view', 'receipt', 'externalReceipt'].indexOf( data.editMode ) != -1">
 	<div class="panel-heading">
 		<h3 class="panel-title">Receipt Information</h3>
 	</div>
@@ -204,8 +204,8 @@
 					<div ng-if="[ 'receipt', 'externalReceipt' ].indexOf( data.editMode ) != -1">
 						<input type="text" class="form-control"
 								ng-model="transferItem.recipient_name"
-								typeahead-editable="false"
-								uib-typeahead="user as user.full_name for user in data.sweepers | filter: $viewValue">
+								typeahead-editable="true"
+								uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
 					</div>
 					<div ng-if="[ 'receipt', 'externalReceipt' ].indexOf( data.editMode ) == -1">
 						<p class="form-control-static">{{ transferItem.recipient_name }}</p>
