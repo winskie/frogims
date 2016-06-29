@@ -69,6 +69,23 @@ app.controller( 'MainController', [ '$rootScope', '$scope', '$state', 'session',
 app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state', '$stateParams', 'baseUrl', 'session', 'notifications', 'utilities',
 	function( $scope, $filter, $http, $state, $stateParams, baseUrl, session, notifications, utilities )
 	{
+		var itemColors = {
+				'L2 SJT': 'red',
+				'SVC': 'blue',
+				'L2 SJT - Rigid Box': 'green',
+				'L2 SJT - Ticket Magazine': 'yellow',
+				'SVC - Rigid Box': 'violet',
+				'L2 SJT - Defective': 'orange',
+				'L2 SJT - Damaged': 'pink',
+				'SVC - Defective': 'gray',
+				'SVC - Damaged': 'black',
+				'Senior SVC': 'brown',
+				'PWD SVC': 'lightbrown',
+				'L1 SJT': 'cyan',
+				'L2 Ticket Coupon': 'magenta',
+				'Others': 'teal'
+			};
+
 		$scope.history = {
 				chart: null,
 				config: {
@@ -100,6 +117,7 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 							series.push({
 								type: 'line',
 								name: seriesData[i].name,
+								color: itemColors[seriesData[i].name] || undefined,
 								data: [],
 								visible: defaultItems.indexOf( seriesData[i].name ) == -1 ?  false : true });
 						}
@@ -206,6 +224,7 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 							me.chart.addSeries({
 									name: series[j].item,
 									data: series[j].data,
+									color: itemColors[series[j].item] || undefined,
 									visible: defaultItems.indexOf( series[j].item ) != -1
 								}, false );
 						}
@@ -856,9 +875,10 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				}
 
 				var hasValidTransferItem = false;
+				var validItemStatus = [ 1, 2, 3 ] // TRANSFER_ITEM_SCHEDULED, TRANSFER_ITEM_APPROVED, TRANSFER_ITEM_RECEIVED
 				for( var i = 0; i < transferItemCount; i++ )
 				{
-					if( transferItems[i].transfer_item_status == 1 && transferItems[i].quantity > 0 && !transferItems[i].transferItemVoid )
+					if( validItemStatus.indexOf( transferItems[i].transfer_item_status ) != -1 && transferItems[i].quantity > 0 && !transferItems[i].transferItemVoid )
 					{
 						hasValidTransferItem = true;
 						break;
