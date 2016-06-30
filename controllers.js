@@ -73,8 +73,8 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 				'L2 SJT': 'red',
 				'SVC': 'blue',
 				'L2 SJT - Rigid Box': 'green',
-				'L2 SJT - Ticket Magazine': 'yellow',
-				'SVC - Rigid Box': 'violet',
+				'L2 SJT - Ticket Magazine': 'gold',
+				'SVC - Rigid Box': 'indigo',
 				'L2 SJT - Defective': 'orange',
 				'L2 SJT - Damaged': 'pink',
 				'SVC - Defective': 'gray',
@@ -84,6 +84,18 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 				'L1 SJT': 'cyan',
 				'L2 Ticket Coupon': 'magenta',
 				'Others': 'teal'
+			};
+
+		var testData = function( max, neg )
+			{
+				var data = [];
+				if( ! max ) max = 1000;
+				for( var i = 0; i < 7; i++ )
+				{
+					data.push( Math.floor( ( Math.random() * max ) + 1 ) * ( neg ? -1 : 1 ) );
+				}
+
+				return data;
 			};
 
 		$scope.history = {
@@ -158,6 +170,108 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 						$http({
 							method: 'GET',
 							url: baseUrl + 'index.php/api/v1/stores/' + session.data.currentStore.id +  '/inventory_history'
+						}).then(
+							function( response )
+							{
+								me.processData( response.data.data );
+							},
+							function( reason )
+							{
+								console.error( 'Something went wrong' );
+							});
+					}
+			};
+
+		$scope.week_movement = {
+				chart: null,
+				config: {
+					chart: {
+						type: 'column'
+					},
+					title: { text: 'Average SJT Movement' },
+					subtitle: { text: 'Under Development - Random test data only' },
+					xAxis: {
+						categories: [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ]
+					},
+					yAxis: {
+						title: {
+							text: null
+						},
+						labels: {
+                 		   formatter: function () {
+                        		return Math.abs(this.value);
+                    		}
+                		}
+					},
+					tooltip: {
+						headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+						pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+							'<td style="padding:0"><b>{point.y}</b></td></tr>',
+						footerFormat: '</table>',
+						shared: true,
+						useHTML: true
+					},
+					plotOptions: {
+						series: {
+							stacking: 'normal'
+						},
+						column: {
+							borderWidth: 0
+						}
+					},
+					series: [{
+						name: 'Remittance',
+						data: testData( 500, false ),
+						color: 'greenyellow'
+					}, {
+						name: 'Receipts',
+						data: testData( 5000, false ),
+						color: 'green'
+					}, {
+						name: 'Transfer',
+						data: testData( 300, true ),
+						color: 'orangered'
+					}, {
+						name: 'Allocation',
+						data: testData( 5000, true ),
+						color: 'darkred'
+					}]
+				},
+				processData: function( data )
+					{
+						var me = this;
+						me.chart.xAxis[0].setCategories( data.stores, false );
+
+						var currentSeries = me.chart.series;
+						var series = data.series;
+
+						var defaultItems = [ 'L2 SJT - Rigid Box', 'L2 SJT - Ticket Magazine', 'SVC - Rigid Box' ];
+
+						// Remove old series first
+						for( var i = currentSeries.length - 1; i >= 0; i-- )
+						{
+							currentSeries[i].remove( false );
+						}
+
+						// Add new series
+						for( var j = 0; j < series.length; j++ )
+						{
+							me.chart.addSeries({
+									name: series[j].item,
+									data: series[j].data,
+									color: itemColors[series[j].item] || undefined,
+									visible: defaultItems.indexOf( series[j].item ) != -1
+								}, false );
+						}
+
+						me.chart.redraw()
+					},
+				updateChart: function()
+					{
+						var me = this;
+						$http({
+							method: 'GET',
+							url: baseUrl + 'index.php/api/v1/inventory/movement_week'
 						}).then(
 							function( response )
 							{
@@ -310,7 +424,7 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 						var me = this;
 						$http({
 							method: 'GET',
-							url: baseUrl + 'index.php/api/v1/inventory/circulated'
+							url: baseUrl + 'index.php/api/v1/inventory/distribution'
 						}).then(
 							function( response )
 							{

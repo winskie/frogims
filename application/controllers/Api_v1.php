@@ -548,7 +548,7 @@ class Api_v1 extends CI_Controller {
                             $this->_response( $data_array );
                             break;
 
-                        case 'circulated':
+                        case 'distribution':
                             $this->db->select( 'i.item_group, s.store_code,
                                     SUM( IF( ct.conversion_factor IS NULL, si.quantity, si.quantity * ct.conversion_factor ) ) AS quantity' );
                             $this->db->join( 'items i', 'i.id = si.item_id', 'left' );
@@ -586,6 +586,9 @@ class Api_v1 extends CI_Controller {
                                 );
 
                             $this->_response( $data_array );
+                            break;
+
+                        case 'movement_week':
                             break;
 
                         default:

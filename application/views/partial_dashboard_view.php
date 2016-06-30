@@ -6,6 +6,12 @@
 
 <div class="panel panel-default">
     <div class="panel-body">
+        <highcharts chart="week_movement"></highcharts>
+    </div>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-body">
         <highcharts chart="inventory"></highcharts>
     </div>
 </div>
