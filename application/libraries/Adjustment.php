@@ -107,12 +107,6 @@ class Adjustment extends Base_model {
 			set_message( 'You must specify a reason for the adjustment', 'error' );
 		}
 
-		// Set default adjustment type
-		if( ! isset( $this->adjustment_type ) )
-		{
-			$this->set( 'adjustment_type', 0 );
-		}
-
 		$ci =& get_instance();
 
 		$result = NULL;

@@ -185,7 +185,7 @@ class Installer extends CI_Controller {
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					store_inventory_id INTEGER NOT NULL,
                     adjustment_shift INTEGER NOT NULL,
-					adjustment_type SMALLINT NOT NULL,
+					adjustment_type SMALLINT NULL,
 					adjusted_quantity INTEGER NOT NULL,
 					previous_quantity INTEGER NOT NULL,
 					reason VARCHAR(255) NOT NULL,
