@@ -4,7 +4,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class Adjustment extends Base_model {
 
 	protected $store_inventory_id;
-    protected $adjustment_shift;
+	protected $adjustment_shift;
 	protected $adjustment_type;
 	protected $adjusted_quantity;
 	protected $previous_quantity;
@@ -105,6 +105,12 @@ class Adjustment extends Base_model {
 				&& ! ( isset( $this->reason ) && $this->reason ) )
 		{
 			set_message( 'You must specify a reason for the adjustment', 'error' );
+		}
+
+		// Set default adjustment type
+		if( ! isset( $this->adjustment_type ) )
+		{
+			$this->set( 'adjustment_type', 0 );
 		}
 
 		$ci =& get_instance();

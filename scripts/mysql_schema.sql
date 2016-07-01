@@ -284,7 +284,7 @@ CREATE TABLE IF NOT EXISTS allocations
 	id INTEGER AUTO_INCREMENT NOT NULL,
 	store_id INTEGER NOT NULL,
 	business_date DATE NOT NULL,
-	station_id SMALLINT NOT NULL,
+	station_id SMALLINT NULL,
     shift_id INTEGER NOT NULL,
 	assignee VARCHAR(50) NOT NULL,
 	assignee_type SMALLINT NOT NULL,

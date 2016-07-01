@@ -613,11 +613,11 @@ class Store extends Base_model
 		{
 			$sql .= " AND business_date = '${business_date}'";
 		}
-		$sql .= ' GROUP BY mopping_id, m.date_created, business_date, shift_id, cashier_shift_id, mopped_item_id, converted_to
+		$sql .= ' GROUP BY mopping_id, processing_datetime, business_date, shift_id, cashier_shift_id, mopped_item_id, converted_to
 					) AS a
 					LEFT JOIN conversion_table AS ct
 						ON ct.source_item_id = a.mopped_item_id AND ct.target_item_id = a.converted_to
-					GROUP BY mopping_id, processing_datetime, business_date, shift_id, cashier_shift_id,item_id
+					GROUP BY mopping_id, processing_datetime, business_date, shift_id, cashier_shift_id, item_id
 				) AS b
 				LEFT JOIN items AS i
 					ON i.id = b.item_id
