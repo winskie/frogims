@@ -445,16 +445,15 @@ class Installer extends CI_Controller {
 		echo 'Creating default admin user...';
         flush();
 		$this->load->library( 'User' );
-		$admin = new User();
-		$admin->set( 'username', 'admin' );
-		$admin->set( 'full_name', 'System Administrator' );
-		$admin->set( 'position', 'System Administrator' );
-		$admin->set( 'user_status', 1 ); // active
-		$admin->set( 'user_role', 1 ); // administrator
-		$admin->set_password( 'admin' );
-		$admin->db_save();
+		$admin_User = new User();
+		$admin_User->set( 'username', 'admin' );
+		$admin_User->set( 'full_name', 'System Administrator' );
+		$admin_User->set( 'position', 'System Administrator' );
+		$admin_User->set( 'user_status', 1 ); // active
+		$admin_User->set( 'user_role', 1 ); // administrator
+		$admin_User->set_password( 'admin' );
+		$admin_User->db_save();
 
-		unset( $admin );
 		echo 'OK<br />';
         flush();
 
@@ -544,6 +543,16 @@ class Installer extends CI_Controller {
 		}
 		echo 'OK<br />';
         flush();
+
+		// Adding admin user to first store
+		echo 'Adding admin user to first store...';
+		flush();
+		$this->load->library( 'store' );
+		$store = new Store();
+		$st_depot = $store->get_by_id( 1 );
+		$st_depot->add_member( $admin_User );
+		echo 'OK<br />';
+		flush();
 
 		// Create default items
 		echo 'Creating default items...';
@@ -711,16 +720,6 @@ class Installer extends CI_Controller {
 	{
 		echo heading( 'Creating test data...', 3 );
 
-		/*
-		echo 'Setting initial inventory quantities...';
-        flush();
-		$this->db->query( "
-				UPDATE store_inventory
-					SET	quantity = 1000" );
-		echo 'OK<br />';
-        flush();
-		*/
-
         echo 'Adding test users...';
         flush();
         $this->load->library( 'user' );
@@ -793,7 +792,7 @@ class Installer extends CI_Controller {
 		$this->db->query( "SET FOREIGN_KEY_CHECKS = OFF" );
 
 		$this->create_default_data();
-		$this->create_test_data();
+		//$this->create_test_data();
 
 		$this->db->trans_complete();
 		echo heading( 'Database has been reset..', 3 );
