@@ -451,6 +451,7 @@ class Installer extends CI_Controller {
 		$admin_User->set( 'position', 'System Administrator' );
 		$admin_User->set( 'user_status', 1 ); // active
 		$admin_User->set( 'user_role', 1 ); // administrator
+		$admin_User->set( 'last_modified', 1 );
 		$admin_User->set_password( 'admin' );
 		$admin_User->db_save();
 
