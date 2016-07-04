@@ -214,7 +214,7 @@ class Installer extends CI_Controller {
 					origin_name VARCHAR(100) NULL,
 					sender_id INTEGER NULL,
 					sender_name VARCHAR(100) NULL,
-                    sender_shift INTEGER NOT NULL,
+                    sender_shift INTEGER NULL,
 					transfer_datetime DATETIME NOT NULL,
 					destination_id INTEGER NULL,
 					destination_name VARCHAR(100) NULL,
