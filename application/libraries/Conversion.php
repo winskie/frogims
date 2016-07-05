@@ -19,6 +19,7 @@ class Conversion extends Base_model {
 	protected $last_modified_field = 'last_modified';
 
     protected $previous_status;
+    protected $autoApproval = FALSE;
 
 	public function __construct()
 	{
@@ -69,6 +70,12 @@ class Conversion extends Base_model {
 
 		return TRUE;
 	}
+
+    public function setAutoApproval( $value = TRUE )
+    {
+        // TODO: Additional checks for setting autoApproval
+        $this->autoApproval = $value;
+    }
 
     public function get_conversions( $params = array() )
     {
@@ -297,11 +304,13 @@ class Conversion extends Base_model {
         if( array_key_exists( 'conversion_status', $this->db_changes )
             && $this->db_changes['conversion_status'] == CONVERSION_APPROVED )
         {
+
             // Only allow approval from the following previous status:
             $allowed_prev_status = array( CONVERSION_PENDING );
-            if( ! in_array( $this->previous_status, $allowed_prev_status ) )
+            if( ! in_array( $this->previous_status, $allowed_prev_status )
+                && ! $this->autoApproval )
             {
-                set_message( 'Cannot approve non-pending conversions' );
+                set_message( 'Cannot approve non-pending conversions', 'error', 200 );
                 return FALSE;
             }
 
@@ -314,7 +323,7 @@ class Conversion extends Base_model {
             {
                 if( $source_inventory->get( 'quantity' ) < $this->source_quantity )
                 {
-                    set_message( 'Insufficient inventory for input item to convert', 'error' );
+                    set_message( 'Insufficient inventory for input item to convert', 'error', 200 );
                     return FALSE;
                 }
             }

@@ -702,7 +702,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			inventoryItems: angular.copy( appData.data.items ),
 			itemCategories: [],
 			sweepers: [],
-			sweeperLabel: 'Sweeper',
 			transferDatepicker: { format: 'yyyy-MM-dd', opened: false },
 			receiptDatepicker: { format: 'yyyy-MM-dd HH:mm:ss', opened: false },
 			showCategory: ( session.data.currentStore.store_type == 4 )
@@ -848,7 +847,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				{
 					case 'transfer':
 						$scope.data.title = 'Transfer';
-						$scope.data.sweeperLabel = 'Sweeper';
 						$scope.isExternalSource = false;
 						$scope.isExternalDestination = false;
 						$scope.data.sources = [ $scope.currentStore ];
@@ -882,7 +880,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 					case 'receipt':
 						$scope.data.title = 'Receipt';
-						$scope.data.sweeperLabel = 'Delivered by';
 						$scope.isExternalSource = false;
 						$scope.isExternalDestination = false;
 						$scope.data.sources = $filter( 'filter' )( appData.data.stores, { id: '!' + session.data.currentStore.id }, function(a, e) { return angular.equals( parseInt( a ), parseInt( e ) ) } );
@@ -912,7 +909,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 					case 'externalTransfer':
 						$scope.data.title = 'External Transfer';
-						$scope.data.sweeperLabel = 'Sweeper';
 						$scope.isExternalSource = false;
 						$scope.isExternalDestination = true;
 						$scope.data.sources = [ session.data.currentStore ];
@@ -930,7 +926,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 					case 'externalReceipt':
 						$scope.data.title = 'External Receipt';
-						$scope.data.sweeperLabel = 'Delivered by';
 						$scope.isExternalSource = true;
 						$scope.isExternalDestination = false;
 						$scope.data.sources = [];
@@ -978,7 +973,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 				if( ! $scope.transferItem.sender_name )
 				{
-					notifications.alert( 'Please enter name of ' + $scope.data.sweeperLabel, 'warning' );
+					notifications.alert( 'Please enter name of delivery person', 'warning' );
 					return false;
 				}
 
@@ -2181,7 +2176,10 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 						var hasValidAllocationItem = false;
 						for( var i = 0; i < allocationCount; i++ )
 						{
-							if( allocations[i].allocation_item_status == 10 && allocations[i].allocated_quantity > 0 && !allocations[i].allocationItemVoid )
+							if( ( allocations[i].allocation_item_status == 10
+								|| allocations[i].allocation_item_status == 11 )
+								&& allocations[i].allocated_quantity > 0
+								&& !allocations[i].allocationItemVoid )
 							{
 								hasValidAllocationItem = true;
 								break;

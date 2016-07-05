@@ -48,7 +48,7 @@
 
 					<!-- Sweeper -->
 					<div class="form-group">
-						<label class="control-label col-sm-4">{{ data.sweeperLabel }}</label>
+						<label class="control-label col-sm-4">Delivered by</label>
 						<div class="col-sm-7" ng-if="[ 'transfer', 'externalTransfer', 'externalReceipt' ].indexOf( data.editMode ) != -1">
 							<input type="text" class="form-control"
 									ng-model="transferItem.sender_name"

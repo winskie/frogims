@@ -23,8 +23,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | a PHP script and you can easily do that on your own.
 |
 */
-//$config['base_url'] = 'http://localhost:81/frogims/';
-$config['base_url'] = 'http://cpu-13-0110:81/frogims/';
+$config['base_url'] = 'http://pluto/frogims/';
+//$config['base_url'] = 'http://cpu-13-0110:81/frogims/';
 
 /*
 |--------------------------------------------------------------------------

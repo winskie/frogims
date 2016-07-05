@@ -119,10 +119,16 @@ class Mopping extends Base_model {
                 }
 
                 // Transact mopping collection
-                $this->_transact_collection();
+                if( ! $this->_transact_collection() )
+                {
+                    return FALSE;
+                }
 
                 // Pack items
-                $this->_transact_packing();
+                if( ! $this->_transact_packing() )
+                {
+                    return FALSE;
+                }
             }
             else
             {
@@ -344,17 +350,28 @@ class Mopping extends Base_model {
                     $conversion->set( 'target_quantity', $item['quantity'] / $item['conversion_factor'] );
                     $conversion->set( 'remarks', sprintf( 'Auto packaging from mopping collection # %s', $this->id ) );
                     $conversion->set( 'conversion_status', CONVERSION_APPROVED );
-                    $conversion->db_save();
+
+                    $conversion->setAutoApproval( TRUE );
+                    $result = $conversion->db_save();
                 }
                 else
                 {
                     // Unable to load source/target inventory records
-                    return false;
+                    set_message( 'Unable to load source/target inventory records' );
+                    return FALSE;
                 }
             }
-            $ci->db->trans_complete();
 
-            return $ci->db->trans_status();
+            if( $result )
+            {
+                $ci->db->trans_complete();
+                return $ci->db->trans_status();
+            }
+            else
+            {
+                $ci->db->trans_rollback();
+                return FALSE;
+            }
         }
 
         return true;
