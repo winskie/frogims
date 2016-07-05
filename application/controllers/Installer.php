@@ -16,7 +16,7 @@ class Installer extends CI_Controller {
 
 	public function create_tables()
 	{
-		heading( 'Creating database...', 3 );
+		echo heading( 'Creating tables...', 3 );
 		$this->db->query( "CREATE DATABASE IF NOT EXISTS frogims" );
 		$this->db->query( "USE frogims" );
 
@@ -798,6 +798,27 @@ class Installer extends CI_Controller {
 
 		$this->db->trans_complete();
 		echo heading( 'Database has been reset..', 3 );
+		echo '<br />';
+		echo 'Finished resetting the database. '.anchor('login', 'Login').' to the site.';
+        flush();
+	}
+
+	public function new_database()
+	{
+		$db_name = 'frogims';
+		$this->load->dbforge();
+		echo heading( 'Dropping database...', 3 );
+		echo '<br />';
+		$this->dbforge->drop_database( 'frogims' );
+		echo heading( 'Creating database...', 3 );
+		echo '<br />';
+		$this->dbforge->create_database( 'frogims' );
+		$this->create_tables();
+		$this->create_default_data();
+
+		echo heading( 'Database has been recreated..', 3 );
+		echo '<br />';
+		echo anchor('login', 'Login').' to the site.';
         flush();
 	}
 

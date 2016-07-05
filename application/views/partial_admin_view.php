@@ -83,5 +83,18 @@
 				<i class="glyphicon glyphicon-alert"></i> This section is still under development
 			</div>
 		</uib-tab>
+
+		<!-- Test -->
+		<uib-tab heading="Testing" index="5" select="onTabSelect(5)">
+			<div class="panel panel-danger">
+				<div class="panel-heading">
+					<h3 class="panel-title">Database</h3>
+				</div>
+				<div class="panel-body">
+					<button class="btn btn-danger" ng-click="resetDatabase()">Reset Database</button>
+					<button class="btn btn-danger" ng-click="newDatabase()">Recreate Database</button>
+				</div>
+			</div>
+		</uib-tab>
 	</uib-tabset>
 </div>

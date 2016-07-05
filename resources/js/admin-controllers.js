@@ -6,6 +6,16 @@ app.controller( 'AdminController', [ '$scope', '$state', '$stateParams', 'sessio
 
 		// Refresh/update functions
 		$scope.updateUsers = adminData.getUsers;
+
+		$scope.resetDatabase = function()
+			{
+				window.location = "/frogims/index.php/installer/reset_database";
+			};
+
+		$scope.newDatabase = function()
+			{
+				window.location = "/frogims/index.php/installer/new_database";
+			};
 	}
 ]);
 
@@ -102,6 +112,12 @@ app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter
 				if( ! $scope.userItem.full_name )
 				{
 					notifications.alert( 'Missing full name', 'error' );
+					return false;
+				}
+
+				if( ! $scope.userItem.id && ! $scope.userItem.password )
+				{
+					notifications.alert( 'Password is not defiend', 'error' );
 					return false;
 				}
 
