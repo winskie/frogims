@@ -11,7 +11,7 @@ class Installer extends CI_Controller {
 
 	public function index()
 	{
-		$this->create_default_data();
+		$this->create_default_data( $this->input->get() );
 	}
 
 	public function create_tables()
@@ -432,7 +432,7 @@ class Installer extends CI_Controller {
 
 	}
 
-	public function create_default_data()
+	public function create_default_data( $params = array() )
 	{
 		echo heading( 'Creating default data', 3 );
 		$this->db->trans_start();
@@ -599,6 +599,7 @@ class Installer extends CI_Controller {
 
 		// Creating default inventory
 		echo 'Creating store inventories...';
+		$test_inventory = param( $params, 'test_inventory' );
         flush();
 		$this->load->library( 'Inventory' );
 		$stores = new Store();
@@ -614,26 +615,26 @@ class Installer extends CI_Controller {
 				switch( $item->get( 'item_name' ) )
 				{
 					case 'L2 SJT - Rigid Box':
-						$quantity = rand(10, 50);
+						if( $test_inventory ) $quantity = rand(10, 50);
 						break;
 
 					case 'L2 SJT - Ticket Magazine':
-						$quantity = rand(1, 8);
+						if( $test_inventory ) $quantity = rand(1, 8);
 						break;
 
 					case 'SVC - Rigid Box':
-						$quantity = rand(1, 8);
+						if( $test_inventory ) $quantity = rand(1, 8);
 						break;
 
 					default:
 						switch( $item->get( 'item_group' ) )
 						{
 							case 'SJT':
-								$quantity = rand(5, 50);
+								if( $test_inventory ) $quantity = rand(5, 50);
 								break;
 
 							default:
-								$quantity = rand(0, 5);
+								if( $test_inventory ) $quantity = rand(0, 5);
 						}
 				}
 				$inventory->transact( TRANSACTION_INIT, $quantity, date( TIMESTAMP_FORMAT ), 0 );
@@ -792,7 +793,7 @@ class Installer extends CI_Controller {
 
 		$this->db->query( "SET FOREIGN_KEY_CHECKS = OFF" );
 
-		$this->create_default_data();
+		$this->create_default_data( $this->input->get() );
 		//$this->create_test_data();
 
 		$this->db->trans_complete();
