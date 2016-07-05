@@ -54,7 +54,7 @@ app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter
 				{
 					if( registeredStoreIds.indexOf( s.id ) != -1 )
 					{
-						$stores.push( appData.data.stores[i] );
+						stores.push( appData.data.stores[i] );
 					}
 				}
 			}
@@ -71,7 +71,8 @@ app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter
 			selectedGroup: { id: null, group_name: 'None' },
 			viewMode: 'edit',
 			isNew: true,
-			passwordConfirmation: null
+			passwordConfirmation: null,
+			checkAllStores: false
 		}
 
 		$scope.data.groups.unshift({ id: null, group_name: 'None' });
@@ -99,6 +100,16 @@ app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter
 		$scope.changeGroup = function()
 			{
 				$scope.userItem.group_id = $scope.data.selectedGroup.id;
+			};
+
+		$scope.toggleStores = function()
+			{
+				var n = $scope.userItem.stores.length;
+
+				for( var i = 0; i < n; i++ )
+				{
+					$scope.userItem.stores[i].registered = $scope.data.checkAllStores;
+				}
 			};
 
 		$scope.checkData = function()

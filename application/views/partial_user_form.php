@@ -169,7 +169,9 @@
 				<table class="table table-condensed">
 					<thead>
 						<tr>
-							<th></th>
+							<th class="text-center">
+								<input type="checkbox" ng-model="data.checkAllStores" ng-click="toggleStores()">
+							</th>
 							<th>Store Name</th>
 							<th>Type</th>
 							<th>Location</th>
