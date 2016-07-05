@@ -1389,8 +1389,8 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
     }
 ]);
 
-appServices.service( 'adminData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'appData',
-    function( $http, $q, $filter, baseUrl, session, appData )
+appServices.service( 'adminData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'appData', 'notifications',
+    function( $http, $q, $filter, baseUrl, session, appData, notifications )
     {
         var me = this;
         me.data = {
@@ -1658,19 +1658,27 @@ appServices.service( 'notifications', [ '$rootScope',
 
         me.showMessages = function( messages )
             {
-                if( messages.constructor === Array )
+                if( messages )
                 {
-                    var n = messages.length;
-                    for( var i = 0; i < n; i++ )
+                    if( messages.constructor === Array )
                     {
-                        me.alert( messages[i].msg, messages[i].type );
+                        var n = messages.length;
+                        for( var i = 0; i < n; i++ )
+                        {
+                            me.alert( messages[i].msg, messages[i].type );
+                        }
+                    }
+                    else if( messages.constructor === String )
+                    {
+                        me.alert( messages, 'error' );
                     }
                 }
-                else if( message.constructor === String )
+                else
                 {
-                    me.alert( messages, 'error' );
+                    me.alert( 'Unknown error', 'error' );
                 }
-            }
+
+            };
     }
 ]);
 

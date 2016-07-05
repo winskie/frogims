@@ -268,8 +268,21 @@ class User extends Base_model {
 		}
 		else
 		{
+			set_message( 'No stores defined' );
 			return FALSE;
 		}
+	}
+
+	public function clear_stores()
+	{
+		$ci =& get_instance();
+
+		$ci->db->trans_start();
+		$ci->db->where( 'user_id', $this->id );
+		$ci->db->delete( 'store_users' );
+		$ci->db->trans_complete();
+
+		return $ci->db->trans_status();
 	}
 
 	public function search( $query )

@@ -185,7 +185,6 @@ class Mopping extends Base_model {
         $valid_packing = true;
         $last_group = 1;
 
-        $ci->session->set_flashdata( 'debug_check', count( $items ) );
         foreach( $items as $item )
         {
             $source_item_id = $item->get( 'mopped_item_id' );

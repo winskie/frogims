@@ -1580,18 +1580,33 @@ class Api_v1 extends CI_Controller {
                 }
                 if( $result )
                 {
-                    $user->assign_store( $stores );
+                    if( $stores )
+                    {
+                        $result = $user->assign_store( $stores );
+                    }
+                    else
+                    {
+                        $result = $user->clear_stores();
+                    }
 
                     $user_data = $user->as_array();
                     $this->db->trans_complete();
 
-                    if( $this->db->trans_status() )
+                    if( $result )
                     {
-                        $this->_response( $user_data, $user_id ? 200 : 201 );
+                        if( $this->db->trans_status() )
+                        {
+                            $this->_response( $user_data, $user_id ? 200 : 201 );
+                        }
+                        else
+                        {
+                            $this->_error( 500, 'A database error has occurred while trying to save user record' );
+                        }
                     }
                     else
                     {
-                        $this->_error( 500, 'A database error has occurred while trying to save user record' );
+                        $messages = get_message();
+                        $this->_error( 200, $messages );
                     }
                 }
                 else
