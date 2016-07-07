@@ -25,6 +25,10 @@ class Group extends Base_model {
 	protected $grp_perm_stores; // none | view | edit
 	protected $grp_perm_items; // none | view | edit
 
+	protected $date_created_field = 'date_created';
+	protected $date_modified_field = 'date_modified';
+	protected $last_modified_field = 'last_modified';
+
 	public function __construct()
 	{
 		parent::__construct();
