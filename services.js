@@ -1395,6 +1395,7 @@ appServices.service( 'adminData', [ '$http', '$q', '$filter', 'baseUrl', 'sessio
         var me = this;
         me.data = {
                 users: [],
+                groups: [],
                 stores: [],
                 items: [],
 
@@ -1410,6 +1411,7 @@ appServices.service( 'adminData', [ '$http', '$q', '$filter', 'baseUrl', 'sessio
 
                 totals: {
                         users: 0,
+                        groups: 0,
                         stores: 0,
                         items: 0
                     }
@@ -1422,6 +1424,10 @@ appServices.service( 'adminData', [ '$http', '$q', '$filter', 'baseUrl', 'sessio
                     role: null,
                     group: null,
                     status: null,
+                    page: 1
+                },
+                groups: {
+                    q: null,
                     page: 1
                 },
                 stores: {},
@@ -1467,12 +1473,52 @@ appServices.service( 'adminData', [ '$http', '$q', '$filter', 'baseUrl', 'sessio
                 return deferred.promise;
             };
 
+        me.getGroups = function()
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'GET',
+                    url: baseUrl + 'index.php/api/v1/groups',
+                    params: {
+                        q: me.filters.users.q ? me.filters.users.q : null,
+                        page: me.filters.users.page ? me.filters.users.page : null,
+                        limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
+                    }
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            var d = response.data;
+                            me.data.groups = d.data.groups;
+                            me.data.totals.groups = d.data.total;
+                            deferred.resolve( d );
+                        }
+                        else
+                        {
+                            notifications.showMessages( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
+                    });
+
+                return deferred.promise;
+            };
+
         me.refresh = function( group )
             {
                 switch( group )
                 {
                     case 'user':
                         me.getUsers();
+                        break;
+
+                    case 'group':
+                        me.getGroups();
                         break;
 
                     case 'all':
@@ -1510,6 +1556,7 @@ appServices.service( 'adminData', [ '$http', '$q', '$filter', 'baseUrl', 'sessio
 
                 return deferred.promise;
             };
+
         me.saveUser = function( userData )
             {
                 var deferred = $q.defer();
@@ -1537,7 +1584,66 @@ appServices.service( 'adminData', [ '$http', '$q', '$filter', 'baseUrl', 'sessio
                     });
 
                 return deferred.promise;
-            }
+            };
+
+        // Groups
+        me.getGroup = function( groupId, params )
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'GET',
+                    url: baseUrl + 'index.php/api/v1/groups/' + groupId,
+                    params: params
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            notifications.showMessages( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
+                    });
+
+                return deferred.promise;
+            };
+
+        me.saveGroup = function( groupData )
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'POST',
+                    url: baseUrl + 'index.php/api/v1/groups/',
+                    data: groupData
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            notifications.showMessages( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
+                    });
+
+                return deferred.promise;
+            };
     }
 ]);
 

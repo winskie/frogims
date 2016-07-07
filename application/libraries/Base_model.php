@@ -158,29 +158,41 @@ class Base_model
 
 		$ci =& get_instance();
 
-		$result = NULL;
-		$ci->db->trans_start();
-		if( isset( $this->id ) )
+		if( $this->_check_data() )
 		{
-			$ci->db->set( $this->db_changes );
-			$result = $this->_db_update();
-		}
-		else
-		{
-			$ci->db->set( $this->db_changes );
-			$result = $this->_db_insert();
-		}
-		$ci->db->trans_complete();
+			$result = NULL;
+			$ci->db->trans_start();
+			if( isset( $this->id ) )
+			{
+				$ci->db->set( $this->db_changes );
+				$result = $this->_db_update();
+			}
+			else
+			{
+				$ci->db->set( $this->db_changes );
+				$result = $this->_db_insert();
+			}
+			$ci->db->trans_complete();
 
-		if( $ci->db->trans_status() )
-		{
-			$this->_reset_db_changes();
-			return $result;
+			if( $ci->db->trans_status() )
+			{
+				$this->_reset_db_changes();
+				return $result;
+			}
+			else
+			{
+				return FALSE;
+			}
 		}
 		else
 		{
 			return FALSE;
 		}
+	}
+
+	public function _check_data()
+	{
+		return TRUE;
 	}
 
 

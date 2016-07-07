@@ -10,12 +10,13 @@ class User extends Base_model {
 	protected $password_salt;
 	protected $user_status;
 	protected $user_role;
+	protected $group_id;
 	protected $date_created;
 	protected $date_modified;
 	protected $last_modified;
 
 	protected $stores;
-	protected $role;
+	protected $group;
 
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
@@ -32,7 +33,8 @@ class User extends Base_model {
 			'password_hash' => array( 'type' => 'string', 'exclude' => TRUE ),
 			'password_salt' => array( 'type' => 'string', 'exclude' => TRUE ),
 			'user_status' => array( 'type' => 'integer' ),
-			'user_role' => array( 'type' => 'integer' )
+			'user_role' => array( 'type' => 'integer' ),
+			'group_id' => array( 'type' => 'integer' )
 		);
 	}
 
@@ -79,14 +81,16 @@ class User extends Base_model {
 			$ci->db->order_by( $order );
 		}
 
-		$query = $ci->db->get( $this->primary_table );
+		$ci->db->select( 'u.*, g.group_name' );
+		$ci->db->join( 'groups AS g', 'g.id = u.group_id', 'left' );
+		$data = $ci->db->get( $this->primary_table. ' AS u' );
 
 		if( $format == 'array' )
 		{
-			return $query->result_array();
+			return $data->result_array();
 		}
 
-		return $query->result( get_class( $this ) );
+		return $data->result( get_class( $this ) );
 	}
 
 	public function count_users( $params = array() )
@@ -211,20 +215,18 @@ class User extends Base_model {
 		return $this->stores;
 	}
 
-	public function get_role()
+	public function get_group()
 	{
-		if( ! isset( $this->role ) )
+		if( ! isset( $this->group ) )
 		{
 			$ci =& get_instance();
 			$ci->load->library( 'group' );
+			$Group = new Group();
 
-			$ci->db->where( 'id', $this->user_role );
-			$ci->db->limit( 1 );
-			$group = $ci->db->get( 'groups' );
-			$this->role = $group->result( 'Group' );
+			$this->group = $Group->get_by_id( $this->group_id );
 		}
 
-		return $this->role;
+		return $this->group;
 	}
 
 	public function assign_store( $stores )

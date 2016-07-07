@@ -23,6 +23,18 @@ CREATE TABLE IF NOT EXISTS shifts
 )
 ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS groups
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	group_name VARCHAR(100) NOT NULL,
+	date_created DATETIME NOT NULL,
+	date_modified DATETIME NOT NULL,
+	last_modified INTEGER NOT NULL,
+	PRIMARY KEY( id ),
+	UNIQUE groups_undx ( group_name )
+)
+ENGINE=InnoDB;
+
 -- user_status: 1 - active, 2 - locked, 3 - disabled
 -- user_role: 1 - administrator, 2 - standard user
 CREATE TABLE IF NOT EXISTS users
@@ -35,23 +47,15 @@ CREATE TABLE IF NOT EXISTS users
 	password_salt VARCHAR(10) NOT NULL,
 	user_status SMALLINT NOT NULL DEFAULT 1,
 	user_role SMALLINT NOT NULL DEFAULT 2,
+	group_id INTEGER NULL,
 	date_created DATETIME NOT NULL,
 	date_modified DATETIME NOT NULL,
 	last_modified INTEGER NOT NULL,
 	PRIMARY KEY (id),
-	UNIQUE users_undx (username)
-)
-ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS groups
-(
-	id INTEGER AUTO_INCREMENT NOT NULL,
-	group_name VARCHAR(100) NOT NULL,
-	date_created DATETIME NOT NULL,
-	date_modified DATETIME NOT NULL,
-	last_modified INTEGER NOT NULL,
-	PRIMARY KEY( id ),
-	UNIQUE groups_undx ( group_name )
+	UNIQUE users_undx (username),
+	FOREIGN KEY users_group_fk (group_id) REFERENCES groups (id)
+		ON UPDATE CASCADE
+		ON DELETE SET NULL
 )
 ENGINE=InnoDB;
 

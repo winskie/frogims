@@ -207,7 +207,8 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 					{
 						console.log( 'Initializing admin data...' );
 						var initUsers = adminData.getUsers();
-						$q.all( [ initUsers ] ).then(
+						var initGroups = adminData.getGroups();
+						$q.all( [ initUsers, initGroups ] ).then(
 							function( promises )
 							{
 								return true;
@@ -284,13 +285,32 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 		};
 
 	var user = {
-		name: 'main.user',
-		parent: main,
-		url: '/user',
-		params: { userItem: null, editMode: 'edit' },
-		templateUrl: baseUrl + 'index.php/main/view/partial_user_form.php',
-		controller: 'UserController'
-	}
+			name: 'main.user',
+			parent: main,
+			url: '/user',
+			params: { userItem: null, viewMode: 'edit' },
+			templateUrl: baseUrl + 'index.php/main/view/partial_user_form.php',
+			controller: 'UserController',
+			resolve: {
+				groups: function( adminData )
+					{
+						return adminData.getGroups().then(
+							function( response )
+							{
+								return response.data.groups;
+							});
+					}
+			}
+		};
+
+	var group = {
+			name: 'main.group',
+			parent: 'main',
+			url: '/group',
+			params: { groupItem: null, viewMode: 'edit' },
+			templateUrl: baseUrl + 'index.php/main/view/partial_group_form.php',
+			controller: 'GroupController'
+		};
 
 	$stateProvider
 		.state( dashboard )
@@ -303,8 +323,8 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 		.state( allocation )
 
 		.state( admin )
-		.state( user );
-
+		.state( user )
+		.state( group );
 });
 
 app.directive( 'highcharts', chartDirective );

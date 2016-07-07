@@ -118,7 +118,7 @@
 									<label for="items" class="control-label col-sm-4">Group</label>
 									<div class="animate-switch-container" ng-switch on="data.viewMode">
 
-										<div class="col-sm-8 col-md-6 col-lg-4" ng-switch-when="edit">
+										<div class="col-sm-8 col-md-8 col-lg-6" ng-switch-when="edit">
 											<select class="form-control"
 												ng-model="data.selectedGroup" ng-change="changeGroup()"
 												ng-options="g.group_name for g in data.groups track by g.id">

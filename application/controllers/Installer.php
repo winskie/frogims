@@ -45,6 +45,20 @@ class Installer extends CI_Controller {
                 )
                 ENGINE=InnoDB" );
 
+		echo 'Creating groups table...<br />';
+		$this->db->query( "
+				CREATE TABLE IF NOT EXISTS groups
+				(
+					id INTEGER AUTO_INCREMENT NOT NULL,
+					group_name VARCHAR(100) NOT NULL,
+					date_created DATETIME NOT NULL,
+					date_modified DATETIME NOT NULL,
+					last_modified INTEGER NOT NULL,
+					PRIMARY KEY( id ),
+					UNIQUE groups_undx ( group_name )
+				)
+				ENGINE=InnoDB" );
+
 		echo 'Creating users table...<br />';
 		$this->db->query( "
 				CREATE TABLE IF NOT EXISTS users
@@ -57,25 +71,15 @@ class Installer extends CI_Controller {
 					password_salt VARCHAR(10) NOT NULL,
 					user_status SMALLINT NOT NULL DEFAULT 1,
 					user_role SMALLINT NOT NULL DEFAULT 2,
+					group_id INTEGER NULL,
 					date_created DATETIME NOT NULL,
 					date_modified DATETIME NOT NULL,
 					last_modified INTEGER NOT NULL,
 					PRIMARY KEY (id),
-					UNIQUE users_undx (username)
-				)
-				ENGINE=InnoDB" );
-
-		echo 'Creating groups table...<br />';
-		$this->db->query( "
-				CREATE TABLE IF NOT EXISTS groups
-				(
-					id INTEGER AUTO_INCREMENT NOT NULL,
-					group_name VARCHAR(100) NOT NULL,
-					date_created DATETIME NOT NULL,
-					date_modified DATETIME NOT NULL,
-					last_modified INTEGER NOT NULL,
-					PRIMARY KEY( id ),
-					UNIQUE groups_undx ( group_name )
+					UNIQUE users_undx (username),
+					FOREIGN KEY users_group_fk (group_id) REFERENCES groups (id)
+						ON UPDATE CASCADE
+						ON DELETE SET NULL
 				)
 				ENGINE=InnoDB" );
 

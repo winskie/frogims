@@ -500,6 +500,108 @@ class Api_v1 extends CI_Controller {
         $this->_send_response();
     }
 
+    public function groups()
+    {
+        $request_method = $this->input->method();
+        $action = $this->uri->rsegment( 3 );
+
+        $this->load->library( 'group' );
+        $Group = new Group();
+
+        switch( $request_method )
+        {
+            case 'get':
+                switch( $action )
+                {
+                    case 'search':
+                        $q = param_type( $this->input->get( 'q' ), 'string' );
+                        $groups = $Group->search( $q );
+                        $groups_array = array();
+                        foreach( $groups as $group )
+                        {
+                            $groups_array[] = $group->as_array();
+                        }
+
+                        $this->_response( $groups_array );
+                        break;
+
+                    default:
+                        $group_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
+
+                        if( $group_id )
+                        { // get specific group
+                            $group = $Group->get_by_id( $group_id );
+                            if( $group )
+                            {
+                                $group_data = $group->as_array();
+
+                                $this->_response( $group_data );
+                            }
+                            else
+                            {
+                                $this->_error( 404, 'Group record not found' );
+                            }
+                        }
+                        else
+                        { // get list of groups
+                            $params = array(
+                                'q' => param( $this->input->get(), 'q' ),
+                                'page' => param( $this->input->get(), 'page' ),
+                                'limit' => param( $this->input->get(), 'limit' ),
+                                'format' => param( $this->input->get(), 'format' ),
+                                'order' => param( $this->input->get(), 'order' ) );
+
+                            $groups = $Group->get_groups( $params );
+                            $sql = $this->db->last_query();
+                            $total_groups = $Group->count_groups( $params );
+                            $groups_array = array();
+                            foreach( $groups as $group )
+                            {
+                                $groups_array[] = $group->as_array( array(
+                                    'member_count' => array( 'type' => 'integer' ) ) );
+                            }
+
+                            $this->_response( array(
+                                'groups' => $groups_array,
+                                'total' => $total_groups,
+                                'sql' => $sql ) );
+                        }
+                }
+                break;
+
+            case 'post':
+                $action = param_type( $this->uri->rsegment( 3 ), 'string' );
+                $group_id = param( $this->input->post(), 'id' );
+
+                $group = $Group->load_from_data( $this->input->post() );
+
+                $this->db->trans_start();
+                switch( $action )
+                {
+                    default:
+                        $result = $group->db_save();
+                }
+                if( $result )
+                {
+                    $group_data = $group->as_array();
+                    $this->db->trans_complete();
+
+                    $this->_response( $group_data, $group_id ? 200 : 201 );
+                }
+                else
+                {
+                    $messages = get_messages();
+                    $this->_error( 202, $messages );
+                }
+                break;
+
+            default:
+                $this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
+        }
+
+        $this->_send_response();
+    }
+
     public function inventory()
     {
         $request_method = $this->input->method();
@@ -1526,7 +1628,8 @@ class Api_v1 extends CI_Controller {
                             $users_data = array();
                             foreach( $users as $user )
                             {
-                                $users_data[] = $user->as_array();
+                                $users_data[] = $user->as_array( array(
+                                    'group_name' => array( 'type' => 'string' ) ) );
                             }
 
                             $this->_response( array(

@@ -6,6 +6,7 @@ app.controller( 'AdminController', [ '$scope', '$state', '$stateParams', 'sessio
 
 		// Refresh/update functions
 		$scope.updateUsers = adminData.getUsers;
+		$scope.updateGroups = adminData.getGroups;
 
 		$scope.resetDatabase = function()
 			{
@@ -19,8 +20,8 @@ app.controller( 'AdminController', [ '$scope', '$state', '$stateParams', 'sessio
 	}
 ]);
 
-app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter', 'session', 'appData', 'adminData', 'notifications',
-	function( $scope, $state, $stateParams, $filter, session, appData, adminData, notifications )
+app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter', 'groups', 'session', 'appData', 'adminData', 'notifications',
+	function( $scope, $state, $stateParams, $filter, groups, session, appData, adminData, notifications )
 	{
 		function generateStoreList( registeredStores )
 		{
@@ -67,13 +68,12 @@ app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter
 			selectedRole: { id: 2, roleName: 'User' },
 			userStatus: angular.copy( adminData.data.userStatus),
 			selectedStatus: { id: 1, statusName: 'Active' },
-			groups: [],
+			groups: groups,
 			selectedGroup: { id: null, group_name: 'None' },
 			viewMode: 'edit',
 			isNew: true,
 			passwordConfirmation: null,
-			checkAllStores: false
-		}
+			checkAllStores: false }
 
 		$scope.data.groups.unshift({ id: null, group_name: 'None' });
 
@@ -174,7 +174,7 @@ app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter
 							}
 							adminData.refresh( 'user' );
 							notifications.alert( 'User record saved', 'success' );
-							$state.go( 'main.admin', { activeTabe: 'users' } );
+							$state.go( 'main.admin', { activeTab: 'users' } );
 						},
 						function( reason )
 						{
@@ -209,6 +209,63 @@ app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter
 		else
 		{
 			$scope.userItem.stores = generateStoreList();
+		}
+	}
+]);
+
+app.controller( 'GroupController', [ '$scope', '$state', '$stateParams', '$filter', 'session', 'adminData', 'notifications',
+	function( $scope, $state, $stateParams, $filter, session, adminData, notifications )
+	{
+		$scope.data = {
+			viewMode: 'edit' };
+
+		$scope.groupItem = { group_name: null };
+
+		$scope.checkData = function()
+			{
+				return true;
+			};
+
+		$scope.prepareData = function()
+			{
+				var data = angular.copy( $scope.groupItem );
+
+				return data;
+			};
+
+		$scope.saveGroup = function()
+			{
+				if( $scope.checkData() )
+				{
+					var data = $scope.prepareData();
+
+					adminData.saveGroup( data ).then(
+						function( response )
+						{
+							adminData.refresh( 'group' );
+							notifications.alert( 'Group record saved', 'success' );
+							$state.go( 'main.admin', { activeTab: 'users' } );
+						},
+						function( reason )
+						{
+							//notifications.alert( reason, 'error' );
+							console.error( reason );
+						});
+				}
+			};
+
+		if( $stateParams.groupItem )
+		{
+			$scope.data.viewMode = $stateParams.viewMode || 'edit';
+			adminData.getGroup( $stateParams.groupItem.id ).then(
+				function( response )
+				{
+					$scope.groupItem = response.data;
+				},
+				function( reason )
+				{
+					console.error( reason );
+				} );
 		}
 	}
 ]);
