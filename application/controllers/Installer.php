@@ -582,7 +582,8 @@ class Installer extends CI_Controller {
 				array( 'L2 Ticket Coupon', 'Line 2 Ticket Coupon', NULL, 1, 1, 0, 0, NULL ),
 
 				array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0, NULL ), // ID: 13
-                array( 'L1 SJT', 'Line 1 Single Journey Ticket', 13, 0, 1, 0, 0, NULL )
+                array( 'L1 SJT', 'Line 1 Single Journey Ticket', 13, 0, 1, 0, 0, NULL ),
+				array( 'Staff Card', 'Staff Card', NULL, 0, 0, 0, 0, NULL )
 			);
 
 		foreach( $items as $i )
