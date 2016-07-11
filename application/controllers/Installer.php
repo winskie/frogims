@@ -519,11 +519,11 @@ class Installer extends CI_Controller {
 		$this->load->library( 'Store' );
 		$stores = array(
 				array( 'Line 2 Depot', 'Line 2 Depot', 'TIMD', 1 ),
-				array( 'SASCU', 'Line 2 Depot', 'SASCU', 3 ),
+				array( 'SASCU', 'Line 2 Depot', 'SASCU', 1 ),
 				array( 'TVM and Gates Management', 'Anonas Station', 'TGM', 3 ),
 				array( 'Ticket Production', 'J.Ruiz Station', 'TIMS', 2 ),
-				array( 'TASCU East', 'Anonas Station', 'TASCE', 3),
-				array( 'TASCU West', 'J.Ruiz Station', 'TASCW', 3),
+				array( 'TASCU East', 'Anonas Station', 'TASCE', 1 ),
+				array( 'TASCU West', 'J.Ruiz Station', 'TASCW', 1 ),
 				array( 'Recto Cashroom', 'Recto Station', 'RCT', 4 ),
 				array( 'Legarda Cashroom', 'Legarda Station', 'LGRD', 4 ),
 				array( 'Pureza Cashroom', 'Pureza Station', 'PRZ', 4 ),
