@@ -326,7 +326,7 @@ class Installer extends CI_Controller {
 					business_date DATE NOT NULL,
 					shift_id INTEGER NOT NULL,
 					station_id SMALLINT NULL,
-					assignee VARCHAR(50) NOT NULL,
+					assignee VARCHAR(50) NULL,
 					assignee_type SMALLINT NOT NULL,
 					allocation_status SMALLINT NOT NULL DEFAULT 1,
 					cashier_id INTEGER NOT NULL,
