@@ -95,7 +95,9 @@
                     </td>
                 </tr>
                 <tr ng-if="moppingItem.items.length == 0">
-                    <td colspan="{{ data.editMode == 'view' ? 7 : 8 }}">No mopping collection item to display</td>
+                    <td colspan="{{ data.editMode == 'view' ? 7 : 8 }}" class="text-center bg-warning">
+						No mopping collection item to display
+					</td>
                 </tr>
             </tbody>
         </table>

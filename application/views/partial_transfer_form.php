@@ -141,6 +141,11 @@
 							ng-model="row.transferItemVoid">
 				</td>
 			</tr>
+			<tr ng-if="!transferItem.items.length">
+				<td colspan="7" class="text-center bg-warning">
+					No transfer item
+				</td>
+			</tr>
 		</tbody>
 	</table>
 </div>

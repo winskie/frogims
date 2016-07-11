@@ -118,6 +118,11 @@
                                         ng-model="row.allocationItemVoid">
                             </td>
                         </tr>
+                        <tr ng-if="!allocationItem.allocations.length">
+                            <td colspan="8" class="text-center bg-warning">
+                                No allocation items
+                            </td>"
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -164,6 +169,11 @@
                                         ng-if="row.allocation_item_status == <?php echo REMITTANCE_ITEM_REMITTED;?> || row.allocation_item_status == <?php echo REMITTANCE_ITEM_PENDING;?> && row.id"
                                         ng-model="row.allocationItemVoid">
                             </td>
+                        </tr>
+                        <tr ng-if="!allocationItem.remittances.length">
+                            <td colspan="8" class="text-center bg-warning">
+                                No remittance items
+                            </td>"
                         </tr>
                     </tbody>
                 </table>
