@@ -691,6 +691,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 		var users = [];
 
 		$scope.data = {
+			mode: 'transfer',
 			editMode: $stateParams.editMode || 'transfer',
 			title: 'New Transfer',
 			sources: [],
@@ -846,6 +847,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				switch( $scope.data.editMode )
 				{
 					case 'transfer':
+						$scope.data.mode = 'transfer';
 						$scope.data.title = 'Transfer';
 						$scope.isExternalSource = false;
 						$scope.isExternalDestination = false;
@@ -879,6 +881,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						break;
 
 					case 'receipt':
+						$scope.data.mode = 'receipt';
 						$scope.data.title = 'Receipt';
 						$scope.isExternalSource = false;
 						$scope.isExternalDestination = false;
@@ -908,6 +911,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						break;
 
 					case 'externalTransfer':
+						$scope.data.mode = 'transfer';
 						$scope.data.title = 'External Transfer';
 						$scope.isExternalSource = false;
 						$scope.isExternalDestination = true;
@@ -925,6 +929,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						break;
 
 					case 'externalReceipt':
+						$scope.data.mode = 'receipt';
 						$scope.data.title = 'External Receipt';
 						$scope.isExternalSource = true;
 						$scope.isExternalDestination = false;
@@ -942,7 +947,31 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						break;
 
 					case 'view':
-						$scope.data.title = 'Transfer';
+						if( $scope.transferItem.origin_id == session.data.currentStore.id )
+						{
+							$scope.data.mode = 'transfer';
+							if( ! $scope.transferItem.destination_id )
+							{
+								$scope.data.title = 'External Transfer';
+							}
+							else
+							{
+								$scope.data.title = 'Transfer';
+							}
+						}
+						else if( $scope.transferItem.destination_id == session.data.currentStore.id )
+						{
+							$scope.data.mode = 'receipt';
+							if( ! $scope.transferItem.origin_id )
+							{
+								$scope.data.title = 'External Receipt';
+							}
+							else
+							{
+								$scope.data.title = 'Receipt';
+							}
+						}
+
 						break;
 
 					default:
@@ -1133,13 +1162,9 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				}
 			};
 
-
-
 		$scope.findUser = UserServices.findUser;
 
-
 		// Initialize controller
-		$scope.changeEditMode();
 		$scope.input.inventoryItem = $scope.data.inventoryItems[0];
 		$scope.data.itemCategories = $filter( 'filter' )( appData.data.itemCategories, { is_transfer_category: true }, true );
 		$scope.data.itemCategories.unshift( { id: null, category: '- None -' });
@@ -1232,6 +1257,8 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				});
 
 		};
+
+		$scope.changeEditMode();
 	}
 ]);
 
