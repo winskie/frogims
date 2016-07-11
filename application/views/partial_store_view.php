@@ -1,7 +1,7 @@
 <div>
 	<uib-tabset id="mainTabSet" active="activeTab">
 		<!-- Inventory -->
-		<uib-tab heading="Inventory" index="0" select="onTabSelect(0)">
+		<uib-tab heading="Inventory" index="0" select="onTabSelect('inventory')">
 			<div class="panel panel-default">
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left"> Inventory</h3>
@@ -38,7 +38,7 @@
 		</uib-tab>
 
 		<!-- Transactions -->
-		<uib-tab heading="Transactions Summary" index="1" select="onTabSelect(1)">
+		<uib-tab heading="Transactions Summary" index="1" select="onTabSelect('transactions')">
 			<div class="panel panel-default">
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left">Transactions Summary</h3>
@@ -125,7 +125,7 @@
 		</uib-tab>
 
 		<!-- Outgoing -->
-		<uib-tab index="2" select="onTabSelect(2)">
+		<uib-tab index="2" select="onTabSelect('transfers')">
 			<uib-tab-heading>
 				Outgoing <span ng-show="data.pending.transfers > 0" class="label label-danger label-as-badge">{{ data.pending.transfers }}</span>
 			</uib-tab-heading>
@@ -276,7 +276,7 @@
 		</uib-tab>
 
 		<!-- Incoming -->
-		<uib-tab index="3" select="onTabSelect(3)">
+		<uib-tab index="3" select="onTabSelect('receipts')">
 			<uib-tab-heading>
 				Incoming <span ng-show="data.pending.receipts > 0" class="label label-danger label-as-badge">{{ data.pending.receipts }}</span>
 			</uib-tab-heading>
@@ -408,7 +408,7 @@
 		</uib-tab>
 
 		<!-- Adjustments -->
-		<uib-tab index="4" select="onTabSelect(4)">
+		<uib-tab index="4" select="onTabSelect('adjustments')">
 			<uib-tab-heading>
 				Adjustments <span ng-show="data.pending.adjustments > 0" class="label label-danger label-as-badge">{{ data.pending.adjustments }}</span>
 			</uib-tab-heading>
@@ -525,7 +525,7 @@
 		</uib-tab>
 
         <!-- Mopping -->
-        <uib-tab index="5" select="onTabSelect(5)" ng-if="sessionData.currentStore.store_type == 2"> <!-- Production only -->
+        <uib-tab index="5" select="onTabSelect('collections')" ng-if="sessionData.currentStore.store_type == 2"> <!-- Production only -->
             <uib-tab-heading>
                 Mopping Collection
             </uib-tab-heading>
@@ -639,7 +639,7 @@
         </uib-tab>
 
         <!-- Allocation -->
-        <uib-tab index="6" select="onTabSelect(6)" ng-if="sessionData.currentStore.store_type == 4"> <!-- Cashroom only -->
+        <uib-tab index="6" select="onTabSelect('allocations')" ng-if="sessionData.currentStore.store_type == 4"> <!-- Cashroom only -->
             <uib-tab-heading>
 				Allocations <span ng-show="data.pending.allocations > 0" class="label label-danger label-as-badge">{{ data.pending.allocations }}</span>
 			</uib-tab-heading>
@@ -799,7 +799,7 @@
         </uib-tab>
 
         <!-- Conversions -->
-        <uib-tab index="7" select="onTabSelect(7)">
+        <uib-tab index="7" select="onTabSelect('conversions')">
             <uib-tab-heading>
                 Conversions
             </uib-tab-heading>

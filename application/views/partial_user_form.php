@@ -197,11 +197,11 @@
 
 			<div class="pull-right" ng-switch-when="edit">
 				<button class="btn btn-primary" ng-click="saveUser()">Save</button>
-				<button class="btn btn-default" ui-sref="main.admin({ activeTab: 'users' })">Close</button>
+				<button class="btn btn-default" ng-click="close()">Close</button>
 			</div>
 
 			<div class="pull-right" ng-switch-default>
-				<button class="btn btn-primary" ui-sref="main.admin({ activeTab: 'users' })">Close</button>
+				<button class="btn btn-primary" ng-click="close()">Close</button>
 			</div>
 		</div>
 		<div class="clearfix"></div>

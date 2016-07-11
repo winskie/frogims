@@ -3,10 +3,32 @@ app.controller( 'AdminController', [ '$scope', '$state', '$stateParams', 'sessio
 	{
 		$scope.data = adminData.data;
 		$scope.filters = adminData.filters;
+		$scope.tabs = {
+				general: { index: 0, title: 'General' },
+				users: { index: 1, title: 'Users' },
+				groups: { index: 2, title: 'Groups' },
+				stores: { index: 3, title: 'Stores' },
+				items: { index: 4, title: 'Items' },
+				testing: { index: 5, title: 'Testing' }
+			};
+		console.log( $stateParams.activeTab );
+		if( $stateParams.activeTab )
+		{
+			$scope.activeTab = $scope.tabs[$stateParams.activeTab].index;
+		}
+		else
+		{
+			$scope.activeTab = 0;
+		}
 
 		// Refresh/update functions
 		$scope.updateUsers = adminData.getUsers;
 		$scope.updateGroups = adminData.getGroups;
+
+		$scope.onTabSelect = function( tab )
+			{
+				session.data.previousTab = tab;
+			};
 
 		$scope.resetDatabase = function()
 			{
@@ -53,6 +75,7 @@ app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter
 			{
 				for( var i = 0; i < n; i++ )
 				{
+					var s = appData.data.stores[i];
 					if( registeredStoreIds.indexOf( s.id ) != -1 )
 					{
 						stores.push( appData.data.stores[i] );
@@ -110,6 +133,16 @@ app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter
 				{
 					$scope.userItem.stores[i].registered = $scope.data.checkAllStores;
 				}
+			};
+
+		$scope.close = function()
+			{
+				var params = {};
+				if( session.data.previousTab )
+				{
+					params['activeTab'] = session.data.previousTab;
+				}
+				$state.go( session.data.previousState, params );
 			};
 
 		$scope.checkData = function()

@@ -481,7 +481,7 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 
 		$scope.onTabSelect = function( tab )
 			{
-				// Do nothing for now
+				session.data.previousTab = tab;
 			};
 
 		// Filters

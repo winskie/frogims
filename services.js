@@ -13,7 +13,9 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
                 userStores: [],
                 storeShifts: [],
 
-                isAdmin: false
+                isAdmin: false,
+                previousState: null,
+                previousTab: null
             };
 
         me.getSessionData = function()

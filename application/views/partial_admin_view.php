@@ -1,19 +1,19 @@
 <div>
 	<uib-tabset id="adminTabSet" active="activeTab">
 		<!-- General Settings -->
-		<uib-tab heading="General" index="0" select="onTabSelect(0)">
+		<uib-tab heading="General" index="0" select="onTabSelect('general')">
 			<div class="alert alert-warning">
 				<i class="glyphicon glyphicon-alert"></i> This section is still under development
 			</div>
 		</uib-tab>
 
 		<!-- Users -->
-		<uib-tab heading="Users" index="1" select="onTabSelect(1)">
+		<uib-tab heading="Users" index="1" select="onTabSelect('users')">
 			<div class="panel panel-default">
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left">Users</h3>
 					<div class="pull-right">
-						<button class="btn btn-primary btn-sm" ui-sref="main.user()">
+						<button class="btn btn-primary btn-sm" ui-sref="main.user({ referrer: 'main.admin' })">
 							<i class="glyphicon glyphicon-plus"></i> New user
 						</button>&nbsp;
 						<button class="btn btn-default btn-sm" ng-click="updateUsers( sessionData.currentStore.id )">
@@ -64,7 +64,7 @@
 		</uib-tab>
 
 		<!-- Groups -->
-		<uib-tab heading="Groups" index="2" select="onTabSelect(2)">
+		<uib-tab heading="Groups" index="2" select="onTabSelect('groups')">
 			<div class="panel panel-default">
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left">Groups</h3>
@@ -115,21 +115,21 @@
 		</uib-tab>
 
 		<!-- Stores -->
-		<uib-tab heading="Stores" index="3" select="onTabSelect(3)">
+		<uib-tab heading="Stores" index="3" select="onTabSelect('stores')">
 			<div class="alert alert-warning">
 				<i class="glyphicon glyphicon-alert"></i> This section is still under development
 			</div>
 		</uib-tab>
 
 		<!-- Items -->
-		<uib-tab heading="Items" index="4" select="onTabSelect(4)">
+		<uib-tab heading="Items" index="4" select="onTabSelect('items')">
 			<div class="alert alert-warning">
 				<i class="glyphicon glyphicon-alert"></i> This section is still under development
 			</div>
 		</uib-tab>
 
 		<!-- Test -->
-		<uib-tab heading="Testing" index="5" select="onTabSelect(5)">
+		<uib-tab heading="Testing" index="5" select="onTabSelect('testing')">
 			<div class="panel panel-danger">
 				<div class="panel-heading">
 					<h3 class="panel-title">Database</h3>

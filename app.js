@@ -329,9 +329,14 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 
 app.directive( 'highcharts', chartDirective );
 
-app.run( [ 'session', 'appData',
-	function( session, appData )
+app.run( [ '$rootScope', 'session', 'appData',
+	function( $rootScope, session, appData )
 	{
+		$rootScope.$on( '$stateChangeSuccess', function( event, toState, toParams, fromState, fromParams )
+			{
+				session.data.previousState = fromState.name;
+			});
+
 		console.log( 'Loading stations data...' );
 		appData.getStations().then(
 			function( response )
