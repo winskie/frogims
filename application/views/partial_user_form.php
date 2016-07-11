@@ -170,7 +170,7 @@
 					<thead>
 						<tr>
 							<th class="text-center">
-								<input type="checkbox" ng-model="data.checkAllStores" ng-click="toggleStores()">
+								<input type="checkbox" ng-model="data.checkAllStores" ng-if="sessionData.isAdmin" ng-click="toggleStores()">
 							</th>
 							<th>Store Name</th>
 							<th>Type</th>
