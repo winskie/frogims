@@ -214,7 +214,6 @@ class Mopping extends Base_model {
 
                         $packed_items[$current_group]['quantity'] += $item->get( 'mopped_quantity' );
                         $packed_items[$current_group]['valid'] = ( $packed_items[$current_group]['quantity'] === $packed_items[$current_group]['conversion_factor'] );
-
                     }
                     else
                     { // new group
@@ -223,7 +222,7 @@ class Mopping extends Base_model {
                             'target_item_id' => $target_item_id,
                             'conversion_factor' => $cf['factor'],
                             'quantity' => intval( $item->get( 'mopped_quantity' ) ),
-                            'valid' => ( $item->get( 'mopped_quantity' ) === $cf['factor'] ),
+                            'valid' => ( intval( $item->get( 'mopped_quantity' ) ) === intval( $cf['factor'] ) ),
                             'group_id' => $last_group,
                             'status' => $item->get( 'mopping_item_status' )
                         );
@@ -284,7 +283,7 @@ class Mopping extends Base_model {
         {
             $this->packed_items = NULL;
             $this->void_items = NULL;
-            set_message( 'Failed item checking', 'error' );
+            set_message( 'Failed item checking', 'error', 202 );
             return FALSE;
         }
     }
