@@ -60,7 +60,7 @@
 
 								<!-- Old password -->
 								<div class="form-group" ng-if="data.viewMode == 'edit' && ! data.isNew">
-									<label class="control-label col-sm-4">Old password</label>
+									<label class="control-label col-sm-4">{{ data.oldPasswordLabel }}</label>
 									<div class="col-sm-8 col-md-6 col-lg-4">
 										<input type="password" class="form-control"
 												ng-model="userItem.old_password">

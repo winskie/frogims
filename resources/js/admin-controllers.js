@@ -95,6 +95,7 @@ app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter
 			selectedGroup: { id: null, group_name: 'None' },
 			viewMode: 'edit',
 			isNew: true,
+			oldPasswordLabel: session.data.isAdmin ? 'Admin password' : 'Old password',
 			passwordConfirmation: null,
 			checkAllStores: false }
 
@@ -104,6 +105,7 @@ app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter
 				username: null,
 				full_name: null,
 				position: null,
+				old_password: null,
 				password: null,
 				user_status: 1, // USER_ACTIVE
 				user_role: 2, // USER_ROLE_USER
@@ -161,7 +163,13 @@ app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter
 
 				if( ! $scope.userItem.id && ! $scope.userItem.password )
 				{
-					notifications.alert( 'Password is not defiend', 'error' );
+					notifications.alert( 'Password cannot be empty', 'error' );
+					return false;
+				}
+				console.log( $scope.userItem );
+				if( $scope.userItem.old_password && ( ! $scope.userItem.password || ! $scope.data.passwordConfirmation ) )
+				{
+					notifications.alert( 'Password cannot be empty', 'error' );
 					return false;
 				}
 
@@ -189,6 +197,10 @@ app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter
 				}
 
 				data.stores = storesAssigned;
+
+				// TODO: even though use has admin right does the admin have users edit privilege?
+				data.assign_stores = session.data.isAdmin;
+
 				return data;
 			};
 
@@ -207,7 +219,13 @@ app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter
 							}
 							adminData.refresh( 'user' );
 							notifications.alert( 'User record saved', 'success' );
-							$state.go( 'main.admin', { activeTab: 'users' } );
+
+							var params = {};
+							if( session.data.previousTab )
+							{
+								params['activeTab'] = session.data.previousTab;
+							}
+							$state.go( session.data.previousState, params );
 						},
 						function( reason )
 						{

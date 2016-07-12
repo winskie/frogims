@@ -1650,11 +1650,23 @@ class Api_v1 extends CI_Controller {
                     $old_password = param( $this->input->post(), 'old_password' );
                     if( $old_password )
                     {
-                        $user = $User->get_by_id( $user_id );
-                        if( ! $user->validate_password( $old_password ) )
+                        if( $user_id == current_user() )
                         {
-                            $this->_error( 403, 'Username or password is invalid' );
-                            break;
+                            $user = $User->get_by_id( $user_id );
+                            if( ! $user->validate_password( $old_password ) )
+                            {
+                                $this->_error( 403, 'Username or password is invalid' );
+                                break;
+                            }
+                        }
+                        elseif( is_admin() ) // TODO: additional check if admin has privilege to edit users
+                        {
+                            $admin_user = $User->get_by_id( current_user() );
+                            if( ! $admin_user->validate_password( $old_password ) )
+                            {
+                                $this->_error( 403, 'Username or password is invalid' );
+                                break;
+                            }
                         }
                     }
                     else
@@ -1666,6 +1678,7 @@ class Api_v1 extends CI_Controller {
 
                 $user = $User->load_from_data( $this->input->post() );
                 $stores = param( $this->input->post(), 'stores' );
+                $assign_stores = param_type( param( $this->input->post(), 'assign_stores' ), 'boolean' );
 
                 $this->db->trans_start();
                 switch( $action )
@@ -1683,13 +1696,16 @@ class Api_v1 extends CI_Controller {
                 }
                 if( $result )
                 {
-                    if( $stores )
+                    if( $assign_stores )
                     {
-                        $result = $user->assign_store( $stores );
-                    }
-                    else
-                    {
-                        $result = $user->clear_stores();
+                        if( $stores )
+                        {
+                            $result = $user->assign_store( $stores );
+                        }
+                        else
+                        {
+                            $result = $user->clear_stores();
+                        }
                     }
 
                     $user_data = $user->as_array();
