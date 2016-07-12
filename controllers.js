@@ -1773,6 +1773,12 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 
 				var lastGroup = 1;
 
+				if( itemCount == 0 )
+				{
+					notifications.alert( 'Collection does not contain any items', 'warning' );
+					return false;
+				}
+
 				for( var i = 0; i < itemCount; i++ )
 				{
 					if( items[i].converted_to )
@@ -1886,7 +1892,6 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 				}
 				else
 				{
-					notifications.alert( 'There are invalid item entries', 'error' );
 					console.error( 'There are invalid item entries.' );
 				}
 			};

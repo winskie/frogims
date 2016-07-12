@@ -185,6 +185,12 @@ class Mopping extends Base_model {
         $valid_packing = true;
         $last_group = 1;
 
+        if( ! $items )
+        {
+            set_message( 'No items to collect', 'error' );
+            return FALSE;
+        }
+
         foreach( $items as $item )
         {
             $source_item_id = $item->get( 'mopped_item_id' );
