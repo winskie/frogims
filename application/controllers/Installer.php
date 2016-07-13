@@ -699,7 +699,8 @@ class Installer extends CI_Controller {
 				array( 'TIR', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
 				array( 'Free Exit', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
 				array( 'Expired', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
-				array( 'Black Box', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 )
+				array( 'Black Box', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
+				array( 'Unconfirmed', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 )
 			);
 
 		foreach( $values as $value )
