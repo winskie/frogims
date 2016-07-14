@@ -456,16 +456,27 @@ class Installer extends CI_Controller {
 		// Temporary set current shift
 		$this->session->current_shift_id = 1;
 
+		// Create system administrator group
+		echo 'Creating default system administrator group...';
+		flush();
+		$this->load->library( 'group' );
+		$admin_Group = new Group();
+		$admin_Group->set( 'group_name', 'System Administrators' );
+		$admin_Group = $admin_Group->db_save();
+		echo 'OK<br />';
+		flush();
+
 		// Create admin user
 		echo 'Creating default admin user...';
         flush();
-		$this->load->library( 'User' );
+		$this->load->library( 'user' );
 		$admin_User = new User();
 		$admin_User->set( 'username', 'admin' );
 		$admin_User->set( 'full_name', 'System Administrator' );
 		$admin_User->set( 'position', 'System Administrator' );
 		$admin_User->set( 'user_status', 1 ); // active
 		$admin_User->set( 'user_role', 1 ); // administrator
+		$admin_User->set( 'group_id', $admin_Group->get( 'id' ) );
 		$admin_User->set( 'last_modified', 1 );
 		$admin_User->set_password( 'admin' );
 		$admin_User->db_save();
