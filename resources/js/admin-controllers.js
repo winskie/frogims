@@ -11,7 +11,7 @@ app.controller( 'AdminController', [ '$scope', '$state', '$stateParams', 'sessio
 				items: { index: 4, title: 'Items' },
 				testing: { index: 5, title: 'Testing' }
 			};
-		console.log( $stateParams.activeTab );
+
 		if( $stateParams.activeTab )
 		{
 			$scope.activeTab = $scope.tabs[$stateParams.activeTab].index;
@@ -270,7 +270,19 @@ app.controller( 'GroupController', [ '$scope', '$state', '$stateParams', '$filte
 		$scope.data = {
 			viewMode: 'edit' };
 
-		$scope.groupItem = { group_name: null };
+		$scope.groupItem = {
+			group_name: null,
+			group_perm_transaction: 'none',
+			group_perm_transfer: 'none',
+			group_perm_transfer_approve: false,
+			group_perm_adjustment: 'none',
+			group_perm_adjustment_approve: false,
+			group_perm_conversion: 'none',
+			group_perm_conversion_approve: false,
+			group_perm_collection: 'none',
+			group_perm_allocation: 'none',
+			group_perm_allocation_allocate: false,
+			group_perm_allocation_complete: false };
 
 		$scope.checkData = function()
 			{
@@ -280,7 +292,6 @@ app.controller( 'GroupController', [ '$scope', '$state', '$stateParams', '$filte
 		$scope.prepareData = function()
 			{
 				var data = angular.copy( $scope.groupItem );
-
 				return data;
 			};
 
@@ -289,13 +300,12 @@ app.controller( 'GroupController', [ '$scope', '$state', '$stateParams', '$filte
 				if( $scope.checkData() )
 				{
 					var data = $scope.prepareData();
-
 					adminData.saveGroup( data ).then(
 						function( response )
 						{
 							adminData.refresh( 'group' );
 							notifications.alert( 'Group record saved', 'success' );
-							$state.go( 'main.admin', { activeTab: 'users' } );
+							$state.go( 'main.admin', { activeTab: 'groups' } );
 						},
 						function( reason )
 						{

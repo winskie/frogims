@@ -24,11 +24,24 @@ if( ! function_exists( 'get_store_id' ) )
 
 if( ! function_exists( 'current_user' ) )
 {
-    function current_user()
+    function current_user( $id_only = FALSE )
     {
+        $ci =& get_instance();
+        $ci->load->library( 'user' );
+
         if( isset( $_SESSION['current_user_id'] ) )
         {
-            return $_SESSION['current_user_id'];
+            if( $id_only )
+            {
+                return $_SESSION['current_user_id'];
+            }
+            else
+            {
+                $User = new User();
+                $current_User = $User->get_by_id( $_SESSION['current_user_id'] );
+                //$_SESSION['current_user'] = $current_User;
+                return $current_User;
+            }
         }
         else
         {

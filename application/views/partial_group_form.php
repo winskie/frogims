@@ -22,6 +22,126 @@
 		</div>
 	</div>
 
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h3 class="panel-title">Group Permissions</h3>
+		</div>
+		<div class="panel-body">
+			<form class="form-horizontal">
+				<div class="row">
+					<div class="form-group col-sm-12 col-md-6 col-lg-4">
+						<label class="control-label col-sm-6 col-md-5 col-lg-5">Transactions</label>
+						<div class="btn-group">
+							<label class="btn btn-default" ng-model="groupItem.group_perm_transaction" uib-btn-radio="'none'">none</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_transaction" uib-btn-radio="'view'">view</label>
+						</div>
+					</div>
+				</div>
+
+				<!-- Transfers -->
+				<div class="row">
+					<div class="form-group col-sm-12 col-md-6 col-lg-4">
+						<label class="control-label col-sm-6 col-md-5 col-lg-5">Transfers</label>
+						<div class="btn-group">
+							<label class="btn btn-default" ng-model="groupItem.group_perm_transfer" uib-btn-radio="'none'">none</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_transfer" uib-btn-radio="'view'">view</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_transfer" uib-btn-radio="'edit'">edit</label>
+						</div>
+					</div>
+
+					<div class="form-group col-sm-12 col-md-6 col-lg-4">
+						<label class="control-label col-sm-6 col-md-5 col-lg-5">Can approve?</label>
+						<div class="btn-group">
+							<label class="btn btn-default" ng-model="groupItem.group_perm_transfer_approve" uib-btn-radio="false">no</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_transfer_approve" uib-btn-radio="true">yes</label>
+						</div>
+					</div>
+				</div>
+
+				<!-- Adjustments -->
+				<div class="row">
+					<div class="form-group col-sm-12 col-md-6 col-lg-4">
+						<label class="control-label col-sm-6 col-md-5 col-lg-5">Adjustments</label>
+						<div class="btn-group">
+							<label class="btn btn-default" ng-model="groupItem.group_perm_adjustment" uib-btn-radio="'none'">none</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_adjustment" uib-btn-radio="'view'">view</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_adjustment" uib-btn-radio="'edit'">edit</label>
+						</div>
+					</div>
+
+					<div class="form-group col-sm-12 col-md-6 col-lg-4">
+						<label class="control-label col-sm-6 col-md-5 col-lg-5">Can approve?</label>
+						<div class="btn-group">
+							<label class="btn btn-default" ng-model="groupItem.group_perm_adjustment_approve" uib-btn-radio="false">no</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_adjustment_approve" uib-btn-radio="true">yes</label>
+						</div>
+					</div>
+				</div>
+
+				<!-- Conversions -->
+				<div class="row">
+					<div class="form-group col-sm-12 col-md-6 col-lg-4">
+						<label class="control-label col-sm-6 col-md-5 col-lg-5">Conversions</label>
+						<div class="btn-group">
+							<label class="btn btn-default" ng-model="groupItem.group_perm_conversion" uib-btn-radio="'none'">none</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_conversion" uib-btn-radio="'view'">view</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_conversion" uib-btn-radio="'edit'">edit</label>
+						</div>
+					</div>
+
+					<div class="form-group col-sm-12 col-md-6 col-lg-4">
+						<label class="control-label col-sm-6 col-md-5 col-lg-5">Can approve?</label>
+						<div class="btn-group">
+							<label class="btn btn-default" ng-model="groupItem.group_perm_conversion_approve" uib-btn-radio="false">no</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_conversion_approve" uib-btn-radio="true">yes</label>
+						</div>
+					</div>
+				</div>
+
+				<!-- Collection -->
+				<div class="row">
+					<div class="form-group col-sm-12 col-md-6 col-lg-4">
+						<label class="control-label col-sm-6 col-md-5 col-lg-5">Collections</label>
+						<div class="btn-group">
+							<label class="btn btn-default" ng-model="groupItem.group_perm_collection" uib-btn-radio="'none'">none</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_collection" uib-btn-radio="'view'">view</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_collection" uib-btn-radio="'edit'">edit</label>
+						</div>
+					</div>
+				</div>
+
+				<!-- Allocation -->
+				<div class="row">
+					<div class="form-group col-sm-12 col-md-6 col-lg-4">
+						<label class="control-label col-sm-6 col-md-5 col-lg-5">Allocations</label>
+						<div class="btn-group">
+							<label class="btn btn-default" ng-model="groupItem.group_perm_allocation" uib-btn-radio="'none'">none</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_allocation" uib-btn-radio="'view'">view</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_allocation" uib-btn-radio="'edit'">edit</label>
+						</div>
+					</div>
+
+					<div class="form-group col-sm-12 col-md-6 col-lg-4">
+						<label class="control-label col-sm-6 col-md-5 col-lg-54">Can allocate?</label>
+						<div class="btn-group">
+							<label class="btn btn-default" ng-model="groupItem.group_perm_allocation_allocate" uib-btn-radio="false">no</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_allocation_allocate" uib-btn-radio="true">yes</label>
+						</div>
+					</div>
+					<div class="form-group col-sm-12 col-md-6 col-lg-4 hidden-sm visible-md-6 hidden-lg"></div>
+					<div class="form-group col-sm-12 col-md-6 col-lg-4">
+						<label class="control-label col-sm-6 col-md-5 col-lg-5">Can complete?</label>
+						<div class="btn-group">
+							<label class="btn btn-default" ng-model="groupItem.group_perm_allocation_complete" uib-btn-radio="false">no</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_allocation_complete" uib-btn-radio="true">yes</label>
+						</div>
+					</div>
+				</div>
+
+			</form>
+		</div>
+	</div>
+
 	<div class="text-right">
 		<div class="animate-switch-container" ng-switch on="data.viewMode">
 

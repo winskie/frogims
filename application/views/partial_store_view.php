@@ -1,3 +1,6 @@
+<?php
+$current_user = current_user();
+?>
 <div>
 	<uib-tabset id="mainTabSet" active="activeTab">
 		<!-- Inventory -->
@@ -37,6 +40,7 @@
 			</div>
 		</uib-tab>
 
+		<?php if( $current_user->check_permissions( 'transactions', 'view' ) ):?>
 		<!-- Transactions -->
 		<uib-tab heading="Transactions Summary" index="1" select="onTabSelect('transactions')">
 			<div class="panel panel-default">
@@ -123,7 +127,9 @@
 				</div>
 			</div>
 		</uib-tab>
+		<?php endif;?>
 
+		<?php if( $current_user->check_permissions( 'transfers', 'view' ) ):?>
 		<!-- Outgoing -->
 		<uib-tab index="2" select="onTabSelect('transfers')">
 			<uib-tab-heading>
@@ -133,9 +139,11 @@
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left">Transfers</h3>
 					<div class="pull-right">
+						<?php if( $current_user->check_permissions( 'transfers', 'edit' ) ): ?>
 						<button class="btn btn-primary btn-sm" ui-sref="main.transfer({ editMode: 'transfer' })">
 							<i class="glyphicon glyphicon-plus"></i> New transfer
 						</button>&nbsp;
+						<?php endif;?>
 						<button class="btn btn-default btn-sm" ng-click="updateTransfers( sessionData.currentStore.id )">
 							<i class="glyphicon glyphicon-refresh"></i>
 						</button>
@@ -284,9 +292,11 @@
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left">Receipts</h3>
 					<div class="pull-right">
+						<?php if( $current_user->check_permissions( 'transfers', 'edit' ) ): ?>
 						<button class="btn btn-primary btn-sm" ui-sref="main.transfer({ editMode: 'externalReceipt' })">
 							<i class="glyphicon glyphicon-plus"></i> New receipt
 						</button>&nbsp;
+						<?php endif;?>
 						<button class="btn btn-default btn-sm" ng-click="updateReceipts( sessionData.currentStore.id )">
 							<i class="glyphicon glyphicon-refresh"></i>
 						</button>
@@ -406,7 +416,9 @@
 				</div>
 			</div>
 		</uib-tab>
+		<?php endif; ?>
 
+		<?php if( $current_user->check_permissions( 'adjustments', 'view' ) ):?>
 		<!-- Adjustments -->
 		<uib-tab index="4" select="onTabSelect('adjustments')">
 			<uib-tab-heading>
@@ -416,9 +428,11 @@
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left">Adjustments</h3>
 					<div class="pull-right">
+						<?php if( $current_user->check_permissions( 'adjustments', 'edit' ) ): ?>
 						<button class="btn btn-primary btn-sm" ui-sref="main.adjust">
 							<i class="glyphicon glyphicon-plus"></i> New adjustment
 						</button>&nbsp;
+						<?php endif;?>
 						<button class="btn btn-default btn-sm" ng-click="updateAdjustments( sessionData.currentStore.id )">
 							<i class="glyphicon glyphicon-refresh"></i>
 						</button>
@@ -523,7 +537,9 @@
 				</div>
 			</div>
 		</uib-tab>
+		<?php endif; ?>
 
+		<?php if( $current_user->check_permissions( 'collections', 'view' ) ):?>
         <!-- Mopping -->
         <uib-tab index="5" select="onTabSelect('collections')" ng-if="sessionData.currentStore.store_type == 2"> <!-- Production only -->
             <uib-tab-heading>
@@ -533,9 +549,11 @@
                 <div class="panel-heading">
                     <h3 class="panel-title pull-left">Mopping Collection</h3>
                     <div class="pull-right">
+						<?php if( $current_user->check_permissions( 'collections', 'edit' ) ): ?>
                         <button class="btn btn-primary btn-sm" ui-sref="main.mopping({ editMode: 'new' })">
                             <i class="glyphicon glyphicon-plus"></i> New collection
                         </button>&nbsp;
+						<?php endif;?>
                         <button class="btn btn-default btn-sm" ng-click="updateCollections( sessionData.currentStore.id )">
                             <i class="glyphicon glyphicon-refresh"></i>
                         </button>
@@ -637,7 +655,9 @@
 				</div>
             </div>
         </uib-tab>
+		<?php endif;?>
 
+		<?php if( $current_user->check_permissions( 'allocations', 'view' ) ):?>
         <!-- Allocation -->
         <uib-tab index="6" select="onTabSelect('allocations')" ng-if="sessionData.currentStore.store_type == 4"> <!-- Cashroom only -->
             <uib-tab-heading>
@@ -647,9 +667,11 @@
                 <div class="panel-heading">
                     <h3 class="panel-title pull-left">Allocations</h3>
                     <div class="pull-right">
+						<?php if( $current_user->check_permissions( 'allocations', 'edit' ) ): ?>
                         <button class="btn btn-primary btn-sm" ui-sref="main.allocation({ editMode: 'new' })">
                             <i class="glyphicon glyphicon-plus"></i> New allocation
                         </button>&nbsp;
+						<?php endif;?>
                         <button class="btn btn-default btn-sm" ng-click="updateAllocations( sessionData.currentStore.id )">
                             <i class="glyphicon glyphicon-refresh"></i>
                         </button>
@@ -797,7 +819,9 @@
 				</div>
             </div>
         </uib-tab>
+		<?php endif;?>
 
+		<?php if( $current_user->check_permissions( 'conversions', 'view' ) ):?>
         <!-- Conversions -->
         <uib-tab index="7" select="onTabSelect('conversions')">
             <uib-tab-heading>
@@ -807,9 +831,11 @@
                 <div class="panel-heading">
                     <h3 class="panel-title pull-left">Conversions</h3>
                     <div class="pull-right">
+						<?php if( $current_user->check_permissions( 'conversions', 'edit' ) ): ?>
                         <button class="btn btn-primary btn-sm" ui-sref="main.convert">
                             <i class="glyphicon glyphicon-plus"></i> New conversion
                         </button>&nbsp;
+						<?php endif;?>
                         <button class="btn btn-default btn-sm" ng-click="updateConversions( sessionData.currentStore.id )">
                             <i class="glyphicon glyphicon-refresh"></i>
                         </button>
@@ -917,6 +943,7 @@
 					</div>
 				</div>
         </uib-tab>
+		<?php endif;?>
 
 	</uib-tabset>
 </div>

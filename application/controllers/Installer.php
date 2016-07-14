@@ -51,6 +51,17 @@ class Installer extends CI_Controller {
 				(
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					group_name VARCHAR(100) NOT NULL,
+					group_perm_transaction VARCHAR(4) NOT NULL DEFAULT 'none',
+					group_perm_transfer VARCHAR(4) NOT NULL DEFAULT 'none',
+					group_perm_transfer_approve BOOLEAN NOT NULL DEFAULT 0,
+					group_perm_adjustment VARCHAR(4) NOT NULL DEFAULT 'none',
+					group_perm_adjustment_approve BOOLEAN NOT NULL DEFAULT 0,
+					group_perm_conversion VARCHAR(4) NOT NULL DEFAULT 'none',
+					group_perm_conversion_approve BOOLEAN NOT NULL DEFAULT 0,
+					group_perm_collection VARCHAR(4) NOT NULL DEFAULT 'none',
+					group_perm_allocation VARCHAR(4) NOT NULL DEFAULT 'none',
+					group_perm_allocation_allocate BOOLEAN NOT NULL DEFAULT 0,
+					group_perm_allocation_complete BOOLEAN NOT NULL DEFAULT 0,
 					date_created DATETIME NOT NULL,
 					date_modified DATETIME NOT NULL,
 					last_modified INTEGER NOT NULL,
@@ -781,6 +792,7 @@ class Installer extends CI_Controller {
 
         $this->db->query( "TRUNCATE TABLE stations" );
         $this->db->query( "TRUNCATE TABLE shifts" );
+		$this->db->query( "TRUNCATE TABLE groups" );
 		$this->db->query( "TRUNCATE TABLE users" );
 		$this->db->query( "TRUNCATE TABLE stores" );
 		$this->db->query( "TRUNCATE TABLE store_users" );

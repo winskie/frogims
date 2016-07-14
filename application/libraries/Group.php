@@ -8,22 +8,22 @@ class Group extends Base_model {
 
 	protected $members;
 
-	protected $grp_perm_transaction_view; // true | false
-	protected $grp_perm_transfer; // none | view | edit
-	protected $grp_perm_transfer_approve; //  true | false
-	protected $grp_perm_adjustment; // none | view | edit
-	protected $grp_perm_adjustment_approve; // true | false
-	protected $grp_perm_conversion; // none | view | edit
-	protected $grp_perm_conversion_approve; // true | false
-	protected $grp_perm_collection; // none | view | edit
-	protected $grp_perm_allocation; // none | view | edit
-	protected $grp_perm_allocation_allocate; // true | false
-	protected $grp_perm_allocation_complete; // true | false
+	protected $group_perm_transaction; // none | view
+	protected $group_perm_transfer; // none | view | edit
+	protected $group_perm_transfer_approve; //  true | false
+	protected $group_perm_adjustment; // none | view | edit
+	protected $group_perm_adjustment_approve; // true | false
+	protected $group_perm_conversion; // none | view | edit
+	protected $group_perm_conversion_approve; // true | false
+	protected $group_perm_collection; // none | view | edit
+	protected $group_perm_allocation; // none | view | edit
+	protected $group_perm_allocation_allocate; // true | false
+	protected $group_perm_allocation_complete; // true | false
 
-	protected $grp_perm_users; // none | view | edit
-	protected $grp_perm_groups; // none | view | edit
-	protected $grp_perm_stores; // none | view | edit
-	protected $grp_perm_items; // none | view | edit
+	//protected $group_perm_users; // none | view | edit
+	//protected $group_perm_groups; // none | view | edit
+	//protected $group_perm_stores; // none | view | edit
+	//protected $group_perm_items; // none | view | edit
 
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
@@ -37,27 +37,27 @@ class Group extends Base_model {
 			'group_name' => array( 'type' => 'string' ),
 			'is_admin' => array( 'type' => 'boolean' ),
 
-			'grp_perm_transaction_view' => array( 'type' => 'boolean' ),
+			'group_perm_transaction' => array( 'type' => 'string' ),
 
-			'grp_perm_transfer' => array( 'type' => 'string' ),
-			'grp_perm_transfer_approve' => array( 'type' => 'boolean' ),
+			'group_perm_transfer' => array( 'type' => 'string' ),
+			'group_perm_transfer_approve' => array( 'type' => 'boolean' ),
 
-			'grp_perm_adjustment' => array( 'type' => 'string' ),
-			'grp_perm_adjustment_approve' => array( 'type' => 'boolean' ),
+			'group_perm_adjustment' => array( 'type' => 'string' ),
+			'group_perm_adjustment_approve' => array( 'type' => 'boolean' ),
 
-			'grp_perm_conversion' => array( 'type' => 'string' ),
-			'grp_perm_conversion_approve' => array( 'type' => 'boolean' ),
+			'group_perm_conversion' => array( 'type' => 'string' ),
+			'group_perm_conversion_approve' => array( 'type' => 'boolean' ),
 
-			'grp_perm_collection' => array( 'type' => 'string' ),
+			'group_perm_collection' => array( 'type' => 'string' ),
 
-			'grp_perm_allocation' => array( 'type' => 'string' ),
-			'grp_perm_allocation_allocate' => array( 'type' => 'boolean' ),
-			'grp_perm_allocation_complete' => array( 'type' => 'boolean' ),
+			'group_perm_allocation' => array( 'type' => 'string' ),
+			'group_perm_allocation_allocate' => array( 'type' => 'boolean' ),
+			'group_perm_allocation_complete' => array( 'type' => 'boolean' ),
 
-			'grp_perm_users' => array( 'type' => 'string' ),
-			'grp_perm_groups' => array( 'type' => 'string' ),
-			'grp_perm_stores' => array( 'type' => 'string' ),
-			'grp_perm_items' => array( 'type' => 'string' )
+			//'group_perm_users' => array( 'type' => 'string' ),
+			//'group_perm_groups' => array( 'type' => 'string' ),
+			//'group_perm_stores' => array( 'type' => 'string' ),
+			//'group_perm_items' => array( 'type' => 'string' )
 		);
 	}
 
@@ -149,5 +149,153 @@ class Group extends Base_model {
 		return TRUE;
 	}
 
+	public function check_permissions( $permission, $action )
+	{
+		switch( $permission )
+		{
+			case 'transactions':
+				switch( $action )
+				{
+					case 'view':
+						$allowed_permissions = array( 'view' );
+						$permission = $this->group_perm_transaction;
+						break;
 
+					default:
+						return FALSE;
+				}
+				return in_array( $permission, $allowed_permissions );
+				break;
+
+			case 'transfers':
+				switch( $action )
+				{
+					case 'view':
+						$allowed_permissions = array( 'view', 'edit' );
+						$permission = $this->group_perm_transfer;
+						break;
+
+					case 'edit':
+						$allowed_permissions = array( 'edit' );
+						$permission = $this->group_perm_transfer;
+						break;
+
+					case 'approve':
+						$allowed_permissions = array( true );
+						$permission = $this->group_perm_transfer_approve;
+						break;
+
+					default:
+						return FALSE;
+
+				}
+				return in_array( $permission, $allowed_permissions );
+				break;
+
+			case 'adjustments':
+				switch( $action )
+				{
+					case 'view':
+						$allowed_permissions = array( 'view', 'edit' );
+						$permission = $this->group_perm_adjustment;
+						break;
+
+					case 'edit':
+						$allowed_permissions = array( 'edit' );
+						$permission = $this->group_perm_adjustment;
+						break;
+
+					case 'approve':
+						$allowed_permissions = array( true );
+						$permission = $this->group_perm_adjustment_approve;
+						break;
+
+					default:
+						return FALSE;
+
+				}
+				return in_array( $permission, $allowed_permissions );
+				break;
+
+			case 'conversions':
+				switch( $action )
+				{
+					case 'view':
+						$allowed_permissions = array( 'view', 'edit' );
+						$permission = $this->group_perm_conversion;
+						break;
+
+					case 'edit':
+						$allowed_permissions = array( 'edit' );
+						$permission = $this->group_perm_conversion;
+						break;
+
+					case 'approve':
+						$allowed_permissions = array( true );
+						$permission = $this->group_perm_conversion_approve;
+						break;
+
+					default:
+						return FALSE;
+
+				}
+				return in_array( $permission, $allowed_permissions );
+				break;
+
+			case 'collections':
+				switch( $action )
+				{
+					case 'view':
+						$allowed_permissions = array( 'view', 'edit' );
+						$permission = $this->group_perm_collection;
+						break;
+
+					case 'edit':
+						$allowed_permissions = array( 'edit' );
+						$permission = $this->group_perm_collection;
+						break;
+
+					default:
+						return FALSE;
+
+				}
+				return in_array( $permission, $allowed_permissions );
+				break;
+
+			case 'allocations':
+				switch( $action )
+				{
+					case 'view':
+						$allowed_permissions = array( 'view', 'edit' );
+						$permission = $this->group_perm_allocation;
+						break;
+
+					case 'edit':
+						$allowed_permissions = array( 'edit' );
+						$permission = $this->group_perm_allocation;
+						break;
+
+					case 'allocate':
+						$allowed_permissions = array( true );
+						$permission = $this->group_perm_allocation_allocate;
+						break;
+
+					case 'complete':
+						$allowed_permissions = array( true );
+						$permission = $this->group_perm_allocation_complete;
+						break;
+
+					default:
+						return FALSE;
+
+				}
+				return in_array( $permission, $allowed_permissions );
+				break;
+
+			default:
+				return FALSE;
+		}
+
+		return FALSE;
+	}
 }

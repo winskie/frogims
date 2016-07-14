@@ -68,12 +68,12 @@ class Base_model
 
 		if( property_exists( $this, $property ) )
 		{
-			/*
 			if( array_key_exists( $property, $this->db_fields ) )
 			{
-				$this_value = param_type( $this->$property, $this->db_fields[$property]['type'] );
+				//$this_value = param_type( $this->$property, $this->db_fields[$property]['type'] );
 				$value = param_type( $value, $this->db_fields[$property]['type'] );
 			}
+			/*
 			else
 			{
 				$this_value = $this->$property;
@@ -216,9 +216,9 @@ class Base_model
 	{
 		$ci =& get_instance();
 
-		if( isset( $this->creator_field ) && $is_new && current_user() )
+		if( isset( $this->creator_field ) && $is_new && current_user( TRUE ) )
 		{
-			$this->set( $this->creator_field, current_user() );
+			$this->set( $this->creator_field, current_user( TRUE ) );
 		}
 
 		if( isset( $this->date_created_field ) && $is_new )
@@ -231,9 +231,9 @@ class Base_model
 			$this->set( $this->date_modified_field, date( TIMESTAMP_FORMAT ) );
 		}
 
-		if( isset( $this->last_modified_field ) && current_user() )
+		if( isset( $this->last_modified_field ) && current_user( TRUE ) )
 		{
-			$this->set( $this->last_modified_field, current_user() );
+			$this->set( $this->last_modified_field, current_user( TRUE ) );
 		}
 	}
 

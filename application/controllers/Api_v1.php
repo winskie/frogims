@@ -917,7 +917,7 @@ class Api_v1 extends CI_Controller {
 
                             if( $new_store )
                             {
-                                if( $new_store->is_member( current_user() ) || TRUE )
+                                if( $new_store->is_member( current_user( TRUE ) ) || TRUE )
                                 {
                                     $this->session->current_store_id = $new_store->get( 'id' );
                                     $shifts = $new_store->get_shifts();
@@ -1650,7 +1650,7 @@ class Api_v1 extends CI_Controller {
                     $old_password = param( $this->input->post(), 'old_password' );
                     if( $old_password )
                     {
-                        if( $user_id == current_user() )
+                        if( $user_id == current_user( TRUE ) )
                         {
                             $user = $User->get_by_id( $user_id );
                             if( ! $user->validate_password( $old_password ) )
@@ -1661,7 +1661,7 @@ class Api_v1 extends CI_Controller {
                         }
                         elseif( is_admin() ) // TODO: additional check if admin has privilege to edit users
                         {
-                            $admin_user = $User->get_by_id( current_user() );
+                            $admin_user = current_user();
                             if( ! $admin_user->validate_password( $old_password ) )
                             {
                                 $this->_error( 403, 'Username or password is invalid' );

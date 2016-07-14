@@ -229,6 +229,19 @@ class User extends Base_model {
 		return $this->group;
 	}
 
+	public function check_permissions( $permission, $action )
+	{
+		$user_Group = $this->get_group();
+		if( $user_Group )
+		{
+			return $user_Group->check_permissions( $permission, $action );
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
+
 	public function assign_store( $stores )
 	{
 		$ci =& get_instance();
