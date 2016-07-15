@@ -145,18 +145,12 @@ class Adjustment extends Base_model {
 			}
 			else
 			{
-				// Check for valid new adjustment status
-				$valid_new_status = array( ADJUSTMENT_PENDING, ADJUSTMENT_APPROVED );
-				if( ! ( array_key_exists( 'adjustment_status', $this->db_changes )
-						&& in_array( $this->db_changes['adjustment_status'], $valid_new_status ) ) )
-				{
-					set_message( 'Invalid adjustment status for new record', 'error' );
-					return FALSE;
-				}
-
 				// Always set adjustment_timestamp on record creation
 				$this->set( 'adjustment_timestamp', date( TIMESTAMP_FORMAT ) );
 				$this->set( 'user_id', $ci->session->current_user_id );
+
+				// Also set shift information
+				$this->set( 'adjustment_shift', $ci->session->current_shift_id );
 
 				// If this adjustment is going be approved set the current inventory balance first!
 				if( array_key_exists( 'adjustment_status', $this->db_changes )
@@ -167,9 +161,6 @@ class Adjustment extends Base_model {
 					{
 						$this->set( 'previous_quantity', $inventory->get( 'quantity' ) );
 					}
-
-					// Also set shift information
-					$this->set( 'adjustment_shift', $ci->session->current_shift_id );
 				}
 
 				// Set fields and updata record metadata
@@ -284,6 +275,18 @@ class Adjustment extends Base_model {
 			$this->set( 'user_id', current_user( TRUE ) );
 		}
 
+
+		// Check for valid new adjustment status
+		if( ! isset( $this->id ) )
+		{
+			$valid_new_status = array( ADJUSTMENT_PENDING, ADJUSTMENT_APPROVED );
+			if( ! ( array_key_exists( 'adjustment_status', $this->db_changes )
+					&& in_array( $this->db_changes['adjustment_status'], $valid_new_status ) ) )
+			{
+				set_message( 'Invalid adjustment status for new record', 'error' );
+				return FALSE;
+			}
+		}
 
 		// Ensure that a reason was specified for the adjustment
 		if( ! ( array_key_exists( 'reason', $this->db_changes ) && $this->db_changes['reason'] )
