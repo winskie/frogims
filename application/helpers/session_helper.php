@@ -75,7 +75,7 @@ if( ! function_exists( 'is_admin') )
 
 if( ! function_exists( 'set_message' ) )
 {
-    function set_message( $msg, $msg_type = 'error', $response_code = 500 )
+    function set_message( $msg, $msg_type = 'error', $response_code = 202 )
     {
         if( ! isset( $_SESSION['messages'] ) )
         {

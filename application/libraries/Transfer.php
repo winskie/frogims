@@ -121,12 +121,6 @@ class Transfer extends Base_model {
 
 		$voided_items = array();
 
-		if( ! $items )
-		{
-			set_message( 'Transfer does not contain any items', 'error' );
-			return FALSE;
-		}
-
 		// Check if status is valid for new records
 		$valid_new_status = array( TRANSFER_PENDING, TRANSFER_APPROVED, TRANSFER_RECEIVED );
 		if( is_null( $this->id ) && ! in_array( $this->transfer_status, $valid_new_status ) )
@@ -135,8 +129,26 @@ class Transfer extends Base_model {
 			return FALSE;
 		}
 
-		$has_valid_transfer_item = false;
+		// In case of approval, check if delivery person is specified
+		if( array_key_exists( 'transfer_status', $this->db_changes )
+			&& $this->db_changes['transfer_status'] == TRANSFER_APPROVED )
+		{
+			if( ! $this->sender_name )
+			{
+				set_message( 'Approval requires name of delivery person be specified', 'error', 202 );
+				return FALSE;
+			}
+		}
 
+		// Check if transer has items to transfer
+		if( ! $items )
+		{
+			set_message( 'Transfer does not contain any items', 'error' );
+			return FALSE;
+		}
+
+		// Check if transfer has valid items to transfer
+		$has_valid_transfer_item = false;
 		foreach( $items as $item )
 		{
 			if( ! $has_valid_transfer_item
@@ -161,8 +173,6 @@ class Transfer extends Base_model {
 				}
 			}
 		}
-
-		// Check if transfer has valid items to transfer
 		if( ! $has_valid_transfer_item )
 		{
 			set_message( 'Transfer does not contain any valid items', 'error' );

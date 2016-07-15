@@ -1773,7 +1773,12 @@ appServices.service( 'notifications', [ '$rootScope',
                         var n = messages.length;
                         for( var i = 0; i < n; i++ )
                         {
-                            me.alert( messages[i].msg, messages[i].type );
+                            var duration;
+                            if( messages[i].type == 'error' )
+                            {
+                                duration = 5000;
+                            }
+                            me.alert( messages[i].msg, messages[i].type, duration );
                         }
                     }
                     else if( messages.constructor === String )

@@ -30,7 +30,7 @@
 			<form class="form-horizontal">
 				<div class="row">
 					<div class="form-group col-sm-12 col-md-6 col-lg-4">
-						<label class="control-label col-sm-6 col-md-5 col-lg-5">Transactions</label>
+						<label class="control-label col-sm-6 col-md-6 col-lg-6">Transactions</label>
 						<div class="btn-group">
 							<label class="btn btn-default" ng-model="groupItem.group_perm_transaction" uib-btn-radio="'none'">none</label>
 							<label class="btn btn-default" ng-model="groupItem.group_perm_transaction" uib-btn-radio="'view'">view</label>
@@ -41,7 +41,7 @@
 				<!-- Transfers -->
 				<div class="row">
 					<div class="form-group col-sm-12 col-md-6 col-lg-4">
-						<label class="control-label col-sm-6 col-md-5 col-lg-5">Transfers</label>
+						<label class="control-label col-sm-6 col-md-6 col-lg-6">Transfers</label>
 						<div class="btn-group">
 							<label class="btn btn-default" ng-model="groupItem.group_perm_transfer" uib-btn-radio="'none'">none</label>
 							<label class="btn btn-default" ng-model="groupItem.group_perm_transfer" uib-btn-radio="'view'">view</label>
@@ -50,7 +50,7 @@
 					</div>
 
 					<div class="form-group col-sm-12 col-md-6 col-lg-4">
-						<label class="control-label col-sm-6 col-md-5 col-lg-5">Can approve?</label>
+						<label class="control-label col-sm-6 col-md-6 col-lg-6">Can approve?</label>
 						<div class="btn-group">
 							<label class="btn btn-default" ng-model="groupItem.group_perm_transfer_approve" uib-btn-radio="false">no</label>
 							<label class="btn btn-default" ng-model="groupItem.group_perm_transfer_approve" uib-btn-radio="true">yes</label>
@@ -61,7 +61,7 @@
 				<!-- Adjustments -->
 				<div class="row">
 					<div class="form-group col-sm-12 col-md-6 col-lg-4">
-						<label class="control-label col-sm-6 col-md-5 col-lg-5">Adjustments</label>
+						<label class="control-label col-sm-6 col-md-6 col-lg-6">Adjustments</label>
 						<div class="btn-group">
 							<label class="btn btn-default" ng-model="groupItem.group_perm_adjustment" uib-btn-radio="'none'">none</label>
 							<label class="btn btn-default" ng-model="groupItem.group_perm_adjustment" uib-btn-radio="'view'">view</label>
@@ -70,7 +70,7 @@
 					</div>
 
 					<div class="form-group col-sm-12 col-md-6 col-lg-4">
-						<label class="control-label col-sm-6 col-md-5 col-lg-5">Can approve?</label>
+						<label class="control-label col-sm-6 col-md-6 col-lg-6">Can approve?</label>
 						<div class="btn-group">
 							<label class="btn btn-default" ng-model="groupItem.group_perm_adjustment_approve" uib-btn-radio="false">no</label>
 							<label class="btn btn-default" ng-model="groupItem.group_perm_adjustment_approve" uib-btn-radio="true">yes</label>
@@ -81,7 +81,7 @@
 				<!-- Conversions -->
 				<div class="row">
 					<div class="form-group col-sm-12 col-md-6 col-lg-4">
-						<label class="control-label col-sm-6 col-md-5 col-lg-5">Conversions</label>
+						<label class="control-label col-sm-6 col-md-6 col-lg-6">Conversions</label>
 						<div class="btn-group">
 							<label class="btn btn-default" ng-model="groupItem.group_perm_conversion" uib-btn-radio="'none'">none</label>
 							<label class="btn btn-default" ng-model="groupItem.group_perm_conversion" uib-btn-radio="'view'">view</label>
@@ -90,7 +90,7 @@
 					</div>
 
 					<div class="form-group col-sm-12 col-md-6 col-lg-4">
-						<label class="control-label col-sm-6 col-md-5 col-lg-5">Can approve?</label>
+						<label class="control-label col-sm-6 col-md-6 col-lg-6">Can approve?</label>
 						<div class="btn-group">
 							<label class="btn btn-default" ng-model="groupItem.group_perm_conversion_approve" uib-btn-radio="false">no</label>
 							<label class="btn btn-default" ng-model="groupItem.group_perm_conversion_approve" uib-btn-radio="true">yes</label>
@@ -101,7 +101,7 @@
 				<!-- Collection -->
 				<div class="row">
 					<div class="form-group col-sm-12 col-md-6 col-lg-4">
-						<label class="control-label col-sm-6 col-md-5 col-lg-5">Collections</label>
+						<label class="control-label col-sm-6 col-md-6 col-lg-6">Collections</label>
 						<div class="btn-group">
 							<label class="btn btn-default" ng-model="groupItem.group_perm_collection" uib-btn-radio="'none'">none</label>
 							<label class="btn btn-default" ng-model="groupItem.group_perm_collection" uib-btn-radio="'view'">view</label>
@@ -113,7 +113,7 @@
 				<!-- Allocation -->
 				<div class="row">
 					<div class="form-group col-sm-12 col-md-6 col-lg-4">
-						<label class="control-label col-sm-6 col-md-5 col-lg-5">Allocations</label>
+						<label class="control-label col-sm-6 col-md-6 col-lg-6">Allocations</label>
 						<div class="btn-group">
 							<label class="btn btn-default" ng-model="groupItem.group_perm_allocation" uib-btn-radio="'none'">none</label>
 							<label class="btn btn-default" ng-model="groupItem.group_perm_allocation" uib-btn-radio="'view'">view</label>
@@ -122,7 +122,7 @@
 					</div>
 
 					<div class="form-group col-sm-12 col-md-6 col-lg-4">
-						<label class="control-label col-sm-6 col-md-5 col-lg-54">Can allocate?</label>
+						<label class="control-label col-sm-6 col-md-6 col-lg-64">Can allocate?</label>
 						<div class="btn-group">
 							<label class="btn btn-default" ng-model="groupItem.group_perm_allocation_allocate" uib-btn-radio="false">no</label>
 							<label class="btn btn-default" ng-model="groupItem.group_perm_allocation_allocate" uib-btn-radio="true">yes</label>
@@ -130,7 +130,7 @@
 					</div>
 					<div class="form-group col-sm-12 col-md-6 col-lg-4 hidden-sm visible-md-6 hidden-lg"></div>
 					<div class="form-group col-sm-12 col-md-6 col-lg-4">
-						<label class="control-label col-sm-6 col-md-5 col-lg-5">Can complete?</label>
+						<label class="control-label col-sm-6 col-md-6 col-lg-6">Can complete?</label>
 						<div class="btn-group">
 							<label class="btn btn-default" ng-model="groupItem.group_perm_allocation_complete" uib-btn-radio="false">no</label>
 							<label class="btn btn-default" ng-model="groupItem.group_perm_allocation_complete" uib-btn-radio="true">yes</label>

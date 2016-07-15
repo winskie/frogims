@@ -32,7 +32,7 @@ app.controller( 'NotificationController', [ '$scope', '$timeout', 'appData', 'no
 										$scope.data.messages.splice( index, 1 );
 									}
 								}, 500 );
-							}, 2300 );
+							}, ( data.duration ? data.duration : 2300 ) );
 
 					}, 10 );
 			};
@@ -989,29 +989,33 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				}
 			}
 
-		$scope.checkItems = function()
+		$scope.checkItems = function( action )
 			{
 				var transferItems = $scope.transferItem.items
 				var transferItemCount = transferItems.length;
 
-				if( transferItemCount == 0 )
-				{
-					notifications.alert( 'Transfer does not contain any items', 'warning' );
-					return false;
-				}
-
-				if( ! $scope.transferItem.sender_name )
+				// In case of transfer approval check if delivery person is specified
+				if( action == 'approve' && ! $scope.transferItem.sender_name )
 				{
 					notifications.alert( 'Please enter name of delivery person', 'warning' );
 					return false;
 				}
 
+				// In case of external receipt check if source is specified
 				if( $scope.data.editMode == 'externalReceipt' && ! $scope.transferItem.origin_name )
 				{
 					notifications.alert( 'Please specify source name', 'warning' );
 					return false;
 				}
 
+				// Check if transfer has items
+				if( transferItemCount == 0 )
+				{
+					notifications.alert( 'Transfer does not contain any items', 'warning' );
+					return false;
+				}
+
+				// Check if transfer has valid items
 				var hasValidTransferItem = false;
 				var validItemStatus = [ 1, 2, 3 ] // TRANSFER_ITEM_SCHEDULED, TRANSFER_ITEM_APPROVED, TRANSFER_ITEM_RECEIVED
 				for( var i = 0; i < transferItemCount; i++ )
@@ -1102,7 +1106,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		$scope.scheduleTransfer = function()
 			{
-				if( $scope.checkItems() )
+				if( $scope.checkItems( 'schedule' ) )
 				{
 					// Prepare transfer
 					var data = $scope.prepareTransfer();
@@ -1123,7 +1127,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		$scope.approveTransfer = function()
 			{
-				if( $scope.checkItems() )
+				if( $scope.checkItems( 'approve' ) )
 				{
 					var data = $scope.prepareTransfer();
 
