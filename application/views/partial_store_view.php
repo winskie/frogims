@@ -233,21 +233,40 @@ $current_user = current_user();
 									<div class="animate-switch-container" ng-switch on="transfer.transfer_status">
 
 										<div class="animate-switch" ng-switch-when="<?php echo TRANSFER_PENDING;?>">
+											<?php if( $current_user->check_permissions( 'transfers', 'approve' ) ): ?>
 											<div class="btn-group btn-block" uib-dropdown>
-												<button id="split-button" type="button" class="btn btn-primary col-sm-9 col-md-10" ng-click="approveTransfer( transfer )">Approve</button>
+												<button type="button" class="btn btn-primary col-sm-9 col-md-10" ng-click="approveTransfer( transfer )">Approve</button>
 												<button type="button" class="btn btn-primary col-sm-3 col-md-2" uib-dropdown-toggle>
 													<span class="caret"></span>
 												</button>
 												<ul uib-dropdown-menu role="menu">
+													<?php if( $current_user->check_permissions( 'transfers', 'edit' ) ): ?>
 													<li role="menuitem"><a ui-sref="main.transfer({ transferItem: transfer, editMode: 'transfer' })">Edit...</a></li>
 													<li role="menuitem"><a href="#" ng-click="cancelTransfer( transfer )">Cancel</a></li>
+													<?php endif; ?>
+													<li role="menuitem"><a ui-sref="main.transfer({ transferItem: transfer, editMode: 'view' })">View details...</a></li>
 												</ul>
 											</div>
+											<?php elseif( $current_user->check_permissions( 'transfers', 'edit' ) ): ?>
+											<div class="btn-group btn-block" uib-dropdown>
+												<button type="button" class="btn btn-primary col-sm-9 col-md-10" ui-sref="main.transfer({ transferItem: transfer, editMode: 'transfer' })">Edit...</button>
+												<button type="button" class="btn btn-primary col-sm-3 col-md-2" uib-dropdown-toggle>
+													<span class="caret"></span>
+												</button>
+												<ul uib-dropdown-menu role="menu">
+													<li role="menuitem"><a href="#" ng-click="cancelTransfer( transfer )">Cancel</a></li>
+													<li role="menuitem"><a ui-sref="main.transfer({ transferItem: transfer, editMode: 'view' })">View details...</a></li>
+												</ul>
+											</div>
+											<?php else: ?>
+											<button type="button" class="btn btn-default btn-block" ui-sref="main.transfer({ transferItem: transfer, editmode: 'view' })">View details...</button>
+											<?php endif; ?>
 										</div>
 
 										<div class="animate-switch" ng-switch-when="<?php echo TRANSFER_APPROVED;?>">
+											<?php if( $current_user->check_permissions( 'transfers', 'approve' ) ):?>
 											<div class="btn-group btn-block" uib-dropdown>
-												<button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="main.transfer({ transferItem: transfer, mode: 'view' })">View details...</button>
+												<button type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="main.transfer({ transferItem: transfer, mode: 'view' })">View details...</button>
 												<button type="button" class="btn btn-default col-sm-3 col-md-2" uib-dropdown-toggle>
 													<span class="caret"></span>
 												</button>
@@ -255,6 +274,9 @@ $current_user = current_user();
 													<li role="menuitem"><a href="#" ng-click="cancelTransfer( transfer )">Cancel</a></li>
 												</ul>
 											</div>
+											<?php else: ?>
+											<button type="button" class="btn btn-default btn-block" ui-sref="main.transfer({ transferItem: transfer, editmode: 'view' })">View details...</button>
+											<?php endif; ?>
 										</div>
 
 										<div class="animate-switch" ng-switch-default>

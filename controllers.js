@@ -1148,7 +1148,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		$scope.receiveTransfer = function()
 			{
-				if( $scope.checkItems() )
+				if( $scope.checkItems( 'receive' ) )
 				{
 					var data = $scope.prepareTransfer();
 
