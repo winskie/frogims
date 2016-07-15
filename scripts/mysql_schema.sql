@@ -173,7 +173,7 @@ CREATE TABLE IF NOT EXISTS adjustments
     adjustment_shift INTEGER NOT NULL,
 	adjustment_type SMALLINT NOT NULL,
 	adjusted_quantity INTEGER NULL,
-	previous_quantity INTEGER NOT NULL,
+	previous_quantity INTEGER NULL,
 	reason VARCHAR(255) NOT NULL,
 	adjustment_status SMALLINT NOT NULL DEFAULT 1,
 	adjustment_timestamp DATETIME NOT NULL,
