@@ -723,10 +723,6 @@ class Api_v1 extends CI_Controller {
 
     public function login_info()
 	{
-		$store_data = NULL;
-		$user_data = NULL;
-        $shift_data = NULL;
-
 		$this->load->library( 'store' );
 		$this->load->library( 'user' );
         $this->load->library( 'shift' );
@@ -744,6 +740,7 @@ class Api_v1 extends CI_Controller {
         $stores_data = NULL;
         $shift_data = NULL;
         $shifts_data = NULL;
+        $permissions_data = NULL;
 
 		if( $current_store )
 		{
@@ -767,6 +764,12 @@ class Api_v1 extends CI_Controller {
                 $stores_data[] = $store->as_array();
             }
 			$user_data = $current_user->as_array();
+
+            $group = $current_user->get_group();
+            if( $group )
+            {
+                $permissions_data = $group->get_permissions();
+            }
 		}
 
         if( $current_shift )
@@ -782,7 +785,8 @@ class Api_v1 extends CI_Controller {
                     'stores' => $stores_data,
                     'shift' => $shift_data,
                     'shifts' => $shifts_data,
-                    'is_admin' => is_admin()
+                    'is_admin' => is_admin(),
+                    'permissions' => $permissions_data
 				)
 			);
 

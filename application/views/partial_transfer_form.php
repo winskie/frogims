@@ -200,7 +200,7 @@
 					</span>
 				</div>
 				<div ng-if="[ 'receipt', 'externalReceipt' ].indexOf( data.editMode ) == -1">
-					<p class="form-control-static">{{ transferItem.transfer_datetime | date: 'yyyy-MM-dd HH:mm:ss' }}</p>
+					<p class="form-control-static">{{ transferItem.receipt_datetime | date: 'yyyy-MM-dd HH:mm:ss' }}</p>
 				</div>
 			</div>
 			<div class="form-group col-sm-6">
@@ -224,15 +224,16 @@
 <!-- Form buttons -->
 <div class="text-right">
 	<div ng-if="[ 'transfer', 'externalTransfer' ].indexOf( data.editMode ) != -1">
-		<button type="button" class="btn btn-primary" ng-click="scheduleTransfer()">Schedule</button>
-		<button type="button" class="btn btn-default" ng-click="approveTransfer()">Approve</button>
+		<button type="button" class="btn btn-primary" ng-click="scheduleTransfer()" ng-if="checkPermissions( 'transfers', 'edit' )">Schedule</button>
+		<button type="button" class="btn btn-default" ng-click="approveTransfer()" ng-if="checkPermissions( 'transfers', 'approve' )">Approve</button>
 		<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: ( data.mode == 'transfer' ? 'transfers' : 'receipts' ) })">Close</button>
 	</div>
 	<div ng-if="['receipt', 'externalReceipt'].indexOf( data.editMode ) != -1">
-		<button type="button" class="btn btn-primary" ng-click="receiveTransfer()">Receive</button>
+		<button type="button" class="btn btn-primary" ng-click="receiveTransfer()" ng-if="checkPermissions( 'transfers', 'edit' )">Receive</button>
 		<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: ( data.mode == 'transfer' ? 'transfers' : 'receipts' ) })">Close</button>
 	</div>
 	<div ng-if="data.editMode == 'view'">
+		<button type="button" class="btn btn-default" ng-click="approveTransfer()" ng-if="transferItem.transfer_status == <?php echo TRANSFER_PENDING;?> && checkPermissions( 'transfers', 'approve' )">Approve</button>
 		<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: ( data.mode == 'transfer' ? 'transfers' : 'receipts' ) })">Close</button>
 	</div>
 </div>

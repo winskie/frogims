@@ -18,6 +18,153 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
                 previousTab: null
             };
 
+        me.permissions = {
+            transactions: 'none',
+            transfers: 'none',
+            transfers_approve: false,
+            adjustments: 'none',
+            adjustments_approve: false,
+            conversions: 'none',
+            conversions_approve: false,
+            collections: 'none',
+            allocations: 'none',
+            allocations_allocate: false,
+            allocations_complete: false
+        };
+
+        me.checkPermissions = function( permissionName, action )
+            {
+                var permission;
+                var allowedPermissions;
+
+                switch( permissionName )
+                {
+                    case 'transactions':
+
+                        switch( action )
+                        {
+                            case 'view':
+                                allowedPermissions = [ 'view' ];
+                                permission = me.permissions.transactions;
+                                break;
+
+                            default:
+                                return false;
+                        }
+                        break;
+
+                    case 'transfers':
+                        switch( action )
+                        {
+                            case 'view':
+                                allowedPermissions = [ 'view', 'edit' ];
+                                permission = me.permissions.transfers;
+                                break;
+
+                            case 'edit':
+                                allowedPermissions = [ 'edit' ];
+                                permission = me.permissions.transfers;
+                                break;
+
+                            case 'approve':
+                                return me.permissions.transfers_approve;
+
+                            default:
+                                return false;
+                        }
+                        break;
+
+                    case 'adjustments':
+                        switch( action )
+                        {
+                            case 'view':
+                                allowedPermissions = [ 'view', 'edit' ];
+                                permission = me.permissions.adjustments;
+                                break;
+
+                            case 'edit':
+                                allowedPermissions = [ 'edit' ];
+                                permission = me.permissions.adjustments;
+                                break;
+
+                            case 'approve':
+                                return me.permissions.adjustments_approve
+
+                            default:
+                                return false;
+                        }
+                        break;
+
+                    case 'conversions':
+                        switch( action )
+                        {
+                            case 'view':
+                                allowedPermissions = [ 'view', 'edit' ];
+                                permission = me.permissions.conversions;
+                                break;
+
+                            case 'edit':
+                                allowedPermissions = [ 'edit' ];
+                                permission = me.permissions.conversions;
+                                break;
+
+                            case 'approve':
+                                return me.permissions.conversions_approve;
+
+                            default:
+                                return false;
+                        }
+                        break;
+
+                    case 'collections':
+                        switch( action )
+                        {
+                            case 'view':
+                                allowedPermissions = [ 'view', 'edit' ];
+                                permission = me.permissions.collections;
+                                break;
+
+                            case 'edit':
+                                allowedPermissions = [ 'edit' ];
+                                permission = me.permissions.collections;
+                                break;
+
+                            default:
+                                return false;
+                        }
+                        break;
+
+                    case 'allocations':
+                        switch( action )
+                        {
+                            case 'view':
+                                allowedPermissions = [ 'view', 'edit' ];
+                                permission = me.permissions.allocations;
+                                break;
+
+                            case 'edit':
+                                allowedPermissions = [ 'edit' ];
+                                permission = me.permissions.allocations;
+                                break;
+
+                            case 'allocate':
+                                return me.permissions.allocations_allocate;
+
+                            case 'complete':
+                                return me.permissions.allocations_complete;
+
+                            default:
+                                return false;
+                        }
+                        break;
+
+                    default:
+                        return false;
+                }
+
+                return allowedPermissions.indexOf( permission ) !== -1;
+            };
+
         me.getSessionData = function()
             {
 				var deferred = $q.defer();
@@ -37,6 +184,7 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
                             me.data.userStores = d.stores;
                             me.data.storeShifts = d.shifts;
                             me.data.isAdmin = d.is_admin;
+                            me.permissions = d.permissions;
 
                             deferred.resolve( d );
                         }

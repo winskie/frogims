@@ -48,6 +48,7 @@ app.controller( 'MainController', [ '$rootScope', '$scope', '$state', 'session',
 
 		$scope.canChangeStore = allowStoreChange.indexOf( $state.current.name ) != -1;
 		$scope.sessionData = session.data;
+		$scope.checkPermissions = session.checkPermissions;
 		$scope.changeStore = session.changeStore;
 		$scope.changeShift = session.changeShift;
 		$scope.lookup = lookup.getX;
@@ -558,6 +559,20 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 				$scope.widgets[dp].opened = true;
 			};
 
+		$scope.showActionList = function( module, record )
+			{
+				switch( module )
+				{
+					case 'transfers':
+						// TRANSFER_PENDING, TRANSFER_APPROVED
+						return( ( record.transfer_status == 1 && ( $scope.checkPermissions( 'transfers', 'edit' ) || $scope.checkPermissions( 'transfers', 'approve' ) ) )
+							|| ( record.transfer_status == 2 && $scope.checkPermissions( 'transfers', 'approve' ) ) )
+
+					default:
+						return false;
+				}
+			};
+
 		// Refresh/update functions
 		$scope.updateInventory = appData.getInventory;
 		$scope.updateTransactions = appData.getTransactions;
@@ -691,8 +706,8 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 		var users = [];
 
 		$scope.data = {
-			mode: 'transfer',
-			editMode: $stateParams.editMode || 'transfer',
+			mode: 'transfer', // transfer | receipt
+			editMode: $stateParams.editMode || 'transfer', // view, externalReceipt, externalTransfer, receipt, transfer
 			title: 'New Transfer',
 			sources: [],
 			destinations: [],
@@ -1193,6 +1208,14 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 							else if( ! $scope.transferItem.destination_id && $scope.transferItem.destination_name )
 							{
 								$scope.data.editMode = 'externalTransfer';
+							}
+							else if( $scope.transferItem.origin_id == session.data.currentStore.id )
+							{
+								$scope.data.editMode = 'transfer';
+							}
+							else if( $scope.transferItem.destination_id == session.data.currentStore.id )
+							{
+								$scope.data.editMode = 'receipt';
 							}
 						}
 

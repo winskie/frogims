@@ -168,3 +168,8 @@ div.notification_wrapper div.notification.info {
 div.notification_wrapper div.notification.notice-visible {
     right: 0;
 }
+
+
+.btn-dropdown-caret {
+    width: 25px;
+}

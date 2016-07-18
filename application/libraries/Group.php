@@ -149,9 +149,28 @@ class Group extends Base_model {
 		return TRUE;
 	}
 
-	public function check_permissions( $permission, $action )
+	public function get_permissions()
 	{
-		switch( $permission )
+		$permissions = array(
+			'transactions' => param_type( $this->group_perm_transaction, 'string' ),
+			'transfers' => param_type( $this->group_perm_transfer, 'string' ),
+			'transfers_approve' => param_type( $this->group_perm_transfer_approve, 'boolean' ),
+			'adjustments' => param_type( $this->group_perm_adjustment, 'string' ),
+			'adjustments_approve' => param_type( $this->group_perm_adjustment_approve, 'boolean' ),
+			'conversions' => param_type( $this->group_perm_conversion, 'string' ),
+			'conversions_approve' => param_type( $this->group_perm_conversion_approve, 'boolean' ),
+			'collections' => param_type( $this->group_perm_collection, 'string' ),
+			'allocations' => param_type( $this->group_perm_allocation, 'string' ),
+			'allocations_allocate' => param_type( $this->group_perm_allocation_allocate, 'boolean' ),
+			'allocations_complete' => param_type( $this->group_perm_allocation_complete, 'boolean' )
+		);
+
+		return $permissions;
+	}
+
+	public function check_permissions( $permission_name, $action )
+	{
+		switch( $permission_name )
 		{
 			case 'transactions':
 				switch( $action )

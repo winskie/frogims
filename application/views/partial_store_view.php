@@ -40,9 +40,8 @@ $current_user = current_user();
 			</div>
 		</uib-tab>
 
-		<?php if( $current_user->check_permissions( 'transactions', 'view' ) ):?>
 		<!-- Transactions -->
-		<uib-tab heading="Transactions Summary" index="1" select="onTabSelect('transactions')">
+		<uib-tab heading="Transactions Summary" index="1" select="onTabSelect('transactions')" ng-if="checkPermissions( 'transactions', 'view')">
 			<div class="panel panel-default">
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left">Transactions Summary</h3>
@@ -127,11 +126,9 @@ $current_user = current_user();
 				</div>
 			</div>
 		</uib-tab>
-		<?php endif;?>
 
-		<?php if( $current_user->check_permissions( 'transfers', 'view' ) ):?>
 		<!-- Outgoing -->
-		<uib-tab index="2" select="onTabSelect('transfers')">
+		<uib-tab index="2" select="onTabSelect('transfers')" ng-if="checkPermissions( 'transfers', 'view')">
 			<uib-tab-heading>
 				Outgoing <span ng-show="data.pending.transfers > 0" class="label label-danger label-as-badge">{{ data.pending.transfers }}</span>
 			</uib-tab-heading>
@@ -139,11 +136,11 @@ $current_user = current_user();
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left">Transfers</h3>
 					<div class="pull-right">
-						<?php if( $current_user->check_permissions( 'transfers', 'edit' ) ): ?>
-						<button class="btn btn-primary btn-sm" ui-sref="main.transfer({ editMode: 'transfer' })">
-							<i class="glyphicon glyphicon-plus"></i> New transfer
-						</button>&nbsp;
-						<?php endif;?>
+						<span ng-if="checkPermissions( 'transfers', 'edit' )">
+							<button class="btn btn-primary btn-sm" ui-sref="main.transfer({ editMode: 'transfer' })">
+								<i class="glyphicon glyphicon-plus"></i> New transfer
+							</button>&nbsp;
+						</span>
 						<button class="btn btn-default btn-sm" ng-click="updateTransfers( sessionData.currentStore.id )">
 							<i class="glyphicon glyphicon-refresh"></i>
 						</button>
@@ -230,59 +227,22 @@ $current_user = current_user();
 								</td>
 								<td class="text-center vert-top">{{ lookup( 'transferStatus', transfer.transfer_status ) }}</td>
 								<td class="text-right vert-top">
-									<div class="animate-switch-container" ng-switch on="transfer.transfer_status">
-
-										<div class="animate-switch" ng-switch-when="<?php echo TRANSFER_PENDING;?>">
-											<?php if( $current_user->check_permissions( 'transfers', 'approve' ) ): ?>
-											<div class="btn-group btn-block" uib-dropdown>
-												<button type="button" class="btn btn-primary col-sm-9 col-md-10" ng-click="approveTransfer( transfer )">Approve</button>
-												<button type="button" class="btn btn-primary col-sm-3 col-md-2" uib-dropdown-toggle>
-													<span class="caret"></span>
-												</button>
-												<ul uib-dropdown-menu role="menu">
-													<?php if( $current_user->check_permissions( 'transfers', 'edit' ) ): ?>
-													<li role="menuitem"><a ui-sref="main.transfer({ transferItem: transfer, editMode: 'transfer' })">Edit...</a></li>
-													<li role="menuitem"><a href="#" ng-click="cancelTransfer( transfer )">Cancel</a></li>
-													<?php endif; ?>
-													<li role="menuitem"><a ui-sref="main.transfer({ transferItem: transfer, editMode: 'view' })">View details...</a></li>
-												</ul>
-											</div>
-											<?php elseif( $current_user->check_permissions( 'transfers', 'edit' ) ): ?>
-											<div class="btn-group btn-block" uib-dropdown>
-												<button type="button" class="btn btn-primary col-sm-9 col-md-10" ui-sref="main.transfer({ transferItem: transfer, editMode: 'transfer' })">Edit...</button>
-												<button type="button" class="btn btn-primary col-sm-3 col-md-2" uib-dropdown-toggle>
-													<span class="caret"></span>
-												</button>
-												<ul uib-dropdown-menu role="menu">
-													<li role="menuitem"><a href="#" ng-click="cancelTransfer( transfer )">Cancel</a></li>
-													<li role="menuitem"><a ui-sref="main.transfer({ transferItem: transfer, editMode: 'view' })">View details...</a></li>
-												</ul>
-											</div>
-											<?php else: ?>
-											<button type="button" class="btn btn-default btn-block" ui-sref="main.transfer({ transferItem: transfer, editmode: 'view' })">View details...</button>
-											<?php endif; ?>
-										</div>
-
-										<div class="animate-switch" ng-switch-when="<?php echo TRANSFER_APPROVED;?>">
-											<?php if( $current_user->check_permissions( 'transfers', 'approve' ) ):?>
-											<div class="btn-group btn-block" uib-dropdown>
-												<button type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="main.transfer({ transferItem: transfer, mode: 'view' })">View details...</button>
-												<button type="button" class="btn btn-default col-sm-3 col-md-2" uib-dropdown-toggle>
-													<span class="caret"></span>
-												</button>
-												<ul uib-dropdown-menu role="menu">
-													<li role="menuitem"><a href="#" ng-click="cancelTransfer( transfer )">Cancel</a></li>
-												</ul>
-											</div>
-											<?php else: ?>
-											<button type="button" class="btn btn-default btn-block" ui-sref="main.transfer({ transferItem: transfer, editmode: 'view' })">View details...</button>
-											<?php endif; ?>
-										</div>
-
-										<div class="animate-switch" ng-switch-default>
-											<button type="button" class="btn btn-default btn-block" ui-sref="main.transfer({ transferItem: transfer, mode: 'view' })">View details...</button>
-										</div>
-
+									<div class="btn-group" uib-dropdown>
+										<button type="button" class="btn btn-default" ui-sref="main.transfer({ transferItem: transfer, editMode: 'view' })">View details...</button>
+										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'transfers', transfer )">
+											<span class="caret"></span>
+										</button>
+										<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'transfers', transfer )">
+											<li role="menuitem" ng-if="transfer.transfer_status == <?php echo TRANSFER_PENDING;?> && checkPermissions( 'transfers', 'approve' )">
+												<a href ng-click="approveTransfer( transfer )">Approve</a>
+											</li>
+											<li role="menuitem" ng-if="transfer.transfer_status == <?php echo TRANSFER_PENDING;?> && checkPermissions( 'transfers', 'edit' )">
+												<a ui-sref="main.transfer({ transferItem: transfer, editMode: 'transfer' })">Edit...</a>
+											</li>
+											<li role="menuitem" ng-if="( transfer.transfer_status == <?php echo TRANSFER_PENDING;?> && checkPermissions( 'transfers', 'edit' ) ) || ( transfer.transfer_status == <?php echo TRANSFER_APPROVED;?> && checkPermissions( 'transfers', 'approve' ) ) ">
+												<a href ng-click="cancelTransfer( transfer )">Cancel</a>
+											</li>
+										</ul>
 									</div>
 								</td>
 							</tr>
@@ -306,7 +266,7 @@ $current_user = current_user();
 		</uib-tab>
 
 		<!-- Incoming -->
-		<uib-tab index="3" select="onTabSelect('receipts')">
+		<uib-tab index="3" select="onTabSelect('receipts')" ng-if="checkPermissions( 'transfers', 'view')">
 			<uib-tab-heading>
 				Incoming <span ng-show="data.pending.receipts > 0" class="label label-danger label-as-badge">{{ data.pending.receipts }}</span>
 			</uib-tab-heading>
@@ -314,11 +274,11 @@ $current_user = current_user();
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left">Receipts</h3>
 					<div class="pull-right">
-						<?php if( $current_user->check_permissions( 'transfers', 'edit' ) ): ?>
-						<button class="btn btn-primary btn-sm" ui-sref="main.transfer({ editMode: 'externalReceipt' })">
-							<i class="glyphicon glyphicon-plus"></i> New receipt
-						</button>&nbsp;
-						<?php endif;?>
+						<span ng-if="checkPermissions( 'transfers', 'edit' )">
+							<button class="btn btn-primary btn-sm" ui-sref="main.transfer({ editMode: 'externalReceipt' })">
+								<i class="glyphicon glyphicon-plus"></i> New receipt
+							</button>&nbsp;
+						</span>
 						<button class="btn btn-default btn-sm" ng-click="updateReceipts( sessionData.currentStore.id )">
 							<i class="glyphicon glyphicon-refresh"></i>
 						</button>
@@ -407,26 +367,19 @@ $current_user = current_user();
 								</td>
 								<td class="text-center vert-top">{{ lookup( 'transferStatus', receipt.transfer_status ) }}</td>
 								<td class="text-right vert-top">
-									<div class="animate-switch-container" ng-switch on="receipt.transfer_status">
-
-										<div class="animate-switch" ng-switch-when="<?php echo TRANSFER_APPROVED;?>">
-											<div class="btn-group btn-block" uib-dropdown>
-												<button id="split-button" type="button" class="btn btn-primary col-sm-9 col-md-10"
-														ui-sref="main.transfer({ transferItem: receipt, editMode: 'receipt' })">Receive...
-												</button>
-												<button type="button" class="btn btn-primary col-sm-3 col-md-2" uib-dropdown-toggle>
-													<span class="caret"></span>
-												</button>
-												<ul uib-dropdown-menu role="menu">
-													<li role="menuitem"><a href="#" ng-click="receiveTransfer( receipt )">Quick receipt</a></li>
-												</ul>
-											</div>
-										</div>
-
-										<div class="animate-switch" ng-switch-default>
-											<button type="button" class="btn btn-default btn-block" ui-sref="main.transfer({ transferItem: receipt, editMode: 'view' })">View details...</button>
-										</div>
-
+									<div class="btn-group" uib-dropdown>
+										<button type="button" class="btn btn-default" ui-sref="main.transfer({ transferItem: receipt, editMode: 'view' })">View details...</button>
+										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle>
+											<span class="caret"></span>
+										</button>
+										<ul uib-dropdown-menu role="menu">
+											<li role="menuitem" ng-if="receipt.transfer_status == <?php echo TRANSFER_APPROVED;?> && checkPermissions( 'transfers', 'edit' )">
+												<a ui-sref="main.transfer({ transferItem: receipt, editMode: 'receipt' })">Receive...</a>
+											</li>
+											<li role="menuitem" ng-if="receipt.transfer_status == <?php echo TRANSFER_APPROVED;?> && checkPermissions( 'transfers', 'edit' )">
+												<a href ng-click="receiveTransfer( receipt )">Quick receipt</a>
+											</li>
+										</ul>
 									</div>
 								</td>
 							</tr>
@@ -438,11 +391,9 @@ $current_user = current_user();
 				</div>
 			</div>
 		</uib-tab>
-		<?php endif; ?>
 
-		<?php if( $current_user->check_permissions( 'adjustments', 'view' ) ):?>
 		<!-- Adjustments -->
-		<uib-tab index="4" select="onTabSelect('adjustments')">
+		<uib-tab index="4" select="onTabSelect('adjustments')" ng-if="checkPermissions( 'adjustments', 'view' )">
 			<uib-tab-heading>
 				Adjustments <span ng-show="data.pending.adjustments > 0" class="label label-danger label-as-badge">{{ data.pending.adjustments }}</span>
 			</uib-tab-heading>
@@ -559,11 +510,9 @@ $current_user = current_user();
 				</div>
 			</div>
 		</uib-tab>
-		<?php endif; ?>
 
-		<?php if( $current_user->check_permissions( 'collections', 'view' ) ):?>
         <!-- Mopping -->
-        <uib-tab index="5" select="onTabSelect('collections')" ng-if="sessionData.currentStore.store_type == 2"> <!-- Production only -->
+        <uib-tab index="5" select="onTabSelect('collections')" ng-if="sessionData.currentStore.store_type == 2 && checkPermissions( 'collections', 'view')"> <!-- Production only -->
             <uib-tab-heading>
                 Mopping Collection
             </uib-tab-heading>
@@ -677,11 +626,9 @@ $current_user = current_user();
 				</div>
             </div>
         </uib-tab>
-		<?php endif;?>
 
-		<?php if( $current_user->check_permissions( 'allocations', 'view' ) ):?>
         <!-- Allocation -->
-        <uib-tab index="6" select="onTabSelect('allocations')" ng-if="sessionData.currentStore.store_type == 4"> <!-- Cashroom only -->
+        <uib-tab index="6" select="onTabSelect('allocations')" ng-if="sessionData.currentStore.store_type == 4 && checkPermissions( 'allocations', 'view')"> <!-- Cashroom only -->
             <uib-tab-heading>
 				Allocations <span ng-show="data.pending.allocations > 0" class="label label-danger label-as-badge">{{ data.pending.allocations }}</span>
 			</uib-tab-heading>
@@ -841,11 +788,9 @@ $current_user = current_user();
 				</div>
             </div>
         </uib-tab>
-		<?php endif;?>
 
-		<?php if( $current_user->check_permissions( 'conversions', 'view' ) ):?>
         <!-- Conversions -->
-        <uib-tab index="7" select="onTabSelect('conversions')">
+        <uib-tab index="7" select="onTabSelect('conversions')" ng-if="checkPermissions( 'conversions', 'view')">
             <uib-tab-heading>
                 Conversions
             </uib-tab-heading>
@@ -965,7 +910,6 @@ $current_user = current_user();
 					</div>
 				</div>
         </uib-tab>
-		<?php endif;?>
 
 	</uib-tabset>
 </div>
