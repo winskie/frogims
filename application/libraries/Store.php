@@ -1024,6 +1024,8 @@ class Store extends Base_model
 			$ci->db->where( 'allocation_status', $status );
 		}
 
+		$ci->db->where( 'store_id', $this->id );
+
 		$count = $ci->db->count_all_results( 'allocations' );
 
 		return $count;
@@ -1181,6 +1183,7 @@ class Store extends Base_model
 		}
 
 		$ci->db->where( 'allocation_status', ALLOCATION_SCHEDULED );
+		$ci->db->where( 'store_id', $this->id );
 		$count = $ci->db->count_all_results( 'allocations' );
 
 		return $count;
