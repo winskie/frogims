@@ -1159,10 +1159,13 @@ class Api_v1 extends CI_Controller {
                                         'format' => 'array'
                                     );
                                 $conversions = $store->get_conversions( $params );
-                                $total_conversions = $store->count_conversions();
+                                $total_conversions = $store->count_conversions( $params );
+                                $pending_conversions = $store->count_pending_conversions( $params );
+
                                 $this->_response( array(
                                     'conversions' => $conversions,
-                                    'total' => $total_conversions ) );
+                                    'total' => $total_conversions,
+                                    'pending' => $pending_conversions ) );
                                 break;
 
                             case 'inventory_history':

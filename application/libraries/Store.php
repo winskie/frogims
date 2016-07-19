@@ -1189,6 +1189,43 @@ class Store extends Base_model
 		return $count;
 	}
 
+	public function count_pending_conversions( $params = array() )
+	{
+		$conversion_date = param( $params, 'date' );
+		$input_item_id = param( $params, 'input' );
+		$output_item_id = param( $params, 'output' );
+
+		$ci =& get_instance();
+		$ci->load->library( 'conversion' );
+
+
+		if( $conversion_date )
+		{
+			$ci->db->where( 'DATE(c.conversion_datetime)', $conversion_date );
+		}
+
+		if( $input_item_id )
+		{
+			$ci->db->where( 'si.item_id', $input_item_id );
+		}
+
+		if( $output_item_id )
+		{
+			$ci->db->where( 'ti.item_id', $output_item_id );
+		}
+
+		$ci->db->join( 'store_inventory si', 'si.id = c.source_inventory_id', 'left' );
+		$ci->db->join( 'store_inventory ti', 'ti.id = c.target_inventory_id', 'left' );
+		$ci->db->join( 'items src_item', 'src_item.id = si.item_id', 'left' );
+		$ci->db->join( 'items tgt_item', 'tgt_item.id = ti.item_id', 'left' );
+
+		$ci->db->where( 'conversion_status', CONVERSION_PENDING );
+		$ci->db->where( 'c.store_id', $this->id );
+		$count = $ci->db->count_all_results( 'conversions c' );
+
+		return $count;
+	}
+
 	public function get_transactions_date_range( $start_time = NULL, $end_time = NULL, $params = array() )
 	{
 		$start_time = param_type( $start_time, 'datetime', date( TIMESTAMP_FORMAT, strtotime( 'now - 1 day' ) ) );

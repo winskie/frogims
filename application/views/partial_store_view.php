@@ -786,7 +786,7 @@ $current_user = current_user();
         <!-- Conversions -->
         <uib-tab index="7" select="onTabSelect('conversions')" ng-if="checkPermissions( 'conversions', 'view')">
             <uib-tab-heading>
-                Conversions
+                Conversions <span ng-show="data.pending.conversions > 0" class="label label-danger label-as-badge">{{ data.pending.conversions }}</span>
             </uib-tab-heading>
             <div class="panel panel-default">
                 <div class="panel-heading">

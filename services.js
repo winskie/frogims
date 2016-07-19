@@ -414,7 +414,8 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         transfers: 0,
                         receipts: 0,
                         adjustments: 0,
-                        allocations: 0
+                        allocations: 0,
+                        conversions: 0
                     }
             };
 
@@ -848,7 +849,8 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         {
                             var d = response.data;
                             me.data.conversions = d.data.conversions;
-                            me.data.totals.conversions = d.data.total
+                            me.data.totals.conversions = d.data.total;
+                            me.data.pending.conversions = d.data.pending;
                             deferred.resolve( d );
                         }
                         else
