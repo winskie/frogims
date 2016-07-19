@@ -514,11 +514,11 @@ $current_user = current_user();
                 <div class="panel-heading">
                     <h3 class="panel-title pull-left">Mopping Collection</h3>
                     <div class="pull-right">
-						<?php if( $current_user->check_permissions( 'collections', 'edit' ) ): ?>
-                        <button class="btn btn-primary btn-sm" ui-sref="main.mopping({ editMode: 'new' })">
-                            <i class="glyphicon glyphicon-plus"></i> New collection
-                        </button>&nbsp;
-						<?php endif;?>
+						<span ng-if="checkPermissions( 'collections', 'edit' )">
+							<button class="btn btn-primary btn-sm" ui-sref="main.mopping({ editMode: 'new' })">
+								<i class="glyphicon glyphicon-plus"></i> New collection
+							</button>&nbsp;
+						</span>
                         <button class="btn btn-default btn-sm" ng-click="updateCollections( sessionData.currentStore.id )">
                             <i class="glyphicon glyphicon-refresh"></i>
                         </button>
@@ -592,11 +592,11 @@ $current_user = current_user();
 								</td>
 								<td class="vert-top">
 									<div class="btn-group btn-block" uib-dropdown>
-										<button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="main.mopping({ moppingItem: collection, editMode: 'view' })">View details...</button>
-										<button type="button" class="btn btn-default col-sm-3 col-md-2" uib-dropdown-toggle>
+										<button id="split-button" type="button" class="btn btn-default" ui-sref="main.mopping({ moppingItem: collection, editMode: 'view' })">View details...</button>
+										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'collections', collection )">
 											<span class="caret"></span>
 										</button>
-										<ul uib-dropdown-menu role="menu">
+										<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'collections', collection )">
 											<li role="menuitem"><a ui-sref="main.mopping({ moppingItem: collection, editMode: 'edit' })">Edit Collection...</a></li>
 										</ul>
 									</div>

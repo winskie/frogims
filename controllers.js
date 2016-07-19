@@ -572,6 +572,9 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 						// ADJUSTMENT_PENDING, ADJUSTMENT_APPROVED
 						return ( ( record.adjustment_status == 1 && ( $scope.checkPermissions( 'adjustments', 'edit' ) || $scope.checkPermissions( 'adjustments', 'approve' ) ) ) );
 
+					case 'collections':
+						return ( $scope.checkPermissions( 'collections', 'edit' ) );
+
 					default:
 						return false;
 				}
