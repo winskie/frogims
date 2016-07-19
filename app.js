@@ -230,7 +230,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 			name: 'main.adjust',
 			parent: main,
 			url: '/adjust',
-			params: { adjustmentItem: null },
+			params: { adjustmentItem: null, editMode: 'view' },
 			templateUrl: baseUrl + 'index.php/main/view/partial_adjustment_form',
 			controller: 'AdjustmentController'
 		};

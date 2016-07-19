@@ -401,11 +401,11 @@ $current_user = current_user();
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left">Adjustments</h3>
 					<div class="pull-right">
-						<?php if( $current_user->check_permissions( 'adjustments', 'edit' ) ): ?>
-						<button class="btn btn-primary btn-sm" ui-sref="main.adjust">
-							<i class="glyphicon glyphicon-plus"></i> New adjustment
-						</button>&nbsp;
-						<?php endif;?>
+						<span ng-if="checkPermissions( 'adjustments', 'edit' )">
+							<button class="btn btn-primary btn-sm" ui-sref="main.adjust">
+								<i class="glyphicon glyphicon-plus"></i> New adjustment
+							</button>&nbsp;
+						</span>
 						<button class="btn btn-default btn-sm" ng-click="updateAdjustments( sessionData.currentStore.id )">
 							<i class="glyphicon glyphicon-refresh"></i>
 						</button>
@@ -468,30 +468,24 @@ $current_user = current_user();
 								<td class="text_left">{{ adjustment.adjustment_timestamp }}</td>
 								<td class="text_left">{{ adjustment.item_name }}</td>
 								<td class="text-right">{{ adjustment.adjusted_quantity | number }}</td>
-								<td class="text-right">{{ adjustment.adjustment_status == 1 ? 'pending' : ( adjustment.previous_quantity | number ) }}</td>
+								<td class="text-right">{{ adjustment.adjustment_status == 1 ? '---' : ( adjustment.previous_quantity | number ) }}</td>
 								<td class="text-left">{{ adjustment.reason }}</td>
 								<td class="text-center">{{ lookup( 'adjustmentStatus', adjustment.adjustment_status ) }}</td>
 								<td>
-									<div class="animate-switch-container" ng-switch on="adjustment.adjustment_status">
-
-										<div class="animate-switch" ng-switch-when="<?php echo ADJUSTMENT_PENDING;?>">
-											<div class="btn-group btn-block" uib-dropdown>
-												<button id="split-button" type="button" class="btn btn-primary col-sm-9 col-md-10" ng-click="approveAdjustment( adjustment )">Approve</button>
-												<button type="button" class="btn btn-primary col-sm-3 col-md-2" uib-dropdown-toggle>
-													<span class="caret"></span>
-												</button>
-												<ul uib-dropdown-menu role="menu">
-													<li role="menuitem"><a ui-sref="main.adjust({ adjustmentItem: adjustment })">Edit Adjustment...</a></li>
-												</ul>
-											</div>
-										</div>
-
-										<div class="animate-switch" ng-switch-default>
-											<button type="button" class="btn btn-default btn-block" ui-sref="main.adjust({ adjustmentItem: adjustment })">View details...</button>
-										</div>
-
+									<div class="btn-group" uib-dropdown>
+										<button type="button" class="btn btn-default" ui-sref="main.adjust({ adjustmentItem: adjustment })">View details...</button>
+										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'adjustments', adjustment)">
+											<span class="caret"></span>
+										</button>
+										<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'adjustments', adjustment)">
+											<li role="menuitem" ng-if="checkPermissions( 'adjustments', 'approve' )">
+												<a href ng-click="approveAdjustment( adjustment )">Approve</a>
+											</li>
+											<li role="menuitem" ng-if="checkPermissions( 'adjustments', 'edit' )">
+												<a ui-sref="main.adjust({ adjustmentItem: adjustment, editMode: 'edit' })">Edit...</a>
+											</li>
+										</ul>
 									</div>
-
 								</td>
 							</tr>
 							<tr ng-show="!data.adjustments.length">

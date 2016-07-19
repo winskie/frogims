@@ -565,8 +565,12 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 				{
 					case 'transfers':
 						// TRANSFER_PENDING, TRANSFER_APPROVED
-						return( ( record.transfer_status == 1 && ( $scope.checkPermissions( 'transfers', 'edit' ) || $scope.checkPermissions( 'transfers', 'approve' ) ) )
-							|| ( record.transfer_status == 2 && $scope.checkPermissions( 'transfers', 'approve' ) ) )
+						return ( ( record.transfer_status == 1 && ( $scope.checkPermissions( 'transfers', 'edit' ) || $scope.checkPermissions( 'transfers', 'approve' ) ) )
+							|| ( record.transfer_status == 2 && $scope.checkPermissions( 'transfers', 'approve' ) ) );
+
+					case 'adjustments':
+						// ADJUSTMENT_PENDING, ADJUSTMENT_APPROVED
+						return ( ( record.adjustment_status == 1 && ( $scope.checkPermissions( 'adjustments', 'edit' ) || $scope.checkPermissions( 'adjustments', 'approve' ) ) ) );
 
 					default:
 						return false;
@@ -1293,6 +1297,7 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
 	function( $scope, $filter, $state, $stateParams, session, appData, notifications )
 	{
 		$scope.data = {
+				editMode: $stateParams.editMode || 'view',
 				inventoryItems: angular.copy( appData.data.items ),
 				selectedItem: appData.data.items[0]
 			};
@@ -1371,6 +1376,7 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
 		// Initialize controller
 		if( $stateParams.adjustmentItem )
 		{
+			$scope.data.editMode = $stateParams.editMode || 'view';
 			appData.getAdjustment( $stateParams.adjustmentItem.id ).then(
 				function( response )
 				{

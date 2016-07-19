@@ -225,15 +225,28 @@
 <div class="text-right">
 	<div ng-if="[ 'transfer', 'externalTransfer' ].indexOf( data.editMode ) != -1">
 		<button type="button" class="btn btn-primary" ng-click="scheduleTransfer()" ng-if="checkPermissions( 'transfers', 'edit' )">Schedule</button>
-		<button type="button" class="btn btn-default" ng-click="approveTransfer()" ng-if="checkPermissions( 'transfers', 'approve' )">Approve</button>
+		<button type="button" class="btn btn-success" ng-click="approveTransfer()"
+				ng-if="transferItem.transfer_status == <?php echo TRANSFER_PENDING;?> && checkPermissions( 'transfers', 'approve' )">
+			<i class="glyphicon glyphicon-ok"></i> Approve
+		</button>
 		<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: ( data.mode == 'transfer' ? 'transfers' : 'receipts' ) })">Close</button>
 	</div>
 	<div ng-if="['receipt', 'externalReceipt'].indexOf( data.editMode ) != -1">
-		<button type="button" class="btn btn-primary" ng-click="receiveTransfer()" ng-if="checkPermissions( 'transfers', 'edit' )">Receive</button>
+		<button type="button" class="btn btn-success" ng-click="receiveTransfer()"
+				ng-if="transferItem.transfer_status == <?php echo TRANSFER_APPROVED;?> && checkPermissions( 'transfers', 'edit' )">
+				<i class="glyphicon glyphicon-ok"></i> Receive
+		</button>
 		<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: ( data.mode == 'transfer' ? 'transfers' : 'receipts' ) })">Close</button>
 	</div>
 	<div ng-if="data.editMode == 'view'">
-		<button type="button" class="btn btn-default" ng-click="approveTransfer()" ng-if="transferItem.transfer_status == <?php echo TRANSFER_PENDING;?> && checkPermissions( 'transfers', 'approve' )">Approve</button>
+		<button type="button" class="btn btn-success" ng-click="approveTransfer()"
+				ng-if="transferItem.transfer_status == <?php echo TRANSFER_PENDING;?> && checkPermissions( 'transfers', 'approve' )">
+				<i class="glyphicon glyphicon-ok"></i> Approve
+		</button>
+		<button type="button" class="btn btn-success" ng-click="receiveTransfer()"
+				ng-if="transferItem.transfer_status == <?php echo TRANSFER_APPROVED;?> && checkPermissions( 'transfers', 'edit' )">
+				<i class="glyphicon glyphicon-ok"></i> Receive
+		</button>
 		<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: ( data.mode == 'transfer' ? 'transfers' : 'receipts' ) })">Close</button>
 	</div>
 </div>
