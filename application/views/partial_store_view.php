@@ -630,11 +630,11 @@ $current_user = current_user();
                 <div class="panel-heading">
                     <h3 class="panel-title pull-left">Allocations</h3>
                     <div class="pull-right">
-						<?php if( $current_user->check_permissions( 'allocations', 'edit' ) ): ?>
-                        <button class="btn btn-primary btn-sm" ui-sref="main.allocation({ editMode: 'new' })">
-                            <i class="glyphicon glyphicon-plus"></i> New allocation
-                        </button>&nbsp;
-						<?php endif;?>
+						<span ng-if="checkPermissions( 'allocations', 'edit' )">
+							<button class="btn btn-primary btn-sm" ui-sref="main.allocation({ editMode: 'new' })">
+								<i class="glyphicon glyphicon-plus"></i> New allocation
+							</button>&nbsp;
+						</span>
                         <button class="btn btn-default btn-sm" ng-click="updateAllocations( sessionData.currentStore.id )">
                             <i class="glyphicon glyphicon-refresh"></i>
                         </button>
@@ -738,29 +738,22 @@ $current_user = current_user();
 								</td>
 								<td class="text-center vert-top">{{ lookup( 'allocationStatus', row.allocation_status ).status }}</td>
 								<td class="vert-top" ng-switch on="row.allocation_status">
-									<div class="btn-group btn-block" uib-dropdown ng-switch-when="<?php echo ALLOCATION_SCHEDULED;?>">
-										<button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="main.allocation({ allocationItem: row, editMode: 'edit' })">Edit...</button>
-										<button type="button" class="btn btn-default col-sm-3 col-md-2" uib-dropdown-toggle>
+									<div class="btn-group" uib-dropdown>
+										<button type="button" class="btn btn-default" ui-sref="main.allocation({ allocationItem: row, editMode: 'view' })">View details...</button>
+										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'allocations', row )">
 											<span class="caret"></span>
 										</button>
-										<ul uib-dropdown-menu role="menu">
-											<li role="menuitem"><a href="#" ng-click="cancelAllocation( row )">Cancel</a></li>
-											<li role="menuitem"><a ui-sref="main.allocation({ allocationItem: row, editMode: 'view' })">View details...</a></li>
-										</ul>
-									</div>
+										<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'allocations', row )">
+											<li role="menuitem" ng-if="row.allocation_status != <?php echo ALLOCATION_REMITTED;?>
+													&& row.allocation_status != <?php echo ALLOCATION_CANCELLED;?>
+													&& checkPermissions( 'allocations', 'edit' )">
+												<a ui-sref="main.allocation({ allocationItem: row, editMode: 'edit' })">Edit...</a>
+											</li>
+											<li role="menuitem" ng-if="row.allocation_status == <?php echo ALLOCATION_SCHEDULED;?> && checkPermissions( 'allocations', 'edit' )">
+												<a href="#" ng-click="cancelAllocation( row )">Cancel</a>
+											</li>
 
-									<div class="btn-group btn-block" uib-dropdown ng-switch-when="<?php echo ALLOCATION_ALLOCATED;?>">
-										<button id="split-button" type="button" class="btn btn-default col-sm-9 col-md-10" ui-sref="main.allocation({ allocationItem: row, editMode: 'edit' })">Edit...</button>
-										<button type="button" class="btn btn-default col-sm-3 col-md-2" uib-dropdown-toggle>
-											<span class="caret"></span>
-										</button>
-										<ul uib-dropdown-menu role="menu">
-											<li role="menuitem"><a ui-sref="main.allocation({ allocationItem: row, editMode: 'view' })">View details...</a></li>
 										</ul>
-									</div>
-
-									<div class="animate-switch" ng-switch-default>
-										<button type="button" class="btn btn-default btn-block" ui-sref="main.allocation({ allocationItem: row, editMode: 'view' })">View details...</button>
 									</div>
 								</td>
 							</tr>
@@ -792,11 +785,11 @@ $current_user = current_user();
                 <div class="panel-heading">
                     <h3 class="panel-title pull-left">Conversions</h3>
                     <div class="pull-right">
-						<?php if( $current_user->check_permissions( 'conversions', 'edit' ) ): ?>
-                        <button class="btn btn-primary btn-sm" ui-sref="main.convert">
-                            <i class="glyphicon glyphicon-plus"></i> New conversion
-                        </button>&nbsp;
-						<?php endif;?>
+						<span ng-if="checkPermissions( 'conversions', 'edit' )">
+							<button class="btn btn-primary btn-sm" ui-sref="main.convert({ editMode: 'edit' })">
+								<i class="glyphicon glyphicon-plus"></i> New conversion
+							</button>&nbsp;
+						</span>
                         <button class="btn btn-default btn-sm" ng-click="updateConversions( sessionData.currentStore.id )">
                             <i class="glyphicon glyphicon-refresh"></i>
                         </button>
@@ -865,26 +858,20 @@ $current_user = current_user();
 								<td class="text-left">{{ conversion.remarks }}</td>
 								<td class="text-center">{{ lookup( 'conversionStatus', conversion.conversion_status ) }}</td>
 								<td>
-									<div class="animate-switch-container" ng-switch on="conversion.conversion_status">
-
-										<div class="animate-switch" ng-switch-when="<?php echo CONVERSION_PENDING;?>">
-											<div class="btn-group btn-block" uib-dropdown>
-												<button id="split-button" type="button" class="btn btn-primary col-sm-9 col-md-10" ng-click="approveConversion( conversion )">Approve</button>
-												<button type="button" class="btn btn-primary col-sm-3 col-md-2" uib-dropdown-toggle>
-													<span class="caret"></span>
-												</button>
-												<ul uib-dropdown-menu role="menu">
-													<li role="menuitem"><a ui-sref="main.convert({ conversionItem: conversion })">Edit Conversion...</a></li>
-												</ul>
-											</div>
-										</div>
-
-										<div class="animate-switch" ng-switch-default>
-											<button type="button" class="btn btn-default btn-block" ui-sref="main.convert({ conversionItem: conversion })">View details...</button>
-										</div>
-
+									<div class="btn-group" uib-dropdown>
+										<button type="button" class="btn btn-default" ui-sref="main.convert({ conversionItem: conversion, editMode: 'view' })">View details...</button>
+										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'conversions', conversion )">
+											<span class="caret"></span>
+										</button>
+										<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'conversions', conversion )">
+											<li role="menuitem" ng-if="conversion.conversion_status == <?php echo CONVERSION_PENDING;?> && checkPermissions( 'conversions', 'edit' )">
+												<a ui-sref="main.convert({ conversionItem: conversion })">Edit...</a>
+											</li>
+											<li role="menuitem" ng-if="conversion.conversion_status == <?php echo CONVERSION_PENDING;?> && checkPermissions( 'conversions', 'approve' )">
+												<a href ng-click="approveConversion( conversion )">Approve</a>
+											</li>
+										</ul>
 									</div>
-
 								</td>
 							</tr>
 							<tr ng-show="!data.conversions.length">

@@ -233,7 +233,7 @@
 	</div>
 	<div ng-if="['receipt', 'externalReceipt'].indexOf( data.editMode ) != -1">
 		<button type="button" class="btn btn-success" ng-click="receiveTransfer()"
-				ng-if="transferItem.transfer_status == <?php echo TRANSFER_APPROVED;?> && checkPermissions( 'transfers', 'edit' )">
+				ng-if="( data.editMode == 'externalReceipt' || transferItem.transfer_status == <?php echo TRANSFER_APPROVED;?> ) && checkPermissions( 'transfers', 'edit' )">
 				<i class="glyphicon glyphicon-ok"></i> Receive
 		</button>
 		<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: ( data.mode == 'transfer' ? 'transfers' : 'receipts' ) })">Close</button>
@@ -244,7 +244,7 @@
 				<i class="glyphicon glyphicon-ok"></i> Approve
 		</button>
 		<button type="button" class="btn btn-success" ng-click="receiveTransfer()"
-				ng-if="transferItem.transfer_status == <?php echo TRANSFER_APPROVED;?> && checkPermissions( 'transfers', 'edit' )">
+				ng-if="( data.editMode == 'externalReceipt' || transferItem.transfer_status == <?php echo TRANSFER_APPROVED;?> ) && checkPermissions( 'transfers', 'edit' )">
 				<i class="glyphicon glyphicon-ok"></i> Receive
 		</button>
 		<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: ( data.mode == 'transfer' ? 'transfers' : 'receipts' ) })">Close</button>

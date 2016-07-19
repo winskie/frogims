@@ -575,6 +575,14 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 					case 'collections':
 						return ( $scope.checkPermissions( 'collections', 'edit' ) );
 
+					case 'allocations':
+						// ALLOCATION_SCHEDULED, ALLOCATION_REMITTED, ALLOCATION_CANCELLED
+						return ( ( record.allocation_status != 3 && record.allocation_status != 4 && $scope.checkPermissions( 'allocations', 'edit' ) )
+							|| ( record.allocation_status == 1 && $scope.checkPermissions( 'allocations', 'edit' ) ) );
+
+					case 'conversions':
+						return record.conversion_status == 1 && ( $scope.checkPermissions( 'conversions', 'edit' ) || $scope.checkPermissions( 'conversions', 'approve' ) );
+
 					default:
 						return false;
 				}
@@ -1411,6 +1419,7 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 		var convertibleItems = [];
 
 		$scope.data = {
+				editMode: $stateParams.editMode || 'view',
 				conversionDatepicker: { format: 'yyyy-MM-dd HH:mm:ss', opened: false },
 				sourceItems: items,
 				targetItems: items,
@@ -1631,6 +1640,8 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 						$scope.conversionItem.target_quantity = parseInt( $stateParams.conversionItem.target_quantity );
 						$scope.data.sourceInventory = $filter( 'filter' )( appData.data.items, { id: $stateParams.conversionItem.source_inventory_id }, true )[0];
 						$scope.data.targetInventory = $filter( 'filter' )( appData.data.items, { id: $stateParams.conversionItem.target_inventory_id }, true )[0];
+
+						$scope.onInputItemChange();
 					}
 				}
 			)

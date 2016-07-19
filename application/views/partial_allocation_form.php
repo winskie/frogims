@@ -213,27 +213,20 @@
     </form>
 </div>
 
-<div class="text-right" ng-switch on="allocationItem.allocation_status" ng-if="data.editMode != 'view'">
-    <div ng-switch-when="<?php echo ALLOCATION_SCHEDULED;?>">
-        <button type="button" class="btn btn-primary" ng-click="saveAllocation()">Schedule</button>
-        <button type="button" class="btn btn-default"
-            ng-disabled="allocationItem.allocations.length == 0"
-            ng-click="allocateAllocation()">Mark as Allocated
-        </button>
-        <button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'allocations' })">Close</button>
-    </div>
-    <div ng-switch-when="<?php echo ALLOCATION_ALLOCATED;?>">
-        <button type="button" class="btn btn-primary" ng-click="saveAllocation()">Update</button>
-        <button type="button" class="btn btn-default"
-            ng-click="remitAllocation()">Mark as Completed
-        </button>
-        <button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'allocations' })">Close</button>
-    </div>
-    <div ng-switch-when="<?php echo ALLOCATION_REMITTED;?>">
-        <button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'allocations' })">Close</button>
-    </div>
-</div>
-
-<div class="text-right" ng-if="data.editMode == 'view'">
+<div class="text-right">
+    <button type="button" class="btn btn-primary" ng-click="saveAllocation()"
+        ng-if="data.editMode != 'view' && checkPermissions( 'allocations', 'edit' )
+                && ( allocationItem.allocation_status == <?php echo ALLOCATION_SCHEDULED;?> || allocationItem.allocation_status == <?php echo ALLOCATION_ALLOCATED;?> )">
+        {{ allocationItem.allocation_status == 1 ? 'Schedule' : 'Update' }}
+    </button>
+    <button type="button" class="btn btn-success"
+        ng-disabled="allocationItem.allocations.length == 0"
+        ng-if="allocationItem.allocation_status == <?php echo ALLOCATION_SCHEDULED;?> && checkPermissions( 'allocations', 'allocate' )"
+        ng-click="allocateAllocation()">Mark as allocated
+    </button>
+    <button type="button" class="btn btn-success"
+        ng-if="allocationItem.allocation_status == <?php echo ALLOCATION_ALLOCATED;?> && checkPermissions( 'allocations', 'complete' )"
+        ng-click="remitAllocation()">Mark as completed
+    </button>
     <button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'allocations' })">Close</button>
 </div>

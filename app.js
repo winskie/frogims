@@ -239,7 +239,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 			name: 'main.convert',
 			parent: main,
 			url: '/convert',
-			params: { conversionItem: null },
+			params: { conversionItem: null, editMode: 'view' },
 			templateUrl: baseUrl + 'index.php/main/view/partial_conversion_form',
 			controller: 'ConversionController',
 			resolve: {
