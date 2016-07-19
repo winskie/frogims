@@ -240,6 +240,36 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
 				return deferred.promise;
             };
 
+        me.updateCurrentPermissions = function()
+            {
+                var deferred = $q.defer();
+                $http({
+                    method: 'GET',
+                    url: baseUrl + 'index.php/api/v1/users/' + me.data.currentUser.id + '/permissions'
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            var d = response.data.data;
+                            me.permissions = d;
+                            deferred.resolve( d );
+                        }
+                        else
+                        {
+                            notifications.showMessages( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+					},
+					function( reason )
+					{
+                        console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg )
+					});
+
+				return deferred.promise;
+            };
+
         me.changeStore = function( newStore )
             {
                 var deferred = $q.defer();

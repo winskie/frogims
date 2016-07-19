@@ -1589,6 +1589,13 @@ class Api_v1 extends CI_Controller {
                                         $this->_response( $user_stores_array );
                                         break;
 
+                                    case 'permissions':
+                                        $user_group = $user->get_group();
+                                        $user_permissions = $user_group->get_permissions();
+
+                                        $this->_response( $user_permissions );
+                                        break;
+
                                     case NULL:
                                         $user_data = $user->as_array();
 

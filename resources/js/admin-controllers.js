@@ -303,6 +303,10 @@ app.controller( 'GroupController', [ '$scope', '$state', '$stateParams', '$filte
 					adminData.saveGroup( data ).then(
 						function( response )
 						{
+							if( data.id == session.data.currentUser.group_id )
+							{
+								session.updateCurrentPermissions();
+							}
 							adminData.refresh( 'group' );
 							notifications.alert( 'Group record saved', 'success' );
 							$state.go( 'main.admin', { activeTab: 'groups' } );
