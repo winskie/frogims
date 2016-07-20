@@ -138,6 +138,38 @@
 					</div>
 				</div>
 
+				<!-- Manage Store Users -->
+				<!--
+				<div class="row">
+					<div class="form-group col-sm-12 col-md-6 col-lg-4">
+						<label class="control-label col-sm-6 col-md-6 col-lg-6">Manage store users</label>
+						<div class="btn-group">
+							<label class="btn btn-default" ng-model="groupItem.group_perm_collection" uib-btn-radio="'none'">none</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_collection" uib-btn-radio="'view'">view</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_collection" uib-btn-radio="'edit'">edit</label>
+						</div>
+					</div>
+				</div>
+				-->
+			</form>
+		</div>
+	</div>
+
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h3 class="panel-title">Dashboard Widgets</h3>
+		</div>
+		<div class="panel-body">
+			<form class="form-horizontal">
+				<div class="row">
+					<div class="form-group col-sm-12 col-md-6 col-lg-6" ng-repeat="widget in data.widgets">
+						<label class="control-label col-sm-6 col-md-6 col-lg-6">{{ widget.label }}</label>
+						<div class="btn-group">
+							<label class="btn btn-default" ng-model="groupItem.widgets[widget.name]" uib-btn-radio="false">no</label>
+							<label class="btn btn-default" ng-model="groupItem.widgets[widget.name]" uib-btn-radio="true">yes</label>
+						</div>
+					</div>
+				</div>
 			</form>
 		</div>
 	</div>

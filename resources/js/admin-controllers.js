@@ -268,7 +268,14 @@ app.controller( 'GroupController', [ '$scope', '$state', '$stateParams', '$filte
 	function( $scope, $state, $stateParams, $filter, session, adminData, notifications )
 	{
 		$scope.data = {
-			viewMode: 'edit' };
+			viewMode: 'edit',
+			widgets: [
+				{ name: 'history', label: 'Inventory History' },
+				{ name: 'week_movement', label: 'Average SJT Movement' },
+				{ name: 'inventory', label: 'Store Inventory Levels' },
+				{ name: 'distribution', label: 'Card Distribution'}
+			],
+			widgetPermissions: [] };
 
 		$scope.groupItem = {
 			group_name: null,
@@ -282,7 +289,14 @@ app.controller( 'GroupController', [ '$scope', '$state', '$stateParams', '$filte
 			group_perm_collection: 'none',
 			group_perm_allocation: 'none',
 			group_perm_allocation_allocate: false,
-			group_perm_allocation_complete: false };
+			group_perm_allocation_complete: false,
+
+			widgets: {} };
+
+		for( var i = 0; i < $scope.data.widgets.length; i ++ )
+		{
+			$scope.groupItem.widgets[$scope.data.widgets[i].name] = false;
+		}
 
 		$scope.checkData = function()
 			{
@@ -292,6 +306,19 @@ app.controller( 'GroupController', [ '$scope', '$state', '$stateParams', '$filte
 		$scope.prepareData = function()
 			{
 				var data = angular.copy( $scope.groupItem );
+				var widgets = $scope.data.widgets;
+				var n = widgets.length;
+				var widgetPermissions = [];
+				for( var i = 0; i < n; i++ )
+				{
+					if( data.widgets[widgets[i].name] )
+					{
+						widgetPermissions.push( widgets[i].name );
+					}
+				}
+				delete data.widgets;
+				data.group_perm_dashboard = widgetPermissions.join( ',' );
+
 				return data;
 			};
 
@@ -326,11 +353,24 @@ app.controller( 'GroupController', [ '$scope', '$state', '$stateParams', '$filte
 				function( response )
 				{
 					$scope.groupItem = response.data;
+
+					// Widgets
+					$scope.groupItem.widgets = {};
+					if( $scope.groupItem.group_perm_dashboard )
+					{
+						var widgets = $scope.data.widgets;
+						var allowedWidgets = $scope.groupItem.group_perm_dashboard.split(',');
+						for( var i = 0; i < widgets.length; i++ )
+						{
+							$scope.groupItem.widgets[widgets[i].name] = ( allowedWidgets.indexOf( widgets[i].name ) !== -1 );
+						}
+					}
 				},
 				function( reason )
 				{
 					console.error( reason );
 				} );
+
 		}
 	}
 ]);

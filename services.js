@@ -158,6 +158,15 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
                         }
                         break;
 
+                    case 'dashboard':
+                        var allowedPermissions = me.permissions.dashboard.split( ',' );
+                        if( ! allowedPermissions.length )
+                        {
+                            return false;
+                        }
+                        permission = action;
+                        break;
+
                     default:
                         return false;
                 }

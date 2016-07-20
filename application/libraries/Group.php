@@ -19,6 +19,7 @@ class Group extends Base_model {
 	protected $group_perm_allocation; // none | view | edit
 	protected $group_perm_allocation_allocate; // true | false
 	protected $group_perm_allocation_complete; // true | false
+	protected $group_perm_dashboard; // comma delimited dashboard widget name
 
 	//protected $group_perm_users; // none | view | edit
 	//protected $group_perm_groups; // none | view | edit
@@ -53,6 +54,8 @@ class Group extends Base_model {
 			'group_perm_allocation' => array( 'type' => 'string' ),
 			'group_perm_allocation_allocate' => array( 'type' => 'boolean' ),
 			'group_perm_allocation_complete' => array( 'type' => 'boolean' ),
+
+			'group_perm_dashboard' => array( 'type' => 'string' )
 
 			//'group_perm_users' => array( 'type' => 'string' ),
 			//'group_perm_groups' => array( 'type' => 'string' ),
@@ -162,7 +165,8 @@ class Group extends Base_model {
 			'collections' => param_type( $this->group_perm_collection, 'string' ),
 			'allocations' => param_type( $this->group_perm_allocation, 'string' ),
 			'allocations_allocate' => param_type( $this->group_perm_allocation_allocate, 'boolean' ),
-			'allocations_complete' => param_type( $this->group_perm_allocation_complete, 'boolean' )
+			'allocations_complete' => param_type( $this->group_perm_allocation_complete, 'boolean' ),
+			'dashboard' => param_type( $this->group_perm_dashboard, 'string' )
 		);
 
 		return $permissions;
@@ -309,6 +313,18 @@ class Group extends Base_model {
 
 				}
 				return in_array( $permission, $allowed_permissions );
+				break;
+
+			case 'dashboard':
+				$allowed_widgets = explode(',', $this->group_perm_dashboard );
+				if( count( $allowed_widgets ) )
+				{
+					return in_array( $action, $allowed_widgets );
+				}
+				else
+				{
+					return FALSE;
+				}
 				break;
 
 			default:

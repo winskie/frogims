@@ -62,6 +62,7 @@ class Installer extends CI_Controller {
 					group_perm_allocation VARCHAR(4) NOT NULL DEFAULT 'none',
 					group_perm_allocation_allocate BOOLEAN NOT NULL DEFAULT 0,
 					group_perm_allocation_complete BOOLEAN NOT NULL DEFAULT 0,
+					group_perm_dashboard VARCHAR(255) NULL DEFAULT NULL,
 					date_created DATETIME NOT NULL,
 					date_modified DATETIME NOT NULL,
 					last_modified INTEGER NOT NULL,

@@ -99,350 +99,363 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 				return data;
 			};
 
-		$scope.history = {
-				chart: null,
-				config: {
-						title: { text: 'Inventory History' },
+		if( $scope.checkPermissions( 'dashboard', 'history' ) )
+		{
+			$scope.history = {
+					chart: null,
+					config: {
+							title: { text: 'Inventory History' },
+							xAxis: {
+									type: 'datetime',
+									title: { text: 'time' },
+									minorTickInterval: 1000 * 60 * 24, // every hour
+									tickInterval: 1000 * 60 * 6 * 24
+								},
+							yAxis: { title: { text: 'inventory level' } },
+							legend: { align: 'center', verticalAlign: 'bottom', borderWidth: 0 },
+							series: null
+						},
+					processData: function( data )
+						{
+							var me = this;
+							var series = [];
+
+							var startTime = parseInt(data.start_time) * 1000;
+							var endTime = parseInt(data.end_time) * 1000;
+							var seriesData = data.series;
+							var currentSeries = me.chart.series;
+
+							var defaultItems = [ 'L2 SJT - Rigid Box', 'L2 SJT - Ticket Magazine', 'SVC - Rigid Box' ];
+
+							for( var i = 0; i < seriesData.length; i++ )
+							{
+								series.push({
+									type: 'line',
+									name: seriesData[i].name,
+									color: itemColors[seriesData[i].name] || undefined,
+									data: [],
+									visible: defaultItems.indexOf( seriesData[i].name ) == -1 ?  false : true });
+							}
+
+							for( var t = startTime; t <= endTime; t += ( 60 * 1000 ) )
+							{
+								for( var s = 0; s < seriesData.length; s++ )
+								{
+									if( seriesData[s].data[t/1000] )
+									{
+										series[s].data.push( [t, parseInt( seriesData[s].data[t/1000] )] );
+										seriesData[s].init_balance = seriesData[s].data[t/1000];
+									}
+									else
+									{
+										series[s].data.push( [t, parseInt( seriesData[s].init_balance )]  );
+									}
+								}
+							}
+
+							// Remove old series first
+							for( var i = currentSeries.length - 1; i >= 0; i-- )
+							{
+								currentSeries[i].remove( false );
+							}
+
+							// Add new series
+							for( var j = 0; j < series.length; j++ )
+							{
+								me.chart.addSeries( series[j], false );
+							}
+
+							me.chart.redraw();
+						},
+					updateChart: function()
+						{
+							var me = this;
+							$http({
+								method: 'GET',
+								url: baseUrl + 'index.php/api/v1/stores/' + session.data.currentStore.id +  '/inventory_history'
+							}).then(
+								function( response )
+								{
+									me.processData( response.data.data );
+								},
+								function( reason )
+								{
+									console.error( 'Something went wrong' );
+								});
+						}
+				};
+		}
+
+		if( $scope.checkPermissions( 'dashboard', 'week_movement' ) )
+		{
+			$scope.week_movement = {
+					chart: null,
+					config: {
+						chart: {
+							type: 'column'
+						},
+						title: { text: 'Average SJT Movement' },
+						subtitle: { text: 'Under Development - Random test data only' },
 						xAxis: {
-								type: 'datetime',
-								title: { text: 'time' },
-								minorTickInterval: 1000 * 60 * 24, // every hour
-								tickInterval: 1000 * 60 * 6 * 24
+							categories: [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ]
+						},
+						yAxis: {
+							title: {
+								text: null
 							},
-						yAxis: { title: { text: 'inventory level' } },
-						legend: { align: 'center', verticalAlign: 'bottom', borderWidth: 0 },
+							labels: {
+							formatter: function () {
+									return Math.abs(this.value);
+								}
+							}
+						},
+						tooltip: {
+							headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+							pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+								'<td style="padding:0"><b>{point.y}</b></td></tr>',
+							footerFormat: '</table>',
+							shared: true,
+							useHTML: true
+						},
+						plotOptions: {
+							series: {
+								stacking: 'normal'
+							},
+							column: {
+								borderWidth: 0
+							}
+						},
+						series: [{
+							name: 'Remittance',
+							data: testData( 500, false ),
+							color: 'greenyellow'
+						}, {
+							name: 'Receipts',
+							data: testData( 5000, false ),
+							color: 'green'
+						}, {
+							name: 'Transfer',
+							data: testData( 300, true ),
+							color: 'orangered'
+						}, {
+							name: 'Allocation',
+							data: testData( 5000, true ),
+							color: 'darkred'
+						}]
+					},
+					processData: function( data )
+						{
+							var me = this;
+							me.chart.xAxis[0].setCategories( data.stores, false );
+
+							var currentSeries = me.chart.series;
+							var series = data.series;
+
+							var defaultItems = [ 'L2 SJT - Rigid Box', 'L2 SJT - Ticket Magazine', 'SVC - Rigid Box' ];
+
+							// Remove old series first
+							for( var i = currentSeries.length - 1; i >= 0; i-- )
+							{
+								currentSeries[i].remove( false );
+							}
+
+							// Add new series
+							for( var j = 0; j < series.length; j++ )
+							{
+								me.chart.addSeries({
+										name: series[j].item,
+										data: series[j].data,
+										color: itemColors[series[j].item] || undefined,
+										visible: defaultItems.indexOf( series[j].item ) != -1
+									}, false );
+							}
+
+							me.chart.redraw()
+						},
+					updateChart: function()
+						{
+							var me = this;
+							$http({
+								method: 'GET',
+								url: baseUrl + 'index.php/api/v1/inventory/movement_week'
+							}).then(
+								function( response )
+								{
+									//me.processData( response.data.data );
+								},
+								function( reason )
+								{
+									console.error( 'Something went wrong' );
+								});
+						}
+				};
+		}
+
+		if( $scope.checkPermissions( 'dashboard', 'inventory' ) )
+		{
+			$scope.inventory = {
+					chart: null,
+					config: {
+						chart: {
+							type: 'column'
+						},
+						title: { text: 'Store Inventory Levels' },
+						xAxis: {
+							categories: null,
+							crosshair: true
+						},
+						yAxis: {
+							title: {
+								text: 'Inventory Levels'
+							}
+						},
+						tooltip: {
+							headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+							pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+								'<td style="padding:0"><b>{point.y}</b></td></tr>',
+							footerFormat: '</table>',
+							shared: true,
+							useHTML: true
+						},
+						plotOptions: {
+							column: {
+								pointPadding: 0.2,
+								borderWidth: 0
+							}
+						},
 						series: null
 					},
-				processData: function( data )
-					{
-						var me = this;
-						var series = [];
-
-						var startTime = parseInt(data.start_time) * 1000;
-						var endTime = parseInt(data.end_time) * 1000;
-						var seriesData = data.series;
-						var currentSeries = me.chart.series;
-
-						var defaultItems = [ 'L2 SJT - Rigid Box', 'L2 SJT - Ticket Magazine', 'SVC - Rigid Box' ];
-
-						for( var i = 0; i < seriesData.length; i++ )
+					processData: function( data )
 						{
-							series.push({
-								type: 'line',
-								name: seriesData[i].name,
-								color: itemColors[seriesData[i].name] || undefined,
-								data: [],
-								visible: defaultItems.indexOf( seriesData[i].name ) == -1 ?  false : true });
-						}
+							var me = this;
+							me.chart.xAxis[0].setCategories( data.stores, false );
 
-						for( var t = startTime; t <= endTime; t += ( 60 * 1000 ) )
-						{
-							for( var s = 0; s < seriesData.length; s++ )
+							var currentSeries = me.chart.series;
+							var series = data.series;
+
+							var defaultItems = [ 'L2 SJT - Rigid Box', 'L2 SJT - Ticket Magazine', 'SVC - Rigid Box' ];
+
+							// Remove old series first
+							for( var i = currentSeries.length - 1; i >= 0; i-- )
 							{
-								if( seriesData[s].data[t/1000] )
-								{
-									series[s].data.push( [t, parseInt( seriesData[s].data[t/1000] )] );
-									seriesData[s].init_balance = seriesData[s].data[t/1000];
-								}
-								else
-								{
-									series[s].data.push( [t, parseInt( seriesData[s].init_balance )]  );
-								}
+								currentSeries[i].remove( false );
 							}
-						}
 
-						// Remove old series first
-						for( var i = currentSeries.length - 1; i >= 0; i-- )
-						{
-							currentSeries[i].remove( false );
-						}
-
-						// Add new series
-						for( var j = 0; j < series.length; j++ )
-						{
-							me.chart.addSeries( series[j], false );
-						}
-
-						me.chart.redraw();
-					},
-				updateChart: function()
-					{
-						var me = this;
-						$http({
-							method: 'GET',
-							url: baseUrl + 'index.php/api/v1/stores/' + session.data.currentStore.id +  '/inventory_history'
-						}).then(
-							function( response )
+							// Add new series
+							for( var j = 0; j < series.length; j++ )
 							{
-								me.processData( response.data.data );
-							},
-							function( reason )
-							{
-								console.error( 'Something went wrong' );
-							});
-					}
-			};
-
-		$scope.week_movement = {
-				chart: null,
-				config: {
-					chart: {
-						type: 'column'
-					},
-					title: { text: 'Average SJT Movement' },
-					subtitle: { text: 'Under Development - Random test data only' },
-					xAxis: {
-						categories: [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ]
-					},
-					yAxis: {
-						title: {
-							text: null
-						},
-						labels: {
-                 		   formatter: function () {
-                        		return Math.abs(this.value);
-                    		}
-                		}
-					},
-					tooltip: {
-						headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
-						pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
-							'<td style="padding:0"><b>{point.y}</b></td></tr>',
-						footerFormat: '</table>',
-						shared: true,
-						useHTML: true
-					},
-					plotOptions: {
-						series: {
-							stacking: 'normal'
-						},
-						column: {
-							borderWidth: 0
-						}
-					},
-					series: [{
-						name: 'Remittance',
-						data: testData( 500, false ),
-						color: 'greenyellow'
-					}, {
-						name: 'Receipts',
-						data: testData( 5000, false ),
-						color: 'green'
-					}, {
-						name: 'Transfer',
-						data: testData( 300, true ),
-						color: 'orangered'
-					}, {
-						name: 'Allocation',
-						data: testData( 5000, true ),
-						color: 'darkred'
-					}]
-				},
-				processData: function( data )
-					{
-						var me = this;
-						me.chart.xAxis[0].setCategories( data.stores, false );
-
-						var currentSeries = me.chart.series;
-						var series = data.series;
-
-						var defaultItems = [ 'L2 SJT - Rigid Box', 'L2 SJT - Ticket Magazine', 'SVC - Rigid Box' ];
-
-						// Remove old series first
-						for( var i = currentSeries.length - 1; i >= 0; i-- )
-						{
-							currentSeries[i].remove( false );
-						}
-
-						// Add new series
-						for( var j = 0; j < series.length; j++ )
-						{
-							me.chart.addSeries({
-									name: series[j].item,
-									data: series[j].data,
-									color: itemColors[series[j].item] || undefined,
-									visible: defaultItems.indexOf( series[j].item ) != -1
-								}, false );
-						}
-
-						me.chart.redraw()
-					},
-				updateChart: function()
-					{
-						var me = this;
-						$http({
-							method: 'GET',
-							url: baseUrl + 'index.php/api/v1/inventory/movement_week'
-						}).then(
-							function( response )
-							{
-								me.processData( response.data.data );
-							},
-							function( reason )
-							{
-								console.error( 'Something went wrong' );
-							});
-					}
-			};
-
-		$scope.inventory = {
-				chart: null,
-				config: {
-					chart: {
-						type: 'column'
-					},
-					title: { text: 'Store Inventory Levels' },
-					xAxis: {
-						categories: null,
-						crosshair: true
-					},
-					yAxis: {
-						title: {
-							text: 'Inventory Levels'
-						}
-					},
-					tooltip: {
-						headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
-						pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
-							'<td style="padding:0"><b>{point.y}</b></td></tr>',
-						footerFormat: '</table>',
-						shared: true,
-						useHTML: true
-					},
-					plotOptions: {
-						column: {
-							pointPadding: 0.2,
-							borderWidth: 0
-						}
-					},
-					series: null
-				},
-				processData: function( data )
-					{
-						var me = this;
-						me.chart.xAxis[0].setCategories( data.stores, false );
-
-						var currentSeries = me.chart.series;
-						var series = data.series;
-
-						var defaultItems = [ 'L2 SJT - Rigid Box', 'L2 SJT - Ticket Magazine', 'SVC - Rigid Box' ];
-
-						// Remove old series first
-						for( var i = currentSeries.length - 1; i >= 0; i-- )
-						{
-							currentSeries[i].remove( false );
-						}
-
-						// Add new series
-						for( var j = 0; j < series.length; j++ )
-						{
-							me.chart.addSeries({
-									name: series[j].item,
-									data: series[j].data,
-									color: itemColors[series[j].item] || undefined,
-									visible: defaultItems.indexOf( series[j].item ) != -1
-								}, false );
-						}
-
-						me.chart.redraw()
-					},
-				updateChart: function()
-					{
-						var me = this;
-						$http({
-							method: 'GET',
-							url: baseUrl + 'index.php/api/v1/inventory/system'
-						}).then(
-							function( response )
-							{
-								me.processData( response.data.data );
-							},
-							function( reason )
-							{
-								console.error( 'Something went wrong' );
-							});
-					}
-			};
-
-		$scope.distribution = {
-				chart: null,
-				config: {
-					chart: { type: 'bar' },
-					title: { text: 'Card Distribution' },
-					xAxis: {
-							categories: null,
-							title: { text: 'Group' },
-							labels: {
-								rotation: -90
+								me.chart.addSeries({
+										name: series[j].item,
+										data: series[j].data,
+										color: itemColors[series[j].item] || undefined,
+										visible: defaultItems.indexOf( series[j].item ) != -1
+									}, false );
 							}
-						},
-					yAxis: {
-							min: 0,
-							title: { text: 'Percent' }
-						},
-					legend: { reversed: true },
-					plotOptions: {
-							series: {
-									dataLabels: { enabled: true },
-									stacking: 'percent'
-								}
-						},
-					tooltip: {
-						headerFormat: '<b>{series.name}</b>: ',
-						pointFormat: '{point.y:,.0f} of {point.total:,.0f} ({point.percentage:,.2f}%)'
-					},
-					series: null
-				},
-				processData: function( data )
-					{
-						var me = this;
-						me.chart.xAxis[0].setCategories( data.groups, false );
 
-						var currentSeries = me.chart.series;
-						var series = data.series;
-
-						for( var i = currentSeries.length - 1; i >= 0; i-- )
+							me.chart.redraw()
+						},
+					updateChart: function()
 						{
-							currentSeries[i].remove( false );
+							var me = this;
+							$http({
+								method: 'GET',
+								url: baseUrl + 'index.php/api/v1/inventory/system'
+							}).then(
+								function( response )
+								{
+									me.processData( response.data.data );
+								},
+								function( reason )
+								{
+									console.error( 'Something went wrong' );
+								});
 						}
+				};
+		}
 
-						// Add new series
-						for( var j = 0; j < series.length; j++ )
-						{
-							me.chart.addSeries({
-									name: series[j].store,
-									data: series[j].data,
-									dataLabels: {
-										inside: true
+		if( $scope.checkPermissions( 'dashboard', 'distribution' ) )
+		{
+			$scope.distribution = {
+					chart: null,
+					config: {
+						chart: { type: 'bar' },
+						title: { text: 'Card Distribution' },
+						xAxis: {
+								categories: null,
+								title: { text: 'Group' },
+								labels: {
+									rotation: -90
+								}
+							},
+						yAxis: {
+								min: 0,
+								title: { text: 'Percent' }
+							},
+						legend: { reversed: true },
+						plotOptions: {
+								series: {
+										dataLabels: { enabled: true },
+										stacking: 'percent'
 									}
-								}, false );
-						}
-
-						me.chart.redraw()
-					},
-				updateChart: function()
-					{
-						var me = this;
-						$http({
-							method: 'GET',
-							url: baseUrl + 'index.php/api/v1/inventory/distribution'
-						}).then(
-							function( response )
-							{
-								me.processData( response.data.data );
 							},
-							function( reason )
+						tooltip: {
+							headerFormat: '<b>{series.name}</b>: ',
+							pointFormat: '{point.y:,.0f} of {point.total:,.0f} ({point.percentage:,.2f}%)'
+						},
+						series: null
+					},
+					processData: function( data )
+						{
+							var me = this;
+							me.chart.xAxis[0].setCategories( data.groups, false );
+
+							var currentSeries = me.chart.series;
+							var series = data.series;
+
+							for( var i = currentSeries.length - 1; i >= 0; i-- )
 							{
-								console.error( 'Something went wrong ' );
-							});
-					}
-			};
+								currentSeries[i].remove( false );
+							}
+
+							// Add new series
+							for( var j = 0; j < series.length; j++ )
+							{
+								me.chart.addSeries({
+										name: series[j].store,
+										data: series[j].data,
+										dataLabels: {
+											inside: true
+										}
+									}, false );
+							}
+
+							me.chart.redraw()
+						},
+					updateChart: function()
+						{
+							var me = this;
+							$http({
+								method: 'GET',
+								url: baseUrl + 'index.php/api/v1/inventory/distribution'
+							}).then(
+								function( response )
+								{
+									me.processData( response.data.data );
+								},
+								function( reason )
+								{
+									console.error( 'Something went wrong ' );
+								});
+						}
+				};
+		}
 
 		$scope.updateDashboard = function()
 			{
-				$scope.history.updateChart();
-				$scope.inventory.updateChart();
-				$scope.distribution.updateChart();
+				if( $scope.checkPermissions( 'dashboard', 'history' ) ) $scope.history.updateChart();
+				if( $scope.checkPermissions( 'dashboard', 'week_movement' ) ) $scope.week_movement.updateChart();
+				if( $scope.checkPermissions( 'dashboard', 'inventory' ) ) $scope.inventory.updateChart();
+				if( $scope.checkPermissions( 'dashboard', 'distribution' ) ) $scope.distribution.updateChart();
 			};
 
 		// Subscribe to notifications
