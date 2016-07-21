@@ -729,6 +729,7 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 			});
 
 		// Init controller
+		appData.refresh( session.data.currentStore.id, 'all' );
 	}
 ]);
 
