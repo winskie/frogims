@@ -369,10 +369,10 @@ $current_user = current_user();
 								<td class="text-right vert-top">
 									<div class="btn-group" uib-dropdown>
 										<button type="button" class="btn btn-default" ui-sref="main.transfer({ transferItem: receipt, editMode: 'view' })">View details...</button>
-										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle>
+										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'receipts', receipt )">
 											<span class="caret"></span>
 										</button>
-										<ul uib-dropdown-menu role="menu">
+										<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'receipts', receipt )">
 											<li role="menuitem" ng-if="receipt.transfer_status == <?php echo TRANSFER_APPROVED;?> && checkPermissions( 'transfers', 'edit' )">
 												<a ui-sref="main.transfer({ transferItem: receipt, editMode: 'receipt' })">Receive...</a>
 											</li>

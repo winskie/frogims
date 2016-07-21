@@ -581,6 +581,10 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 						return ( ( record.transfer_status == 1 && ( $scope.checkPermissions( 'transfers', 'edit' ) || $scope.checkPermissions( 'transfers', 'approve' ) ) )
 							|| ( record.transfer_status == 2 && $scope.checkPermissions( 'transfers', 'approve' ) ) );
 
+					case 'receipts':
+						// TRANSFER_APPROVED
+						return record.transfer_status == 2 && $scope.checkPermissions( 'transfers', 'edit' );
+
 					case 'adjustments':
 						// ADJUSTMENT_PENDING, ADJUSTMENT_APPROVED
 						return ( ( record.adjustment_status == 1 && ( $scope.checkPermissions( 'adjustments', 'edit' ) || $scope.checkPermissions( 'adjustments', 'approve' ) ) ) );
@@ -763,7 +767,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				origin_id: [ 'transfer', 'externalTransfer' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentStore.id : null,
 				origin_name: [ 'transfer', 'externalTransfer' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentStore.store_name : null,
 				sender_id: [ 'transfer', 'externalTransfer' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentUser.id : null,
-				sender_name: [ 'transfer', 'externalTransfer' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentUser.full_name : null,
+				sender_name: null,
 				transfer_datetime: new Date(),
 				destination_id: [ 'receipt', 'externalReceipt' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentStore.id : null,
 				destination_name: [ 'receipt', 'externalReceipt' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentStore.store_name : null,
