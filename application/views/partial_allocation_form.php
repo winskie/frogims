@@ -220,7 +220,7 @@
         {{ allocationItem.allocation_status == 1 ? 'Schedule' : 'Update' }}
     </button>
     <button type="button" class="btn btn-success"
-        ng-disabled="allocationItem.allocations.length == 0"
+        ng-disabled="allocationItem.allocations.length == 0 || ! allocationItem.assignee"
         ng-if="allocationItem.allocation_status == <?php echo ALLOCATION_SCHEDULED;?> && checkPermissions( 'allocations', 'allocate' )"
         ng-click="allocateAllocation()">Mark as allocated
     </button>
