@@ -200,7 +200,7 @@
 					</span>
 				</div>
 				<div ng-if="[ 'receipt', 'externalReceipt' ].indexOf( data.editMode ) == -1">
-					<p class="form-control-static">{{ transferItem.receipt_datetime | date: 'yyyy-MM-dd HH:mm:ss' }}</p>
+					<p class="form-control-static">{{ transferItem.receipt_datetime ? ( transferItem.receipt_datetime | date: 'yyyy-MM-dd HH:mm:ss' ) : '---' }}</p>
 				</div>
 			</div>
 			<div class="form-group col-sm-6">
@@ -213,7 +213,7 @@
 								uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
 					</div>
 					<div ng-if="[ 'receipt', 'externalReceipt' ].indexOf( data.editMode ) == -1">
-						<p class="form-control-static">{{ transferItem.recipient_name }}</p>
+						<p class="form-control-static">{{ transferItem.recipient_name ? transferItem.recipient_name : '---' }}</p>
 					</div>
 				</div>
 			</div>
@@ -244,7 +244,8 @@
 				<i class="glyphicon glyphicon-ok"></i> Approve
 		</button>
 		<button type="button" class="btn btn-success" ng-click="receiveTransfer()"
-				ng-if="( data.editMode == 'externalReceipt' || transferItem.transfer_status == <?php echo TRANSFER_APPROVED;?> ) && checkPermissions( 'transfers', 'edit' )">
+				ng-if="( data.editMode == 'externalReceipt' || ( transferItem.transfer_status == <?php echo TRANSFER_APPROVED;?> && !data.isExternalDestination ) )
+						&& checkPermissions( 'transfers', 'edit' )">
 				<i class="glyphicon glyphicon-ok"></i> Receive
 		</button>
 		<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: ( data.mode == 'transfer' ? 'transfers' : 'receipts' ) })">Close</button>

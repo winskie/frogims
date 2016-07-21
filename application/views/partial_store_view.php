@@ -218,7 +218,10 @@ $current_user = current_user();
 														deleted: ( [ <?php echo implode( ', ', array( TRANSFER_ITEM_VOIDED, TRANSFER_ITEM_CANCELLED ) );?> ].indexOf( item.transfer_item_status ) != -1 )
 													}">
 													<td>{{ item.item_description }}</td>
-													<td class="text-right">{{ item.quantity | number }}</td>
+													<td class="text-right">
+														<i class="glyphicon glyphicon-exclamation-sign text-danger"
+																ng-if="transfer.transfer_status == <?php echo TRANSFER_RECEIVED;?> && item.quantity != item.quantity_received"> </i>
+														{{ item.quantity | number }}
 													<td class="col-sm-5">{{ item.remarks }}</td>
 												</tr>
 											</tbody>
@@ -338,14 +341,14 @@ $current_user = current_user();
 								<td class="vert-top">{{ receipt.receipt_datetime }}</td>
 								<td class="vert-top">
 									<div>
-										{{ receipt.origin_name }} - sent last {{ receipt.transfer_datetime }}
+										{{ receipt.origin_name }} <span class="text-muted">- sent last {{ receipt.transfer_datetime }}</span>
 									</div>
 									<div class="panel panel-default">
 										<table class="table table-condensed table-bordered table-details">
 											<thead>
 												<tr class="active">
 													<th class="text-center">Item</th>
-													<th class="text-center" style="width: 70px;">Sent</th>
+													<th class="text-center" style="width: 70px;">Declared</th>
 													<th class="text-center" style="width: 70px;">Actual</th>
 													<th class="text-center">Remarks</th>
 												</tr>

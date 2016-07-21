@@ -1845,8 +1845,8 @@ appServices.service( 'lookup',
         me.data = {
             transactionTypes: {
                 '1': 'Initial Balance',
-                '10': 'Transfer Out',
-                '11': 'Transfer In',
+                '10': 'Transfer',
+                '11': 'Receipt',
                 '12': 'Transfer Cancellation',
                 '13': 'Void Transfer',
 
