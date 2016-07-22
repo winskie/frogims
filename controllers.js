@@ -1131,7 +1131,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 					data.receipt_datetime = $filter( 'date' )( $scope.transferItem.receipt_datetime, 'yyyy-MM-dd HH:mm:ss' );
 				}
 
-				if( typeof data.sender_name === 'object' )
+				if( typeof data.sender_name === 'object' && data.sender_name )
 				{
 					if( data.sender_name.full_name )
 					{

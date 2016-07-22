@@ -405,7 +405,7 @@ $current_user = current_user();
 					<h3 class="panel-title pull-left">Adjustments</h3>
 					<div class="pull-right">
 						<span ng-if="checkPermissions( 'adjustments', 'edit' )">
-							<button class="btn btn-primary btn-sm" ui-sref="main.adjust">
+							<button class="btn btn-primary btn-sm" ui-sref="main.adjust({ editMode: 'edit' })">
 								<i class="glyphicon glyphicon-plus"></i> New adjustment
 							</button>&nbsp;
 						</span>
