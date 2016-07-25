@@ -1721,7 +1721,8 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 				moppedItem: $scope.data.moppedItems[0],
 				moppedQuantity: 0,
 				packAs: null,
-				processor: null
+				processor: null,
+				deliveryPerson: null
 			};
 
 		$scope.showDatePicker = function( dp )
@@ -1745,7 +1746,11 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 			{
 				if( ( event.type == 'keypress' ) && ( event.charCode == 13 ) )
 				{
-					if( ! $scope.input.processor )
+					if( ! $scope.input.deliveryPerson )
+					{
+						notifications.alert( 'Please specify delivery person', 'warning' );
+					}
+					else if( ! $scope.input.processor )
 					{
 						notifications.alert( 'Please specify collection processor', 'warning' );
 					}
@@ -1757,6 +1762,21 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 						&& $scope.input.moppedItem && typeof $scope.input.moppedItem === 'object'
 						&& ( ! $scope.input.packAs || ( $scope.input.packAs != null && typeof $scope.input.packAs === 'object' ) ) )
 					{
+						var deliveryPerson;
+						if( typeof $scope.input.deliveryPerson == 'string' )
+						{
+							deliveryPerson = $scope.input.deliveryPerson;
+						}
+						else if( typeof $scope.input.deliveryPerson == 'object' && $scope.input.deliveryPerson.full_name )
+						{
+							deliveryPerson = $scope.input.deliveryPerson.full_name;
+						}
+						else
+						{
+							notifications.alert( 'Invalid value for delivery person', 'error' );
+							return false;
+						}
+
 						var data = {
 								mopped_station_name: $scope.input.moppedSource.station_name,
 								mopped_item_name: $scope.input.moppedItem.item_name,
@@ -1770,6 +1790,7 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 								converted_to: ( $scope.input.packAs && $scope.input.packAs.id ) ? $scope.input.packAs.target_item_id : null,
 								group_id: null,
 								processor_id: $scope.input.processor.id,
+								delivery_person: deliveryPerson,
 								mopped_item_status: 1 // MOPPING_ITEM_COLLECTED
 							};
 

@@ -292,6 +292,7 @@ class Api_v1 extends CI_Controller {
                                 'station_name' => array( 'type' => 'string' ),
                                 'mopped_item_name' => array( 'type' => 'string' ),
                                 'convert_to_name' => array( 'type' => 'string' ),
+                                'mopped_station_name' => array( 'type' => 'string' ),
                                 'processor_name' => array( 'type' => 'string' ) ) );
                         }
                         $collection_data['items'] = $collection_items_data;

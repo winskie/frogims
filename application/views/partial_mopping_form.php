@@ -59,11 +59,12 @@
     <div class="panel-heading">
         <h3 class="panel-title">Processed Items</h3>
     </div>
-    <div class="panel-body" style="height: 400px; overflow-y: scroll">
+    <div class="panel-body" style="height: 300px; overflow-y: scroll">
         <table class="table table-condensed">
             <thead>
                 <tr>
                     <th class="text-center">Row</th>
+                    <th class="text-left">Delivered by</th>
                     <th class="text-left">Processed by</th>
                     <th class="text-left">Processed Item</th>
                     <th class="text-left">Package into</th>
@@ -76,6 +77,7 @@
             <tbody>
                 <tr ng-repeat="row in moppingItem.items" ng-class="{ danger:( !row.valid && row.group_id ) || row.moppedItemVoid, deleted: ( row.mopping_item_status == 2 ) }">
                     <td class="text-center">{{ $index + 1 }}</td>
+                    <td class="text-left">{{ row.delivery_person }}</td>
                     <td class="text-left">{{ row.processor_name }}</td>
                     <td class="text-left">{{ row.mopped_item_name }}</td>
                     <td class="text-left">{{ row.convert_to_name || '---' }}</td>
@@ -108,6 +110,15 @@
     <form>
         <div class="panel-body row">
             <div class="form-group col-sm-2">
+                <label class="control-label">Delivered by</label>
+                <input type="text" class="form-control"
+                        ng-model="input.deliveryPerson"
+                        ng-model-options="{ debounce: 500 }"
+                        typeahead-editable="true"
+                        uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
+            </div>
+
+            <div class="form-group col-sm-2">
                 <label class="control-label">Processed by</label>
                 <input type="text" class="form-control"
                         ng-model="input.processor"
@@ -116,7 +127,7 @@
                         uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
             </div>
 
-            <div class="form-group col-sm-3">
+            <div class="form-group col-sm-2">
                 <label class="control-label">Processed Item</label>
                 <select class="form-control"
                         ng-model="input.moppedItem"
@@ -132,7 +143,7 @@
                 -->
             </div>
 
-            <div class="form-group col-sm-3">
+            <div class="form-group col-sm-2">
                 <label class="control-label">Package into</label>
                 <select class="form-control"
                         ng-model="input.packAs"
