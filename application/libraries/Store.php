@@ -602,7 +602,8 @@ class Store extends Base_model
 						RIGHT JOIN mopping AS m
 							ON m.id = mi.mopping_id
 						WHERE
-							m.store_id = ?';
+							m.store_id = ?
+							AND NOT mi.mopping_item_status = '.MOPPING_ITEM_VOIDED;
 
 		if( $processing_date )
 		{
