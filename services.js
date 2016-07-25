@@ -159,12 +159,19 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
                         break;
 
                     case 'dashboard':
-                        var allowedPermissions = me.permissions.dashboard.split( ',' );
-                        if( ! allowedPermissions.length )
+                        if( me.permissions.dashboard )
+                        {
+                            var allowedPermissions = me.permissions.dashboard.split( ',' );
+                            if( ! allowedPermissions.length )
+                            {
+                                return false;
+                            }
+                            permission = action;
+                        }
+                        else
                         {
                             return false;
                         }
-                        permission = action;
                         break;
 
                     default:
@@ -361,20 +368,20 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
                 itemCategories: [],
                 transactionTypes: [
-                        { id: 1, typeName: 'Initial Balance' },
-                        { id: 10, typeName: 'Transfer Out' },
-                        { id: 11, typeName: 'Transfer In' },
-                        { id: 12, typeName: 'Transfer Cancellation' },
-                        { id: 13, typeName: 'Void Transfer' },
-                        { id: 20, typeName: 'Allocation' },
-                        { id: 21, typeName: 'Remittance' },
-                        { id: 22, typeName: 'Void Allocation' },
-                        { id: 23, typeName: 'Void Remittance' },
-                        { id: 30, typeName: 'Collection' },
-                        { id: 31, typeName: 'Void Collection' },
-                        { id: 40, typeName: 'Adjustment' },
-                        { id: 50, typeName: 'Conversion From' },
-                        { id: 51, typeName: 'Conversion To' }
+                        { id: 0, typeName: 'Initial Balance', module: null },
+                        { id: 10, typeName: 'Transfer', module: 'Transfers' },
+                        { id: 11, typeName: 'Receipt', module: 'Transfers' },
+                        { id: 12, typeName: 'Transfer Cancellation', module: 'Transfers' },
+                        { id: 13, typeName: 'Void Transfer', module: 'Transfers' },
+                        { id: 20, typeName: 'Allocation', module: 'Allocations' },
+                        { id: 21, typeName: 'Remittance', module: 'Allocations' },
+                        { id: 22, typeName: 'Void Allocation', module: 'Allocations' },
+                        { id: 23, typeName: 'Void Remittance', module: 'Allocations' },
+                        { id: 30, typeName: 'Collection', module: 'Collections' },
+                        { id: 31, typeName: 'Void Collection', module: 'Collections' },
+                        { id: 40, typeName: 'Adjustment', module: 'Adjustments' },
+                        { id: 50, typeName: 'Conversion From', module: 'Conversions' },
+                        { id: 51, typeName: 'Conversion To', module: 'Conversions' }
                     ],
                 transferStatus: [
                         { id: 1, statusName: 'Pending' },
@@ -1844,7 +1851,7 @@ appServices.service( 'lookup',
         var me = this;
         me.data = {
             transactionTypes: {
-                '1': 'Initial Balance',
+                '0': 'Initial Balance',
                 '10': 'Transfer',
                 '11': 'Receipt',
                 '12': 'Transfer Cancellation',

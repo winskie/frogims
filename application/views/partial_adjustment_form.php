@@ -57,6 +57,32 @@
 				</div>
 			</div>
 
+			<div class="form-group" ng-switch on="data.editMode">
+				<label class="control-label col-sm-2">Transaction</label>
+				<div class="col-sm-12 col-md-6 col-lg-3" ng-switch-when="edit">
+					<select class="form-control"
+                            ng-model="data.selectedTransactionType"
+                            ng-options="type.typeName group by type.module for type in data.transactionTypes track by type.id"
+							ng-change="changeTransactionType()">
+                    </select>
+				</div>
+
+				<div class="col-sm-12 col-md-6 col-lg-3" ng-switch-default>
+					<p class="form-control-static">{{ lookup( 'transactionTypes', adjustmentItem.adj_transaction_type ) }}</p>
+				</div>
+			</div>
+
+			<div class="form-group" ng-switch on="data.editMode">
+				<label class="control-label col-sm-2">Transaction ID</label>
+				<div class="col-sm-6 col-md-4 col-lg-2" ng-switch-when="edit">
+					<input type="number" class="form-control" ng-disabled="! data.selectedTransactionType.id" ng-model="adjustmentItem.adj_transaction_id">
+				</div>
+
+				<div class="col-sm-6 col-md-4 col-lg-2" ng-switch-default>
+					<p class="form-control-static">{{ adjustmentItem.adj_transaction_id }}</p>
+				</div>
+			</div>
+
 			<div class="form-group">
 				<label class="control-label col-sm-2">Status</label>
 				<div class="col-sm-8">

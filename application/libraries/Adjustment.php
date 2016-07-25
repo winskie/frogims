@@ -12,6 +12,8 @@ class Adjustment extends Base_model {
 	protected $adjustment_timestamp;
 	protected $adjustment_status;
 	protected $user_id;
+	protected $adj_transaction_type;
+	protected $adj_transaction_id;
 
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
@@ -32,7 +34,9 @@ class Adjustment extends Base_model {
 				'reason' => array( 'type' => 'string' ),
 				'adjustment_timestamp' => array( 'type' => 'datetime' ),
 				'adjustment_status' => array( 'type' => 'integer' ),
-				'user_id' => array( 'type' => 'integer' )
+				'user_id' => array( 'type' => 'integer' ),
+				'adj_transaction_type' => array( 'type' => 'integer' ),
+				'adj_transaction_id' => array( 'type' => 'integer' )
 			);
 	}
 

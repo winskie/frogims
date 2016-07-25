@@ -1322,26 +1322,38 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 	}
 ]);
 
-app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications',
-	function( $scope, $filter, $state, $stateParams, session, appData, notifications )
+app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'transactionTypes',
+	function( $scope, $filter, $state, $stateParams, session, appData, notifications, transactionTypes )
 	{
 		$scope.data = {
 				editMode: $stateParams.editMode || 'view',
 				inventoryItems: angular.copy( appData.data.items ),
-				selectedItem: appData.data.items[0]
+				selectedItem: appData.data.items[0],
+				transactionTypes: angular.copy( transactionTypes )
 			};
+
+		$scope.data.transactionTypes.unshift( { id: null, typeName: 'None' }  );
+		$scope.data.selectedTransactionType = $scope.data.transactionTypes[0];
 
 		$scope.adjustmentItem = {
 				id: null,
 				store_inventory_id: $scope.data.selectedItem.id,
 				adjusted_quantity: null,
 				reason: null ,
-				adjustment_status: 1 // ADJUSTMENT_PENDING
+				adjustment_status: 1, // ADJUSTMENT_PENDING
+				adj_transaction_type: null,
+				adj_transaction_id: null
 			};
 
 		$scope.changeItem = function()
 			{
 				$scope.adjustmentItem.store_inventory_id = $scope.data.selectedItem.id;
+			};
+
+		$scope.changeTransactionType = function()
+			{
+				$scope.adjustmentItem.adj_transaction_type = $scope.data.selectedTransactionType.id;
+				console.log( $scope.adjustmentItem.adj_transaction_type );
 			};
 
 		$scope.checkAdjustmentItem = function()
@@ -1415,6 +1427,8 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
 						$stateParams.adjustmentItem.previous_quantity = parseInt( $stateParams.adjustmentItem.previous_quantity );
 						$stateParams.adjustmentItem.adjusted_quantity = parseInt( $stateParams.adjustmentItem.adjusted_quantity );
 						$scope.data.selectedItem = $filter( 'filter' )( appData.data.items, { id: $stateParams.adjustmentItem.store_inventory_id }, true )[0];
+
+						$scope.data.selectedTransactionType = $filter( 'filter' )( $scope.data.transactionTypes, { id: $stateParams.adjustmentItem.adj_transaction_type }, true )[0];
 					}
 				},
 				function( reason )

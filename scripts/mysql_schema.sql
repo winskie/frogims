@@ -179,6 +179,8 @@ CREATE TABLE IF NOT EXISTS adjustments
 	adjustment_status SMALLINT NOT NULL DEFAULT 1,
 	adjustment_timestamp DATETIME NOT NULL,
 	user_id INTEGER NOT NULL,
+	adj_transaction_type SMALLINT NULL DEFAULT NULL,
+	adj_transaction_id INTEGER NULL DEFAULT NULL,
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,
 	last_modified INTEGER NOT NULL,

@@ -166,7 +166,7 @@ app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter
 					notifications.alert( 'Password cannot be empty', 'error' );
 					return false;
 				}
-				console.log( $scope.userItem );
+
 				if( $scope.userItem.old_password && ( ! $scope.userItem.password || ! $scope.data.passwordConfirmation ) )
 				{
 					notifications.alert( 'Password cannot be empty', 'error' );
@@ -356,14 +356,12 @@ app.controller( 'GroupController', [ '$scope', '$state', '$stateParams', '$filte
 
 					// Widgets
 					$scope.groupItem.widgets = {};
-					if( $scope.groupItem.group_perm_dashboard )
+
+					var widgets = $scope.data.widgets;
+					var allowedWidgets = $scope.groupItem.group_perm_dashboard ? $scope.groupItem.group_perm_dashboard.split(',') : [];
+					for( var i = 0; i < widgets.length; i++ )
 					{
-						var widgets = $scope.data.widgets;
-						var allowedWidgets = $scope.groupItem.group_perm_dashboard.split(',');
-						for( var i = 0; i < widgets.length; i++ )
-						{
-							$scope.groupItem.widgets[widgets[i].name] = ( allowedWidgets.indexOf( widgets[i].name ) !== -1 );
-						}
+						$scope.groupItem.widgets[widgets[i].name] = ( allowedWidgets.indexOf( widgets[i].name ) !== -1 );
 					}
 				},
 				function( reason )

@@ -232,7 +232,13 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 			url: '/adjust',
 			params: { adjustmentItem: null, editMode: 'view' },
 			templateUrl: baseUrl + 'index.php/main/view/partial_adjustment_form',
-			controller: 'AdjustmentController'
+			controller: 'AdjustmentController',
+			resolve: {
+				transactionTypes: function( appData )
+					{
+						return appData.data.transactionTypes;
+					}
+			}
 		};
 
 	var convert = {
