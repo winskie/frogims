@@ -1353,7 +1353,6 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
 		$scope.changeTransactionType = function()
 			{
 				$scope.adjustmentItem.adj_transaction_type = $scope.data.selectedTransactionType.id;
-				console.log( $scope.adjustmentItem.adj_transaction_type );
 			};
 
 		$scope.checkAdjustmentItem = function()
@@ -1744,40 +1743,48 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 
 		$scope.addMoppingItem = function( event )
 			{
-				if( ( event.type == 'keypress' ) && ( event.charCode == 13 )
-						&& $scope.input.moppedSource
-						&& $scope.input.moppedItem && typeof $scope.input.moppedItem === 'object'
-						&& ( ! $scope.input.packAs || ( $scope.input.packAs != null && typeof $scope.input.packAs === 'object' ) )
-						&& $scope.input.moppedQuantity > 0
-						&& $scope.input.processor && typeof $scope.input.processor === 'object' )
+				if( ( event.type == 'keypress' ) && ( event.charCode == 13 ) )
 				{
-					var data = {
-							mopped_station_name: $scope.input.moppedSource.station_name,
-							mopped_item_name: $scope.input.moppedItem.item_name,
-							convert_to_name: ( $scope.input.packAs && $scope.input.packAs.id ) ? $scope.input.packAs.item_name : null,
-							processor_name: $scope.input.processor ? $scope.input.processor.full_name : null,
-							valid: true,
-
-							mopped_station_id: parseInt( $scope.input.moppedSource.id ),
-							mopped_item_id: parseInt( $scope.input.moppedItem.item_id ),
-							mopped_quantity: parseInt( $scope.input.moppedQuantity ),
-							converted_to: ( $scope.input.packAs && $scope.input.packAs.id ) ? $scope.input.packAs.target_item_id : null,
-							group_id: null,
-							processor_id: $scope.input.processor.id,
-							mopped_item_status: 1 // MOPPING_ITEM_COLLECTED
-						};
-
-					var index = $scope.input.rowId;
-					if( index )
+					if( ! $scope.input.processor )
 					{
-						$scope.moppingItem.items[index] = data;
+						notifications.alert( 'Please specify collection processor', 'warning' );
 					}
-					else
+					else if( $scope.input.moppedQuantity <= 0 )
 					{
-						$scope.moppingItem.items.push( data );
+						notifications.alert( 'Quantity must have a value greater than 0', 'warning' );
 					}
+					else if( $scope.input.moppedSource
+						&& $scope.input.moppedItem && typeof $scope.input.moppedItem === 'object'
+						&& ( ! $scope.input.packAs || ( $scope.input.packAs != null && typeof $scope.input.packAs === 'object' ) ) )
+					{
+						var data = {
+								mopped_station_name: $scope.input.moppedSource.station_name,
+								mopped_item_name: $scope.input.moppedItem.item_name,
+								convert_to_name: ( $scope.input.packAs && $scope.input.packAs.id ) ? $scope.input.packAs.item_name : null,
+								processor_name: $scope.input.processor ? $scope.input.processor.full_name : null,
+								valid: true,
 
-					$scope.checkItems();
+								mopped_station_id: parseInt( $scope.input.moppedSource.id ),
+								mopped_item_id: parseInt( $scope.input.moppedItem.item_id ),
+								mopped_quantity: parseInt( $scope.input.moppedQuantity ),
+								converted_to: ( $scope.input.packAs && $scope.input.packAs.id ) ? $scope.input.packAs.target_item_id : null,
+								group_id: null,
+								processor_id: $scope.input.processor.id,
+								mopped_item_status: 1 // MOPPING_ITEM_COLLECTED
+							};
+
+						var index = $scope.input.rowId;
+						if( index )
+						{
+							$scope.moppingItem.items[index] = data;
+						}
+						else
+						{
+							$scope.moppingItem.items.push( data );
+						}
+
+						$scope.checkItems();
+					}
 				}
 			};
 
@@ -1968,10 +1975,6 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 						{
 							console.error( reason );
 						});
-				}
-				else
-				{
-					console.error( 'There are invalid item entries.' );
 				}
 			};
 
