@@ -1685,14 +1685,34 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 	}
 ]);
 
-app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'cashierShifts', 'packingData', 'UserServices',
-	function( $scope, $filter, $state, $stateParams, session, appData, notifications, cashierShifts, packingData, UserServices )
+app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'packingData', 'UserServices',
+	function( $scope, $filter, $state, $stateParams, session, appData, notifications, packingData, UserServices )
 	{
 		$scope.data = {
 				processingDatepicker: { format: 'yyyy-MM-dd HH:mm:ss', opened: false },
 				businessDatepicker: { format: 'yyyy-MM-dd', opened: false },
-				cashierShifts: cashierShifts,
-				selectedCashierShift: cashierShifts[0],
+				pullOutShifts: [
+					{
+						id: 4, // Check with installer when changing this value
+						shift_num: 'TGM S1',
+						description: 'TGM Shift 1'
+					},
+					{
+						id: 5, // Check with installer when changing this value
+						shift_num: 'TGM S2',
+						description: 'TGM Shift 2'
+					},
+					{
+						id: 8, // Check with installer when changing this value
+						shift_num: 'Cashier S3',
+						description: 'Cashier Shift 3'
+					},
+				],
+				selectedPullOutShift: {
+						id: 4, // Check with installer when changing this value
+						shift_num: 'TGM S1',
+						description: 'TGM Shift 1'
+					},
 				moppedSource: angular.copy( appData.data.stations ),
 				moppedItems: angular.copy( appData.data.items ),
 				packAsItems: packingData,
@@ -1737,9 +1757,9 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 				}
 			};
 
-		$scope.onChangeCashierShift = function()
+		$scope.onChangePullOutShift = function()
 			{
-				$scope.moppingItem.cashier_shift_id = $scope.data.selectedCashierShift.id;
+				$scope.moppingItem.cashier_shift_id = $scope.data.selectedPullOutShift.id;
 			};
 
 		$scope.addMoppingItem = function( event )
@@ -2001,7 +2021,7 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 
 		// Initialize controller
 		$scope.onItemChange();
-		$scope.onChangeCashierShift();
+		$scope.onChangePullOutShift();
 
 		// Load moppingItem
 		if( $stateParams.moppingItem )
@@ -2015,7 +2035,7 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 						$scope.moppingItem = response.data;
 						$scope.moppingItem.processing_datetime = Date.parse( $stateParams.moppingItem.processing_datetime );
 						$scope.moppingItem.business_date = Date.parse( $stateParams.moppingItem.business_date );
-						$scope.data.selectedCashierShift = $filter( 'filter')( $scope.data.cashierShifts, { id: $scope.moppingItem.cashier_shift_id }, true )[0];
+						$scope.data.selectedPullOutShift = $filter( 'filter')( $scope.data.pullOutShifts, { id: $scope.moppingItem.cashier_shift_id }, true )[0];
 						$scope.checkItems();
 					}
 				},

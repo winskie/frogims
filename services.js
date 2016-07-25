@@ -1117,7 +1117,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
             };
 
         // Mopping
-        me.getCashierShifts = function()
+        me.getPullOutShifts = function() // Note: temporarily not is use as the pullout shifts are currently hardcoded
             {
                 var deferred = $q.defer();
                 $http({

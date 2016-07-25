@@ -264,10 +264,6 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 			templateUrl: baseUrl + 'index.php/main/view/partial_mopping_form',
 			controller: 'MoppingController',
 			resolve: {
-				cashierShifts: function( appData )
-					{
-						return appData.getCashierShifts();
-					},
 				packingData: function( appData )
 					{
 						return appData.getPackingData();

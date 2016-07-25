@@ -1,6 +1,6 @@
 <div class="panel panel-default">
 	<div class="panel-heading">
-		<h3 class="panel-title">{{ data.editMode ? 'Mopping Collection #' + moppingItem.id : 'New Mopping Collection' }}</h3>
+		<h3 class="panel-title">{{ data.editMode == 'view' ? 'Mopping Collection #' + moppingItem.id : 'New Mopping Collection' }}</h3>
 	</div>
 	<div class="panel-body">
         <form class="form-horizontal row">
@@ -41,13 +41,13 @@
             <div class="form-group col-sm-4" ng-switch on="data.editMode">
                 <label class="control-label col-sm-5">Pullout Shift</label>
                 <div class="input-group col-sm-7" ng-switch-when="view">
-                    <p class="form-control-static">{{ data.selectedCashierShift.shift_num }}</p>
+                    <p class="form-control-static">{{ data.selectedPullOutShift.shift_num }}</p>
                 </div>
                 <div class="input-group col-sm-7" ng-switch-default>
                     <select class="form-control"
-                            ng-model="data.selectedCashierShift"
-                            ng-options="shift.shift_num for shift in data.cashierShifts track by shift.id"
-                            ng-change="onChangeCashierShift()">
+                            ng-model="data.selectedPullOutShift"
+                            ng-options="shift.shift_num for shift in data.pullOutShifts track by shift.id"
+                            ng-change="onChangePullOutShift()">
                     </select>
                 </div>
             </div>
