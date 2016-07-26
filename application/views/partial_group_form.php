@@ -28,6 +28,7 @@
 		</div>
 		<div class="panel-body">
 			<form class="form-horizontal">
+				<!-- Transactions -->
 				<div class="row">
 					<div class="form-group col-sm-12 col-md-6 col-lg-4">
 						<label class="control-label col-sm-6 col-md-6 col-lg-6">Transactions</label>
@@ -54,6 +55,26 @@
 						<div class="btn-group">
 							<label class="btn btn-default" ng-model="groupItem.group_perm_transfer_approve" uib-btn-radio="false">no</label>
 							<label class="btn btn-default" ng-model="groupItem.group_perm_transfer_approve" uib-btn-radio="true">yes</label>
+						</div>
+					</div>
+				</div>
+
+				<!-- Transfer Validations -->
+				<div class="row">
+					<div class="form-group col-sm-12 col-md-6 col-lg-4">
+						<label class="control-label col-sm-6 col-md-6 col-lg-6">Transfer Validations</label>
+						<div class="btn-group">
+							<label class="btn btn-default" ng-model="groupItem.group_perm_transfer_validation" uib-btn-radio="'none'">none</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_transfer_validation" uib-btn-radio="'view'">view</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_transfer_validation" uib-btn-radio="'edit'">edit</label>
+						</div>
+					</div>
+
+					<div class="form-group col-sm-12 col-md-6 col-lg-4">
+						<label class="control-label col-sm-6 col-md-6 col-lg-6">Can complete?</label>
+						<div class="btn-group">
+							<label class="btn btn-default" ng-model="groupItem.group_perm_transfer_validation_complete" uib-btn-radio="false">no</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_transfer_validation_complete" uib-btn-radio="true">yes</label>
 						</div>
 					</div>
 				</div>

@@ -22,6 +22,8 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
             transactions: 'none',
             transfers: 'none',
             transfers_approve: false,
+            transfer_validations: 'none',
+            transfer_validations_complete: false,
             adjustments: 'none',
             adjustments_approve: false,
             conversions: 'none',
@@ -68,6 +70,27 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
 
                             case 'approve':
                                 return me.permissions.transfers_approve;
+
+                            default:
+                                return false;
+                        }
+                        break;
+
+                    case 'transferValidations':
+                        switch( action )
+                        {
+                            case 'view':
+                                allowedPermissions = [ 'view', 'edit' ];
+                                permission = me.permissions.transfer_validations;
+                                break;
+
+                            case 'edit':
+                                allowedPermissions = [ 'edit' ];
+                                permission = me.permissions.transfer_validations;
+                                break;
+
+                            case 'complete':
+                                return me.permissions.transfer_validations_complete;
 
                             default:
                                 return false;
@@ -418,6 +441,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
                 totals: {
                         transactions: 0,
+                        transferValidations: 0,
                         transfers: 0,
                         receipts: 0,
                         adjustments: 0,
@@ -427,6 +451,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                     },
 
                 pending: {
+                        transferValidations: 0,
                         transfers: 0,
                         receipts: 0,
                         adjustments: 0,
@@ -446,6 +471,14 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                 date: null,
                 item: { id: null, item_name: 'All', item_description: 'All' },
                 type: { id: null, typeName: 'All' },
+                page: 1
+            },
+            transferValidations: {
+                dateSent: null,
+                dateReceived: null,
+                source: { id: null, store_name: 'All' },
+                destination: { id: null, store_name: 'All' },
+                status: { id: null, statusName: 'All' },
                 page: 1
             },
             transfers: {
@@ -633,6 +666,48 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
                             me.data.transactions = d.data.transactions;
                             me.data.totals.transactions = d.data.total;
+                            deferred.resolve( d );
+                        }
+                        else
+                        {
+                            notifications.showMessages( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+					},
+					function( reason )
+					{
+                        console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
+
+        me.getTransferValidations = function()
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/transfers/',
+                    params: {
+                        sent: $filter( 'date' )( me.filters.transferValidations.dateSent, 'yyyy-MM-dd' ),
+                        received: $filter( 'date' )( me.filters.transferValidations.dateReceived, 'yyyy-MM-dd' ),
+                        src: me.filters.transferValidations.source ? me.filters.transferValidations.source.id : null,
+                        dst: me.filters.transferValidations.destination ? me.filters.transferValidations.destination.id : null,
+                        status: me.filters.transferValidations.status ? me.filters.transferValidations.status.id : null,
+                        page: me.filters.transferValidations.page ? me.filters.transferValidations.page : null,
+                        limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
+                    }
+				}).then(
+					function( response )
+					{
+                        if( response.data.status == 'ok' )
+                        {
+                            var d = response.data;
+
+                            me.data.transferValidations = d.data.transfer_validations;
+                            me.data.totals.transferValidations = d.data.total;
+                            me.data.pending.transferValidations = d.data.pending;
                             deferred.resolve( d );
                         }
                         else
@@ -1534,8 +1609,13 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
             {
                 switch( group )
                 {
+                    case 'tranferValidations':
+                        me.getTransferValidations();
+                        break;
+
                     case 'transfer':
                         me.getInventory( currentStoreId );
+                        me.getTransferValidations();
                         me.getTransactions( currentStoreId );
                         me.getTransfers( currentStoreId );
                         break;
@@ -1575,6 +1655,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                     default:
                         me.getInventory( currentStoreId );
                         me.getTransactions( currentStoreId );
+                        me.getTransferValidations();
                         me.getTransfers( currentStoreId );
                         me.getReceipts( currentStoreId );
                         me.getAdjustments( currentStoreId );

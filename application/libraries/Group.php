@@ -9,6 +9,8 @@ class Group extends Base_model {
 	protected $members;
 
 	protected $group_perm_transaction; // none | view
+	protected $group_perm_transfer_validation; // none | view | edit
+	protected $group_perm_transfer_validation_complete; // true | false
 	protected $group_perm_transfer; // none | view | edit
 	protected $group_perm_transfer_approve; //  true | false
 	protected $group_perm_adjustment; // none | view | edit
@@ -39,6 +41,9 @@ class Group extends Base_model {
 			'is_admin' => array( 'type' => 'boolean' ),
 
 			'group_perm_transaction' => array( 'type' => 'string' ),
+
+			'group_perm_transfer_validation' => array( 'type' => 'string' ),
+			'group_perm_transfer_validation_complete' => array( 'type' => 'boolean' ),
 
 			'group_perm_transfer' => array( 'type' => 'string' ),
 			'group_perm_transfer_approve' => array( 'type' => 'boolean' ),
@@ -158,6 +163,8 @@ class Group extends Base_model {
 			'transactions' => param_type( $this->group_perm_transaction, 'string' ),
 			'transfers' => param_type( $this->group_perm_transfer, 'string' ),
 			'transfers_approve' => param_type( $this->group_perm_transfer_approve, 'boolean' ),
+			'transfer_validations' => param_type( $this->group_perm_transfer_validation, 'string' ),
+			'transfer_validations_complete' => param_type( $this->group_perm_transfer_validation_complete, 'boolean' ),
 			'adjustments' => param_type( $this->group_perm_adjustment, 'string' ),
 			'adjustments_approve' => param_type( $this->group_perm_adjustment_approve, 'boolean' ),
 			'conversions' => param_type( $this->group_perm_conversion, 'string' ),
@@ -206,6 +213,31 @@ class Group extends Base_model {
 					case 'approve':
 						$allowed_permissions = array( true );
 						$permission = $this->group_perm_transfer_approve;
+						break;
+
+					default:
+						return FALSE;
+
+				}
+				return in_array( $permission, $allowed_permissions );
+				break;
+
+			case 'transfer_validations':
+				switch( $action )
+				{
+					case 'view':
+						$allowed_permissions = array( 'view', 'edit' );
+						$permission = $this->group_perm_transfer_validation;
+						break;
+
+					case 'edit':
+						$allowed_permissions = array( 'edit' );
+						$permission = $this->group_perm_transfer_validation;
+						break;
+
+					case 'complete':
+						$allowed_permissions = array( true );
+						$permission = $this->group_perm_transfer_validation_complete;
 						break;
 
 					default:

@@ -282,6 +282,8 @@ app.controller( 'GroupController', [ '$scope', '$state', '$stateParams', '$filte
 			group_perm_transaction: 'none',
 			group_perm_transfer: 'none',
 			group_perm_transfer_approve: false,
+			group_perm_transfer_validation: 'none',
+			group_perm_transfer_validation_complete: false,
 			group_perm_adjustment: 'none',
 			group_perm_adjustment_approve: false,
 			group_perm_conversion: 'none',

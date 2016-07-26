@@ -54,6 +54,8 @@ class Installer extends CI_Controller {
 					group_perm_transaction VARCHAR(4) NOT NULL DEFAULT 'none',
 					group_perm_transfer VARCHAR(4) NOT NULL DEFAULT 'none',
 					group_perm_transfer_approve BOOLEAN NOT NULL DEFAULT 0,
+					group_perm_transfer_validation VARCHAR(4) NOT NULL DEFAULT 'none',
+					group_perm_transfer_validation_complete BOOLEAN NOT NULL DEFAULT 0,
 					group_perm_adjustment VARCHAR(4) NOT NULL DEFAULT 'none',
 					group_perm_adjustment_approve BOOLEAN NOT NULL DEFAULT 0,
 					group_perm_conversion VARCHAR(4) NOT NULL DEFAULT 'none',

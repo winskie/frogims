@@ -476,12 +476,13 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 		$scope.tabs = {
 				inventory: { index: 0, title: 'Inventory' },
 				transactions: { index: 1, title: 'Transactions' },
-				transfers: { index: 2, title: 'Outgoing' },
-				receipts: { index: 3, title: 'Incoming' },
-				adjustments: { index: 4, title: 'Adjustments' },
-				collections: { index: 5, title: 'Mopping Collections' },
-				allocations: { index: 6, title: 'Allocations' },
-				conversions: { index: 7, title: 'Conversions' }
+				transferValidations: { index: 2, title: 'Transfers' },
+				transfers: { index: 3, title: 'Outgoing' },
+				receipts: { index: 4, title: 'Incoming' },
+				adjustments: { index: 5, title: 'Adjustments' },
+				collections: { index: 6, title: 'Mopping Collections' },
+				allocations: { index: 7, title: 'Allocations' },
+				conversions: { index: 8, title: 'Conversions' }
 			};
 
 		if( $stateParams.activeTab )
@@ -608,6 +609,7 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 		// Refresh/update functions
 		$scope.updateInventory = appData.getInventory;
 		$scope.updateTransactions = appData.getTransactions;
+		$scope.updateTransferValidations = appData.getTransferValidations;
 		$scope.updateTransfers = appData.getTransfers;
 		$scope.updateReceipts = appData.getReceipts;
 		$scope.updateAdjustments = appData.getAdjustments;

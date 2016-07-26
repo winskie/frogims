@@ -127,8 +127,66 @@ $current_user = current_user();
 			</div>
 		</uib-tab>
 
+
+		<!-- Transfer Validations-->
+		<uib-tab index="2" select="onTabSelect('transferValidations')" ng-if="sessionData.currentStore.store_type == 3 && checkPermissions( 'transferValidations', 'view')">
+			<uib-tab-heading>
+				Transfer Validations
+			</uib-tab-heading>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title pull-left">Transfer Validations</h3>
+					<div class="pull-right">
+						<button class="btn btn-default btn-sm" ng-click="updateTransferValidations()">
+							<i class="glyphicon glyphicon-refresh"></i>
+						</button>
+					</div>
+					<div class="clearfix"></div>
+				</div>
+				<div class="panel-body">
+
+				</div>
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th class="text-center">ID</th>
+							<th>Source</th>
+							<th>Source Validation</th>
+							<th>Destination</th>
+							<th>Destination Validation</th>
+							<th>Status</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="validation in data.transferValidations">
+							<td class="text-center">
+								{{ validation.id }}
+							</td>
+							<td>
+								{{ validation.origin_name }}<br/>
+								{{ validation.transfer_datetime }}
+							</td>
+							<td>
+							</td>
+							<td>
+								{{ validation.destination_name }}<br/>
+								{{ validation.receipt_datetime ? validation.receipt_datetime : 'For receipt' }}
+							</td>
+							<td></td>
+							<td>
+								{{ lookup( 'transferStatus', validation.transfer_status ) }}
+							</td>
+							<td>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</uib-tab>
+
 		<!-- Outgoing -->
-		<uib-tab index="2" select="onTabSelect('transfers')" ng-if="checkPermissions( 'transfers', 'view')">
+		<uib-tab index="3" select="onTabSelect('transfers')" ng-if="checkPermissions( 'transfers', 'view')">
 			<uib-tab-heading>
 				Outgoing <span ng-show="data.pending.transfers > 0" class="label label-danger label-as-badge">{{ data.pending.transfers }}</span>
 			</uib-tab-heading>
@@ -269,7 +327,7 @@ $current_user = current_user();
 		</uib-tab>
 
 		<!-- Incoming -->
-		<uib-tab index="3" select="onTabSelect('receipts')" ng-if="checkPermissions( 'transfers', 'view')">
+		<uib-tab index="4" select="onTabSelect('receipts')" ng-if="checkPermissions( 'transfers', 'view')">
 			<uib-tab-heading>
 				Incoming <span ng-show="data.pending.receipts > 0" class="label label-danger label-as-badge">{{ data.pending.receipts }}</span>
 			</uib-tab-heading>
@@ -396,7 +454,7 @@ $current_user = current_user();
 		</uib-tab>
 
 		<!-- Adjustments -->
-		<uib-tab index="4" select="onTabSelect('adjustments')" ng-if="checkPermissions( 'adjustments', 'view' )">
+		<uib-tab index="5" select="onTabSelect('adjustments')" ng-if="checkPermissions( 'adjustments', 'view' )">
 			<uib-tab-heading>
 				Adjustments <span ng-show="data.pending.adjustments > 0" class="label label-danger label-as-badge">{{ data.pending.adjustments }}</span>
 			</uib-tab-heading>
@@ -509,7 +567,7 @@ $current_user = current_user();
 		</uib-tab>
 
         <!-- Mopping -->
-        <uib-tab index="5" select="onTabSelect('collections')" ng-if="sessionData.currentStore.store_type == 2 && checkPermissions( 'collections', 'view')"> <!-- Production only -->
+        <uib-tab index="6" select="onTabSelect('collections')" ng-if="sessionData.currentStore.store_type == 2 && checkPermissions( 'collections', 'view')"> <!-- Production only -->
             <uib-tab-heading>
                 Mopping Collection
             </uib-tab-heading>
@@ -625,7 +683,7 @@ $current_user = current_user();
         </uib-tab>
 
         <!-- Allocation -->
-        <uib-tab index="6" select="onTabSelect('allocations')" ng-if="sessionData.currentStore.store_type == 4 && checkPermissions( 'allocations', 'view')"> <!-- Cashroom only -->
+        <uib-tab index="7" select="onTabSelect('allocations')" ng-if="sessionData.currentStore.store_type == 4 && checkPermissions( 'allocations', 'view')"> <!-- Cashroom only -->
             <uib-tab-heading>
 				Allocations <span ng-show="data.pending.allocations > 0" class="label label-danger label-as-badge">{{ data.pending.allocations }}</span>
 			</uib-tab-heading>
@@ -780,7 +838,7 @@ $current_user = current_user();
         </uib-tab>
 
         <!-- Conversions -->
-        <uib-tab index="7" select="onTabSelect('conversions')" ng-if="checkPermissions( 'conversions', 'view')">
+        <uib-tab index="8" select="onTabSelect('conversions')" ng-if="checkPermissions( 'conversions', 'view')">
             <uib-tab-heading>
                 Conversions <span ng-show="data.pending.conversions > 0" class="label label-danger label-as-badge">{{ data.pending.conversions }}</span>
             </uib-tab-heading>

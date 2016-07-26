@@ -1483,7 +1483,26 @@ class Api_v1 extends CI_Controller {
                 }
                 else
                 {
-                    $this->_error( 400, 'Missing required transfer ID' );
+                    $params = array(
+                        'sent' => param( $this->input->get(), 'sent' ),
+                        'received' => param( $this->input->get(), 'received' ),
+                        'src' => param( $this->input->get(), 'src' ),
+                        'dst' => param( $this->input->get(), 'dst' ),
+                        'status' => param( $this->input->get(), 'status' ),
+                        'page' => param( $this->input->get(), 'page' ),
+                        'limit' => param( $this->input->get(), 'limit' ),
+                    );
+                    $transfers = $Transfer->get_transfers( $params );
+                    $sql = $this->db->last_query();
+                    $validations_data = array();
+                    foreach( $transfers as $transfer )
+                    {
+                        $validations_data[] = $transfer->as_array();
+                    }
+
+                    $this->_response( array(
+                        'transfer_validations' => $validations_data,
+                        'query' => $sql ) );
                 }
                 break;
 

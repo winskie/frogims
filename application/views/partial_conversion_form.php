@@ -86,7 +86,7 @@
                                 step="{{ data.input.step }}" min="{{ data.input.min }}"
                                 ng-model="conversionItem.source_quantity"
                                 ng-change="calculateOutput()"
-                                ng-switch-when="editMode">
+                                ng-switch-when="edit">
 
                         <p class="form-control-static" ng-switch-default>{{ conversionItem.source_quantity | number }}</p>
                     </div>
