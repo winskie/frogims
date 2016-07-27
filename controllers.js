@@ -755,7 +755,8 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			sweepers: [],
 			transferDatepicker: { format: 'yyyy-MM-dd', opened: false },
 			receiptDatepicker: { format: 'yyyy-MM-dd HH:mm:ss', opened: false },
-			showCategory: ( session.data.currentStore.store_type == 4 )
+			showCategory: ( session.data.currentStore.store_type == 4 ),
+			showAllocationItemEntry: ( session.data.currentStore.store_type == 4 && $scope.checkPermissions( 'allocations', 'view' ) )
 		};
 
 		$scope.input = {
@@ -763,7 +764,8 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				itemReservedQuantity: 0,
 				itemCategory: null,
 				quantity: 0,
-				remarks: null
+				remarks: null,
+				allocation: null
 			};
 
 		$scope.transferItem = {
@@ -1226,12 +1228,55 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				$scope.input.itemReservedQuantity = 0;
 				for( var i = 0; i < n; i++ )
 				{
-					if( items[i].item_id == $scope.input.inventoryItem.item_id )
+					if( items[i].item_id == $scope.input.inventoryItem.item_id
+						&& items[i].transfer_item_status == 1 ) // TRANSFER_ITEM_SCHEDULED
 					{
 						$scope.input.itemReservedQuantity += items[i].quantity;
 					}
 				}
 			};
+
+		$scope.addAllocationItems = function()
+			{
+				if( ( event.type == 'keypress' ) && ( event.charCode == 13 ) && $scope.input.allocation )
+				{
+					appData.getAllocation( $scope.input.allocation ).then(
+						function( response )
+						{
+							var allocationItem = response.data;
+							var remittances = allocationItem.remittances;
+
+							if( allocationItem.allocation_status == 3 ) // ALLOCATION_REMITTED
+							{
+								for( var i = 0; i < remittances.length; i++ )
+								{
+									var data = {
+										item_name: remittances[i].item_name,
+										category_name: remittances[i].category_name,
+
+										item_id: remittances[i].allocated_item_id,
+										item_category_id: remittances[i].allocation_category_id,
+										quantity: remittances[i].allocated_quantity,
+										remarks: 'From allocation #' + allocationItem.id + ' - ' + allocationItem.assignee,
+										transfer_item_status: 1 // TRANSFER_ITEM_SCHEDULED
+									};
+
+									$scope.transferItem.items.push( data );
+								}
+							}
+							else
+							{
+								notifications.alert( 'Allocation not yet marked as completed', 'warning' );
+							}
+						},
+						function( reason )
+						{
+							notifications.alert( reason, 'warning' );
+						}
+					)
+					$scope.input.allocation = null;
+				}
+			}
 
 		// Initialize controller
 		$scope.input.inventoryItem = $scope.data.inventoryItems[0];
@@ -2144,6 +2189,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 		$scope.input = {
 			category: null,
 			item: $scope.data.inventoryItems[0] || null,
+			itemReservedQuantity: 0,
 			quantity: null,
 		};
 
@@ -2301,6 +2347,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 
 					// Clear quantity
 					$scope.input.quantity = null;
+					$scope.getItemQuantities();
 				}
 			};
 
@@ -2323,6 +2370,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 						}
 						break;
 				}
+				$scope.getItemQuantities();
 			};
 
 		$scope.checkItems = function( action )
@@ -2497,7 +2545,32 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 							console.error( reason );
 						});
 				}
-			}
+			};
+
+		$scope.getItemQuantities = function()
+			{
+				switch( $scope.data.allocationPhase )
+				{
+					case 'allocation':
+						var items = $scope.allocationItem.allocations;
+						var n = items.length;
+						$scope.input.itemReservedQuantity = 0;
+						for( var i = 0; i < n; i++ )
+						{
+							if( items[i].allocated_item_id == $scope.input.item.item_id
+								&& items[i].allocation_item_status == 10 )// ALLOCATION_ITEM_SCHEDULED
+							{
+								$scope.input.itemReservedQuantity += items[i].allocated_quantity;
+							}
+						}
+						break;
+
+					case 'remittance':
+						$scope.input.itemReservedQuantity = 0;
+						break;
+				}
+
+			};
 
 		// Initialize controller
 		$scope.onAssigneeTypeChange();

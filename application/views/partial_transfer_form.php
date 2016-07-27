@@ -94,10 +94,13 @@
 	<div class="panel panel-default" style="height: 300px; overflow-y: auto;">
 		<div class="panel-heading">
 			<h3 class="panel-title pull-left">Transfer Items</h3>
-			<div class="pull-right" ng-if="mode == 'transfer'">
-				<button class="btn btn-default btn-sm" ng-click="addTransferItem()">
-					<i class="glyphicon glyphicon-plus"></i> Add item
-				</button>
+			<div class="pull-right col-sm-12 col-md-3" ng-if="data.showAllocationItemEntry">
+				<div class="input-group">
+					<span class="input-group-addon">Allocation ID</span>
+					<input type="text" class="form-control text-right"
+						ng-model="input.allocation"
+						ng-keypress="addAllocationItems()">
+				</div>
 			</div>
 			<div class="clearfix"></div>
 		</div>
@@ -107,9 +110,9 @@
 					<th class="text-center" style="width: 50px;">Row</th>
 					<th class="text-left">Item</th>
 					<th class="text-center" style="width: 100px;">Quantity</th>
-					<th class="text-left">Category</th>
 					<th class="text-center" style="width: 100px;"
 							ng-if="['receipt', 'externalReceipt', 'view' ].indexOf( data.editMode ) != -1">Received</th>
+					<th class="text-left">Category</th>
 					<th class="text-left">Remarks</th>
 					<th class="text-center" ng-if="[ 'view', 'receipt' ].indexOf( data.editMode ) == -1">Void</th>
 				</tr>
@@ -123,13 +126,13 @@
 					<td class="text-center">{{ $index + 1 }}</td>
 					<td class="text-left">{{ row.item_name }}</td>
 					<td class="text-center">{{ row.quantity | number }}</td>
-					<td class="text-left">{{ row.category_name ? row.category_name : '- None -' }}</td>
 					<td class="text-center" ng-if="['receipt', 'externalReceipt', 'view' ].indexOf( data.editMode ) != -1">
 						<input type="number" class="form-control"
 							ng-model="row.quantity_received"
 							ng-if="data.editMode != 'view'">
 						<span ng-if="data.editMode == 'view'">{{ row.quantity_received == null ? '---' : ( row.quantity_received | number ) }}</span>
 					</td>
+					<td class="text-left">{{ row.category_name ? row.category_name : '- None -' }}</td>
 					<td class="text-left">{{ row.remarks }}</td>
 					<td class="text-center" ng-if="[ 'view', 'receipt' ].indexOf( data.editMode ) == -1">
 						<a href
@@ -236,7 +239,7 @@
 				{{ transferItem.id ? 'Update' : 'Schedule' }}
 			</button>
 			<button type="button" class="btn btn-success" ng-click="approveTransfer()"
-					ng-disabled="transferItem.transfer_status != <?php echo TRANSFER_PENDING;?> || ! transferItem.sender_name"
+					ng-disabled="transferItem.transfer_status != <?php echo TRANSFER_PENDING;?> || ! transferItem.sender_name || transferItem.items.length == 0"
 					ng-if="transferItem.transfer_status == <?php echo TRANSFER_PENDING;?> && checkPermissions( 'transfers', 'approve' )">
 				<i class="glyphicon glyphicon-ok"></i> Approve
 			</button>
@@ -251,7 +254,7 @@
 		</div>
 		<div ng-if="data.editMode == 'view'">
 			<button type="button" class="btn btn-success" ng-click="approveTransfer()"
-					ng-disabled="transferItem.transfer_status != <?php echo TRANSFER_PENDING;?> || ! transferItem.sender_name"
+					ng-disabled="transferItem.transfer_status != <?php echo TRANSFER_PENDING;?> || ! transferItem.sender_name || transferItem.items.length == 0"
 					ng-if="transferItem.transfer_status == <?php echo TRANSFER_PENDING;?> && checkPermissions( 'transfers', 'approve' )">
 					<i class="glyphicon glyphicon-ok"></i> Approve
 			</button>

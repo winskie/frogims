@@ -182,28 +182,33 @@
     </uib-tabset>
 </div>
 
+<!-- Input form -->
 <div class="panel panel-default" ng-if="data.editMode != 'view'">
     <form>
         <div class="panel-body row">
-            <div class="form-group col-sm-5">
+            <div class="form-group col-sm-12 col-md-6 col-lg-4">
                 <label class="control-label">Category</label>
                 <select class="form-control"
                         ng-model="input.category"
-                        ng-change="onItemChange()"
                         ng-options="category as category.category for category in data.categories track by category.id">
                 </select>
             </div>
 
-            <div class="form-group col-sm-5">
+            <div class="form-group col-sm-12 col-md-6 col-lg-5">
                 <label class="control-label">Item</label>
                 <select class="form-control"
                         ng-model="input.item"
-                        ng-change="onItemChange()"
+                        ng-change="getItemQuantities()"
                         ng-options="item as item.item_name for item in data.inventoryItems track by item.id">
                 </select>
             </div>
 
-            <div class="form-group col-sm-2">
+            <div class="form-group col-sm-6 col-md-3 col-lg-1">
+                <label class="control-label">Balance</label>
+                <p class="form-control-static text-center">{{ ( input.item.quantity - input.itemReservedQuantity ) | number }}</p>
+            </div>
+
+            <div class="form-group col-sm-6 col-md-3 col-lg-2">
                 <label class="control-label">Quantity</label>
                 <input type="number" class="form-control" min="1"
                         ng-model="input.quantity"
@@ -213,6 +218,7 @@
     </form>
 </div>
 
+<!-- Form buttons -->
 <div class="text-right">
     <button type="button" class="btn btn-primary" ng-click="saveAllocation()"
         ng-if="data.editMode != 'view' && checkPermissions( 'allocations', 'edit' )
