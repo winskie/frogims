@@ -106,8 +106,8 @@
 				<tr>
 					<th class="text-center" style="width: 50px;">Row</th>
 					<th class="text-left">Item</th>
-					<th class="text-left">Category</th>
 					<th class="text-center" style="width: 100px;">Quantity</th>
+					<th class="text-left">Category</th>
 					<th class="text-center" style="width: 100px;"
 							ng-if="['receipt', 'externalReceipt', 'view' ].indexOf( data.editMode ) != -1">Received</th>
 					<th class="text-left">Remarks</th>
@@ -122,8 +122,8 @@
 						}">
 					<td class="text-center">{{ $index + 1 }}</td>
 					<td class="text-left">{{ row.item_name }}</td>
-					<td class="text-left">{{ row.category_name ? row.category_name : '- None -' }}</td>
 					<td class="text-center">{{ row.quantity | number }}</td>
+					<td class="text-left">{{ row.category_name ? row.category_name : '- None -' }}</td>
 					<td class="text-center" ng-if="['receipt', 'externalReceipt', 'view' ].indexOf( data.editMode ) != -1">
 						<input type="number" class="form-control"
 							ng-model="row.quantity_received"
@@ -154,27 +154,32 @@
 	<!-- Input panel -->
 	<div class="panel panel-default" ng-if="[ 'transfer', 'externalTransfer', 'externalReceipt' ].indexOf( data.editMode ) != -1">
 		<div class="panel-body row">
-			<div class="form-group col-sm-3">
+			<div class="form-group col-sm-12 col-md-6 col-lg-3">
 				<label class="control-label">Item</label>
 				<select class="form-control"
 						ng-model="input.inventoryItem"
+						ng-change="getItemQuantities()"
 						ng-options="item as item.item_name for item in data.inventoryItems track by item.id">
 				</select>
 			</div>
-			<div class="form-group col-sm-3" ng-if="data.showCategory">
+			<div class="form-group col-sm-6 col-md-3 col-lg-1">
+				<label class="control-label">Balance</label>
+				<p class="form-control-static text-center">{{ ( input.inventoryItem.quantity - input.itemReservedQuantity ) | number }}</p>
+			</div>
+			<div class="form-group col-sm-6 col-md-3 col-lg-2">
+				<label class="control-label">Quantity</label>
+				<input type="number" class="form-control"
+						ng-model="input.quantity"
+						ng-keypress="addTransferItem( $event )">
+			</div>
+			<div class="form-group col-sm-12 col-md-6 col-lg-3" ng-if="data.showCategory">
 				<label class="control-label">Category</label>
 				<select class="form-control"
 						ng-model="input.itemCategory"
 						ng-options="category as category.category for category in data.itemCategories track by category.id">
 				</select>
 			</div>
-			<div class="form-group col-sm-2">
-				<label class="control-label">Quantity</label>
-				<input type="number" class="form-control"
-						ng-model="input.quantity"
-						ng-keypress="addTransferItem( $event )">
-			</div>
-			<div class="form-group" ng-class="{ 'col-sm-4': data.showCategory, 'col-sm-7': !data.showCategory }">
+			<div class="form-group" ng-class="{ 'col-sm-12 col-md-6 col-lg-3': data.showCategory, 'col-sm-12 col-md-6 col-lg-6': !data.showCategory }">
 				<label class="control-label">Remarks</label>
 				<input type="text" class="form-control"
 						ng-model="input.remarks"

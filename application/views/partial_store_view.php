@@ -102,7 +102,7 @@ $current_user = current_user();
 							<tr ng-repeat="transaction in data.transactions">
 								<td>{{ transaction.transaction_datetime }}</td>
 								<td>{{ transaction.item_name }}</td>
-								<td>{{ lookup( 'transactionTypes', transaction.transaction_type ) }}</td>
+								<td>{{ lookup( 'transactionTypes', '' + transaction.transaction_type ) }}</td>
 								<td class="text-center">{{ transaction.transaction_id }}</td>
 								<td class="text-center">{{ transaction.shift_num }}</td>
 								<td class="text-right">{{ transaction.transaction_quantity | number }}</td>

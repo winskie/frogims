@@ -760,6 +760,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		$scope.input = {
 				inventoryItem: null,
+				itemReservedQuantity: 0,
 				itemCategory: null,
 				quantity: 0,
 				remarks: null
@@ -880,6 +881,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 					}
 
 					//$scope.checkItems();
+					$scope.getItemQuantities();
 				}
 			};
 
@@ -1217,6 +1219,19 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			};
 
 		$scope.findUser = UserServices.findUser;
+		$scope.getItemQuantities = function()
+			{
+				var items = $scope.transferItem.items;
+				var n = items.length;
+				$scope.input.itemReservedQuantity = 0;
+				for( var i = 0; i < n; i++ )
+				{
+					if( items[i].item_id == $scope.input.inventoryItem.item_id )
+					{
+						$scope.input.itemReservedQuantity += items[i].quantity;
+					}
+				}
+			};
 
 		// Initialize controller
 		$scope.input.inventoryItem = $scope.data.inventoryItems[0];

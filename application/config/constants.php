@@ -99,7 +99,7 @@ defined('STORE_TYPE_TRANSPORT')     OR define('STORE_TYPE_TRANSPORT', 3);
 defined('STORE_TYPE_CASHROOM')      OR define('STORE_TYPE_CASHROOM', 4);
 
 // Transaction types
-defined('TRANSACTION_INIT')                 OR define('TRANSACTION_INIT', 1 );
+defined('TRANSACTION_INIT')                 OR define('TRANSACTION_INIT', 0 );
 defined('TRANSACTION_TRANSFER_OUT')			OR define('TRANSACTION_TRANSFER_OUT', 10);
 defined('TRANSACTION_TRANSFER_IN')			OR define('TRANSACTION_TRANSFER_IN', 11);
 defined('TRANSACTION_TRANSFER_CANCEL')		OR define('TRANSACTION_TRANSFER_CANCEL', 12);
