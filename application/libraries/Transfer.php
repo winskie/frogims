@@ -26,6 +26,7 @@ class Transfer extends Base_model {
 	protected $externalReceipt = FALSE;
 	protected $items;
 	protected $voided_items;
+	protected $transfer_validation;
 
 	public function __construct()
 	{
@@ -57,6 +58,8 @@ class Transfer extends Base_model {
 		$ci =& get_instance();
 		$ci->load->library( 'Transfer' );
 
+		$includes = param( $params, 'includes' );
+
 		$date_sent = param( $params, 'sent' );
 		$date_received = param( $params, 'received' );
 		$source = param( $params, 'src' );
@@ -66,7 +69,9 @@ class Transfer extends Base_model {
 		$limit = param( $params, 'limit' );
 		$page = param( $params, 'page', 1 );
 		$format = param( $params, 'format', 'object' );
-		$order = param( $params, 'order', 'transfer_datetime DESC, id DESC' );
+		$order = param( $params, 'order', 'transfer_datetime DESC, t.id DESC' );
+
+		$select = 't.*';
 
 		if( $limit )
 		{
@@ -118,8 +123,17 @@ class Transfer extends Base_model {
 			$ci->db->where( 'transfer_status', $status );
 		}
 
-		$count = $ci->db->count_all_results( 'transfers t' );
+		if( $includes )
+		{
+			if( in_array( 'validation', $includes ) )
+			{
+				$ci->db->join( 'transfer_validations AS tv', 'tv.transval_transfer_id = t.id', 'left' );
+				$select .= ', tv.transval_receipt_status, tv.transval_receipt_datetime, tv.transval_receipt_sweeper, tv.transval_receipt_user_id, tv.transval_receipt_shift_id,
+						tv.transval_transfer_status, tv.transval_transfer_datetime, tv.transval_transfer_sweeper, tv.transval_transfer_user_id, tv.transval_transfer_shift_id';
+			}
+		}
 
+		$ci->db->select( $select );
 		$query = $ci->db->get( 'transfers t' );
 
 		if( $format == 'object')
@@ -159,6 +173,23 @@ class Transfer extends Base_model {
 		}
 
 		return $items;
+	}
+
+
+	public function get_transfer_validation()
+	{
+		$ci =& get_instance();
+
+		if( ! isset( $this->transfer_validation ) )
+		{
+			$ci->load->library( 'transfer_validation' );
+			$ci->db->where( 'transval_transfer_id', $this->id );
+			$ci->db->limit( 1 );
+			$query = $ci->db->get( 'transfer_validations' );
+			$this->transfer_validation = $query->row( 0, 'Transfer_validation' );
+		}
+
+		return $this->transfer_validation;
 	}
 
 
@@ -606,6 +637,7 @@ class Transfer extends Base_model {
 		return $ci->db->trans_status();
 	}
 
+
 	public function _transact_receipt()
 	{
 		$ci =& get_instance();
@@ -645,6 +677,7 @@ class Transfer extends Base_model {
 
 		return $ci->db->trans_status();
 	}
+
 
 	public function _transact_voided_items()
 	{

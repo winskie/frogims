@@ -577,6 +577,13 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 			{
 				switch( module )
 				{
+					case 'transferValidations':
+						return ( ( record.transval_receipt_status == 1 && ( record.transval_transfer_status == 1 || record.transval_transfer_status == 2 ) )
+							|| ( record.transval_receipt_status == 2 )
+							|| ( record.transval_receipt_status == 3 ) )
+							&& record.transval_status == 1
+							&& $scope.checkPermissions( 'transferValidations', 'complete' );
+
 					case 'transfers':
 						// TRANSFER_PENDING, TRANSFER_APPROVED
 						return ( ( record.transfer_status == 1 && ( $scope.checkPermissions( 'transfers', 'edit' ) || $scope.checkPermissions( 'transfers', 'approve' ) ) )
@@ -623,8 +630,11 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 
 				switch( data )
 				{
+					case 'transferValidation':
+						$scope.updateTransferValidations();
+						break;
+
 					case 'transfer':
-						console.log( 'Updating transfers' );
 						$scope.updateInventory( currentStoreId );
 						$scope.updateTransactions( currentStoreId );
 						$scope.updateTransfers( currentStoreId );
@@ -732,6 +742,41 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 
 		// Init controller
 		appData.refresh( session.data.currentStore.id, 'all' );
+	}
+]);
+
+app.controller( 'TransferValidationController', [ '$scope', '$state', '$stateParams', 'session', 'appData', 'notifications', 'UserServices',
+	function( $scope, $state, $stateParams, session, appData, notifications, UserServices )
+	{
+		$scope.data = {};
+
+		$scope.input = {};
+
+		$scope.transferItem = {};
+
+		$scope.findUser = UserServices.findUser;
+
+		if( $stateParams.transferItem )
+		{
+			$scope.data.editMode = $stateParams.editMode || 'view';
+			appData.getTransfer( $stateParams.transferItem.id, [ 'validation' ] ).then(
+				function( response )
+				{
+					if( response.status == 'ok' )
+					{
+						$scope.transferItem = response.data;
+						if( $scope.transferItem.validation == null )
+						{
+							$scope.transferItem.validation = {};
+							$scope.transferItem.validation.transval_receipt_sweeper = session.data.currentUser.full_name;
+						}
+					}
+				},
+				function( reason )
+				{
+					notifications.alert( reason, 'error' );
+				});
+		}
 	}
 ]);
 
@@ -1376,7 +1421,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				},
 				function( reason )
 				{
-					console.error( reason );
+					notifications.alert( reason, 'error' );
 				});
 
 		};

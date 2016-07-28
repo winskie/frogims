@@ -1446,7 +1446,8 @@ class Api_v1 extends CI_Controller {
             case 'get':
                 $transfer_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
                 $relation = param_type( $this->uri->rsegment( 4 ), 'string' );
-
+                $includes = param( $this->input->get(), 'include' );
+                $includes = explode( ',', $includes );
                 if( $transfer_id )
                 {
                     $transfer = $Transfer->get_by_id( $transfer_id );
@@ -1466,6 +1467,12 @@ class Api_v1 extends CI_Controller {
                                         'category_name' => array( 'type', 'string' ) ) );
                                 }
                                 $transfer_data['items'] = $items_data;
+                                if( in_array( 'validation', $includes ) )
+                                {
+                                    $validation = $transfer->get_transfer_validation();
+                                    $transfer_data['validation'] = $validation;
+                                }
+
                                 $this->_response( $transfer_data );
                                 break;
 
@@ -1483,7 +1490,10 @@ class Api_v1 extends CI_Controller {
                 }
                 else
                 {
+                    $includes = param( $this->input->get(), 'include' );
+                    $includes = explode( ',', $includes );
                     $params = array(
+                        'includes' => $includes,
                         'sent' => param( $this->input->get(), 'sent' ),
                         'received' => param( $this->input->get(), 'received' ),
                         'src' => param( $this->input->get(), 'src' ),
@@ -1494,14 +1504,30 @@ class Api_v1 extends CI_Controller {
                     );
                     $transfers = $Transfer->get_transfers( $params );
                     $sql = $this->db->last_query();
-                    $validations_data = array();
+                    $transfers_data = array();
+                    $array_params = array();
+
+                    if( $params['includes'] && in_array( 'validations', $params['includes'] ) )
+                    {
+                        $array_params = array(
+                            'transval_receipt_status' => array( 'type' => 'integer' ),
+                            'transval_receipt_datetime' => array( 'type' => 'datetime' ),
+                            'transval_receipt_sweeper' => array( 'type' => 'string' ),
+                            'transval_receipt_user_id' => array( 'type' => 'integer' ),
+                            'transval_receipt_shift_id' => array( 'type' => 'integer' ),
+                            'transval_transfer_status' => array( 'type' => 'integer' ),
+                            'transval_transfer_datetime' => array( 'type' => 'datetime' ),
+                            'transval_transfer_sweeper' => array( 'type' => 'string' ),
+                            'transval_transfer_user_id' => array( 'type' => 'integer' ),
+                            'transval_transfer_shift_id' => array( 'type' => 'integer' ) );
+                    }
                     foreach( $transfers as $transfer )
                     {
-                        $validations_data[] = $transfer->as_array();
+                        $transfers_data[] = $transfer->as_array( $array_params );
                     }
 
                     $this->_response( array(
-                        'transfer_validations' => $validations_data,
+                        'transfers' => $transfers_data,
                         'query' => $sql ) );
                 }
                 break;

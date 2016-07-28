@@ -177,8 +177,22 @@ $current_user = current_user();
 							<td>
 								{{ lookup( 'transferStatus', validation.transfer_status ) }}
 							</td>
-							<td>
+							<td class="text-right vert-top">
+								<div class="btn-group" uib-dropdown>
+									<button type="button" class="btn btn-default" ui-sref="main.transferValidation({ transferItem: validation, editMode: 'view' })">View details...</button>
+									<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'transferValidations', validation )">
+										<span class="caret"></span>
+									</button>
+									<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'transferValidations', validation )">
+										<li role="menuitem" ng-if="transfer.transfer_status == <?php echo TRANSFER_PENDING;?> && checkPermissions( 'transferValidations', 'complete' )">
+											<a href ng-click="completeTransferValidation( validation )">Complete</a>
+										</li>
+									</ul>
+								</div>
 							</td>
+						</tr>
+						<tr ng-show="!data.transferValidations.length">
+							<td colspan="7" class="text-center">No transfer transaction data available</td>
 						</tr>
 					</tbody>
 				</table>

@@ -217,6 +217,14 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 			}
 		};
 
+	var transferValidation = {
+			name: 'main.transferValidation',
+			parent: main,
+			params: { transferItem: null, editMode: 'view' },
+			templateUrl: baseUrl + 'index.php/main/view/partial_transfer_validation_form',
+			controller: 'TransferValidationController'
+		};
+
 	var transfer = {
 			name: 'main.transfer',
 			parent: main,
@@ -318,6 +326,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 		.state( dashboard )
 		.state( main )
 		.state( store )
+		.state( transferValidation )
 		.state( transfer )
 		.state( adjust )
 		.state( convert )

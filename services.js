@@ -406,6 +406,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         { id: 50, typeName: 'Conversion From', module: 'Conversions' },
                         { id: 51, typeName: 'Conversion To', module: 'Conversions' }
                     ],
+                transferValidationStatus: [
+                        { id: 1, statusName: 'Ongoing' },
+                        { id: 2, statusName: 'Completed' }
+                    ],
                 transferStatus: [
                         { id: 1, statusName: 'Pending' },
                         { id: 2, statusName: 'Approved' },
@@ -688,7 +692,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 				var deferred = $q.defer();
 				$http({
 					method: 'GET',
-					url: baseUrl + 'index.php/api/v1/transfers/',
+					url: baseUrl + 'index.php/api/v1/transfers',
                     params: {
                         sent: $filter( 'date' )( me.filters.transferValidations.dateSent, 'yyyy-MM-dd' ),
                         received: $filter( 'date' )( me.filters.transferValidations.dateReceived, 'yyyy-MM-dd' ),
@@ -696,7 +700,8 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         dst: me.filters.transferValidations.destination ? me.filters.transferValidations.destination.id : null,
                         status: me.filters.transferValidations.status ? me.filters.transferValidations.status.id : null,
                         page: me.filters.transferValidations.page ? me.filters.transferValidations.page : null,
-                        limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
+                        limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null,
+                        include: 'validation'
                     }
 				}).then(
 					function( response )
@@ -705,7 +710,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         {
                             var d = response.data;
 
-                            me.data.transferValidations = d.data.transfer_validations;
+                            me.data.transferValidations = d.data.transfers;
                             me.data.totals.transferValidations = d.data.total;
                             me.data.pending.transferValidations = d.data.pending;
                             deferred.resolve( d );
@@ -959,13 +964,36 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                 return deferred.promise;
             };
 
-        // Transfers
-        me.getTransfer = function( transferId )
+        // Transfer Validations
+        me.saveTransferValidation = function( validation )
             {
+
+            };
+
+        me.completeTransferValidation = function( validation )
+            {
+
+            };
+
+        // Transfers
+        me.getTransfer = function( transferId, includes )
+            {
+                if( includes )
+                {
+                    if( typeof includes == 'String' )
+                    {
+                        includes = [ includes ];
+                    }
+                    includes = includes.join(',');
+                }
+
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
-                    url: baseUrl + 'index.php/api/v1/transfers/' + transferId
+                    url: baseUrl + 'index.php/api/v1/transfers/' + transferId,
+                    params: {
+                        include: includes
+                    }
                 }).then(
                     function( response )
                     {
@@ -1950,6 +1978,19 @@ appServices.service( 'lookup',
 
                 '50': 'Conversion From',
                 '51': 'Conversion To'
+            },
+            transferValidationStatus: {
+                '1': 'Ongoing',
+                '2': 'Completed',
+				'3': 'Not Applicable'
+            },
+            transferValidationReceiptStatus: {
+                '1': 'Validated',
+                '2': 'Returned'
+            },
+            transferValidationTransferStatus: {
+                '1': 'Validated',
+                '2': 'Disputed'
             },
             transferStatus: {
                 '1': 'Pending',

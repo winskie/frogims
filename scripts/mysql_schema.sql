@@ -252,6 +252,32 @@ CREATE TABLE IF NOT EXISTS transfer_items
 )
 ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS transfer_validations
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	transval_transfer_id INTEGER NOT NULL,
+	transval_receipt_status SMALLINT NOT NULL DEFAULT 1,
+	transval_receipt_datetime DATETIME NOT NULL,
+	transval_receipt_sweeper VARCHAR(100) NOT NULL,
+	transval_receipt_user_id INTEGER NOT NULL,
+	transval_receipt_shift_id INTEGER NOT NULL,
+	transval_items_checked VARCHAR(1000) NULL,
+	transval_transfer_status SMALLINT NULL DEFAULT NULL,
+	transval_transfer_datetime DATETIME NULL DEFAULT NULL,
+	transval_transfer_sweeper VARCHAR(100) NULL DEFAULT NULL,
+	transval_transfer_user_id INTEGER NULL DEFAULT NULL,
+	transval_transfer_shift_id INTEGER NULL DEFAULT NULL,
+	transval_status SMALLINT NOT NULL DEFAULT 1,
+	date_created DATETIME NOT NULL,
+	date_modified TIMESTAMP NOT NULL,
+	last_modified INTEGER NOT NULL,
+	PRIMARY KEY (id),
+	FOREIGN KEY transval_items_transfer_fk (transval_transfer_id) REFERENCES transfers (id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
+)
+ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS conversion_table
 (
     id INTEGER AUTO_INCREMENT NOT NULL,
