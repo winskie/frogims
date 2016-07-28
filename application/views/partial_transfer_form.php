@@ -94,7 +94,7 @@
 	<div class="panel panel-default" style="height: 300px; overflow-y: auto;">
 		<div class="panel-heading">
 			<h3 class="panel-title pull-left">Transfer Items</h3>
-			<div class="pull-right col-sm-12 col-md-3" ng-if="data.showAllocationItemEntry">
+			<div class="pull-right col-sm-12 col-md-3" ng-if="data.showAllocationItemEntry && ( transferItem.transfer_status == <?php echo TRANSFER_PENDING;?> )">
 				<div class="input-group">
 					<span class="input-group-addon">Allocation ID</span>
 					<input type="text" class="form-control text-right"
@@ -209,7 +209,7 @@
 						</span>
 					</div>
 					<div ng-if="[ 'receipt', 'externalReceipt' ].indexOf( data.editMode ) == -1">
-						<p class="form-control-static">{{ transferItem.receipt_datetime ? ( transferItem.receipt_datetime | date: 'yyyy-MM-dd HH:mm:ss' ) : '---' }}</p>
+						<p class="form-control-static">{{ transferItem.receipt_datetime ? ( transferItem.receipt_datetime | date: 'yyyy-MM-dd HH:mm:ss' ) : 'Pending receipt' }}</p>
 					</div>
 				</div>
 				<div class="form-group col-sm-6">
@@ -222,7 +222,7 @@
 									uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
 						</div>
 						<div ng-if="[ 'receipt', 'externalReceipt' ].indexOf( data.editMode ) == -1">
-							<p class="form-control-static">{{ transferItem.recipient_name ? transferItem.recipient_name : '---' }}</p>
+							<p class="form-control-static">{{ transferItem.recipient_name ? transferItem.recipient_name : 'Pending receipt' }}</p>
 						</div>
 					</div>
 				</div>

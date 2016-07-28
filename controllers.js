@@ -1263,6 +1263,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 									$scope.transferItem.items.push( data );
 								}
+								$scope.getItemQuantities();
 							}
 							else
 							{
