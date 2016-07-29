@@ -159,33 +159,47 @@ $current_user = current_user();
 						</tr>
 					</thead>
 					<tbody>
-						<tr ng-repeat="validation in data.transferValidations">
+						<tr ng-repeat="transfer in data.transferValidations">
 							<td class="text-center">
-								{{ validation.id }}
+								{{ transfer.id }}
 							</td>
 							<td>
-								{{ validation.origin_name }}<br/>
-								{{ validation.transfer_datetime }}
+								{{ transfer.origin_name }}<br/>
+								{{ transfer.transfer_datetime }}
+							</td>
+							<td ng-switch on="transfer.transval_receipt_status == null">
+								<div ng-class="{ 'text-success': transfer.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_VALIDATED; ?> }" ng-switch-when="false">
+									{{ transfer.transval_receipt_status ? lookup( 'transferValidationReceiptStatus', transfer.transval_receipt_status ) : 'Not yet validated' }}<br/>
+									{{ transfer.transval_receipt_datetime }}<br />
+									{{ transfer.transval_receipt_sweeper }}<br />
+								</div>
+								<span class="text-muted" ng-switch-default>Not yet validated</span>
 							</td>
 							<td>
+								{{ transfer.destination_name }}<br/>
+								{{ transfer.receipt_datetime ? transfer.receipt_datetime : 'For receipt' }}
+							</td>
+							<td ng-switch on="transfer.transval_transfer_status == null">
+								<div ng-class="{ 'text-success': transfer.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_VALIDATED; ?>,
+										'text-danger': transfer.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_DISPUTED;?> }" ng-switch-when="false">
+									{{ transfer.transval_transfer_status ? lookup( 'transferValidationTransferStatus', transfer.transval_transfer_status ) : '' }}<br/>
+									{{ transfer.transval_transfer_datetime }}<br />
+									{{ transfer.transval_transfer_sweeper }}<br />
+								</div>
+								<span class="text-muted" ng-switch-default>Not yet validated</span>
 							</td>
 							<td>
-								{{ validation.destination_name }}<br/>
-								{{ validation.receipt_datetime ? validation.receipt_datetime : 'For receipt' }}
-							</td>
-							<td></td>
-							<td>
-								{{ lookup( 'transferStatus', validation.transfer_status ) }}
+								{{ lookup( 'transferStatus', transfer.transfer_status ) }}
 							</td>
 							<td class="text-right vert-top">
 								<div class="btn-group" uib-dropdown>
-									<button type="button" class="btn btn-default" ui-sref="main.transferValidation({ transferItem: validation, editMode: 'view' })">View details...</button>
-									<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'transferValidations', validation )">
+									<button type="button" class="btn btn-default" ui-sref="main.transferValidation({ transferItem: transfer, editMode: 'view' })">View details...</button>
+									<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'transferValidations', transfer )">
 										<span class="caret"></span>
 									</button>
-									<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'transferValidations', validation )">
-										<li role="menuitem" ng-if="transfer.transfer_status == <?php echo TRANSFER_PENDING;?> && checkPermissions( 'transferValidations', 'complete' )">
-											<a href ng-click="completeTransferValidation( validation )">Complete</a>
+									<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'transferValidations', transfer )">
+										<li role="menuitem" ng-if="checkPermissions( 'transferValidations', 'complete' )">
+											<a href ng-click="completeTransferValidation( transfer )">Complete</a>
 										</li>
 									</ul>
 								</div>
@@ -196,6 +210,16 @@ $current_user = current_user();
 						</tr>
 					</tbody>
 				</table>
+
+				<div class="text-center" ng-if="data.totals.transferValidations > filters.itemsPerPage">
+						<uib-pagination
+								total-items="data.totals.transferValidations"
+								items-per-page="filters.itemsPerPage"
+								ng-model="filters.transferValidations.page"
+								ng-change="updateTransferValidations()">
+						</uib-pagination>
+				</div>
+
 			</div>
 		</uib-tab>
 
@@ -300,7 +324,10 @@ $current_user = current_user();
 										</table>
 									</div>
 								</td>
-								<td class="text-center vert-top">{{ lookup( 'transferStatus', transfer.transfer_status ) }}</td>
+								<td class="text-center vert-top">
+									<i class="glyphicon glyphicon-ok text-success" ng-if="transfer.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_VALIDATED;?>"> </i>
+									{{ lookup( 'transferStatus', transfer.transfer_status ) }}
+								</td>
 								<td class="text-right vert-top">
 									<div class="btn-group" uib-dropdown>
 										<button type="button" class="btn btn-default" ui-sref="main.transfer({ transferItem: transfer, editMode: 'view' })">View details...</button>
@@ -440,7 +467,10 @@ $current_user = current_user();
 										</table>
 									</div>
 								</td>
-								<td class="text-center vert-top">{{ lookup( 'transferStatus', receipt.transfer_status ) }}</td>
+								<td class="text-center vert-top">
+									<i class="glyphicon glyphicon-ok text-success" ng-if="receipt.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_VALIDATED;?>"> </i>
+									{{ lookup( 'transferStatus', receipt.transfer_status ) }}
+								</td>
 								<td class="text-right vert-top">
 									<div class="btn-group" uib-dropdown>
 										<button type="button" class="btn btn-default" ui-sref="main.transfer({ transferItem: receipt, editMode: 'view' })">View details...</button>
@@ -580,26 +610,26 @@ $current_user = current_user();
 			</div>
 		</uib-tab>
 
-        <!-- Mopping -->
-        <uib-tab index="6" select="onTabSelect('collections')" ng-if="sessionData.currentStore.store_type == 2 && checkPermissions( 'collections', 'view')"> <!-- Production only -->
-            <uib-tab-heading>
-                Mopping Collection
-            </uib-tab-heading>
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title pull-left">Mopping Collection</h3>
-                    <div class="pull-right">
+		<!-- Mopping -->
+		<uib-tab index="6" select="onTabSelect('collections')" ng-if="sessionData.currentStore.store_type == 2 && checkPermissions( 'collections', 'view')"> <!-- Production only -->
+			<uib-tab-heading>
+				Mopping Collection
+			</uib-tab-heading>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title pull-left">Mopping Collection</h3>
+					<div class="pull-right">
 						<span ng-if="checkPermissions( 'collections', 'edit' )">
 							<button class="btn btn-primary btn-sm" ui-sref="main.mopping({ editMode: 'new' })">
 								<i class="glyphicon glyphicon-plus"></i> New collection
 							</button>&nbsp;
 						</span>
-                        <button class="btn btn-default btn-sm" ng-click="updateCollections( sessionData.currentStore.id )">
-                            <i class="glyphicon glyphicon-refresh"></i>
-                        </button>
-                    </div>
-                    <div class="clearfix"></div>
-                </div>
+						<button class="btn btn-default btn-sm" ng-click="updateCollections( sessionData.currentStore.id )">
+							<i class="glyphicon glyphicon-refresh"></i>
+						</button>
+					</div>
+					<div class="clearfix"></div>
+				</div>
 				<div class="panel-body">
 					<div class="row">
 						<div class="col-sm-4 col-md-3 col-lg-2">
@@ -607,8 +637,8 @@ $current_user = current_user();
 								<label class="control-label">Date Processed</label>
 								<div class="input-group">
 									<input type="text" class="form-control" uib-datepicker-popup="{{ filters.dateFormat }}" is-open="widgets.collectionsProcessingDate.opened"
-										min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)"
-										ng-model="filters.collections.processingDate" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" />
+											min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)"
+											ng-model="filters.collections.processingDate" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" />
 									<span class="input-group-btn">
 										<button type="button" class="btn btn-default" ng-click="showDatePicker( 'collectionsProcessingDate' )"><i class="glyphicon glyphicon-calendar"></i></button>
 									</span>
@@ -619,353 +649,352 @@ $current_user = current_user();
 						<div class="col-sm-4 col-md-3 col-lg-2">
 							<div class="form-group">
 								<label class="control-label">Business Date</label>
-								<div class="input-group">
-									<input type="text" class="form-control" uib-datepicker-popup="{{ filters.dateFormat }}" is-open="widgets.collectionsBusinessDate.opened"
-										min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)"
-										ng-model="filters.collections.businessDate" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" />
-									<span class="input-group-btn">
-										<button type="button" class="btn btn-default" ng-click="showDatePicker( 'collectionsBusinessDate' )"><i class="glyphicon glyphicon-calendar"></i></button>
-									</span>
+									<div class="input-group">
+										<input type="text" class="form-control" uib-datepicker-popup="{{ filters.dateFormat }}" is-open="widgets.collectionsBusinessDate.opened"
+												min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)"
+												ng-model="filters.collections.businessDate" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" />
+										<span class="input-group-btn">
+											<button type="button" class="btn btn-default" ng-click="showDatePicker( 'collectionsBusinessDate' )"><i class="glyphicon glyphicon-calendar"></i></button>
+										</span>
+									</div>
 								</div>
 							</div>
 						</div>
 
-					</div>
-
-					<table class="table">
-						<thead>
-							<tr>
-								<th class="text-center">ID</th>
-								<th class="text-left">Processing Date</th>
-								<th class="text-center">Business Date</th>
-								<th class="text-left">Processed Items</th>
-								<th class="text-center"></th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr ng-repeat="collection in data.collections">
-								<td class="text-center vert-top">{{ collection.id }}</td>
-								<td class="text-left vert-top">{{ collection.processing_datetime }}<br />{{ collection.shift_num }}</td>
-								<td class="text-center vert-top">{{ collection.business_date }}<br />{{ collection.cashier_shift_num }}</td>
-								<td class="text-left">
-									<div class="panel panel-default">
-										<table class="table table-condensed table-bordered table-details">
-											<thead>
-												<tr class="active">
-													<th>Item Description</th>
-													<th style="width: 70px;">Quantity</th>
-												</tr>
-											</thead>
-											<tbody>
-												<tr ng-repeat="item in collection.items">
-													<td>{{ item.item_description }}</td>
-													<td class="text-right">{{ item.quantity | number }}</td>
-												</tr>
-											</tbody>
-										</table>
-									</div>
-								</td>
-								<td class="vert-top">
-									<div class="btn-group btn-block" uib-dropdown>
-										<button id="split-button" type="button" class="btn btn-default" ui-sref="main.mopping({ moppingItem: collection, editMode: 'view' })">View details...</button>
-										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'collections', collection )">
-											<span class="caret"></span>
-										</button>
-										<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'collections', collection )">
-											<li role="menuitem"><a ui-sref="main.mopping({ moppingItem: collection, editMode: 'edit' })">Edit Collection...</a></li>
-										</ul>
-									</div>
-								</td>
-							</tr>
-							<tr ng-show="data.collections.length == 0">
-								<td colspan="5" class="text-center">No mopping collection data available</td>
-							</tr>
-						</tbody>
-					</table>
-					<div class="text-center" ng-if="data.totals.collections > filters.itemsPerPage">
-						<uib-pagination
-								total-items="data.totals.collections"
-								items-per-page="filters.itemsPerPage"
-								max-size="5"
-								boundary-link-numbers="true"
-								ng-model="filters.collections.page"
-								ng-change="updateCollections( sessionData.currentStore.id )">
-						</uib-pagination>
-					</div>
-				</div>
-            </div>
-        </uib-tab>
-
-        <!-- Allocation -->
-        <uib-tab index="7" select="onTabSelect('allocations')" ng-if="sessionData.currentStore.store_type == 4 && checkPermissions( 'allocations', 'view')"> <!-- Cashroom only -->
-            <uib-tab-heading>
-				Allocations <span ng-show="data.pending.allocations > 0" class="label label-danger label-as-badge">{{ data.pending.allocations }}</span>
-			</uib-tab-heading>
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title pull-left">Allocations</h3>
-                    <div class="pull-right">
-						<span ng-if="checkPermissions( 'allocations', 'edit' )">
-							<button class="btn btn-primary btn-sm" ui-sref="main.allocation({ editMode: 'new' })">
-								<i class="glyphicon glyphicon-plus"></i> New allocation
-							</button>&nbsp;
-						</span>
-                        <button class="btn btn-default btn-sm" ng-click="updateAllocations( sessionData.currentStore.id )">
-                            <i class="glyphicon glyphicon-refresh"></i>
-                        </button>
-                    </div>
-                    <div class="clearfix"></div>
-                </div>
-				<div class="panel-body">
-					<div class="row">
-						<div class="col-sm-4 col-md-3 col-lg-2">
-							<div class="form-group">
-								<label class="control-label">Date</label>
-								<div class="input-group">
-									<input type="text" class="form-control" uib-datepicker-popup="{{ filters.dateFormat }}" is-open="widgets.allocationsDate.opened"
-										min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)"
-										ng-model="filters.allocations.date" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" />
-									<span class="input-group-btn">
-										<button type="button" class="btn btn-default" ng-click="showDatePicker( 'allocationsDate' )"><i class="glyphicon glyphicon-calendar"></i></button>
-									</span>
+				<table class="table">
+					<thead>
+						<tr>
+							<th class="text-center">ID</th>
+							<th class="text-left">Processing Date</th>
+							<th class="text-center">Business Date</th>
+							<th class="text-left">Processed Items</th>
+							<th class="text-center"></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="collection in data.collections">
+							<td class="text-center vert-top">{{ collection.id }}</td>
+							<td class="text-left vert-top">{{ collection.processing_datetime }}<br />{{ collection.shift_num }}</td>
+							<td class="text-center vert-top">{{ collection.business_date }}<br />{{ collection.cashier_shift_num }}</td>
+							<td class="text-left">
+								<div class="panel panel-default">
+									<table class="table table-condensed table-bordered table-details">
+										<thead>
+											<tr class="active">
+												<th>Item Description</th>
+												<th style="width: 70px;">Quantity</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr ng-repeat="item in collection.items">
+												<td>{{ item.item_description }}</td>
+												<td class="text-right">{{ item.quantity | number }}</td>
+											</tr>
+										</tbody>
+									</table>
 								</div>
-							</div>
-						</div>
-
-						<div class="col-sm-4 col-md-3 col-lg-3">
-							<div class="form-group">
-								<label class="control-label">Assignee Type</label>
-								<select class="form-control"
-										ng-model="filters.allocations.assigneeType"
-										ng-options="type as type.typeName for type in widgets.allocationsAssigneeTypes track by type.id">
-								</select>
-							</div>
-						</div>
-
-						<div class="col-sm-4 col-md-3 col-lg-2">
-							<div class="form-group">
-								<label class="control-label">Status</label>
-								<select class="form-control"
-										ng-model="filters.allocations.status"
-										ng-options="status as status.statusName for status in widgets.allocationsStatus track by status.id">
-								</select>
-							</div>
-						</div>
-
-					</div>
-					<table class="table">
-						<thead>
-							<tr>
-								<th class="row-flag"></th>
-								<th class="text-center">ID</th>
-								<th class="text-left">Business Date</th>
-								<th class="text-left">Allocated to</th>
-								<th class="text-left">Allocation Details</th>
-								<th class="text-center">Status</th>
-								<th class="text-center"></th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr ng-repeat="row in data.allocations">
-								<td class="row-flag" ng-class="lookup( 'allocationStatus', row.allocation_status).className"></td>
-								<td class="text-center vert-top">{{ row.id }}</td>
-								<td class="text-left vert-top">{{ row.business_date }}<br />{{ row.shift_num }}</td>
-								<td class="text-left vert-top">{{ row.assignee ? ( row.assignee_type == 2 ? 'TVM# ' : '' ) + row.assignee : 'Not yet specified' }}<br />{{ row.assignee_type == 1 ? 'Station Teller' : 'Vending Machine' }}</td>
-								<td class="text-left vert-top" ng-switch on="row.assignee_type">
-									<div class="panel panel-default" ng-switch-when=1>
-										<table class="table table-condensed table-bordered table-details">
-											<thead>
-												<tr class="active">
-													<th>Item Description</th>
-													<th style="width: 70px;">Initial</th>
-													<th style="width: 70px;">Additional</th>
-													<th style="width: 70px;">Remitted</th>
-												</tr>
-											</thead>
-											<tbody>
-												<tr ng-repeat="item in row.items">
-													<td>{{ item.item_description }}</td>
-													<td class="text-right">{{ item.allocation | number }}</td>
-													<td class="text-right">{{ item.additional | number }}</td>
-													<td class="text-right">{{ item.remitted | number }}</td>
-												</tr>
-											</tbody>
-										</table>
-									</div>
-									<div class="panel panel-default" ng-switch-when=2>
-										<table class="table table-condensed table-bordered table-details">
-											<thead>
-												<tr class="active">
-													<th>Item Description</th>
-													<th style="width: 70px;">Load</th>
-													<th style="width: 70px;">Reject</th>
-												</tr>
-											</thead>
-											<tbody>
-												<tr ng-repeat="item in row.items">
-													<td>{{ item.item_description }}</td>
-													<td class="text-right">{{ item.additional | number }}</td>
-													<td class="text-right">{{ item.remitted | number }}</td>
-												</tr>
-											</tbody>
-										</table>
-									</div>
-								</td>
-								<td class="text-center vert-top">{{ lookup( 'allocationStatus', row.allocation_status ).status }}</td>
-								<td class="vert-top" ng-switch on="row.allocation_status">
-									<div class="btn-group" uib-dropdown>
-										<button type="button" class="btn btn-default" ui-sref="main.allocation({ allocationItem: row, editMode: 'view' })">View details...</button>
-										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'allocations', row )">
-											<span class="caret"></span>
-										</button>
-										<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'allocations', row )">
-											<li role="menuitem" ng-if="row.allocation_status != <?php echo ALLOCATION_REMITTED;?>
-													&& row.allocation_status != <?php echo ALLOCATION_CANCELLED;?>
-													&& checkPermissions( 'allocations', 'edit' )">
-												<a ui-sref="main.allocation({ allocationItem: row, editMode: 'edit' })">Edit...</a>
-											</li>
-											<li role="menuitem" ng-if="row.allocation_status == <?php echo ALLOCATION_SCHEDULED;?> && checkPermissions( 'allocations', 'edit' )">
-												<a href="#" ng-click="cancelAllocation( row )">Cancel</a>
-											</li>
-
-										</ul>
-									</div>
-								</td>
-							</tr>
-							<tr ng-show="data.allocations.length == 0">
-								<td colspan="7" class="text-center">No allocation data available</td>
-							</tr>
-						</tbody>
-					</table>
-					<div class="text-center" ng-if="data.totals.allocations > filters.itemsPerPage">
-						<uib-pagination
-								total-items="data.totals.allocations"
-								items-per-page="filters.itemsPerPage"
-								max-size="5"
-								boundary-link-numbers="true"
-								ng-model="filters.allocations.page"
-								ng-change="updateAllocations( sessionData.currentStore.id )">
-						</uib-pagination>
-					</div>
-				</div>
-            </div>
-        </uib-tab>
-
-        <!-- Conversions -->
-        <uib-tab index="8" select="onTabSelect('conversions')" ng-if="checkPermissions( 'conversions', 'view')">
-            <uib-tab-heading>
-                Conversions <span ng-show="data.pending.conversions > 0" class="label label-danger label-as-badge">{{ data.pending.conversions }}</span>
-            </uib-tab-heading>
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title pull-left">Conversions</h3>
-                    <div class="pull-right">
-						<span ng-if="checkPermissions( 'conversions', 'edit' )">
-							<button class="btn btn-primary btn-sm" ui-sref="main.convert({ editMode: 'edit' })">
-								<i class="glyphicon glyphicon-plus"></i> New conversion
-							</button>&nbsp;
-						</span>
-                        <button class="btn btn-default btn-sm" ng-click="updateConversions( sessionData.currentStore.id )">
-                            <i class="glyphicon glyphicon-refresh"></i>
-                        </button>
-                    </div>
-                    <div class="clearfix"></div>
-                </div>
-				<div class="panel-body">
-					<div class="row">
-						<div class="col-sm-4 col-md-3 col-lg-2">
-							<div class="form-group">
-								<label class="control-label">Date Converted</label>
-								<div class="input-group">
-									<input type="text" class="form-control" uib-datepicker-popup="{{ filters.dateFormat }}" is-open="widgets.conversionsDate.opened"
-										min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)"
-										ng-model="filters.conversions.date" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" />
-									<span class="input-group-btn">
-										<button type="button" class="btn btn-default" ng-click="showDatePicker( 'conversionsDate' )"><i class="glyphicon glyphicon-calendar"></i></button>
-									</span>
+							</td>
+							<td class="vert-top">
+								<div class="btn-group btn-block" uib-dropdown>
+									<button id="split-button" type="button" class="btn btn-default" ui-sref="main.mopping({ moppingItem: collection, editMode: 'view' })">View details...</button>
+									<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'collections', collection )">
+										<span class="caret"></span>
+									</button>
+									<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'collections', collection )">
+										<li role="menuitem"><a ui-sref="main.mopping({ moppingItem: collection, editMode: 'edit' })">Edit Collection...</a></li>
+									</ul>
 								</div>
+							</td>
+						</tr>
+						<tr ng-show="data.collections.length == 0">
+							<td colspan="5" class="text-center">No mopping collection data available</td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="text-center" ng-if="data.totals.collections > filters.itemsPerPage">
+					<uib-pagination
+							total-items="data.totals.collections"
+							items-per-page="filters.itemsPerPage"
+							max-size="5"
+							boundary-link-numbers="true"
+							ng-model="filters.collections.page"
+							ng-change="updateCollections( sessionData.currentStore.id )">
+					</uib-pagination>
+				</div>
+			</div>
+					</div>
+			</uib-tab>
+
+			<!-- Allocation -->
+			<uib-tab index="7" select="onTabSelect('allocations')" ng-if="sessionData.currentStore.store_type == 4 && checkPermissions( 'allocations', 'view')"> <!-- Cashroom only -->
+				<uib-tab-heading>
+					Allocations <span ng-show="data.pending.allocations > 0" class="label label-danger label-as-badge">{{ data.pending.allocations }}</span>
+				</uib-tab-heading>
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title pull-left">Allocations</h3>
+							<div class="pull-right">
+								<span ng-if="checkPermissions( 'allocations', 'edit' )">
+									<button class="btn btn-primary btn-sm" ui-sref="main.allocation({ editMode: 'new' })">
+										<i class="glyphicon glyphicon-plus"></i> New allocation
+									</button>&nbsp;
+								</span>
+								<button class="btn btn-default btn-sm" ng-click="updateAllocations( sessionData.currentStore.id )">
+									<i class="glyphicon glyphicon-refresh"></i>
+								</button>
 							</div>
+							<div class="clearfix"></div>
 						</div>
-
-
-						<div class="col-sm-4 col-md-3 col-lg-3">
-							<div class="form-group">
-								<label class="control-label">Input Item</label>
-								<select class="form-control"
-										ng-model="filters.conversions.inputItem"
-										ng-options="item as item.item_name for item in widgets.conversionsItems track by item.id">
-								</select>
-							</div>
-						</div>
-
-						<div class="col-sm-4 col-md-3 col-lg-3">
-							<div class="form-group">
-								<label class="control-label">Output Item</label>
-								<select class="form-control"
-										ng-model="filters.conversions.outputItem"
-										ng-options="item as item.item_name for item in widgets.conversionsItems track by item.id">
-								</select>
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-sm-4 col-md-3 col-lg-2">
+						<div class="form-group">
+							<label class="control-label">Date</label>
+							<div class="input-group">
+								<input type="text" class="form-control" uib-datepicker-popup="{{ filters.dateFormat }}" is-open="widgets.allocationsDate.opened"
+									min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)"
+									ng-model="filters.allocations.date" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" />
+								<span class="input-group-btn">
+									<button type="button" class="btn btn-default" ng-click="showDatePicker( 'allocationsDate' )"><i class="glyphicon glyphicon-calendar"></i></button>
+								</span>
 							</div>
 						</div>
 					</div>
-					<table class="table">
-						<thead>
-							<tr>
-								<th class="text-center">ID</th>
-								<th class="text-left">Date / Time</th>
-								<th class="text-left">Input Item</th>
-								<th class="text-center">Input Qty</th>
-								<th class="text-left">Output Item</th>
-								<th class="text-center">Output Qty</th>
-								<th class="text-left">Remarks</th>
-								<th class="text-center">Status</th>
-								<th></th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr ng-repeat="conversion in data.conversions">
-								<td class="text-center">{{ conversion.id }}</td>
-								<td class="text-left">{{ conversion.conversion_datetime }}</td>
-								<td class="text-left">{{ conversion.source_item_name }}</td>
-								<td class="text-center">{{ conversion.source_quantity | number }}</td>
-								<td class="text-left">{{ conversion.target_item_name }}</td>
-								<td class="text-center">{{ conversion.target_quantity | number }}</td>
-								<td class="text-left">{{ conversion.remarks }}</td>
-								<td class="text-center">{{ lookup( 'conversionStatus', conversion.conversion_status ) }}</td>
-								<td>
-									<div class="btn-group" uib-dropdown>
-										<button type="button" class="btn btn-default" ui-sref="main.convert({ conversionItem: conversion, editMode: 'view' })">View details...</button>
-										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'conversions', conversion )">
-											<span class="caret"></span>
-										</button>
-										<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'conversions', conversion )">
-											<li role="menuitem" ng-if="conversion.conversion_status == <?php echo CONVERSION_PENDING;?> && checkPermissions( 'conversions', 'edit' )">
-												<a ui-sref="main.convert({ conversionItem: conversion })">Edit...</a>
-											</li>
-											<li role="menuitem" ng-if="conversion.conversion_status == <?php echo CONVERSION_PENDING;?> && checkPermissions( 'conversions', 'approve' )">
-												<a href ng-click="approveConversion( conversion )">Approve</a>
-											</li>
-										</ul>
+
+					<div class="col-sm-4 col-md-3 col-lg-3">
+						<div class="form-group">
+							<label class="control-label">Assignee Type</label>
+							<select class="form-control"
+									ng-model="filters.allocations.assigneeType"
+									ng-options="type as type.typeName for type in widgets.allocationsAssigneeTypes track by type.id">
+							</select>
+						</div>
+					</div>
+
+					<div class="col-sm-4 col-md-3 col-lg-2">
+						<div class="form-group">
+							<label class="control-label">Status</label>
+							<select class="form-control"
+									ng-model="filters.allocations.status"
+									ng-options="status as status.statusName for status in widgets.allocationsStatus track by status.id">
+							</select>
+						</div>
+					</div>
+
+				</div>
+				<table class="table">
+					<thead>
+						<tr>
+							<th class="row-flag"></th>
+							<th class="text-center">ID</th>
+							<th class="text-left">Business Date</th>
+							<th class="text-left">Allocated to</th>
+							<th class="text-left">Allocation Details</th>
+							<th class="text-center">Status</th>
+							<th class="text-center"></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="row in data.allocations">
+							<td class="row-flag" ng-class="lookup( 'allocationStatus', row.allocation_status).className"></td>
+							<td class="text-center vert-top">{{ row.id }}</td>
+							<td class="text-left vert-top">{{ row.business_date }}<br />{{ row.shift_num }}</td>
+							<td class="text-left vert-top">{{ row.assignee ? ( row.assignee_type == 2 ? 'TVM# ' : '' ) + row.assignee : 'Not yet specified' }}<br />{{ row.assignee_type == 1 ? 'Station Teller' : 'Vending Machine' }}</td>
+							<td class="text-left vert-top" ng-switch on="row.assignee_type">
+								<div class="panel panel-default" ng-switch-when=1>
+									<table class="table table-condensed table-bordered table-details">
+										<thead>
+											<tr class="active">
+												<th>Item Description</th>
+												<th style="width: 70px;">Initial</th>
+												<th style="width: 70px;">Additional</th>
+												<th style="width: 70px;">Remitted</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr ng-repeat="item in row.items">
+												<td>{{ item.item_description }}</td>
+												<td class="text-right">{{ item.allocation | number }}</td>
+												<td class="text-right">{{ item.additional | number }}</td>
+												<td class="text-right">{{ item.remitted | number }}</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<div class="panel panel-default" ng-switch-when=2>
+									<table class="table table-condensed table-bordered table-details">
+										<thead>
+											<tr class="active">
+												<th>Item Description</th>
+												<th style="width: 70px;">Load</th>
+												<th style="width: 70px;">Reject</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr ng-repeat="item in row.items">
+												<td>{{ item.item_description }}</td>
+												<td class="text-right">{{ item.additional | number }}</td>
+												<td class="text-right">{{ item.remitted | number }}</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</td>
+							<td class="text-center vert-top">{{ lookup( 'allocationStatus', row.allocation_status ).status }}</td>
+							<td class="vert-top" ng-switch on="row.allocation_status">
+								<div class="btn-group" uib-dropdown>
+									<button type="button" class="btn btn-default" ui-sref="main.allocation({ allocationItem: row, editMode: 'view' })">View details...</button>
+									<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'allocations', row )">
+										<span class="caret"></span>
+									</button>
+									<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'allocations', row )">
+										<li role="menuitem" ng-if="row.allocation_status != <?php echo ALLOCATION_REMITTED;?>
+												&& row.allocation_status != <?php echo ALLOCATION_CANCELLED;?>
+												&& checkPermissions( 'allocations', 'edit' )">
+											<a ui-sref="main.allocation({ allocationItem: row, editMode: 'edit' })">Edit...</a>
+										</li>
+										<li role="menuitem" ng-if="row.allocation_status == <?php echo ALLOCATION_SCHEDULED;?> && checkPermissions( 'allocations', 'edit' )">
+											<a href="#" ng-click="cancelAllocation( row )">Cancel</a>
+										</li>
+
+									</ul>
+								</div>
+							</td>
+						</tr>
+						<tr ng-show="data.allocations.length == 0">
+							<td colspan="7" class="text-center">No allocation data available</td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="text-center" ng-if="data.totals.allocations > filters.itemsPerPage">
+					<uib-pagination
+							total-items="data.totals.allocations"
+							items-per-page="filters.itemsPerPage"
+							max-size="5"
+							boundary-link-numbers="true"
+							ng-model="filters.allocations.page"
+							ng-change="updateAllocations( sessionData.currentStore.id )">
+					</uib-pagination>
+				</div>
+			</div>
+					</div>
+			</uib-tab>
+
+			<!-- Conversions -->
+			<uib-tab index="8" select="onTabSelect('conversions')" ng-if="checkPermissions( 'conversions', 'view')">
+					<uib-tab-heading>
+							Conversions <span ng-show="data.pending.conversions > 0" class="label label-danger label-as-badge">{{ data.pending.conversions }}</span>
+					</uib-tab-heading>
+					<div class="panel panel-default">
+							<div class="panel-heading">
+									<h3 class="panel-title pull-left">Conversions</h3>
+									<div class="pull-right">
+					<span ng-if="checkPermissions( 'conversions', 'edit' )">
+						<button class="btn btn-primary btn-sm" ui-sref="main.convert({ editMode: 'edit' })">
+							<i class="glyphicon glyphicon-plus"></i> New conversion
+						</button>&nbsp;
+					</span>
+											<button class="btn btn-default btn-sm" ng-click="updateConversions( sessionData.currentStore.id )">
+													<i class="glyphicon glyphicon-refresh"></i>
+											</button>
 									</div>
-								</td>
-							</tr>
-							<tr ng-show="!data.conversions.length">
-								<td colspan="8" class="text-center">No conversion transaction data available</td>
-							</tr>
-						</tbody>
-					</table>
-					<div class="text-center" ng-if="data.totals.conversions > filters.itemsPerPage">
-						<uib-pagination
-								total-items="data.totals.conversions"
-								items-per-page="filters.itemsPerPage"
-								max-size="5"
-								boundary-link-numbers="true"
-								ng-model="filters.conversions.page"
-								ng-change="updateConversions( sessionData.currentStore.id )">
-						</uib-pagination>
+									<div class="clearfix"></div>
+							</div>
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-sm-4 col-md-3 col-lg-2">
+						<div class="form-group">
+							<label class="control-label">Date Converted</label>
+							<div class="input-group">
+								<input type="text" class="form-control" uib-datepicker-popup="{{ filters.dateFormat }}" is-open="widgets.conversionsDate.opened"
+									min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)"
+									ng-model="filters.conversions.date" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" />
+								<span class="input-group-btn">
+									<button type="button" class="btn btn-default" ng-click="showDatePicker( 'conversionsDate' )"><i class="glyphicon glyphicon-calendar"></i></button>
+								</span>
+							</div>
+						</div>
+					</div>
+
+
+					<div class="col-sm-4 col-md-3 col-lg-3">
+						<div class="form-group">
+							<label class="control-label">Input Item</label>
+							<select class="form-control"
+									ng-model="filters.conversions.inputItem"
+									ng-options="item as item.item_name for item in widgets.conversionsItems track by item.id">
+							</select>
+						</div>
+					</div>
+
+					<div class="col-sm-4 col-md-3 col-lg-3">
+						<div class="form-group">
+							<label class="control-label">Output Item</label>
+							<select class="form-control"
+									ng-model="filters.conversions.outputItem"
+									ng-options="item as item.item_name for item in widgets.conversionsItems track by item.id">
+							</select>
+						</div>
 					</div>
 				</div>
-        </uib-tab>
+				<table class="table">
+					<thead>
+						<tr>
+							<th class="text-center">ID</th>
+							<th class="text-left">Date / Time</th>
+							<th class="text-left">Input Item</th>
+							<th class="text-center">Input Qty</th>
+							<th class="text-left">Output Item</th>
+							<th class="text-center">Output Qty</th>
+							<th class="text-left">Remarks</th>
+							<th class="text-center">Status</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="conversion in data.conversions">
+							<td class="text-center">{{ conversion.id }}</td>
+							<td class="text-left">{{ conversion.conversion_datetime }}</td>
+							<td class="text-left">{{ conversion.source_item_name }}</td>
+							<td class="text-center">{{ conversion.source_quantity | number }}</td>
+							<td class="text-left">{{ conversion.target_item_name }}</td>
+							<td class="text-center">{{ conversion.target_quantity | number }}</td>
+							<td class="text-left">{{ conversion.remarks }}</td>
+							<td class="text-center">{{ lookup( 'conversionStatus', conversion.conversion_status ) }}</td>
+							<td>
+								<div class="btn-group" uib-dropdown>
+									<button type="button" class="btn btn-default" ui-sref="main.convert({ conversionItem: conversion, editMode: 'view' })">View details...</button>
+									<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'conversions', conversion )">
+										<span class="caret"></span>
+									</button>
+									<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'conversions', conversion )">
+										<li role="menuitem" ng-if="conversion.conversion_status == <?php echo CONVERSION_PENDING;?> && checkPermissions( 'conversions', 'edit' )">
+											<a ui-sref="main.convert({ conversionItem: conversion })">Edit...</a>
+										</li>
+										<li role="menuitem" ng-if="conversion.conversion_status == <?php echo CONVERSION_PENDING;?> && checkPermissions( 'conversions', 'approve' )">
+											<a href ng-click="approveConversion( conversion )">Approve</a>
+										</li>
+									</ul>
+								</div>
+							</td>
+						</tr>
+						<tr ng-show="!data.conversions.length">
+							<td colspan="8" class="text-center">No conversion transaction data available</td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="text-center" ng-if="data.totals.conversions > filters.itemsPerPage">
+					<uib-pagination
+							total-items="data.totals.conversions"
+							items-per-page="filters.itemsPerPage"
+							max-size="5"
+							boundary-link-numbers="true"
+							ng-model="filters.conversions.page"
+							ng-change="updateConversions( sessionData.currentStore.id )">
+					</uib-pagination>
+				</div>
+			</div>
+			</uib-tab>
 
 	</uib-tabset>
 </div>

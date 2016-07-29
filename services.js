@@ -741,7 +741,8 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         dst: me.filters.transfers.destination ? me.filters.transfers.destination.id : null,
                         status: me.filters.transfers.status ? me.filters.transfers.status.id : null,
                         page: me.filters.transfers.page ? me.filters.transfers.page : null,
-                        limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
+                        limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null,
+                        include: 'validation'
                     }
 				}).then(
 					function( response )
@@ -781,7 +782,8 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         src: me.filters.receipts.source ? me.filters.receipts.source.id : null,
                         status: me.filters.receipts.status ? me.filters.receipts.status.id : null,
                         page: me.filters.receipts.page ? me.filters.receipts.page : null,
-                        limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
+                        limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null,
+                        include: 'validation'
                     }
 				}).then(
 					function( response )
@@ -965,9 +967,33 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
             };
 
         // Transfer Validations
-        me.saveTransferValidation = function( validation )
+        me.saveTransferValidation = function( validation, action )
             {
+                var deferred = $q.defer();
+                $http({
+                    method: 'POST',
+                    url: baseUrl + 'index.php/api/v1/transfer_validations/' + action,
+                    data: validation
+                }).then(
+                    function( response )
+                    {
+                        if( response.data.status == 'ok' )
+                        {
+                            deferred.resolve( response.data );
+                        }
+                        else
+                        {
+                            notifications.showMessages( response.data.errorMsg );
+                            deferred.reject( response.data.errorMsg );
+                        }
+                    },
+                    function( reason )
+                    {
+                        console.error( reason.data.errorMsg );
+                        deferred.reject( reason.data.errorMsg );
+                    });
 
+                return deferred.promise;
             };
 
         me.completeTransferValidation = function( validation )

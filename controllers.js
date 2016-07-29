@@ -578,6 +578,13 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 				switch( module )
 				{
 					case 'transferValidations':
+						// TRANSFER_VALIDATION_RECEIPT_VALIDATED, TRANSFER_VALIDATION_RECEIPT_RETURNED
+						// TRANSFER_VALIDATION_TRANSFER_VALIDATED, TRANSFER_VALIDATION_TRANSFER_DISPUTED
+						// TRANSFER_VALIDATION_ONGOING
+						if( !record )
+						{
+							return false;
+						}
 						return ( ( record.transval_receipt_status == 1 && ( record.transval_transfer_status == 1 || record.transval_transfer_status == 2 ) )
 							|| ( record.transval_receipt_status == 2 )
 							|| ( record.transval_receipt_status == 3 ) )
@@ -756,6 +763,98 @@ app.controller( 'TransferValidationController', [ '$scope', '$state', '$statePar
 
 		$scope.findUser = UserServices.findUser;
 
+		$scope.validateReceipt = function()
+			{
+				var validation = $scope.transferItem.validation;
+				appData.saveTransferValidation( validation, 'validate_receipt' ).then(
+					function( response )
+					{
+						appData.refresh( 'transferValidations' );
+						notifications.alert( 'Receipt of items from source validated', 'success' );
+						$state.go( 'main.store', { activeTab: 'transferValidations' } );
+					},
+					function( reason )
+					{
+						console.error( reason );
+					});
+			};
+
+		$scope.markReturned = function()
+			{
+				var validation = $scope.transferItem.validation;
+				appData.saveTransferValidation( validation, 'returned' ).then(
+					function( response )
+					{
+						appData.refresh( 'transferValidations' );
+						notifications.alert( 'Transfer marked as returned', 'success' );
+						$state.go( 'main.store', { activeTab: 'transferValidations' } );
+					},
+					function( reason )
+					{
+						console.error( reason );
+					});
+			};
+
+		$scope.validateTransfer = function()
+			{
+				var validation = $scope.transferItem.validation;
+				appData.saveTransferValidation( validation, 'validate_transfer' ).then(
+					function( response )
+					{
+						appData.refresh( 'transferValidations' );
+						notifications.alert( 'Receipt of items by recipient validated', 'success' );
+						$state.go( 'main.store', { activeTab: 'transferValidations' } );
+					},
+					function( reason )
+					{
+						console.error( reason );
+					});
+			};
+
+		$scope.markDisputed = function()
+			{
+				var validation = $scope.transferItem.validation;
+				appData.saveTransferValidation( validation, 'dispute' ).then(
+					function( response )
+					{
+						appData.refresh( 'transferValidations' );
+						notifications.alert( 'Receipt of items by recipient disputed', 'success' );
+						$state.go( 'main.store', { activeTab: 'transferValidations' } );
+					},
+					function( reason )
+					{
+						console.error( reason );
+					});
+			};
+
+		$scope.markCompleted = function()
+			{
+				var validation = $scope.transferItem.validation || null;
+				appData.saveTransferValidation( validationId, 'complete' ).then(
+					function( response )
+					{
+
+					},
+					function( reason )
+					{
+
+					});
+			};
+
+		$scope.markNotApplicable = function()
+			{
+				var validation = $scope.transferItem.validation || null;
+				appData.saveTransferValidation( validationId, 'notApplicable' ).then(
+					function( response )
+					{
+
+					},
+					function( reason )
+					{
+
+					});
+			};
+
 		if( $stateParams.transferItem )
 		{
 			$scope.data.editMode = $stateParams.editMode || 'view';
@@ -768,7 +867,12 @@ app.controller( 'TransferValidationController', [ '$scope', '$state', '$statePar
 						if( $scope.transferItem.validation == null )
 						{
 							$scope.transferItem.validation = {};
+							$scope.transferItem.validation.transval_transfer_id = $scope.transferItem.id;
 							$scope.transferItem.validation.transval_receipt_sweeper = session.data.currentUser.full_name;
+							if( ! $scope.transferItem.validation.transval_transfer_sweeper )
+							{
+								$scope.transferItem.validation.transval_transfer_sweeper = session.data.currentUser.full_name;
+							}
 						}
 					}
 				},

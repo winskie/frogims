@@ -148,6 +148,116 @@ class Transfer extends Base_model {
 		return NULL;
 	}
 
+	public function count_transfers( $params = array() )
+	{
+		$ci =& get_instance();
+		$ci->load->library( 'Transfer' );
+
+		$includes = param( $params, 'includes' );
+		$date_sent = param( $params, 'sent' );
+		$date_received = param( $params, 'received' );
+		$source = param( $params, 'src' );
+		$destination = param( $params, 'dst' );
+		$status = param( $params, 'status' );
+
+		if( $date_sent )
+		{
+			$ci->db->where( 'DATE(transfer_datetime)', $date_sent );
+		}
+
+		if( $date_received )
+		{
+			$ci->db->where( 'DATE(receipt_datetime)', $date_received );
+		}
+
+		if( $source )
+		{
+			if( $source == '_ext_' )
+			{
+				$ci->db->where( 'origin_id IS NULL' );
+				$ci->db->where( 'origin_name IS NOT NULL' );
+			}
+			else
+			{
+				$ci->db->where( 'origin_id', $source );
+			}
+		}
+
+		if( $destination )
+		{
+			if( $destination == '_ext_' )
+			{
+				$ci->db->where( 'destination_id IS NULL' );
+				$ci->db->where( 'destination_name IS NOT NULL' );
+			}
+			else
+			{
+				$ci->db->where( 'destination_id', $destination );
+			}
+		}
+
+		if( $status )
+		{
+			$ci->db->where( 'transfer_status', $status );
+		}
+
+		$count = $ci->db->count_all_results( 'transfers t' );
+
+		return $count;
+	}
+
+	public function count_pending_transfers( $params = array() )
+	{
+		$includes = param( $params, 'includes' );
+		$date_sent = param( $params, 'sent' );
+		$date_received = param( $params, 'received' );
+		$source = param( $params, 'src' );
+		$destination = param( $params, 'dst' );
+
+		$ci =& get_instance();
+
+		if( $date_sent )
+		{
+			$ci->db->where( 'DATE(transfer_datetime)', $date_sent );
+		}
+
+		if( $date_received )
+		{
+			$ci->db->where( 'DATE(receipt_datetime)', $date_received );
+		}
+
+		if( $source )
+		{
+			if( $source == '_ext_' )
+			{
+				$ci->db->where( 'origin_id IS NULL' );
+				$ci->db->where( 'origin_name IS NOT NULL' );
+			}
+			else
+			{
+				$ci->db->where( 'origin_id', $source );
+			}
+		}
+
+		if( $destination )
+		{
+			if( $destination == '_ext_' )
+			{
+				$ci->db->where( 'destination_id IS NULL' );
+				$ci->db->where( 'destination_name IS NOT NULL' );
+			}
+			else
+			{
+				$ci->db->where( 'destination_id', $destination );
+			}
+		}
+
+
+		$count = $ci->db->count_all_results( 'transfers t' );
+
+		return $count;
+	}
+
 	public function get_items( $attach = FALSE )
 	{
 		$ci =& get_instance();

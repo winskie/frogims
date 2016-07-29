@@ -345,13 +345,15 @@ class Store extends Base_model
 		$business_date = param( $params, 'date' );
 		$destination = param( $params, 'dst' );
 		$status = param( $params, 'status' );
+		$includes = param( $params, 'includes' );
 
 		$limit = param( $params, 'limit' );
 		$page = param( $params, 'page', 1 );
 		$format = param( $params, 'format', 'object' );
 		$order = param( $params, 'order', 'transfer_datetime DESC, id DESC' );
 
-		//$ci->db->select( 't.*, i.item_name' );
+		$select = 't.*';
+
 		if( $limit )
 		{
 			$ci->db->limit( $limit, ( $page ? ( ( $page - 1 ) * $limit ) : 0 ) );
@@ -384,6 +386,17 @@ class Store extends Base_model
 			$ci->db->where( 'transfer_status', $status );
 		}
 
+		if( $includes )
+		{
+			if( in_array( 'validation', $includes ) )
+			{
+				$ci->db->join( 'transfer_validations AS tv', 'tv.transval_transfer_id = t.id', 'left' );
+				$select .= ', tv.transval_receipt_status, tv.transval_receipt_datetime, tv.transval_receipt_sweeper, tv.transval_receipt_user_id, tv.transval_receipt_shift_id,
+						tv.transval_transfer_status, tv.transval_transfer_datetime, tv.transval_transfer_sweeper, tv.transval_transfer_user_id, tv.transval_transfer_shift_id';
+			}
+		}
+
+		$ci->db->select( $select );
 		$ci->db->where( 'origin_id', $this->id );
 		//$ci->db->join( 'items i', 'i.id = t.item_id' );
 		$query = $ci->db->get( 'transfers t' );
@@ -406,6 +419,7 @@ class Store extends Base_model
 		$receipt_date = param( $params, 'date' );
 		$source = param( $params, 'src' );
 		$status = param( $params, 'status' );
+		$includes = param( $params, 'includes' );
 
 		$limit = param( $params, 'limit' );
 		$page = param( $params, 'page', 1 );
@@ -418,7 +432,8 @@ class Store extends Base_model
 		// Do not show pending or scheduled transfers
 		$available_status = array( TRANSFER_APPROVED, TRANSFER_RECEIVED, TRANSFER_CANCELLED );
 
-		$ci->db->select( 't.*' );
+		$select = 't.*';
+
 		if( $limit )
 		{
 			$ci->db->limit( $limit, ( $page ? ( ( $page - 1 ) * $limit ) : 0 ) );
@@ -455,6 +470,16 @@ class Store extends Base_model
 		$ci->db->where( 'destination_id', $this->id );
 		$ci->db->join( 'stores s', 's.id = t.origin_id', 'left' );
 
+		if( $includes )
+		{
+			if( in_array( 'validation', $includes ) )
+			{
+				$ci->db->join( 'transfer_validations AS tv', 'tv.transval_transfer_id = t.id', 'left' );
+				$select .= ', tv.transval_receipt_status, tv.transval_receipt_datetime, tv.transval_receipt_sweeper, tv.transval_receipt_user_id, tv.transval_receipt_shift_id,
+						tv.transval_transfer_status, tv.transval_transfer_datetime, tv.transval_transfer_sweeper, tv.transval_transfer_user_id, tv.transval_transfer_shift_id';
+			}
+		}
+		$ci->db->select( $select );
 		$query = $ci->db->get( 'transfers t' );
 
 		if( $format == 'object' )

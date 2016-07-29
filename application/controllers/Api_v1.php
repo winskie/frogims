@@ -1235,22 +1235,42 @@ class Api_v1 extends CI_Controller {
                                 break;
 
                             case 'receipts': // receipts
+                                $includes = param( $this->input->get(), 'include' );
+                                $includes = explode( ',', $includes );
                                 $params = array(
                                         'date' => param( $this->input->get(), 'date' ),
                                         'src' => param( $this->input->get(), 'src' ),
                                         'status' => param( $this->input->get(), 'status' ),
                                         'page' => param( $this->input->get(), 'page' ),
                                         'limit' => param( $this->input->get(), 'limit' ),
+                                        'includes' => $includes
                                     );
                                 $receipts = $store->get_receipts( $params );
                                 $total_receipts = $store->count_receipts( $params );
                                 $pending_receipts = $store->count_pending_receipts( $params );
 
                                 $receipts_data = array();
+                                $array_params = array();
+
+                                if( $params['includes'] && in_array( 'validation', $params['includes'] ) )
+                                {
+                                    $array_params = array(
+                                        'transval_receipt_status' => array( 'type' => 'integer' ),
+                                        'transval_receipt_datetime' => array( 'type' => 'datetime' ),
+                                        'transval_receipt_sweeper' => array( 'type' => 'string' ),
+                                        'transval_receipt_user_id' => array( 'type' => 'integer' ),
+                                        'transval_receipt_shift_id' => array( 'type' => 'integer' ),
+                                        'transval_transfer_status' => array( 'type' => 'integer' ),
+                                        'transval_transfer_datetime' => array( 'type' => 'datetime' ),
+                                        'transval_transfer_sweeper' => array( 'type' => 'string' ),
+                                        'transval_transfer_user_id' => array( 'type' => 'integer' ),
+                                        'transval_transfer_shift_id' => array( 'type' => 'integer' ) );
+                                }
+
                                 foreach( $receipts as $receipt )
                                 {
                                     $items = $receipt->get_items( FALSE );
-                                    $r = $receipt->as_array();
+                                    $r = $receipt->as_array( $array_params );
                                     foreach( $items as $item )
                                     {
                                         $r['items'][] = $item->as_array( array(
@@ -1280,6 +1300,8 @@ class Api_v1 extends CI_Controller {
 
                             case 'transfers': // transfers
                                 $transfer_id = param_type( $this->uri->rsegment( 5 ), 'integer' );
+                                $includes = param( $this->input->get(), 'include' );
+                                $includes = explode( ',', $includes );
                                 if( $transfer_id )
                                 {
                                     $this->load->library( 'transfer' );
@@ -1291,6 +1313,8 @@ class Api_v1 extends CI_Controller {
 
                                         $transfer_items = $transfer->get_items();
                                         $transfer_items_data = array();
+
+
                                         foreach( $transfer_items as $item )
                                         {
                                             $transfer_items_data[] = $item->as_array( array(
@@ -1316,16 +1340,34 @@ class Api_v1 extends CI_Controller {
                                         'status' => param( $this->input->get(), 'status' ),
                                         'page' => param( $this->input->get(), 'page' ),
                                         'limit' => param( $this->input->get(), 'limit' ),
+                                        'includes' => $includes
                                     );
                                     $transfers = $store->get_transfers( $params );
                                     $total_transfers = $store->count_transfers( $params );
                                     $pending_transfers = $store->count_pending_transfers( $params );
 
                                     $transfers_data = array();
+                                    $array_params = array();
+
+                                    if( $params['includes'] && in_array( 'validation', $params['includes'] ) )
+                                    {
+                                        $array_params = array(
+                                            'transval_receipt_status' => array( 'type' => 'integer' ),
+                                            'transval_receipt_datetime' => array( 'type' => 'datetime' ),
+                                            'transval_receipt_sweeper' => array( 'type' => 'string' ),
+                                            'transval_receipt_user_id' => array( 'type' => 'integer' ),
+                                            'transval_receipt_shift_id' => array( 'type' => 'integer' ),
+                                            'transval_transfer_status' => array( 'type' => 'integer' ),
+                                            'transval_transfer_datetime' => array( 'type' => 'datetime' ),
+                                            'transval_transfer_sweeper' => array( 'type' => 'string' ),
+                                            'transval_transfer_user_id' => array( 'type' => 'integer' ),
+                                            'transval_transfer_shift_id' => array( 'type' => 'integer' ) );
+                                    }
+
                                     foreach( $transfers as $transfer )
                                     {
                                         $items = $transfer->get_items( FALSE );
-                                        $r = $transfer->as_array();
+                                        $r = $transfer->as_array( $array_params );
                                         foreach( $items as $item )
                                         {
                                             $r['items'][] = $item->as_array( array(
@@ -1470,7 +1512,7 @@ class Api_v1 extends CI_Controller {
                                 if( in_array( 'validation', $includes ) )
                                 {
                                     $validation = $transfer->get_transfer_validation();
-                                    $transfer_data['validation'] = $validation;
+                                    $transfer_data['validation'] = $validation->as_array();
                                 }
 
                                 $this->_response( $transfer_data );
@@ -1503,11 +1545,13 @@ class Api_v1 extends CI_Controller {
                         'limit' => param( $this->input->get(), 'limit' ),
                     );
                     $transfers = $Transfer->get_transfers( $params );
-                    $sql = $this->db->last_query();
+                    $total_transfers = $Transfer->count_transfers( $params );
+                    //$pending_transfers = $Transfer->count_pending_transfers( $params );
+                    $pending_transfers = 0;
                     $transfers_data = array();
                     $array_params = array();
 
-                    if( $params['includes'] && in_array( 'validations', $params['includes'] ) )
+                    if( $params['includes'] && in_array( 'validation', $params['includes'] ) )
                     {
                         $array_params = array(
                             'transval_receipt_status' => array( 'type' => 'integer' ),
@@ -1528,7 +1572,8 @@ class Api_v1 extends CI_Controller {
 
                     $this->_response( array(
                         'transfers' => $transfers_data,
-                        'query' => $sql ) );
+                        'total' => $total_transfers,
+                        'pending' => $pending_transfers ) );
                 }
                 break;
 
@@ -1584,6 +1629,72 @@ class Api_v1 extends CI_Controller {
 
             default:
                 $this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
+        }
+
+        $this->_send_response();
+    }
+
+    public function transfer_validations()
+    {
+        $request_method = $this->input->method();
+
+        $this->load->library( 'transfer_validation' );
+        $Validation = new Transfer_validation();
+
+        switch( $request_method )
+        {
+            case 'post':
+                $action = param_type( $this->uri->rsegment( 3 ), 'string' );
+                $validation_id = param( $this->input->post(), 'id' );
+                $validation = $Validation->load_from_data( $this->input->post() );
+
+                $this->db->trans_start();
+                switch( $action )
+                {
+                    case 'validate_receipt':
+                        $result = $validation->validate_receipt();
+                        break;
+
+                    case 'returned':
+                        $result = $validation->return_transfer();
+                        break;
+
+                    case 'validate_transfer':
+                        $result = $validation->validate_transfer();
+                        break;
+
+                    case 'dispute':
+                        $result = $validation->dispute();
+                        break;
+
+                    default:
+                        $result = $transfer->db_save();
+                }
+
+                if( $result )
+                {
+                    $validation_data = $validation->as_array();
+                    $this->db->trans_complete();
+
+                    if( $this->db->trans_status() )
+                    {
+                        $this->_response( $validation_data, $validation_id ? 200 : 201 );
+                    }
+                    else
+                    {
+                        $this->_error( 500, 'A database error has occurred while trying to save transfer record' );
+                    }
+                }
+                else
+                {
+                    $messages = get_messages();
+                    $this->_error( 200, $messages );
+                }
+                break;
+
+            default:
+                $this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
+
         }
 
         $this->_send_response();
