@@ -7,13 +7,12 @@ class Transfer_validation extends Base_model {
 	protected $transval_receipt_status;
 	protected $transval_receipt_datetime;
 	protected $transval_receipt_sweeper;
-  	protected $transval_receipt_user_id;
+	protected $transval_receipt_user_id;
 	protected $transval_receipt_shift_id;
-	protected $transval_items_checked;
 	protected $transval_transfer_status;
 	protected $transval_transfer_datetime;
 	protected $transval_transfer_sweeper;
-  	protected $transval_transfer_user_id;
+	protected $transval_transfer_user_id;
 	protected $transval_transfer_shift_id;
 	protected $transval_status;
 
@@ -36,13 +35,12 @@ class Transfer_validation extends Base_model {
 				'transval_receipt_status' => array( 'type' => 'integer' ),
 				'transval_receipt_datetime' => array( 'type' => 'datetime' ),
 				'transval_receipt_sweeper' => array( 'type' => 'string' ),
-        		'transval_receipt_user_id' => array( 'type' => 'integer' ),
+				'transval_receipt_user_id' => array( 'type' => 'integer' ),
 				'transval_receipt_shift_id' => array( 'type' => 'integer' ),
-				'transval_items_checked' => array( 'type' => 'string' ),
 				'transval_transfer_status' => array( 'type' => 'integer' ),
 				'transval_transfer_datetime' => array( 'type' => 'datetime' ),
 				'transval_transfer_sweeper' => array( 'type' => 'string' ),
-        		'transval_transfer_user_id' => array( 'type' => 'integer' ),
+				'transval_transfer_user_id' => array( 'type' => 'integer' ),
 				'transval_transfer_shift_id' => array( 'type' => 'integer' ),
 				'transval_status' => array( 'type' => 'integer' )
 			);
@@ -122,9 +120,9 @@ class Transfer_validation extends Base_model {
 		// Check if transfer is approved
 		$ci->load->library( 'transfer' );
 		$transfer = $this->get_transfer();
-		if( $transfer->get( 'transfer_status') != TRANSFER_APPROVED )
+		if( ! in_array( $transfer->get( 'transfer_status'), array( TRANSFER_APPROVED, TRANSFER_RECEIVED ) ) )
 		{
-			set_message( 'Cannot validate receipt of non-approved transfer' );
+			set_message( 'Cannot validate receipt - Transfer must be approved or received' );
 			return FALSE;
 		}
 
@@ -179,21 +177,21 @@ class Transfer_validation extends Base_model {
 		$transfer = $this->get_transfer();
 		if( $transfer->get( 'transfer_status') != TRANSFER_APPROVED )
 		{
-			set_message( 'Cannot validate receipt of non-approved transfer' );
+			set_message( 'Cannot return transfer of non-approved transfer or transfer that is already received' );
 			return FALSE;
 		}
 
 		// Check if validation is already completed..
 		if( $this->transval_status == TRANSFER_VALIDATION_COMPLETED )
 		{
-			set_message( 'Cannot validate receipt. Transfer validation is already completed.' );
+			set_message( 'Cannot return transfer - Transfer validation is already completed.' );
 			return FALSE;
 		}
 
 		// ...or transfer does not require validation
 		if( $this->transval_status == TRANSFER_VALIDATION_NOTAPPLICABLE )
 		{
-			set_messgae( 'Cannot validate receipt. Transfer does not require validation.' );
+			set_messgae( 'Cannot return transfer - Transfer does not require validation.' );
 			return FALSE;
 		}
 
@@ -231,21 +229,21 @@ class Transfer_validation extends Base_model {
 		$transfer = $this->get_transfer();
 		if( $transfer->get( 'transfer_status') != TRANSFER_RECEIVED )
 		{
-			set_message( 'Cannot validate receipt - Transfer is not yet received' );
+			set_message( 'Cannot validate transfer - Transfer is not yet received' );
 			return FALSE;
 		}
 
 		// Check if validation is already completed..
 		if( $this->transval_status == TRANSFER_VALIDATION_COMPLETED )
 		{
-			set_message( 'Cannot validate receipt - Transfer validation is already completed' );
+			set_message( 'Cannot validate transfer - Transfer validation is already completed' );
 			return FALSE;
 		}
 
 		// ...or transfer does not require validation
 		if( $this->transval_status == TRANSFER_VALIDATION_NOTAPPLICABLE )
 		{
-			set_messgae( 'Cannot validate receipt - Transfer does not require validation' );
+			set_messgae( 'Cannot validate transfer - Transfer does not require validation' );
 			return FALSE;
 		}
 
@@ -285,21 +283,21 @@ class Transfer_validation extends Base_model {
 		$transfer = $this->get_transfer();
 		if( $transfer->get( 'transfer_status') != TRANSFER_RECEIVED )
 		{
-			set_message( 'Cannot validate receipt - Transfer is not yet received' );
+			set_message( 'Cannot dispute transfer - Transfer is not yet received' );
 			return FALSE;
 		}
 
 		// Check if validation is already completed..
 		if( $this->transval_status == TRANSFER_VALIDATION_COMPLETED )
 		{
-			set_message( 'Cannot validate receipt - Transfer validation is already completed' );
+			set_message( 'Cannot dispute transfer - Transfer validation is already completed' );
 			return FALSE;
 		}
 
 		// ...or transfer does not require validation
 		if( $this->transval_status == TRANSFER_VALIDATION_NOTAPPLICABLE )
 		{
-			set_messgae( 'Cannot validate receipt - Transfer does not require validation' );
+			set_messgae( 'Cannot dispute transfer - Transfer does not require validation' );
 			return FALSE;
 		}
 

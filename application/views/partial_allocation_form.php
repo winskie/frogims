@@ -172,7 +172,7 @@
                         </tr>
                         <tr ng-if="!allocationItem.remittances.length">
                             <td colspan="8" class="text-center bg-warning">
-                                No remittance items
+                                {{ data.remittancesEmptyText }}
                             </td>"
                         </tr>
                     </tbody>

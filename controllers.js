@@ -1406,7 +1406,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 										item_id: remittances[i].allocated_item_id,
 										item_category_id: remittances[i].allocation_category_id,
 										quantity: remittances[i].allocated_quantity,
-										remarks: 'From allocation #' + allocationItem.id + ' - ' + allocationItem.assignee,
+										remarks: 'From allocation #' + allocationItem.id + ' - ' + ( allocationItem.assignee_type == 2 ? 'TVM #' : '' ) + allocationItem.assignee,
 										transfer_item_status: 1 // TRANSFER_ITEM_SCHEDULED
 									};
 
@@ -2333,7 +2333,8 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 
 			assigneeLabel: 'Teller Name',
 			assigneeShiftLabel: 'Teller Shift',
-			remittancesTabLabel: 'Remittances'
+			remittancesTabLabel: 'Remittances',
+			remittancesEmptyText: 'No remittance items'
 		};
 
 		$scope.input = {
@@ -2419,6 +2420,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					$scope.data.assigneeLabel = 'Teller Name';
 					$scope.data.assigneeShiftLabel = 'Teller Shift';
 					$scope.data.remittancesTabLabel = 'Remittances';
+					$scope.data.remittancesEmptyText = 'No remittance items';
 				}
 				else if( $scope.data.selectedAssigneeType.id == 2 )
 				{
@@ -2426,6 +2428,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					$scope.data.assigneeLabel = 'TVM Number';
 					$scope.data.assigneeShiftLabel = 'TVM Shift';
 					$scope.data.remittancesTabLabel = 'Reject Bin';
+					$scope.data.remittancesEmptyText = 'No reject items';
 				}
 				else
 				{

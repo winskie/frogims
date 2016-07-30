@@ -1512,7 +1512,14 @@ class Api_v1 extends CI_Controller {
                                 if( in_array( 'validation', $includes ) )
                                 {
                                     $validation = $transfer->get_transfer_validation();
-                                    $transfer_data['validation'] = $validation->as_array();
+                                    if( $validation )
+                                    {
+                                        $transfer_data['validation'] = $validation->as_array();
+                                    }
+                                    else
+                                    {
+                                        $transfer_data['validation'] = NULL;
+                                    }
                                 }
 
                                 $this->_response( $transfer_data );
