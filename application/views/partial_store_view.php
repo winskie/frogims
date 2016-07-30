@@ -469,6 +469,7 @@ $current_user = current_user();
 								</td>
 								<td class="text-center vert-top">
 									<i class="glyphicon glyphicon-ok text-success" ng-if="receipt.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_VALIDATED;?>"> </i>
+									<i class="glyphicon glyphicon-remove text-danger" ng-if="receipt.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_DISPUTED;?>"> </i>
 									{{ lookup( 'transferStatus', receipt.transfer_status ) }}
 								</td>
 								<td class="text-right vert-top">
