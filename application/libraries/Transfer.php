@@ -7,13 +7,13 @@ class Transfer extends Base_model {
 	protected $origin_name;
 	protected $sender_id;
 	protected $sender_name;
-    protected $sender_shift;
+	protected $sender_shift;
 	protected $transfer_datetime;
 	protected $destination_id;
 	protected $destination_name;
 	protected $recipient_id;
 	protected $recipient_name;
-    protected $recipient_shift;
+	protected $recipient_shift;
 	protected $receipt_datetime;
 	protected $transfer_status;
 
@@ -37,13 +37,13 @@ class Transfer extends Base_model {
 				'origin_name' => array( 'type' => 'string' ),
 				'sender_id' => array( 'type' => 'integer' ),
 				'sender_name' => array( 'type' => 'string' ),
-                'sender_shift' => array( 'type' => 'integer' ),
+				'sender_shift' => array( 'type' => 'integer' ),
 				'transfer_datetime' => array( 'type' => 'datetime' ),
 				'destination_id' => array( 'type' => 'integer' ),
 				'destination_name' => array( 'type' => 'string' ),
 				'recipient_id' => array( 'type' => 'integer' ),
 				'recipient_name' => array( 'type' => 'string' ),
-                'recipient_shift' => array( 'type' => 'integer' ),
+				'recipient_shift' => array( 'type' => 'integer' ),
 				'receipt_datetime' => array( 'type' => 'datetime' ),
 				'transfer_status' => array( 'type' => 'integer' )
 			);
@@ -206,6 +206,7 @@ class Transfer extends Base_model {
 		return $count;
 	}
 
+
 	public function count_pending_transfers( $params = array() )
 	{
 		$includes = param( $params, 'includes' );
@@ -257,6 +258,7 @@ class Transfer extends Base_model {
 
 		return $count;
 	}
+
 
 	public function get_items( $attach = FALSE )
 	{
@@ -406,6 +408,7 @@ class Transfer extends Base_model {
 
 		return TRUE;
 	}
+
 
 	public function db_save()
 	{
@@ -588,13 +591,13 @@ class Transfer extends Base_model {
 			$current_user = new User();
 			$current_user = $current_user->get_by_id( $ci->session->current_user_id );
 
-            $current_shift = $ci->session->current_shift_id;
+			$current_shift = $ci->session->current_shift_id;
 
 			switch( $this->db_changes['transfer_status'] )
 			{
 				case TRANSFER_PENDING:
-                    // Sender's Shift
-                    $this->set( 'sender_shift', $current_shift );
+					// Sender's Shift
+					$this->set( 'sender_shift', $current_shift );
 					break;
 
 				case TRANSFER_APPROVED:
@@ -617,8 +620,8 @@ class Transfer extends Base_model {
 					$sender_name = isset( $this->sender_name ) ? $this->sender_name : $current_user->get( 'full_name' );
 					$this->set( 'sender_name', $sender_name );
 
-                    // Update sender's Shift
-                    $this->set( 'sender_shift', $current_shift );
+					// Update sender's Shift
+					$this->set( 'sender_shift', $current_shift );
 
 					// Transfer date/time - if not specified should be now
 					if( ! $this->transfer_datetime )
@@ -651,8 +654,8 @@ class Transfer extends Base_model {
 					$recipient_name = isset( $this->recipient_name ) ? $this->recipient_name : $current_user->get( 'full_name' );
 					$this->set( 'recipient_name', $recipient_name );
 
-                    // Recipient Shift
-                    $this->set( 'recipient_shift', $current_shift );
+					// Recipient Shift
+					$this->set( 'recipient_shift', $current_shift );
 
 					// Receipt date/time - if not specified should be now
 					if( ! isset( $this->receipt_datetime ) )
@@ -823,14 +826,15 @@ class Transfer extends Base_model {
 		$allowed_prev_status = array( TRANSFER_PENDING );
 		if( ! in_array( $this->transfer_status, $allowed_prev_status ) )
 		{
-			die( 'Cannot approve non-pending transfers' );
+			set_message( 'Cannot approve non-pending transfers' );
+			return FALSE;
 		}
 
 		// Only the originating store can approve the transfer
 		if( $ci->session->current_store_id != $this->origin_id )
 		{
-			die( sprintf( 'Current store (%s) is not authorize to approve the transfer',
-                    $ci->session->current_store_id ) );
+			set_message( sprintf( 'Current store (%s) is not authorize to approve the transfer', $ci->session->current_store_id ) );
+			return FALSE;
 		}
 
 		$ci->db->trans_start();
@@ -865,13 +869,26 @@ class Transfer extends Base_model {
 		// Check for valid previous transfer status
 		if( ! in_array( $this->transfer_status, array( TRANSFER_PENDING, TRANSFER_APPROVED ) ) )
 		{
-			die( 'Cannot cancel transfer. Only pending or approved transfers can be cancelled.');
+			set_message( 'Cannot cancel transfer. Only pending or approved transfers can be cancelled.' );
+			return FALSE;
 		}
 
 		// Only the originating store can cancel the transfer
 		if( $ci->session->current_store_id != $this->origin_id )
 		{
-			die( 'Current store is not authorized to cancel the transfer.' );
+			set_message( 'Current store is not authorized to cancel the transfer.' );
+			return FALSE;
+		}
+
+		// If this is a validated transfer, only returned transfers can be cancelled
+		if( $this->get_transfer_validation() )
+		{
+			if( $this->transfer_validation->get( 'transval_status' ) != TRANSFER_VALIDATION_NOTAPPLICABLE
+					&& $this->transfer_validation->get( 'transval_receipt_status' ) != TRANSFER_VALIDATION_RECEIPT_RETURNED )
+			{
+				set_message( 'Cannot cancel transfer - Receipt already validated' );
+				return FALSE;
+			}
 		}
 
 		//$ci->load->library( 'store' );

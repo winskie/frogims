@@ -169,6 +169,8 @@ $current_user = current_user();
 							</td>
 							<td ng-switch on="transfer.transval_receipt_status == null">
 								<div ng-class="{ 'text-success': transfer.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_VALIDATED; ?> }" ng-switch-when="false">
+									<i class="glyphicon glyphicon-ok text-success" ng-if="transfer.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_VALIDATED;?>"> </i>
+									<i class="glyphicon glyphicon-repeat text-danger" ng-if="transfer.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_RETURNED;?>"> </i>
 									{{ transfer.transval_receipt_status ? lookup( 'transferValidationReceiptStatus', transfer.transval_receipt_status ) : 'Not yet validated' }}<br/>
 									{{ transfer.transval_receipt_datetime }}<br />
 									{{ transfer.transval_receipt_sweeper }}<br />
@@ -182,6 +184,8 @@ $current_user = current_user();
 							<td ng-switch on="transfer.transval_transfer_status == null">
 								<div ng-class="{ 'text-success': transfer.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_VALIDATED; ?>,
 										'text-danger': transfer.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_DISPUTED;?> }" ng-switch-when="false">
+									<i class="glyphicon glyphicon-ok text-success" ng-if="transfer.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_VALIDATED;?>"> </i>
+									<i class="glyphicon glyphicon-remove text-danger" ng-if="transfer.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_DISPUTED;?>"> </i>
 									{{ transfer.transval_transfer_status ? lookup( 'transferValidationTransferStatus', transfer.transval_transfer_status ) : '' }}<br/>
 									{{ transfer.transval_transfer_datetime }}<br />
 									{{ transfer.transval_transfer_sweeper }}<br />
