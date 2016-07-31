@@ -43,7 +43,8 @@
 								</div>
 
 								<!-- Receipt Status -->
-								<div class="form-group">
+								<div class="form-group" ng-if="transferItem.transfer_status != <?php echo TRANSFER_PENDING;?>
+										&& transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
 									<label class="control-label col-sm-4">Receipt Status</label>
 									<p class="form-control-static col-sm-8" ng-switch on="transferItem.validation.transval_receipt_status != null">
 										<span ng-switch-when="true">
@@ -64,10 +65,12 @@
 								-->
 
 								<!-- Sweeper -->
-								<div class="form-group">
+								<div class="form-group" ng-if="transferItem.transfer_status != <?php echo TRANSFER_PENDING;?>
+										&& transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
 									<label class="control-label col-sm-4">Received by</label>
-									<div class="col-sm-8" ng-switch on="( transferItem.validation.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_VALIDATED; ?> )
-											&& ( transferItem.transfer_status == <?php echo TRANSFER_RECEIVED;?> )">
+									<div class="col-sm-8"
+											ng-switch on="( transferItem.validation.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_VALIDATED; ?> )
+													&& ( transferItem.transfer_status == <?php echo TRANSFER_RECEIVED;?> )">
 										<input type="text" class="form-control"
 												ng-switch-when="false"
 												ng-model="transferItem.validation.transval_receipt_sweeper"
@@ -84,12 +87,16 @@
 
 					<div class="col-sm-12 col-md-3 col-lg-2">
 						<button type="button" class="btn btn-block btn-success"
-								ng-if="( transferItem.validation.transval_receipt_status != <?php echo TRANSFER_VALIDATION_RECEIPT_VALIDATED;?> )"
+								ng-if="( transferItem.validation.transval_receipt_status != <?php echo TRANSFER_VALIDATION_RECEIPT_VALIDATED;?> )
+										&& ( transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?> )
+										&& ( transferItem.transfer_status != <?php echo TRANSFER_PENDING;?> ) "
 								ng-click="validateReceipt()">Validate Receipt
 						</button>
 						<button type="button" class="btn btn-block btn-default"
 								ng-disabled=""
 								ng-if="( transferItem.validation.transval_receipt_status != <?php echo TRANSFER_VALIDATION_RECEIPT_RETURNED;?> )
+										&& ( transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?> )
+										&& ( transferItem.transfer_status != <?php echo TRANSFER_PENDING;?> )
 										&& ( transferItem.transfer_status != <?php echo TRANSFER_RECEIVED; ?> )"
 								ng-click="markReturned()">Mark as Returned
 						</button>
@@ -126,7 +133,7 @@
 
 							<div class="col-sm-6">
 								<!-- Delivery Status -->
-								<div class="form-group">
+								<div class="form-group" ng-if="transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
 									<label class="control-label col-sm-4">Delivery Status</label>
 									<p class="form-control-static col-sm-8" ng-switch on="transferItem.validation.transval_transfer_status != null">
 										<span ng-switch-when="true">
@@ -137,7 +144,7 @@
 								</div>
 
 								<!-- Sweeper -->
-								<div class="form-group">
+								<div class="form-group" ng-if="transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
 									<label class="control-label col-sm-4">Delivered by</label>
 									<div class="col-sm-8">
 										<input type="text" class="form-control col-sm-8"
@@ -153,10 +160,12 @@
 
 					<div class="col-sm-12 col-md-3 col-lg-2">
 						<button type="button" class="btn btn-block btn-success"
+								ng-if="transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>"
 								ng-disabled="transferItem.validation.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_VALIDATED; ?>"
 								ng-click="validateTransfer()">Validate Transfer
 						</button>
 						<button type="button" class="btn btn-block btn-danger"
+								ng-if="transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>"
 								ng-disabled="transferItem.validation.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_DISPUTED; ?>"
 								ng-click="markDisputed()">Mark as Disputed
 						</button>
@@ -216,12 +225,24 @@
 	<!-- Form buttons -->
 	<div class="text-right">
 		<button type="button" class="btn btn-default"
-			ng-if="checkPermissions( 'transferValidations', 'complete' )"
-			ng-click="markNotApplicable()">Validation Not Required
+			ng-if="checkPermissions( 'transferValidations', 'complete' )
+					&& transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED; ?>"
+			ng-click="markNotRequired()">Validation Not Required
 		</button>
 		<button type="button" class="btn btn-success"
-			ng-if="checkPermissions( 'transferValidations', 'complete' )"
+			ng-if="checkPermissions( 'transferValidations', 'complete' )
+					&& transferItem.transfer_status != <?php echo TRANSFER_PENDING;?>
+					&& transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>
+					&& transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_COMPLETED; ?>"
+			ng-disabled="transferItem.validation.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_VALIDATED;?>
+					&& transferItem.validation.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_DISPUTED;?>"
 			ng-click="markCompleted()">Mark as Completed
+		</button>
+		<button type="button" class="btn btn-default"
+			ng-if="checkPermissions( 'transferValidations', 'complete' )
+					&& transferItem.validation.transval_status != null
+					&& transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_ONGOING; ?>"
+			ng-click="markOngoing()">Mark as Ongoing
 		</button>
 		<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'transferValidations' })">Close</button>
 	</div>

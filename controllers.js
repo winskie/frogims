@@ -585,10 +585,8 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 						{
 							return false;
 						}
-						return ( ( record.transval_receipt_status == 1 && ( record.transval_transfer_status == 1 || record.transval_transfer_status == 2 ) )
-							|| ( record.transval_receipt_status == 2 )
-							|| ( record.transval_receipt_status == 3 ) )
-							&& record.transval_status == 1
+						return ( ( record.transval_receipt_status == 1 && record.transval_transfer_status == 1 )
+							|| record.transval_receipt_status == 2 )
 							&& $scope.checkPermissions( 'transferValidations', 'complete' );
 
 					case 'transfers':
@@ -675,6 +673,37 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 						$scope.updateAllocations( currentStoreId );
 						$scope.updateConversions( currentStoreId );
 				}
+			};
+
+		// Transfer Validations
+		$scope.completeTransferValidation = function( validation )
+			{
+				appData.saveTransferValidation( { id: validation.transval_id }, 'complete' ).then(
+					function( response )
+					{
+						notifications.alert( 'Transfer validation completed', 'success' );
+						appData.refresh( null, 'transferValidation' );
+					});
+			};
+
+		$scope.transferValidationOngoing = function( validation )
+			{
+				appData.saveTransferValidation( { id: validation.transval_id }, 'ongoing' ).then(
+					function( response )
+					{
+						notifications.alert( 'Transfer validation marked as ongoing', 'success' );
+						appData.refresh( null, 'transferValidation' );
+					});
+			};
+
+		$scope.transferValidationNotRequired = function( validation )
+			{
+				appData.saveTransferValidation( { id: validation.transval_id, transval_transfer_id: validation.id }, 'not_required' ).then(
+					function( response )
+					{
+						notifications.alert( 'Transfer marked as validation not required', 'success' );
+						appData.refresh( null, 'transferValidation' );
+					});
 			};
 
 		// Transfers
@@ -769,13 +798,13 @@ app.controller( 'TransferValidationController', [ '$scope', '$state', '$statePar
 				appData.saveTransferValidation( validation, 'validate_receipt' ).then(
 					function( response )
 					{
-						appData.refresh( 'transferValidations' );
+						appData.refresh( null, 'transferValidation' );
 						notifications.alert( 'Receipt of items from source validated', 'success' );
 						$state.go( 'main.store', { activeTab: 'transferValidations' } );
 					},
 					function( reason )
 					{
-						console.error( reason );
+						notifications.alert( reason );
 					});
 			};
 
@@ -785,13 +814,13 @@ app.controller( 'TransferValidationController', [ '$scope', '$state', '$statePar
 				appData.saveTransferValidation( validation, 'returned' ).then(
 					function( response )
 					{
-						appData.refresh( 'transferValidations' );
+						appData.refresh( null, 'transferValidation' );
 						notifications.alert( 'Transfer marked as returned', 'success' );
 						$state.go( 'main.store', { activeTab: 'transferValidations' } );
 					},
 					function( reason )
 					{
-						console.error( reason );
+						notifications.alert( reason );
 					});
 			};
 
@@ -801,13 +830,13 @@ app.controller( 'TransferValidationController', [ '$scope', '$state', '$statePar
 				appData.saveTransferValidation( validation, 'validate_transfer' ).then(
 					function( response )
 					{
-						appData.refresh( 'transferValidations' );
+						appData.refresh( null, 'transferValidation' );
 						notifications.alert( 'Receipt of items by recipient validated', 'success' );
 						$state.go( 'main.store', { activeTab: 'transferValidations' } );
 					},
 					function( reason )
 					{
-						console.error( reason );
+						notifications.alert( reason );
 					});
 			};
 
@@ -817,41 +846,61 @@ app.controller( 'TransferValidationController', [ '$scope', '$state', '$statePar
 				appData.saveTransferValidation( validation, 'dispute' ).then(
 					function( response )
 					{
-						appData.refresh( 'transferValidations' );
+						appData.refresh( null, 'transferValidation' );
 						notifications.alert( 'Receipt of items by recipient disputed', 'success' );
 						$state.go( 'main.store', { activeTab: 'transferValidations' } );
 					},
 					function( reason )
 					{
-						console.error( reason );
+						notifications.alert( reason );
 					});
 			};
 
 		$scope.markCompleted = function()
 			{
 				var validation = $scope.transferItem.validation || null;
-				appData.saveTransferValidation( validationId, 'complete' ).then(
+				appData.saveTransferValidation( validation, 'complete' ).then(
 					function( response )
 					{
-
+						appData.refresh( null, 'transferValidation' );
+						notifications.alert( 'Transfer validation completed', 'success' );
+						$state.go( 'main.store', { activeTab: 'transferValidations' } );
 					},
 					function( reason )
 					{
-
+						notifications.alert( reason );
 					});
 			};
 
-		$scope.markNotApplicable = function()
+		$scope.markOngoing = function()
 			{
 				var validation = $scope.transferItem.validation || null;
-				appData.saveTransferValidation( validationId, 'notApplicable' ).then(
+				appData.saveTransferValidation( validation, 'ongoing' ).then(
 					function( response )
 					{
-
+						appData.refresh( null, 'transferValidation' );
+						notifications.alert( 'Transfer validation marked as ongoing', 'success' );
+						$state.go( 'main.store', { activeTab: 'transferValidations' } );
 					},
 					function( reason )
 					{
+						notifications.alert( reason );
+					});
+			};
 
+		$scope.markNotRequired = function()
+			{
+				var validation = $scope.transferItem.validation || null;
+				appData.saveTransferValidation( validation, 'not_required' ).then(
+					function( response )
+					{
+						appData.refresh( null, 'transferValidation' );
+						notifications.alert( 'Transfer marked as validation not required', 'success' );
+						$state.go( 'main.store', { activeTab: 'transferValidations' } );
+					},
+					function( reason )
+					{
+						notifications.alert( reason );
 					});
 			};
 
@@ -878,7 +927,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$state', '$statePar
 				},
 				function( reason )
 				{
-					notifications.alert( reason, 'error' );
+					notifications.alert( reason );
 				});
 		}
 	}

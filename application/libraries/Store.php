@@ -5,7 +5,7 @@ class Store extends Base_model
 {
 	protected $store_name;
 	protected $store_code;
-    protected $store_type;
+	protected $store_type;
 	protected $store_location;
 	protected $store_contact_number;
 
@@ -22,7 +22,7 @@ class Store extends Base_model
 		$this->db_fields = array(
 			'store_name' => array( 'type' => 'string' ),
 			'store_code' => array( 'type' => 'string' ),
-            'store_type' => array( 'type' => 'integer' ),
+			'store_type' => array( 'type' => 'integer' ),
 			'store_location' => array( 'type' => 'string' ),
 			'store_contact_number' => array( 'type' => 'string' )
 		);
@@ -162,7 +162,7 @@ class Store extends Base_model
 	{
 		$ci =& get_instance();
 
-        $ci->load->library( 'user' );
+		$ci->load->library( 'user' );
 		$ci->db->where( 'store_id', $this->id );
 		$ci->db->join( 'users', 'users.id = store_users.user_id', 'left' );
 		$query = $ci->db->get( 'store_users' );
@@ -391,8 +391,8 @@ class Store extends Base_model
 			if( in_array( 'validation', $includes ) )
 			{
 				$ci->db->join( 'transfer_validations AS tv', 'tv.transval_transfer_id = t.id', 'left' );
-				$select .= ', tv.transval_receipt_status, tv.transval_receipt_datetime, tv.transval_receipt_sweeper, tv.transval_receipt_user_id, tv.transval_receipt_shift_id,
-						tv.transval_transfer_status, tv.transval_transfer_datetime, tv.transval_transfer_sweeper, tv.transval_transfer_user_id, tv.transval_transfer_shift_id';
+				$select .= ', tv.id AS transval_id, tv.transval_receipt_status, tv.transval_receipt_datetime, tv.transval_receipt_sweeper, tv.transval_receipt_user_id, tv.transval_receipt_shift_id,
+						tv.transval_transfer_status, tv.transval_transfer_datetime, tv.transval_transfer_sweeper, tv.transval_transfer_user_id, tv.transval_transfer_shift_id, tv.transval_status';
 			}
 		}
 
@@ -537,7 +537,7 @@ class Store extends Base_model
 		$ci->db->where( 'si.store_id', $this->id );
 		$ci->db->join( 'store_inventory si', 'si.id = a.store_inventory_id', 'left' );
 		$ci->db->join( 'items i', 'i.id = si.item_id', 'left' );
-        $ci->db->join( 'users u', 'u.id = a.user_id', 'left' );
+		$ci->db->join( 'users u', 'u.id = a.user_id', 'left' );
 		$adjustments = $ci->db->get( 'adjustments a' );
 		$adjustments = $adjustments->result( 'Adjustment' );
 		if( $format == 'array' )

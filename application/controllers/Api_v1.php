@@ -1352,6 +1352,7 @@ class Api_v1 extends CI_Controller {
                                     if( $params['includes'] && in_array( 'validation', $params['includes'] ) )
                                     {
                                         $array_params = array(
+                                            'transval_id' => array( 'type' => 'integer' ),
                                             'transval_receipt_status' => array( 'type' => 'integer' ),
                                             'transval_receipt_datetime' => array( 'type' => 'datetime' ),
                                             'transval_receipt_sweeper' => array( 'type' => 'string' ),
@@ -1361,7 +1362,8 @@ class Api_v1 extends CI_Controller {
                                             'transval_transfer_datetime' => array( 'type' => 'datetime' ),
                                             'transval_transfer_sweeper' => array( 'type' => 'string' ),
                                             'transval_transfer_user_id' => array( 'type' => 'integer' ),
-                                            'transval_transfer_shift_id' => array( 'type' => 'integer' ) );
+                                            'transval_transfer_shift_id' => array( 'type' => 'integer' ),
+                                            'transval_status' => array( 'type' => 'integer' ) );
                                     }
 
                                     foreach( $transfers as $transfer )
@@ -1561,6 +1563,7 @@ class Api_v1 extends CI_Controller {
                     if( $params['includes'] && in_array( 'validation', $params['includes'] ) )
                     {
                         $array_params = array(
+                            'transval_id' => array( 'type' => 'integer' ),
                             'transval_receipt_status' => array( 'type' => 'integer' ),
                             'transval_receipt_datetime' => array( 'type' => 'datetime' ),
                             'transval_receipt_sweeper' => array( 'type' => 'string' ),
@@ -1570,7 +1573,8 @@ class Api_v1 extends CI_Controller {
                             'transval_transfer_datetime' => array( 'type' => 'datetime' ),
                             'transval_transfer_sweeper' => array( 'type' => 'string' ),
                             'transval_transfer_user_id' => array( 'type' => 'integer' ),
-                            'transval_transfer_shift_id' => array( 'type' => 'integer' ) );
+                            'transval_transfer_shift_id' => array( 'type' => 'integer' ),
+                            'transval_status' => array( 'type' => 'integer' ) );
                     }
                     foreach( $transfers as $transfer )
                     {
@@ -1674,8 +1678,21 @@ class Api_v1 extends CI_Controller {
                         $result = $validation->dispute();
                         break;
 
+                    case 'complete':
+                        $result = $validation->complete();
+                        break;
+
+                    case 'ongoing':
+                        $result = $validation->ongoing();
+                        break;
+
+                    case 'not_required':
+                        $result = $validation->not_required();
+                        break;
+
                     default:
-                        $result = $transfer->db_save();
+                        //$result = $validation->db_save();
+                        die( 'error' );
                 }
 
                 if( $result )

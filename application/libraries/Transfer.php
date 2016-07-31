@@ -128,8 +128,8 @@ class Transfer extends Base_model {
 			if( in_array( 'validation', $includes ) )
 			{
 				$ci->db->join( 'transfer_validations AS tv', 'tv.transval_transfer_id = t.id', 'left' );
-				$select .= ', tv.transval_receipt_status, tv.transval_receipt_datetime, tv.transval_receipt_sweeper, tv.transval_receipt_user_id, tv.transval_receipt_shift_id,
-						tv.transval_transfer_status, tv.transval_transfer_datetime, tv.transval_transfer_sweeper, tv.transval_transfer_user_id, tv.transval_transfer_shift_id';
+				$select .= ', tv.id AS transval_id, tv.transval_receipt_status, tv.transval_receipt_datetime, tv.transval_receipt_sweeper, tv.transval_receipt_user_id, tv.transval_receipt_shift_id,
+						tv.transval_transfer_status, tv.transval_transfer_datetime, tv.transval_transfer_sweeper, tv.transval_transfer_user_id, tv.transval_transfer_shift_id, tv.transval_status';
 			}
 		}
 
@@ -883,7 +883,7 @@ class Transfer extends Base_model {
 		// If this is a validated transfer, only returned transfers can be cancelled
 		if( $this->get_transfer_validation() )
 		{
-			if( $this->transfer_validation->get( 'transval_status' ) != TRANSFER_VALIDATION_NOTAPPLICABLE
+			if( $this->transfer_validation->get( 'transval_status' ) != TRANSFER_VALIDATION_NOTREQUIRED
 					&& $this->transfer_validation->get( 'transval_receipt_status' ) != TRANSFER_VALIDATION_RECEIPT_RETURNED )
 			{
 				set_message( 'Cannot cancel transfer - Receipt already validated' );

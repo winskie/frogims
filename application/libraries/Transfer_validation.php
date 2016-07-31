@@ -134,7 +134,7 @@ class Transfer_validation extends Base_model {
 		}
 
 		// ...or transfer does not require validation
-		if( $this->transval_status == TRANSFER_VALIDATION_NOTAPPLICABLE )
+		if( $this->transval_status == TRANSFER_VALIDATION_NOTREQUIRED )
 		{
 			set_messgae( 'Cannot validate receipt. Transfer does not require validation.' );
 			return FALSE;
@@ -189,7 +189,7 @@ class Transfer_validation extends Base_model {
 		}
 
 		// ...or transfer does not require validation
-		if( $this->transval_status == TRANSFER_VALIDATION_NOTAPPLICABLE )
+		if( $this->transval_status == TRANSFER_VALIDATION_NOTREQUIRED )
 		{
 			set_messgae( 'Cannot return transfer - Transfer does not require validation.' );
 			return FALSE;
@@ -241,7 +241,7 @@ class Transfer_validation extends Base_model {
 		}
 
 		// ...or transfer does not require validation
-		if( $this->transval_status == TRANSFER_VALIDATION_NOTAPPLICABLE )
+		if( $this->transval_status == TRANSFER_VALIDATION_NOTREQUIRED )
 		{
 			set_messgae( 'Cannot validate transfer - Transfer does not require validation' );
 			return FALSE;
@@ -295,13 +295,13 @@ class Transfer_validation extends Base_model {
 		}
 
 		// ...or transfer does not require validation
-		if( $this->transval_status == TRANSFER_VALIDATION_NOTAPPLICABLE )
+		if( $this->transval_status == TRANSFER_VALIDATION_NOTREQUIRED )
 		{
 			set_messgae( 'Cannot dispute transfer - Transfer does not require validation' );
 			return FALSE;
 		}
 
-		// Receipt sweeper is empty
+		// Transfer sweeper is empty
 		if( ! $this->transval_transfer_sweeper )
 		{
 			set_message( 'Missing transfer sweeper information' );
@@ -328,14 +328,86 @@ class Transfer_validation extends Base_model {
 		}
 	}
 
+	public function ongoing()
+	{
+		$ci =& get_instance();
+
+		$ci->db->trans_start();
+		$this->set( 'transval_status', TRANSFER_VALIDATION_ONGOING );
+		$result = $this->db_save();
+		if( $result )
+		{
+			$ci->db->trans_complete();
+
+			if( $ci->db->trans_status() )
+			{
+				return $this;
+			}
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
+
 	public function complete()
 	{
 		$ci =& get_instance();
 
+		if( ! isset( $this->transval_receipt_status ) )
+		{
+			set_message( 'Cannot complete transfer validation - no receipt validation' );
+			return FALSE;
+		}
+
 		// Check if transfer is approved
+		if( $this->transval_receipt_status == TRANSFER_VALIDATION_RECEIPT_VALIDATED )
+		{
+			if( $this->transval_transfer_status != TRANSFER_VALIDATION_TRANSFER_VALIDATED )
+			{
+				set_message( 'Cannot complete transfer validation - transfer status disputed' );
+				return FALSE;
+			}
+		}
+
+		// Receipt sweeper is empty
+		if( ! $this->transval_transfer_sweeper )
+		{
+			set_message( 'Missing transfer sweeper information' );
+			return FALSE;
+		}
+
+		// Transfer sweeper is empty
+		if( ! $this->transval_transfer_sweeper )
+		{
+			set_message( 'Missing transfer sweeper information' );
+			return FALSE;
+		}
 
 		$ci->db->trans_start();
-		$this->set( 'transval_receipt_status', TRANSFER_VALIDATION_RECEIPT_VALIDATED );
+		$this->set( 'transval_status', TRANSFER_VALIDATION_COMPLETED );
+		$result = $this->db_save();
+		if( $result )
+		{
+			$ci->db->trans_complete();
+
+			if( $ci->db->trans_status() )
+			{
+				return $this;
+			}
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
+
+	public function not_required()
+	{
+		$ci =& get_instance();
+
+		$ci->db->trans_start();
+		$this->set( 'transval_status', TRANSFER_VALIDATION_NOTREQUIRED );
 		$result = $this->db_save();
 		if( $result )
 		{

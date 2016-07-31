@@ -996,11 +996,6 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                 return deferred.promise;
             };
 
-        me.completeTransferValidation = function( validation )
-            {
-
-            };
-
         // Transfers
         me.getTransfer = function( transferId, includes )
             {
@@ -1663,7 +1658,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
             {
                 switch( group )
                 {
-                    case 'tranferValidations':
+                    case 'tranferValidation':
                         me.getTransferValidations();
                         break;
 
@@ -2008,7 +2003,7 @@ appServices.service( 'lookup',
             transferValidationStatus: {
                 '1': 'Ongoing',
                 '2': 'Completed',
-				'3': 'Not Applicable'
+				'3': 'Not Required'
             },
             transferValidationReceiptStatus: {
                 '1': 'Validated',
