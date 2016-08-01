@@ -707,7 +707,7 @@ $current_user = current_user();
 											</tr>
 										</thead>
 										<tbody>
-											<tr ng-repeat="item in collection.items">
+											<tr ng-repeat="item in collection.items" ng-class="{ deleted: item.status == <?php echo MOPPING_ITEM_VOIDED;?> }">
 												<td>{{ item.item_description }}</td>
 												<td class="text-right">{{ item.quantity | number }}</td>
 											</tr>

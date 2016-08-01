@@ -204,13 +204,16 @@
 			</thead>
 			<tbody>
 				<tr ng-repeat="row in transferItem.items"
-						ng-class="{ 'bg-success': row.checked	}">
+						ng-class="{ 'bg-success': row.checked, 'text-danger': row.quantity != row.quantity_received	}">
 					<td class="text-center">{{ $index + 1 }}</td>
 					<td class="text-left">{{ row.item_name }}</td>
 					<td class="text-left">{{ row.remarks ? row.remarks : '---' }}</td>
 					<td class="text-left">{{ row.category_name ? row.category_name : '---' }}</td>
 					<td class="text-center">{{ row.quantity | number }}</td>
-					<td class="text-center">{{ row.quantity_received == null ? '---' : ( row.quantity_received | number ) }}</td>
+					<td class="text-center">
+						<i class="glyphicon glyphicon-exclamation-sign text-danger"
+								ng-if="transferItem.transfer_status == <?php echo TRANSFER_RECEIVED;?> && row.quantity != row.quantity_received"> </i>
+						{{ row.quantity_received == null ? '---' : ( row.quantity_received | number ) }}</td>
 					<td class="text-center"><input type="checkbox" ng-model="row.checked"></td>
 				</tr>
 				<tr ng-if="!transferItem.items.length">

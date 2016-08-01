@@ -611,6 +611,7 @@ class Store extends Base_model
 						business_date,
 						shift_id,
 						cashier_shift_id,
+						mopping_item_status,
 						IF( converted_to IS NULL, mopped_item_id, converted_to ) AS item_id,
 						SUM( IF( converted_to IS NULL, quantity, quantity DIV conversion_factor ) ) AS quantity
 					FROM (
@@ -622,13 +623,13 @@ class Store extends Base_model
 							cashier_shift_id,
 							mopped_item_id,
 							converted_to,
+							mopping_item_status,
 							SUM( mopped_quantity ) AS quantity
 						FROM mopping_items AS mi
 						RIGHT JOIN mopping AS m
 							ON m.id = mi.mopping_id
 						WHERE
-							m.store_id = ?
-							AND NOT mi.mopping_item_status = '.MOPPING_ITEM_VOIDED;
+							m.store_id = ?';
 
 		if( $processing_date )
 		{
@@ -639,11 +640,11 @@ class Store extends Base_model
 		{
 			$sql .= " AND business_date = '${business_date}'";
 		}
-		$sql .= ' GROUP BY mopping_id, processing_datetime, business_date, shift_id, cashier_shift_id, mopped_item_id, converted_to
+		$sql .= ' GROUP BY mopping_id, processing_datetime, business_date, shift_id, cashier_shift_id, mopped_item_id, converted_to, mopping_item_status
 					) AS a
 					LEFT JOIN conversion_table AS ct
 						ON ct.source_item_id = a.mopped_item_id AND ct.target_item_id = a.converted_to
-					GROUP BY mopping_id, processing_datetime, business_date, shift_id, cashier_shift_id, item_id
+					GROUP BY mopping_id, processing_datetime, business_date, shift_id, cashier_shift_id, item_id, mopping_item_status
 				) AS b
 				LEFT JOIN items AS i
 					ON i.id = b.item_id

@@ -1125,7 +1125,8 @@ class Api_v1 extends CI_Controller {
                                         'item_id' => $collection['item_id'],
                                         'item_name' => $collection['item_name'],
                                         'item_description' => $collection['item_description'],
-                                        'quantity' => $collection['quantity']
+                                        'quantity' => $collection['quantity'],
+                                        'status' => $collection['mopping_item_status']
                                     );
 
                                     if( isset( $collections_data[$collection['mopping_id']] ) )
