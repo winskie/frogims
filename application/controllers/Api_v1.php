@@ -1265,6 +1265,7 @@ class Api_v1 extends CI_Controller {
                                         'transval_transfer_datetime' => array( 'type' => 'datetime' ),
                                         'transval_transfer_sweeper' => array( 'type' => 'string' ),
                                         'transval_transfer_user_id' => array( 'type' => 'integer' ),
+                                        'transval_category' => array( 'type' => 'integer' ),
                                         'transval_transfer_shift_id' => array( 'type' => 'integer' ) );
                                 }
 
@@ -1364,6 +1365,7 @@ class Api_v1 extends CI_Controller {
                                             'transval_transfer_sweeper' => array( 'type' => 'string' ),
                                             'transval_transfer_user_id' => array( 'type' => 'integer' ),
                                             'transval_transfer_shift_id' => array( 'type' => 'integer' ),
+                                            'transval_category' => array( 'type' => 'integer' ),
                                             'transval_status' => array( 'type' => 'integer' ) );
                                     }
 
@@ -1551,13 +1553,13 @@ class Api_v1 extends CI_Controller {
                         'src' => param( $this->input->get(), 'src' ),
                         'dst' => param( $this->input->get(), 'dst' ),
                         'status' => param( $this->input->get(), 'status' ),
+                        'validation_status' => param( $this->input->get(), 'validation_status' ),
                         'page' => param( $this->input->get(), 'page' ),
                         'limit' => param( $this->input->get(), 'limit' ),
                     );
                     $transfers = $Transfer->get_transfers( $params );
                     $total_transfers = $Transfer->count_transfers( $params );
-                    //$pending_transfers = $Transfer->count_pending_transfers( $params );
-                    $pending_transfers = 0;
+                    $pending_transfers = $Transfer->count_pending_transfers( $params );
                     $transfers_data = array();
                     $array_params = array();
 
@@ -1575,6 +1577,7 @@ class Api_v1 extends CI_Controller {
                             'transval_transfer_sweeper' => array( 'type' => 'string' ),
                             'transval_transfer_user_id' => array( 'type' => 'integer' ),
                             'transval_transfer_shift_id' => array( 'type' => 'integer' ),
+                            'transval_category' => array( 'type' => 'integer' ),
                             'transval_status' => array( 'type' => 'integer' ) );
                     }
                     foreach( $transfers as $transfer )

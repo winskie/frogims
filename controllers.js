@@ -507,6 +507,16 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 				transactionsItems: angular.copy( appData.data.items ),
 				transactionsTypes: angular.copy( appData.data.transactionTypes ),
 
+				transferValidationsDateSent: {
+					opened: false
+				},
+				transferValidationsDateReceived: {
+					opened: false
+				},
+				transferValidationsSources: angular.copy( appData.data.stores ),
+				transferValidationsDestinations: angular.copy( appData.data.stores ),
+				transferValidationsStatus: angular.copy( appData.data.transferValidationStatus ),
+
 				transfersDate: {
 					opened: false
 				},
@@ -551,6 +561,13 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 
 		$scope.widgets.transactionsItems.unshift({ id: null, item_name: 'All', item_description: 'All' });
 		$scope.widgets.transactionsTypes.unshift({ id: null, typeName: 'All' });
+
+		$scope.widgets.transferValidationsSources.unshift({ id: null, store_name: 'All' });
+		$scope.widgets.transferValidationsSources.push({ id: '_ext_', store_name: 'External Sources' });
+		$scope.widgets.transferValidationsDestinations.unshift({ id: null, store_name: 'All' });
+		$scope.widgets.transferValidationsDestinations.push({ id: '_ext_', store_name: 'External Destinations' });
+		$scope.widgets.transferValidationsStatus.unshift({ id: '_null_', statusName: 'No validation' });
+		$scope.widgets.transferValidationsStatus.unshift({ id: null, statusName: 'All' });
 
 		$scope.widgets.transfersDestinations.unshift({ id: null, store_name: 'All' });
 		$scope.widgets.transfersDestinations.push({ id: '_ext_', store_name: 'External Destinations' });
@@ -698,7 +715,12 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 
 		$scope.transferValidationNotRequired = function( validation )
 			{
-				appData.saveTransferValidation( { id: validation.transval_id, transval_transfer_id: validation.id }, 'not_required' ).then(
+				var data = {
+						id: validation.transval_id,
+						transval_transfer_id: validation.id,
+						transval_category: appData.suggestTransferCategory( validation )
+					};
+				appData.saveTransferValidation( data, 'not_required' ).then(
 					function( response )
 					{
 						notifications.alert( 'Transfer marked as validation not required', 'success' );
@@ -781,16 +803,47 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 	}
 ]);
 
-app.controller( 'TransferValidationController', [ '$scope', '$state', '$stateParams', 'session', 'appData', 'notifications', 'UserServices',
-	function( $scope, $state, $stateParams, session, appData, notifications, UserServices )
+app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'UserServices',
+	function( $scope, $filter, $state, $stateParams, session, appData, notifications, UserServices )
 	{
-		$scope.data = {};
+		function getCategoryById( categoryId )
+		{
+			var categories = $scope.data.transferCategories;
+			var n = categories.length;
+
+			for( var i = 0; i < n; i++ )
+			{
+				if( categories[i].id == categoryId )
+				{
+					return categories[i];
+				}
+			}
+
+			return null;
+		}
+
+		function suggestTransferCategory()
+		{
+			var category = appData.suggestTransferCategory( $scope.transferItem );
+			$scope.data.selectedCategory = getCategoryById( category );
+			return category; // General
+		}
+
+		$scope.data = {
+				transferCategories: angular.copy( appData.data.transferCategories ),
+				selectedCategory: { id: 2, categoryName: 'Return Loose' }
+			};
 
 		$scope.input = {};
 
 		$scope.transferItem = {};
 
 		$scope.findUser = UserServices.findUser;
+
+		$scope.changeTransferCategory = function()
+			{
+				$scope.transferItem.validation.transval_category = $scope.data.selectedCategory.id;
+			};
 
 		$scope.validateReceipt = function()
 			{
@@ -922,7 +975,10 @@ app.controller( 'TransferValidationController', [ '$scope', '$state', '$statePar
 							{
 								$scope.transferItem.validation.transval_transfer_sweeper = session.data.currentUser.full_name;
 							}
+							$scope.transferItem.validation.transval_category = suggestTransferCategory();
 						}
+
+						$scope.data.selectedCategory = $filter( 'filter' )( $scope.data.transferCategories, { id: $scope.transferItem.validation.transval_category }, true )[0];
 					}
 				},
 				function( reason )

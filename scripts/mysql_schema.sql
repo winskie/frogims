@@ -266,6 +266,7 @@ CREATE TABLE IF NOT EXISTS transfer_validations
 	transval_transfer_sweeper VARCHAR(100) NULL DEFAULT NULL,
 	transval_transfer_user_id INTEGER NULL DEFAULT NULL,
 	transval_transfer_shift_id INTEGER NULL DEFAULT NULL,
+	transval_category INTEGER NOT NULL DEFAULT 1,
 	transval_status SMALLINT NOT NULL DEFAULT 1,
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,

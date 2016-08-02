@@ -408,7 +408,15 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                     ],
                 transferValidationStatus: [
                         { id: 1, statusName: 'Ongoing' },
-                        { id: 2, statusName: 'Completed' }
+                        { id: 2, statusName: 'Completed' },
+                        { id: 3, statusName: 'Not Required' },
+                    ],
+                transferCategories: [
+                        { id: 1, categoryName: 'None' },
+                        { id: 2, categoryName: 'General' },
+                        { id: 3, categoryName: 'Return Loose' },
+                        { id: 4, categoryName: 'Stock Replenishment' },
+                        { id: 5, categoryName: 'External' }
                     ],
                 transferStatus: [
                         { id: 1, statusName: 'Pending' },
@@ -483,6 +491,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                 source: { id: null, store_name: 'All' },
                 destination: { id: null, store_name: 'All' },
                 status: { id: null, statusName: 'All' },
+                validationStatus: { id: null, statusName: 'All' },
                 page: 1
             },
             transfers: {
@@ -699,6 +708,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         src: me.filters.transferValidations.source ? me.filters.transferValidations.source.id : null,
                         dst: me.filters.transferValidations.destination ? me.filters.transferValidations.destination.id : null,
                         status: me.filters.transferValidations.status ? me.filters.transferValidations.status.id : null,
+                        validation_status: me.filters.transferValidations.validationStatus ? me.filters.transferValidations.validationStatus.id : null,
                         page: me.filters.transferValidations.page ? me.filters.transferValidations.page : null,
                         limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null,
                         include: 'validation'
@@ -967,6 +977,37 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
             };
 
         // Transfer Validations
+        me.suggestTransferCategory = function( transfer )
+            {
+                var category = 1; // None
+
+                if( transfer.origin_id && transfer.destination_id )
+                {
+
+                    var origin = $filter( 'filter' )( me.data.stores, { id: transfer.origin_id }, true )[0];
+                    var destination = $filter( 'filter' )( me.data.stores, { id: transfer.destination_id }, true )[0];
+
+                    if( origin.store_type == 4 && destination.store_type == 2 ) // Cashrooom to Production
+                    {
+                        category = 3; // Return Loose
+                    }
+                    else if( origin.store_type == 3 && destination.store_type == 4 ) // TGM to Cashroom
+                    {
+                        category = 4; // Stock Replenishment
+                    }
+                    else
+                    {
+                        category = 2; // General
+                    }
+                }
+                else
+                {
+                    category = 5; // External
+                }
+
+                return category;
+            };
+
         me.saveTransferValidation = function( validation, action )
             {
                 var deferred = $q.defer();
@@ -2012,6 +2053,13 @@ appServices.service( 'lookup',
             transferValidationTransferStatus: {
                 '1': 'Validated',
                 '2': 'Disputed'
+            },
+            transferCategories: {
+                '1': 'None',
+                '2': 'General',
+                '3': 'Return Loose',
+                '4': 'Stock Replenishment',
+                '5': 'External'
             },
             transferStatus: {
                 '1': 'Pending',

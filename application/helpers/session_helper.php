@@ -50,6 +50,33 @@ if( ! function_exists( 'current_user' ) )
     }
 }
 
+if( ! function_exists( 'current_shift' ) )
+{
+    function current_shift( $id_only = FALSE )
+    {
+        if( isset( $_SESSION['current_shift_id'] ) )
+        {
+            if( $id_only )
+            {
+                return $_SESSION['current_shift_id'];
+            }
+            else
+            {
+                $ci =& get_instance();
+                $ci->load->library( 'shift' );
+                $Shift = new Shift();
+                $current_Shift = $Shift->get_by_id( $_SESSION['current_shift_id'] );
+
+                return $current_Shift;
+            }
+        }
+        else
+        {
+            return NULL;
+        }
+    }
+}
+
 if( ! function_exists( 'current_store' ) )
 {
     function current_store()

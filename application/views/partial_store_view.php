@@ -131,7 +131,7 @@ $current_user = current_user();
 		<!-- Transfer Validations-->
 		<uib-tab index="2" select="onTabSelect('transferValidations')" ng-if="sessionData.currentStore.store_type == 3 && checkPermissions( 'transferValidations', 'view')">
 			<uib-tab-heading>
-				Transfer Validations
+				Transfer Validations <span ng-show="data.pending.transferValidations > 0" class="label label-danger label-as-badge">{{ data.pending.transferValidations }}</span>
 			</uib-tab-heading>
 			<div class="panel panel-default">
 				<div class="panel-heading">
@@ -144,7 +144,65 @@ $current_user = current_user();
 					<div class="clearfix"></div>
 				</div>
 				<div class="panel-body">
+					<div class="row">
+						<div class="col-sm-6 col-md-3 col-lg-2">
+							<div class="form-group">
+								<label class="control-label">Date Sent</label>
+								<div class="input-group">
+									<input type="text" class="form-control" uib-datepicker-popup="{{ filters.dateFormat }}" is-open="widgets.transferValidationsDateSent.opened"
+										min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)"
+										ng-model="filters.transferValidations.dateSent" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" />
+									<span class="input-group-btn">
+										<button type="button" class="btn btn-default" ng-click="showDatePicker( 'transferValidationsDateSent' )"><i class="glyphicon glyphicon-calendar"></i></button>
+									</span>
+								</div>
+							</div>
+						</div>
 
+						<div class="col-sm-6 col-md-3 col-lg-2">
+							<div class="form-group">
+								<label class="control-label">Date Received</label>
+								<div class="input-group">
+									<input type="text" class="form-control" uib-datepicker-popup="{{ filters.dateFormat }}" is-open="widgets.transferValidationsDateReceived.opened"
+										min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)"
+										ng-model="filters.transferValidations.dateReceived" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" />
+									<span class="input-group-btn">
+										<button type="button" class="btn btn-default" ng-click="showDatePicker( 'transferValidationsDateReceived' )"><i class="glyphicon glyphicon-calendar"></i></button>
+									</span>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-sm-6 col-md-3 col-lg-3">
+							<div class="form-group">
+								<label class="control-label">Source</label>
+								<select class="form-control"
+										ng-model="filters.transferValidations.source"
+										ng-options="store as store.store_name for store in widgets.transferValidationsSources track by store.id">
+								</select>
+							</div>
+						</div>
+
+						<div class="col-sm-6 col-md-3 col-lg-3">
+							<div class="form-group">
+								<label class="control-label">Destination</label>
+								<select class="form-control"
+										ng-model="filters.transferValidations.destination"
+										ng-options="store as store.store_name for store in widgets.transferValidationsDestinations track by store.id">
+								</select>
+							</div>
+						</div>
+
+						<div class="col-sm-4 col-md-3 col-lg-2">
+							<div class="form-group">
+								<label class="control-label">Validation Status</label>
+								<select class="form-control"
+										ng-model="filters.transferValidations.validationStatus"
+										ng-options="status as status.statusName for status in widgets.transferValidationsStatus track by status.id">
+								</select>
+							</div>
+						</div>
+					</div>
 				</div>
 				<table class="table table-hover">
 					<thead>
@@ -192,19 +250,27 @@ $current_user = current_user();
 								</div>
 								<span class="text-muted" ng-switch-default>---</span>
 							</td>
-							<td ng-switch on="transfer.transval_status == null">
+							<td>
 								<i class="glyphicon glyphicon-transfer"> </i>
-								<span>{{ lookup( 'transferStatus', transfer.transfer_status ) }}</span><br />
-								<i class="glyphicon glyphicon-certificate"> </i>
-								<span class="text-muted" ng-switch-when="true">---</span>
-								<span ng-switch-default>
+								<span>
+									{{ lookup( 'transferStatus', transfer.transfer_status ) }}
+								</span><br />
+								<i class="glyphicon glyphicon-certificate"
+										ng-class="{ 'status-completed': transfer.transval_status == <?php echo TRANSFER_VALIDATION_COMPLETED;?>,
+												'status-ongoing': transfer.transval_status == <?php echo TRANSFER_VALIDATION_ONGOING;?>,
+												'status-cancelled': transfer.transval_status == <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?> }"> </i>
+								<span class="text-muted" ng-if="transfer.transval_status == null">---</span>
+								<span ng-if="transfer.transval_status != null"
+										ng-class="{ 'status-completed': transfer.transval_status == <?php echo TRANSFER_VALIDATION_COMPLETED;?>,
+												'status-ongoing': transfer.transval_status == <?php echo TRANSFER_VALIDATION_ONGOING;?>,
+												'status-cancelled': transfer.transval_status == <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?> }">
 									{{ lookup( 'transferValidationStatus', transfer.transval_status ) }}
 								</span>
 							</td>
 							<td class="text-right vert-top">
 								<div class="btn-group" uib-dropdown>
 									<button type="button" class="btn btn-default" ui-sref="main.transferValidation({ transferItem: transfer, editMode: 'view' })">View details...</button>
-									<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle>
+									<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="checkPermissions( 'transferValidations', 'complete' )">
 										<span class="caret"></span>
 									</button>
 									<ul uib-dropdown-menu role="menu">

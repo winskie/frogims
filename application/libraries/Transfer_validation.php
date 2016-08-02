@@ -14,6 +14,7 @@ class Transfer_validation extends Base_model {
 	protected $transval_transfer_sweeper;
 	protected $transval_transfer_user_id;
 	protected $transval_transfer_shift_id;
+	protected $transval_category;
 	protected $transval_status;
 
 	protected $transfer;
@@ -42,6 +43,7 @@ class Transfer_validation extends Base_model {
 				'transval_transfer_sweeper' => array( 'type' => 'string' ),
 				'transval_transfer_user_id' => array( 'type' => 'integer' ),
 				'transval_transfer_shift_id' => array( 'type' => 'integer' ),
+				'transval_category' => array( 'type' => 'integer' ),
 				'transval_status' => array( 'type' => 'integer' )
 			);
 
@@ -151,6 +153,7 @@ class Transfer_validation extends Base_model {
 		$this->set( 'transval_receipt_status', TRANSFER_VALIDATION_RECEIPT_VALIDATED );
 		$this->set( 'transval_receipt_datetime', date( TIMESTAMP_FORMAT ) );
 		$this->set( 'transval_receipt_user_id', current_user( TRUE ) );
+		$this->set( 'transval_receipt_shift_id', current_shift( TRUE ) );
 		$result = $this->db_save();
 
 		if( $result )
@@ -204,6 +207,9 @@ class Transfer_validation extends Base_model {
 
 		$ci->db->trans_start();
 		$this->set( 'transval_receipt_status', TRANSFER_VALIDATION_RECEIPT_RETURNED );
+		$this->set( 'transval_receipt_datetime', date( TIMESTAMP_FORMAT ) );
+		$this->set( 'transval_receipt_user_id', current_user( TRUE ) );
+		$this->set( 'transval_receipt_shift_id', current_shift( TRUE ) );
 		$result = $this->db_save();
 		if( $result )
 		{
@@ -258,6 +264,7 @@ class Transfer_validation extends Base_model {
 		$this->set( 'transval_transfer_status', TRANSFER_VALIDATION_TRANSFER_VALIDATED );
 		$this->set( 'transval_transfer_datetime', date( TIMESTAMP_FORMAT ) );
 		$this->set( 'transval_transfer_user_id', current_user( TRUE ) );
+		$this->set( 'transval_transfer_shift_id', current_shift( TRUE ) );
 		$result = $this->db_save();
 		if( $result )
 		{
@@ -312,6 +319,7 @@ class Transfer_validation extends Base_model {
 		$this->set( 'transval_transfer_status', TRANSFER_VALIDATION_TRANSFER_DISPUTED );
 		$this->set( 'transval_transfer_datetime', date( TIMESTAMP_FORMAT ) );
 		$this->set( 'transval_transfer_user_id', current_user( TRUE ) );
+		$this->set( 'transval_transfer_shift_id', current_shift( TRUE ) );
 		$result = $this->db_save();
 		if( $result )
 		{

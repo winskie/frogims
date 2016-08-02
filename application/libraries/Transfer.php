@@ -65,6 +65,7 @@ class Transfer extends Base_model {
 		$source = param( $params, 'src' );
 		$destination = param( $params, 'dst' );
 		$status = param( $params, 'status' );
+		$validation_status = param( $params, 'validation_status' );
 
 		$limit = param( $params, 'limit' );
 		$page = param( $params, 'page', 1 );
@@ -123,13 +124,25 @@ class Transfer extends Base_model {
 			$ci->db->where( 'transfer_status', $status );
 		}
 
+		if( $validation_status )
+		{
+			if( $validation_status == '_null_' )
+			{
+				$ci->db->where( 'transval_status IS NULL' );
+			}
+			else
+			{
+				$ci->db->where( 'transval_status', $validation_status );
+			}
+		}
+
 		if( $includes )
 		{
 			if( in_array( 'validation', $includes ) )
 			{
 				$ci->db->join( 'transfer_validations AS tv', 'tv.transval_transfer_id = t.id', 'left' );
 				$select .= ', tv.id AS transval_id, tv.transval_receipt_status, tv.transval_receipt_datetime, tv.transval_receipt_sweeper, tv.transval_receipt_user_id, tv.transval_receipt_shift_id,
-						tv.transval_transfer_status, tv.transval_transfer_datetime, tv.transval_transfer_sweeper, tv.transval_transfer_user_id, tv.transval_transfer_shift_id, tv.transval_status';
+						tv.transval_transfer_status, tv.transval_transfer_datetime, tv.transval_transfer_sweeper, tv.transval_transfer_user_id, tv.transval_transfer_shift_id, tv.transval_category, tv.transval_status';
 			}
 		}
 
@@ -159,6 +172,7 @@ class Transfer extends Base_model {
 		$source = param( $params, 'src' );
 		$destination = param( $params, 'dst' );
 		$status = param( $params, 'status' );
+		$validation_status = param( $params, 'validation_status' );
 
 		if( $date_sent )
 		{
@@ -199,6 +213,26 @@ class Transfer extends Base_model {
 		if( $status )
 		{
 			$ci->db->where( 'transfer_status', $status );
+		}
+
+		if( $validation_status )
+		{
+			if( $validation_status == '_null_' )
+			{
+				$ci->db->where( 'transval_status IS NULL' );
+			}
+			else
+			{
+				$ci->db->where( 'transval_status', $validation_status );
+			}
+		}
+
+		if( $includes )
+		{
+			if( in_array( 'validation', $includes ) )
+			{
+				$ci->db->join( 'transfer_validations AS tv', 'tv.transval_transfer_id = t.id', 'left' );
+			}
 		}
 
 		$count = $ci->db->count_all_results( 'transfers t' );
@@ -253,6 +287,18 @@ class Transfer extends Base_model {
 			}
 		}
 
+		if( $includes )
+		{
+			if( in_array( 'validation', $includes ) )
+			{
+				$ci->db->join( 'transfer_validations AS tv', 'tv.transval_transfer_id = t.id', 'left' );
+				$ci->db->where( 'tv.transval_status', TRANSFER_VALIDATION_ONGOING );
+			}
+			else
+			{
+				$ci->db->where( 'transfer_status < -1' );
+			}
+		}
 
 		$count = $ci->db->count_all_results( 'transfers t' );
 
