@@ -472,64 +472,86 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                     }
             };
 
-        me.filters = {
-            dateFormat: 'yyyy-MM-dd',
-            itemsPerPage: 10,
+        me.defaultFilters = {
+                dateFormat: 'yyyy-MM-dd',
+                itemsPerPage: 10,
 
-            inventory: {
+                inventory: {
 
-            },
-            transactions: {
-                date: null,
-                item: { id: null, item_name: 'All', item_description: 'All' },
-                type: { id: null, typeName: 'All' },
-                page: 1
-            },
-            transferValidations: {
-                dateSent: null,
-                dateReceived: null,
-                source: { id: null, store_name: 'All' },
-                destination: { id: null, store_name: 'All' },
-                status: { id: null, statusName: 'All' },
-                validationStatus: { id: null, statusName: 'All' },
-                page: 1
-            },
-            transfers: {
-                date: null,
-                destination: { id: null, store_name: 'All' },
-                status: { id: null, statusName: 'All' },
-                page: 1
-            },
-            receipts: {
-                date: null,
-                source: { id: null, store_name: 'All' },
-                status: { id: null, statusName: 'All' },
-                page: 1
-            },
-            adjustments: {
-                date: null,
-                item: { id: null, item_name: 'All', item_description: 'All' },
-                status: { id: null, statusName: 'All' },
-                page: 1
-            },
-            collections: {
-                processingDate: null,
-                businessDate: null,
-                page: 1
-            },
-            allocations: {
-                date: null,
-                assigneeType: { id: null, typeName: 'All' },
-                status: { id: null, statusName: 'All' },
-                page: 1
-            },
-            conversions: {
-                date: null,
-                inputItem: { id: null, item_name: 'All', item_description: 'All' },
-                outputItem: { id: null, item_name: 'All', item_description: 'All' },
-                page: 1
-            }
-        };
+                },
+                transactions: {
+                    date: null,
+                    item: { id: null, item_name: 'All', item_description: 'All' },
+                    type: { id: null, typeName: 'All' },
+                    filtered: false
+                },
+                transferValidations: {
+                    dateSent: null,
+                    dateReceived: null,
+                    source: { id: null, store_name: 'All' },
+                    destination: { id: null, store_name: 'All' },
+                    status: { id: null, statusName: 'All' },
+                    validationStatus: { id: null, statusName: 'All' },
+                    filtered: false
+                },
+                transfers: {
+                    date: null,
+                    destination: { id: null, store_name: 'All' },
+                    status: { id: null, statusName: 'All' },
+                    filtered: false
+                },
+                receipts: {
+                    date: null,
+                    source: { id: null, store_name: 'All' },
+                    status: { id: null, statusName: 'All' },
+                    filtered: false
+                },
+                adjustments: {
+                    date: null,
+                    item: { id: null, item_name: 'All', item_description: 'All' },
+                    status: { id: null, statusName: 'All' },
+                    filtered: false
+                },
+                collections: {
+                    processingDate: null,
+                    businessDate: null,
+                    filtered: false
+                },
+                allocations: {
+                    date: null,
+                    assigneeType: { id: null, typeName: 'All' },
+                    status: { id: null, statusName: 'All' },
+                    filtered: false
+                },
+                conversions: {
+                    date: null,
+                    inputItem: { id: null, item_name: 'All', item_description: 'All' },
+                    outputItem: { id: null, item_name: 'All', item_description: 'All' },
+                    filtered: false
+                }
+            };
+
+        me.filters = {}
+        angular.copy( me.defaultFilters, me.filters );
+
+        me.clearFilter = function( tab )
+            {
+                me.defaultFilters[tab].filtered = false;
+                angular.copy( me.defaultFilters[tab], me.filters[tab] );
+
+                return me.filters[tab];
+            };
+
+        me.pagination = {
+                transactions: 1,
+                transferValidations: 1,
+                transfers: 1,
+                receipts: 1,
+                adjustments: 1,
+                collections: 1,
+                allocations: 1,
+                conversions: 1
+            };
 
         me.get = function( data )
             {
@@ -667,7 +689,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         date: $filter( 'date' )( me.filters.transactions.date, 'yyyy-MM-dd' ),
                         item: me.filters.transactions.item ? me.filters.transactions.item.item_id : null,
                         type: me.filters.transactions.type ? me.filters.transactions.type.id : null,
-                        page: me.filters.transactions.page ? me.filters.transactions.page : null,
+                        page: me.pagination.transactions ? me.pagination.transactions : null,
                         limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
                     }
 				}).then(
@@ -709,7 +731,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         dst: me.filters.transferValidations.destination ? me.filters.transferValidations.destination.id : null,
                         status: me.filters.transferValidations.status ? me.filters.transferValidations.status.id : null,
                         validation_status: me.filters.transferValidations.validationStatus ? me.filters.transferValidations.validationStatus.id : null,
-                        page: me.filters.transferValidations.page ? me.filters.transferValidations.page : null,
+                        page: me.pagination.transferValidations ? me.pagination.transferValidations : null,
                         limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null,
                         include: 'validation'
                     }
@@ -750,7 +772,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         date: $filter( 'date' )( me.filters.transfers.date, 'yyyy-MM-dd' ),
                         dst: me.filters.transfers.destination ? me.filters.transfers.destination.id : null,
                         status: me.filters.transfers.status ? me.filters.transfers.status.id : null,
-                        page: me.filters.transfers.page ? me.filters.transfers.page : null,
+                        page: me.pagination.transfers ? me.pagination.transfers : null,
                         limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null,
                         include: 'validation'
                     }
@@ -791,7 +813,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         date: $filter( 'date' )( me.filters.receipts.date, 'yyyy-MM-dd' ),
                         src: me.filters.receipts.source ? me.filters.receipts.source.id : null,
                         status: me.filters.receipts.status ? me.filters.receipts.status.id : null,
-                        page: me.filters.receipts.page ? me.filters.receipts.page : null,
+                        page: me.pagination.receipts ? me.pagination.receipts : null,
                         limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null,
                         include: 'validation'
                     }
@@ -832,7 +854,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         date: $filter( 'date' )( me.filters.adjustments.date, 'yyyy-MM-dd' ),
                         item: me.filters.adjustments.item ? me.filters.adjustments.item.item_id : null,
                         status: me.filters.adjustments.status ? me.filters.adjustments.status.id : null,
-                        page: me.filters.adjustments.page ? me.filters.adjustments.page : null,
+                        page: me.pagination.adjustments ? me.pagination.adjustments : null,
                         limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
                     }
 				}).then(
@@ -870,7 +892,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                     params: {
                         processing_date: me.filters.collections.processingDate ? $filter( 'date' )( me.filters.collections.processingDate, 'yyyy-MM-dd' ) : null,
                         business_date: me.filters.collections.businessDate ? $filter( 'date' )( me.filters.collections.businessDate, 'yyyy-MM-dd' ) : null,
-                        page: me.filters.collections.page ? me.filters.collections.page : null,
+                        page: me.pagination.collections ? me.pagination.collections : null,
                         limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
                     }
                 }).then(
@@ -908,7 +930,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         date: me.filters.allocations.date ? $filter( 'date' )( me.filters.allocations.date, 'yyyy-MM-dd' ) : null,
                         assignee_type: me.filters.allocations.assigneeType ? me.filters.allocations.assigneeType.id : null,
                         status: me.filters.allocations.status ? me.filters.allocations.status.id : null,
-                        page: me.filters.allocations.page ? me.filters.allocations.page : null,
+                        page: me.pagination.allocations ? me.pagination.allocations : null,
                         limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
                     }
                 }).then(
@@ -947,7 +969,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                         date: me.filters.conversions.date ? $filter( 'date' )( me.filters.conversions.date, 'yyyy-MM-dd' ) : null,
                         input: me.filters.conversions.inputItem ? me.filters.conversions.inputItem.item_id : null,
                         output: me.filters.conversions.outputItem ? me.filters.conversions.outputItem.item_id : null,
-                        page: me.filters.conversions.page ? me.filters.conversions.page : null,
+                        page: me.pagination.conversions ? me.pagination.conversions : null,
                         limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
                     }
                 }).then(

@@ -1,4 +1,4 @@
-var app = angular.module( 'FROGIMS', [ 'ui.router', 'ui.bootstrap', 'appServices' ], function( $httpProvider )
+var app = angular.module( 'FROGIMS', [ 'ngAnimate', 'ui.router', 'ui.bootstrap', 'appServices' ], function( $httpProvider )
 {
 	// Use x-www-form-urlencoded Content-Type
   	$httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded;charset=utf-8';

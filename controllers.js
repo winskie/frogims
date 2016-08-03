@@ -472,7 +472,7 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 	function( $scope, $state, $stateParams, session, appData, lookup, notifications, sessionData )
 	{
 		$scope.data = appData.data;
-		$scope.filters = appData.filters;
+		$scope.filters = angular.copy( appData.filters );
 		$scope.tabs = {
 				inventory: { index: 0, title: 'Inventory' },
 				transactions: { index: 1, title: 'Transactions' },
@@ -499,7 +499,21 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 				session.data.previousTab = tab;
 			};
 
+		// ResultsPage
+		$scope.pagination = appData.pagination;
+
 		// Filters
+		$scope.filterPanels = {
+				transactions: false,
+				transferValidations: false,
+				transfers: false,
+				receipts: false,
+				allocations: false,
+				adjustments: false,
+				collections: false,
+				conversions: false
+			};
+
 		$scope.widgets = {
 				transactionsDate: {
 					opened: false
@@ -584,6 +598,67 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 		$scope.widgets.allocationsStatus.unshift({ id: null, statusName: 'All' });
 
 		$scope.widgets.conversionsItems.unshift({ id: null, item_name: 'All', item_description: 'All' });
+
+		$scope.toggleFilters = function( tab )
+			{
+				$scope.filterPanels[tab] = !$scope.filterPanels[tab];
+			};
+
+		$scope.applyFilter = function( tab )
+			{
+				var currentStoreId = session.data.currentStore.id;
+				$scope.pagination[tab] = 1;
+				$scope.filters[tab].filtered = true;
+				angular.copy( $scope.filters[tab], appData.filters[tab] );
+
+				switch( tab )
+				{
+					case 'transactions':
+						$scope.updateTransactions( currentStoreId );
+						break;
+
+					case 'transferValidations':
+						$scope.updateTransferValidations();
+						break;
+
+					case 'transfers':
+						$scope.updateTransfers( currentStoreId );
+						break;
+
+					case 'receipts':
+						$scope.updateReceipts( currentStoreId );
+						break;
+
+					case 'adjustments':
+						$scope.updateAdjustments( currentStoreId );
+						break;
+
+					case 'collections':
+						$scope.updateCollections( currentStoreId );
+						break;
+
+					case 'allocations':
+						$scope.updateAllocations( currentStoreId );
+						break;
+
+					case 'conversions':
+						$scope.updateConversions( currentStoreId );
+
+					default:
+						// none
+				}
+			};
+
+		$scope.clearFilter = function( tab )
+			{
+				var currentStoreId = session.data.currentStore.id;
+				$scope.pagination[tab] = 1;
+				angular.copy( appData.clearFilter( tab ), $scope.filters[tab] );
+
+				$scope.applyFilter( tab );
+				$scope.filters[tab].filtered = false;
+				appData.filters[tab].filtered = false;
+			};
 
 		$scope.showDatePicker = function( dp )
 			{

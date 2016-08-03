@@ -631,14 +631,15 @@ class Installer extends CI_Controller {
 				array( 'SVC - Rigid Box', 'Stored Value Ticket in Rigid Box', 6, 1, 1, 0, 0, 'SVC' ),
                 array( 'SVC - Defective', 'Defective Stored Value Card', NULL, 0, 1, 0, 1, NULL ),
                 array( 'SVC - Damaged', 'Damaged Stored Value Card', NULL, 0, 1, 0, 1, NULL ),
+				array( 'SVC - TIR', 'Stored Value Card with TIR', NULL, 0, 1, 0, 0, NULL ),
 
 				array( 'Senior SVC', 'Senior Citizen Stored Value Card', NULL, 0, 0, 0, 0, 'Concessionary' ),
 				array( 'PWD SVC', 'Passenger with Disability Store Value Card', NULL, 0, 0, 0, 0, 'Concessionary' ),
 
 				array( 'L2 Ticket Coupon', 'Line 2 Ticket Coupon', NULL, 1, 1, 0, 0, NULL ),
 
-				array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0, NULL ), // ID: 13
-                array( 'L1 SJT', 'Line 1 Single Journey Ticket', 13, 0, 1, 0, 0, NULL ),
+				array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0, NULL ), // ID: 14
+                array( 'L1 SJT', 'Line 1 Single Journey Ticket', 14, 0, 1, 0, 0, NULL ),
 				array( 'Staff Card', 'Staff Card', NULL, 0, 0, 0, 0, NULL )
 			);
 
@@ -722,6 +723,8 @@ class Installer extends CI_Controller {
             array( 'SVC', 'SVC - Defective', 1 ),
             array( 'SVC', 'SVC - Damaged', 1 ),
             array( 'SVC - Defective', 'SVC - Damaged', 1 ),
+			array( 'SVC - Defective', 'SVC - TIR', 1 ),
+			array( 'SVC - TIR', 'SVC - Defective', 1 ),
 
 			// Other cards
 			array( 'L1 SJT', 'Others', 1 )

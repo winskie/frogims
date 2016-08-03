@@ -137,7 +137,7 @@ td.row-flag
 }
 
 
-/* Notifications */
+/*************** Start of Notifications ***************/
 div.notification_wrapper {
     position: fixed;
     top: 100px;
@@ -184,8 +184,27 @@ div.notification_wrapper div.notification.info {
 div.notification_wrapper div.notification.notice-visible {
     right: 0;
 }
-
+/*************** End of Notifications ***************/
 
 .btn-dropdown-caret {
     width: 25px;
 }
+
+/*************** Start of Filters ***************/
+div.filter_panel {
+    transition: height 0.5s ease;
+}
+
+div.filter_panel.ng-hide {
+    height: 0;
+}
+
+div.filter_panel.ng-hide-add {
+    animation: 0.5s flipOutX ease;
+}
+
+div.filter_panel.ng-hide-remove {
+    animation: 0.5s flipInX ease;
+}
+
+/*************** End of Filters ***************/

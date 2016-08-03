@@ -8,6 +8,7 @@
 		<title>FROG Ticket Management Inventory System</title>
 
 		<link rel="stylesheet" type="text/css" href="<?php echo base_url( 'resources/css/bootstrap.min.css' );?>" />
+		<link rel="stylesheet" type="text/css" href="<?php echo base_url( 'resources/css/animate.css' );?>" />
 		<link rel="stylesheet" type="text/css" href="<?php echo base_url( 'resources/css/main.css' );?>" />
 
 		<script>

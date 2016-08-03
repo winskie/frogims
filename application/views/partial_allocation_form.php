@@ -139,8 +139,8 @@
                             <th class="text-center">Row</th>
                             <th class="text-left">Time</th>
                             <th class="text-left">Cashier Shift</th>
-                            <th class="text-left">Category</th>
                             <th class="text-left">Item Description</th>
+                            <th class="text-left">Category</th>
                             <th class="text-center">Quantity</th>
                             <th class="text-center">Status</th>
                             <th class="text-center" ng-if="data.editMode != 'view'">Void</th>
@@ -155,8 +155,8 @@
                             <td class="text-center">{{ $index + 1 }}</td>
                             <td class="text-left">{{ row.allocation_datetime | date : 'HH:mm:ss' }}</td>
                             <td class="text-left">{{ row.cashier_shift_num }}</td>
-                            <td class="text-left">{{ row.category_name }}</td>
                             <td class="text-left">{{ row.item_name }}</td>
+                            <td class="text-left">{{ row.category_name }}</td>
                             <td class="text-center">{{ row.allocated_quantity | number }}</td>
                             <td class="text-center">{{ lookup( 'allocationItemStatus', row.allocation_item_status ) }}</td>
                             <td class="text-center" ng-if="data.editMode != 'view'" ng-switch on="row.allocation_item_status">
@@ -186,14 +186,7 @@
 <div class="panel panel-default" ng-if="data.editMode != 'view'">
     <form>
         <div class="panel-body row">
-            <div class="form-group col-sm-12 col-md-6 col-lg-4">
-                <label class="control-label">Category</label>
-                <select class="form-control"
-                        ng-model="input.category"
-                        ng-options="category as category.category for category in data.categories track by category.id">
-                </select>
-            </div>
-
+            <!-- Item -->
             <div class="form-group col-sm-12 col-md-6 col-lg-5">
                 <label class="control-label">Item</label>
                 <select class="form-control"
@@ -203,11 +196,22 @@
                 </select>
             </div>
 
+            <!-- Category -->
+            <div class="form-group col-sm-12 col-md-6 col-lg-4">
+                <label class="control-label">Category</label>
+                <select class="form-control"
+                        ng-model="input.category"
+                        ng-options="category as category.category for category in data.categories track by category.id">
+                </select>
+            </div>
+
+            <!-- Balance -->
             <div class="form-group col-sm-6 col-md-3 col-lg-1">
                 <label class="control-label">Balance</label>
                 <p class="form-control-static text-center">{{ ( input.item.quantity - input.itemReservedQuantity ) | number }}</p>
             </div>
 
+            <!-- Quantity-->
             <div class="form-group col-sm-6 col-md-3 col-lg-2">
                 <label class="control-label">Quantity</label>
                 <input type="number" class="form-control" min="1"

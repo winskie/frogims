@@ -32,7 +32,7 @@
                         <div class="form-group">
                             <div class="input-group">
                                 <span class="input-group-addon">
-                                    <i class="glyphicon glyphicon-asterisk"></i>
+                                    <i class="glyphicon glyphicon-lock"></i>
                                 </span>
                                 <input type="password" name="password" class="form-control" placeholder="Password" <?php echo ( $username ? 'autofocus' : '' );?>>
                             </div>

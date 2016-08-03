@@ -115,6 +115,13 @@ class Transfer_validation extends Base_model {
 		return $this->transfer;
 	}
 
+	public function _check_data()
+	{
+		// TODO: suggest transfer_category based on transfer details
+
+		return TRUE;
+	}
+
 	public function validate_receipt()
 	{
 		$ci =& get_instance();
