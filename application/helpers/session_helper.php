@@ -79,11 +79,23 @@ if( ! function_exists( 'current_shift' ) )
 
 if( ! function_exists( 'current_store' ) )
 {
-    function current_store()
+    function current_store( $id_only = FALSE )
     {
+        $ci =& get_instance();
+        $ci->load->library( 'store' );
+
         if( isset( $_SESSION['current_store_id'] ) )
         {
-            return $_SESSION['current_store_id'];
+            if( $id_only )
+            {
+                return $_SESSION['current_store_id'];
+            }
+            else
+            {
+                $Store = new Store();
+                $current_Store = $Store->get_by_id( $_SESSION['current_store_id'] );
+                return $current_Store;
+            }
         }
         else
         {
@@ -133,5 +145,23 @@ if( ! function_exists( 'get_messages' ) )
         {
             return NULL;
         }
+    }
+}
+
+if( ! function_exists( 'is_store_member' ) )
+{
+    function is_store_member( $store_id, $user_id )
+    {
+        $ci =& get_instance();
+
+        $ci->db->where( 'store_id', $store_id );
+        $ci->db->where( 'user_id', $user_id );
+        $ci->db->where( 'user_status', USER_STATUS_ACTIVE );
+        $ci->db->join( 'users u', 'u.id = su.user_id' );
+        $ci->db->limit( 1 );
+        $query = $ci->db->get( 'store_users su' );
+        $count = $query->num_rows();
+
+        return $count == 1;
     }
 }

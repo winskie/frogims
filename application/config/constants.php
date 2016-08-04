@@ -92,6 +92,10 @@ defined('DATE_FORMAT')		OR define('DATE_FORMAT', 'Y-m-d');
 defined('USER_ROLE_ADMIN')	OR define('USER_ROLE_ADMIN', 1);
 defined('USER_ROLE_USER')	OR define('USER_ROLE_USER', 2);
 
+// User status
+defined('USER_STATUS_ACTIVE')	OR define('USER_STATUS_ACTIVE', 1);
+defined('USER_STATUS_LOCKED')	OR define('USER_STATUS_LOCKED', 2);
+
 // Store Types
 defined('STORE_TYPE_GENERAL')       OR define('STORE_TYPE_GENERAL', 1);
 defined('STORE_TYPE_PRODUCTION')    OR define('STORE_TYPE_PRODUCTION', 2);

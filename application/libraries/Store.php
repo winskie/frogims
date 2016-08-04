@@ -175,11 +175,11 @@ class Store extends Base_model
 	{
 		$ci =& get_instance();
 
-		$ci->db->where( 'store_id', $this->id );
-		$ci->db->where( 'user_id', $user_id );
+		$ci->db->where( 'store_id', param_type( $this->id, 'integer' ) );
+		$ci->db->where( 'user_id', param_type( $user_id, 'integer' ) );
 		$query = $ci->db->get( 'store_users' );
 
-		return $query->num_rows > 0;
+		return $query->num_rows() > 0;
 	}
 
 

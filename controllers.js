@@ -721,52 +721,6 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 		$scope.updateAllocations = appData.getAllocations;
 		$scope.updateConversions = appData.getConversions;
 
-		$scope.refreshData = function( event, data )
-			{
-				var currentStoreId = session.data.currentStore.id
-
-				switch( data )
-				{
-					case 'transferValidation':
-						$scope.updateTransferValidations();
-						break;
-
-					case 'transfer':
-						$scope.updateInventory( currentStoreId );
-						$scope.updateTransactions( currentStoreId );
-						$scope.updateTransfers( currentStoreId );
-						break;
-
-					case 'receipt':
-						$scope.updateInventory( currentStoreId );
-						$scope.updateTransactions( currentStoreId );
-						$scope.updateReceipts( currentStoreId );
-						break;
-
-					case 'adjustment':
-						$scope.updateInventory( currentStoreId );
-						$scope.updateTransactions( currentStoreId );
-						$scope.updateAdjustments(currentStoreId );
-						break;
-
-					case 'allocation':
-						$scope.updateInventory( currentStoreId );
-						$scope.updateTransactions( currentStoreId );
-						$scope.updateAllocations( currentStoreId );
-						break
-
-					default:
-						$scope.updateInventory( currentStoreId );
-						$scope.updateTransactions( currentStoreId );
-						$scope.updateTransfers( currentStoreId );
-						$scope.updateReceipts( currentStoreId );
-						$scope.updateAdjustments( currentStoreId );
-						$scope.updateCollections( currentStoreId );
-						$scope.updateAllocations( currentStoreId );
-						$scope.updateConversions( currentStoreId );
-				}
-			};
-
 		// Transfer Validations
 		$scope.completeTransferValidation = function( validation )
 			{
@@ -774,7 +728,7 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 					function( response )
 					{
 						notifications.alert( 'Transfer validation completed', 'success' );
-						appData.refresh( null, 'transferValidation' );
+						appData.refresh( null, 'transferValidations' );
 					});
 			};
 
@@ -784,7 +738,7 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 					function( response )
 					{
 						notifications.alert( 'Transfer validation marked as ongoing', 'success' );
-						appData.refresh( null, 'transferValidation' );
+						appData.refresh( null, 'transferValidations' );
 					});
 			};
 
@@ -799,7 +753,7 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 					function( response )
 					{
 						notifications.alert( 'Transfer marked as validation not required', 'success' );
-						appData.refresh( null, 'transferValidation' );
+						appData.refresh( null, 'transferValidations' );
 					});
 			};
 
@@ -810,7 +764,7 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 					function( response )
 					{
 						notifications.alert( 'Transfer approved', 'success' );
-						appData.refresh( session.data.currentStore.id, 'transfer' );
+						appData.refresh( session.data.currentStore.id, 'transfers' );
 					});
 			};
 
@@ -820,7 +774,7 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 					function( response )
 					{
 						notifications.alert( 'Transfer received', 'success' );
-						appData.refresh( session.data.currentStore.id, 'receipt' );
+						appData.refresh( session.data.currentStore.id, 'receipts' );
 					});
 			};
 
@@ -830,7 +784,7 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 					function( response )
 					{
 						notifications.alert( 'Transfer cancelled', 'success' );
-						appData.refresh( session.data.currentStore.id, 'transfer' )
+						appData.refresh( session.data.currentStore.id, 'transfers' )
 					});
 			};
 
@@ -841,7 +795,7 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 					function( response )
 					{
 						notifications.alert( 'Adjustment approved', 'success' );
-						appData.refresh( session.data.currentStore.id, 'adjustment' );
+						appData.refresh( session.data.currentStore.id, 'adjustments' );
 					});
 			};
 
@@ -852,7 +806,7 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 					function( response )
 					{
 						notifications.alert( 'Conversion approved', 'success' );
-						appData.refresh( session.data.currentStore.id, 'conversion' );
+						appData.refresh( session.data.currentStore.id, 'conversions' );
 					});
 			};
 
@@ -863,7 +817,7 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 					function( response )
 					{
 						notifications.alert( 'Allocation cancelled', 'success' );
-						appData.refresh( session.data.currentStore.id, 'allocation' );
+						appData.refresh( session.data.currentStore.id, 'allocations' );
 					});
 			};
 
@@ -926,7 +880,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 				appData.saveTransferValidation( validation, 'validate_receipt' ).then(
 					function( response )
 					{
-						appData.refresh( null, 'transferValidation' );
+						appData.refresh( null, 'transferValidations' );
 						notifications.alert( 'Receipt of items from source validated', 'success' );
 						$state.go( 'main.store', { activeTab: 'transferValidations' } );
 					},
@@ -942,7 +896,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 				appData.saveTransferValidation( validation, 'returned' ).then(
 					function( response )
 					{
-						appData.refresh( null, 'transferValidation' );
+						appData.refresh( null, 'transferValidations' );
 						notifications.alert( 'Transfer marked as returned', 'success' );
 						$state.go( 'main.store', { activeTab: 'transferValidations' } );
 					},
@@ -958,7 +912,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 				appData.saveTransferValidation( validation, 'validate_transfer' ).then(
 					function( response )
 					{
-						appData.refresh( null, 'transferValidation' );
+						appData.refresh( null, 'transferValidations' );
 						notifications.alert( 'Receipt of items by recipient validated', 'success' );
 						$state.go( 'main.store', { activeTab: 'transferValidations' } );
 					},
@@ -974,7 +928,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 				appData.saveTransferValidation( validation, 'dispute' ).then(
 					function( response )
 					{
-						appData.refresh( null, 'transferValidation' );
+						appData.refresh( null, 'transferValidations' );
 						notifications.alert( 'Receipt of items by recipient disputed', 'success' );
 						$state.go( 'main.store', { activeTab: 'transferValidations' } );
 					},
@@ -990,7 +944,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 				appData.saveTransferValidation( validation, 'complete' ).then(
 					function( response )
 					{
-						appData.refresh( null, 'transferValidation' );
+						appData.refresh( null, 'transferValidations' );
 						notifications.alert( 'Transfer validation completed', 'success' );
 						$state.go( 'main.store', { activeTab: 'transferValidations' } );
 					},
@@ -1006,7 +960,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 				appData.saveTransferValidation( validation, 'ongoing' ).then(
 					function( response )
 					{
-						appData.refresh( null, 'transferValidation' );
+						appData.refresh( null, 'transferValidations' );
 						notifications.alert( 'Transfer validation marked as ongoing', 'success' );
 						$state.go( 'main.store', { activeTab: 'transferValidations' } );
 					},
@@ -1022,7 +976,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 				appData.saveTransferValidation( validation, 'not_required' ).then(
 					function( response )
 					{
-						appData.refresh( null, 'transferValidation' );
+						appData.refresh( null, 'transferValidations' );
 						notifications.alert( 'Transfer marked as validation not required', 'success' );
 						$state.go( 'main.store', { activeTab: 'transferValidations' } );
 					},
@@ -1497,7 +1451,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 					appData.saveTransfer( data ).then(
 						function( response )
 						{
-							appData.refresh( session.data.currentStore.id, 'transfer' );
+							appData.refresh( session.data.currentStore.id, 'transfers' );
 							notifications.alert( 'Transfer record saved', 'success' );
 							$state.go( 'main.store', { activeTab: 'transfers' } );
 						},
@@ -1517,7 +1471,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 					appData.approveTransfer( data ).then(
 						function( response )
 						{
-							appData.refresh( session.data.currentStore.id, 'transfer' );
+							appData.refresh( session.data.currentStore.id, 'transfers' );
 							notifications.alert( 'Transfer approved', 'success' );
 							$state.go( 'main.store', { activeTab: 'transfers' } );
 						},
@@ -1538,7 +1492,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 					appData.receiveTransfer( data ).then(
 						function( response )
 						{
-							appData.refresh( session.data.currentStore.id, 'receipt' );
+							appData.refresh( session.data.currentStore.id, 'receipts' );
 							notifications.alert( 'Transfer received', 'success' );
 							$state.go( 'main.store', { activeTab: 'receipts' } );
 						},
@@ -1774,7 +1728,7 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
 					appData.saveAdjustment( data ).then(
 						function( response )
 						{
-							appData.refresh( session.data.currentStore.id, 'adjustment' );
+							appData.refresh( session.data.currentStore.id, 'adjustments' );
 							notifications.alert( 'Adjustment record saved', 'success' );
 							$state.go( 'main.store', { activeTab: 'adjustments' } );
 						},
@@ -1794,7 +1748,7 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
 					appData.approveAdjustment( data ).then(
 						function( response )
 						{
-							appData.refresh( session.data.currentStore.id, 'adjustment' );
+							appData.refresh( session.data.currentStore.id, 'adjustments' );
 							notifications.alert( 'Adjustment approved', 'success' );
 							$state.go( 'main.store', { activeTab: 'adjustments' } );
 						},
@@ -2024,7 +1978,7 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 				appData.saveConversion( $scope.conversionItem ).then(
 					function( response )
 					{
-						appData.refresh( session.data.currentStore.id, 'conversion' );
+						appData.refresh( session.data.currentStore.id, 'conversions' );
 						notifications.alert( 'Conversion record saved', 'success' );
 						$state.go( 'main.store', { activeTab: 'conversions' } );
 					},
@@ -2039,7 +1993,7 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 				appData.approveConversion( $scope.conversionItem ).then(
 					function( response )
 					{
-						appData.refresh( session.data.currentStore.id, 'conversion' );
+						appData.refresh( session.data.currentStore.id, 'conversions' );
 						notifications.alert( 'Item converted successfully', 'success' );
 						$state.go( 'main.store', { activeTab: 'conversions' } );
 					},
@@ -2393,13 +2347,13 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 						{
 							if( $scope.data.editMode == 'new' )
 							{
-								appData.refresh( session.data.currentStore.id, 'collection' );
+								appData.refresh( session.data.currentStore.id, 'collections' );
 								notifications.alert( 'Collection record saved', 'success' );
 								$scope.moppingItem.items = [];
 							}
 							else
 							{
-								appData.refresh( session.data.currentStore.id, 'collection' );
+								appData.refresh( session.data.currentStore.id, 'collections' );
 								notifications.alert( 'Collection record saved', 'success' );
 								$state.go( 'main.store', { activeTab: 'collections' } );
 							}
@@ -2826,7 +2780,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					appData.saveAllocation( data ).then(
 						function( response )
 						{
-							appData.refresh( session.data.currentStore.id, 'allocation' );
+							appData.refresh( session.data.currentStore.id, 'allocations' );
 							notifications.alert( 'Allocation record saved', 'success' );
 							$state.go( 'main.store', { activeTab: 'allocations' } );
 						},
@@ -2850,7 +2804,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					appData.allocateAllocation( data ).then(
 						function( response )
 						{
-							appData.refresh( session.data.currentStore.id, 'allocation' );
+							appData.refresh( session.data.currentStore.id, 'allocations' );
 							notifications.alert( 'Marked as Allocated', 'success' );
 							$state.go( 'main.store', { activeTab: 'allocations' } );
 						},
@@ -2869,7 +2823,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					appData.remitAllocation( data ).then(
 						function( response )
 						{
-							appData.refresh( session.data.currentStore.id, 'allocation' );
+							appData.refresh( session.data.currentStore.id, 'allocations' );
 							notifications.alert( 'Marked as Remitted', 'success' );
 							$state.go( 'main.store', { activeTab: 'allocations' } );
 						},

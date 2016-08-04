@@ -42,6 +42,7 @@ class Api_v1 extends CI_Controller {
     public function adjustments()
     {
         $request_method = $this->input->method();
+        $current_user = current_user();
 
         $this->load->library( 'adjustment' );
         $Adjustment = new Adjustment();
@@ -49,28 +50,36 @@ class Api_v1 extends CI_Controller {
         switch( $request_method )
         {
             case 'get':
-                $adjustment_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
-
-                if( $adjustment_id )
+                // Check permissions
+                if( !$current_user->check_permissions( 'ADJUSTMENTS', 'view' ) )
                 {
-                    $adjustment = $Adjustment->get_by_id( $adjustment_id );
-                    if( $adjustment )
-                    {
-                        $adjustment_data = $adjustment->as_array( array(
-                            'item_name' => array( 'type' => 'string' ),
-                            'item_description' => array( 'type' => 'string' ),
-                            'full_name' => array( 'type' => 'string' ) ) );
-
-                        $this->_response( $adjustment_data );
-                    }
-                    else
-                    {
-                        $this->_error( 404, 'Adjustment record not found' );
-                    }
+                    $this->_error( 403, 'You are not allowed to access this resource' );
                 }
                 else
                 {
-                    $this->_error( 400, 'Missing required adjustment ID' );
+                    $adjustment_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
+
+                    if( $adjustment_id )
+                    {
+                        $adjustment = $Adjustment->get_by_id( $adjustment_id );
+                        if( $adjustment )
+                        {
+                            $adjustment_data = $adjustment->as_array( array(
+                                'item_name' => array( 'type' => 'string' ),
+                                'item_description' => array( 'type' => 'string' ),
+                                'full_name' => array( 'type' => 'string' ) ) );
+
+                            $this->_response( $adjustment_data );
+                        }
+                        else
+                        {
+                            $this->_error( 404, 'Adjustment record not found' );
+                        }
+                    }
+                    else
+                    {
+                        $this->_error( 400, 'Missing required adjustment ID' );
+                    }
                 }
                 break;
 
@@ -125,6 +134,7 @@ class Api_v1 extends CI_Controller {
     public function allocations()
     {
         $request_method = $this->input->method();
+        $current_user = current_user();
 
         $this->load->library( 'allocation' );
         $Allocation = new Allocation();
@@ -132,55 +142,63 @@ class Api_v1 extends CI_Controller {
         switch( $request_method )
         {
             case 'get':
-                $allocation_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
-
-                if( $allocation_id )
+                // Check permissions
+                if( !$current_user->check_permissions( 'allocations', 'view' ) )
                 {
-                    $allocation = $Allocation->get_by_id( $allocation_id );
-                    if( $allocation )
-                    {
-                        $allocation_data = $allocation->as_array();
-                        $allocation_items = $allocation->get_allocations();
-                        $remittance_items = $allocation->get_remittances();
-                        $allocation_items_data = array();
-                        $remittance_items_data = array();
-
-                        foreach( $allocation_items as $item )
-                        {
-                            $allocation_items_data[] = $item->as_array( array(
-                                'category_name' => array( 'type' => 'string' ),
-                                'category_type' => array( 'type' => 'integer' ),
-                                'item_name' => array( 'type' => 'string' ),
-                                'item_description' => array( 'type' => 'string' ),
-                                'teller_allocatable' => array( 'type' => 'boolean' ),
-                                'machine_allocatable' => array( 'type' => 'boolean' ),
-                                'cashier_shift_num' => array( 'type' => 'string' ) ) );
-                        }
-                        $allocation_data['allocations'] = $allocation_items_data;
-
-                        foreach( $remittance_items as $item )
-                        {
-                            $remittance_items_data[] = $item->as_array( array(
-                                'category_name' => array( 'type' => 'string' ),
-                                'category_type' => array( 'type' => 'integer' ),
-                                'item_name' => array( 'type' => 'string' ),
-                                'item_description' => array( 'type' => 'string' ),
-                                'teller_remittable' => array( 'type' => 'boolean' ),
-                                'machine_remittable' => array( 'type' => 'boolean' ),
-                                'cashier_shift_num' => array( 'type' => 'string' ) ) );
-                        }
-                        $allocation_data['remittances'] = $remittance_items_data;
-
-                        $this->_response( $allocation_data );
-                    }
-                    else
-                    {
-                        $this->_error( 404, 'Allocation record not found' );
-                    }
+                    $this->_error( 403, 'You are not allowed to access this resource' );
                 }
                 else
                 {
-                    $this->_error( 400, 'Missing required allocation ID' );
+                    $allocation_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
+
+                    if( $allocation_id )
+                    {
+                        $allocation = $Allocation->get_by_id( $allocation_id );
+                        if( $allocation )
+                        {
+                            $allocation_data = $allocation->as_array();
+                            $allocation_items = $allocation->get_allocations();
+                            $remittance_items = $allocation->get_remittances();
+                            $allocation_items_data = array();
+                            $remittance_items_data = array();
+
+                            foreach( $allocation_items as $item )
+                            {
+                                $allocation_items_data[] = $item->as_array( array(
+                                    'category_name' => array( 'type' => 'string' ),
+                                    'category_type' => array( 'type' => 'integer' ),
+                                    'item_name' => array( 'type' => 'string' ),
+                                    'item_description' => array( 'type' => 'string' ),
+                                    'teller_allocatable' => array( 'type' => 'boolean' ),
+                                    'machine_allocatable' => array( 'type' => 'boolean' ),
+                                    'cashier_shift_num' => array( 'type' => 'string' ) ) );
+                            }
+                            $allocation_data['allocations'] = $allocation_items_data;
+
+                            foreach( $remittance_items as $item )
+                            {
+                                $remittance_items_data[] = $item->as_array( array(
+                                    'category_name' => array( 'type' => 'string' ),
+                                    'category_type' => array( 'type' => 'integer' ),
+                                    'item_name' => array( 'type' => 'string' ),
+                                    'item_description' => array( 'type' => 'string' ),
+                                    'teller_remittable' => array( 'type' => 'boolean' ),
+                                    'machine_remittable' => array( 'type' => 'boolean' ),
+                                    'cashier_shift_num' => array( 'type' => 'string' ) ) );
+                            }
+                            $allocation_data['remittances'] = $remittance_items_data;
+
+                            $this->_response( $allocation_data );
+                        }
+                        else
+                        {
+                            $this->_error( 404, 'Allocation record not found' );
+                        }
+                    }
+                    else
+                    {
+                        $this->_error( 400, 'Missing required allocation ID' );
+                    }
                 }
                 break;
 
@@ -268,6 +286,7 @@ class Api_v1 extends CI_Controller {
     public function collections()
     {
         $request_method = $this->input->method();
+        $current_user = current_user();
 
         $this->load->library( 'mopping' );
         $Collection = new Mopping();
@@ -275,37 +294,45 @@ class Api_v1 extends CI_Controller {
         switch( $request_method )
         {
             case 'get':
-                $collection_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
-                $relation = param_type( $this->uri->rsegment( 4 ), 'string' );
-
-                if( $collection_id )
+                // Check permissions
+                if( !$current_user->check_permissions( 'collections', 'view' ) )
                 {
-                    $collection = $Collection->get_by_id( $collection_id );
-                    if( $collection )
-                    {
-                        $collection_data = $collection->as_array();
-                        $collection_items = $collection->get_items();
-                        $collection_items_data = array();
-                        foreach( $collection_items as $item )
-                        {
-                            $collection_items_data[] = $item->as_array( array(
-                                'station_name' => array( 'type' => 'string' ),
-                                'mopped_item_name' => array( 'type' => 'string' ),
-                                'convert_to_name' => array( 'type' => 'string' ),
-                                'mopped_station_name' => array( 'type' => 'string' ),
-                                'processor_name' => array( 'type' => 'string' ) ) );
-                        }
-                        $collection_data['items'] = $collection_items_data;
-                        $this->_response( $collection_data );
-                    }
-                    else
-                    {
-                        $this->_error( 404, 'Collection record not found' );
-                    }
+                    $this->_error( 403, 'You are not allowed to access this resource' );
                 }
                 else
                 {
-                    $this->_error( 400, 'Missing required collection ID' );
+                    $collection_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
+                    $relation = param_type( $this->uri->rsegment( 4 ), 'string' );
+
+                    if( $collection_id )
+                    {
+                        $collection = $Collection->get_by_id( $collection_id );
+                        if( $collection )
+                        {
+                            $collection_data = $collection->as_array();
+                            $collection_items = $collection->get_items();
+                            $collection_items_data = array();
+                            foreach( $collection_items as $item )
+                            {
+                                $collection_items_data[] = $item->as_array( array(
+                                    'station_name' => array( 'type' => 'string' ),
+                                    'mopped_item_name' => array( 'type' => 'string' ),
+                                    'convert_to_name' => array( 'type' => 'string' ),
+                                    'mopped_station_name' => array( 'type' => 'string' ),
+                                    'processor_name' => array( 'type' => 'string' ) ) );
+                            }
+                            $collection_data['items'] = $collection_items_data;
+                            $this->_response( $collection_data );
+                        }
+                        else
+                        {
+                            $this->_error( 404, 'Collection record not found' );
+                        }
+                    }
+                    else
+                    {
+                        $this->_error( 400, 'Missing required collection ID' );
+                    }
                 }
                 break;
 
@@ -397,6 +424,7 @@ class Api_v1 extends CI_Controller {
     public function conversions()
     {
         $request_method = $this->input->method();
+        $current_user = current_user();
 
         $this->load->library( 'conversion' );
         $Conversion = new Conversion();
@@ -404,52 +432,60 @@ class Api_v1 extends CI_Controller {
         switch( $request_method )
         {
             case 'get':
-                $action = $this->uri->rsegment( 3 );
-                switch( $action )
+                // Check permissions
+                if( !$current_user->check_permissions( 'conversions', 'view' ) )
                 {
-                    case 'factor':
-                        $source_item_id = $this->input->get( 'source' );
-                        $target_item_id = $this->input->get( 'target' );
+                    $this->_error( 403, 'You are not allowed to access this resource' );
+                }
+                else
+                {
+                    $action = $this->uri->rsegment( 3 );
+                    switch( $action )
+                    {
+                        case 'factor':
+                            $source_item_id = $this->input->get( 'source' );
+                            $target_item_id = $this->input->get( 'target' );
 
-                        if( ! $source_item_id || ! $target_item_id )
-                        {
-                            $this->_error( 400, 'Missing required item ID' );
-                        }
-                        else
-                        {
-                            $conversion = $Conversion->get_conversion_factor( $source_item_id, $target_item_id );
-                            if( $conversion )
+                            if( ! $source_item_id || ! $target_item_id )
                             {
-                                $this->_response( array(
-                                    'factor' => $conversion['factor'],
-                                    'mode' => $conversion['mode'] ) );
+                                $this->_error( 400, 'Missing required item ID' );
                             }
                             else
                             {
-                                $this->_error( 404, 'Unable to locate conversion factor data' );
+                                $conversion = $Conversion->get_conversion_factor( $source_item_id, $target_item_id );
+                                if( $conversion )
+                                {
+                                    $this->_response( array(
+                                        'factor' => $conversion['factor'],
+                                        'mode' => $conversion['mode'] ) );
+                                }
+                                else
+                                {
+                                    $this->_error( 404, 'Unable to locate conversion factor data' );
+                                }
                             }
-                        }
-                        break;
+                            break;
 
-                    default:
-                        $conversion_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
-                        if( $conversion_id )
-                        {
-                            $conversion = $Conversion->get_by_id( $conversion_id );
-                            if( $conversion )
+                        default:
+                            $conversion_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
+                            if( $conversion_id )
                             {
-                                $this->_response( $conversion->as_array() );
+                                $conversion = $Conversion->get_by_id( $conversion_id );
+                                if( $conversion )
+                                {
+                                    $this->_response( $conversion->as_array() );
+                                }
+                                else
+                                {
+                                    $this->_error( 404, 'Conversion record not found' );
+                                }
                             }
                             else
                             {
-                                $this->_error( 404, 'Conversion record not found' );
+                                $conversions = $Conversion->get_conversions( array( 'format' => 'array' ) );
+                                $this->_response( $conversions );
                             }
-                        }
-                        else
-                        {
-                            $conversions = $Conversion->get_conversions( array( 'format' => 'array' ) );
-                            $this->_response( $conversions );
-                        }
+                    }
                 }
                 break;
 
@@ -912,7 +948,7 @@ class Api_v1 extends CI_Controller {
 
                     case 'store': // change current store
                         $store_id = param_type( $this->uri->rsegment( 4 ), 'integer' );
-                        $previous_store_id = current_store();
+                        $previous_store_id = current_store( TRUE );
 
                         if( $store_id )
                         {
@@ -1032,395 +1068,469 @@ class Api_v1 extends CI_Controller {
                 if( $store_id )
                 { // Get specific store
                     $store = $Store->get_by_id( $store_id );
+                    $current_user = current_user();
+
                     if( $store )
                     {
-                        switch( $relation )
+                        // Check permissions
+                        if( ! $store->is_member( $current_user->get( 'id' ) ) )
+                        { // requester is not a member of the store
+                            $this->_error( 403, 'You are not allowed to access this resource' );
+                        }
+                        else
                         {
-                            case NULL: // store data
-                                $this->_response( $store->as_array() );
-                                break;
+                            switch( $relation )
+                            {
+                                case NULL: // store data
+                                    $this->_response( $store->as_array() );
+                                    break;
 
-                            case 'adjustments': // adjustments
-                                $params = array(
-                                        'date' => param( $this->input->get(), 'date' ),
-                                        'item' => param( $this->input->get(), 'item' ),
-                                        'status' => param( $this->input->get(), 'status' ),
-                                        'page' => param( $this->input->get(), 'page' ),
-                                        'limit' => param( $this->input->get(), 'limit' ),
-                                        'format' => 'array'
-                                    );
-                                $adjustments = $store->get_adjustments( $params );
-                                $total_adjustments = $store->count_adjustments( $params );
-                                $pending_adjustments = $store->count_pending_adjustments( $params );
-
-                                $this->_response( array(
-                                    'adjustments' => $adjustments,
-                                    'total' => $total_adjustments,
-                                    'pending' => $pending_adjustments ) );
-                                break;
-
-                            case 'allocations_summary': // allocations
-                                $params = array(
-                                    'date' => param( $this->input->get(), 'date' ),
-                                    'assignee_type' => param( $this->input->get(), 'assignee_type' ),
-                                    'status' => param( $this->input->get(), 'status' ),
-                                    'page' => param( $this->input->get(), 'page' ),
-                                    'limit' => param( $this->input->get(), 'limit' ),
-                                );
-                                $allocations = $store->get_allocations_summary( $params );
-                                $total_allocations = $store->count_allocations( $params );
-                                $pending_allocations = $store->count_pending_allocations( $params );
-
-                                $allocations_data = array();
-                                foreach( $allocations as $allocation )
-                                {
-                                    $item = array(
-                                        'allocated_item_id' => $allocation['allocated_item_id'],
-                                        'item_name' => $allocation['item_name'],
-                                        'item_description' => $allocation['item_description'],
-                                        'allocation' => $allocation['allocation'],
-                                        'additional' => $allocation['additional'],
-                                        'remitted' => $allocation['remitted']
-                                    );
-
-                                    if( isset( $allocations_data[$allocation['id']] ) )
+                                case 'adjustments': // adjustments
+                                    // Check permissions
+                                    if( !$current_user->check_permissions( 'adjustments', 'view' ) )
                                     {
-                                        $allocations_data[$allocation['id']]['items'][] = $item;
+                                        $this->_error( 403, 'You are not allowed to access this resource' );
                                     }
                                     else
                                     {
-                                        $allocations_data[$allocation['id']] = array(
-                                            'id' => $allocation['id'],
-                                            'business_date' => $allocation['business_date'],
-                                            'shift_id' => $allocation['shift_id'],
-                                            'shift_num' => $allocation['shift_num'],
-                                            'assignee' => $allocation['assignee'],
-                                            'assignee_type' => $allocation['assignee_type'],
-                                            'allocation_status' => $allocation['allocation_status'],
-                                            'cashier_id' => $allocation['cashier_id']
+                                        $params = array(
+                                                'date' => param( $this->input->get(), 'date' ),
+                                                'item' => param( $this->input->get(), 'item' ),
+                                                'status' => param( $this->input->get(), 'status' ),
+                                                'page' => param( $this->input->get(), 'page' ),
+                                                'limit' => param( $this->input->get(), 'limit' ),
+                                                'format' => 'array'
+                                            );
+                                        $adjustments = $store->get_adjustments( $params );
+                                        $total_adjustments = $store->count_adjustments( $params );
+                                        $pending_adjustments = $store->count_pending_adjustments( $params );
+
+                                        $this->_response( array(
+                                            'adjustments' => $adjustments,
+                                            'total' => $total_adjustments,
+                                            'pending' => $pending_adjustments ) );
+                                    }
+                                    break;
+
+                                case 'allocations_summary': // allocations
+                                    // Check permissions
+                                    if( !$current_user->check_permissions( 'allocations', 'view' ) )
+                                    {
+                                        $this->_error( 403, 'You are not allowed to access this resource' );
+                                    }
+                                    else
+                                    {
+                                        $params = array(
+                                            'date' => param( $this->input->get(), 'date' ),
+                                            'assignee_type' => param( $this->input->get(), 'assignee_type' ),
+                                            'status' => param( $this->input->get(), 'status' ),
+                                            'page' => param( $this->input->get(), 'page' ),
+                                            'limit' => param( $this->input->get(), 'limit' ),
                                         );
-                                        $allocations_data[$allocation['id']]['items'] = array( $item );
+                                        $allocations = $store->get_allocations_summary( $params );
+                                        $total_allocations = $store->count_allocations( $params );
+                                        $pending_allocations = $store->count_pending_allocations( $params );
+
+                                        $allocations_data = array();
+                                        foreach( $allocations as $allocation )
+                                        {
+                                            $item = array(
+                                                'allocated_item_id' => $allocation['allocated_item_id'],
+                                                'item_name' => $allocation['item_name'],
+                                                'item_description' => $allocation['item_description'],
+                                                'allocation' => $allocation['allocation'],
+                                                'additional' => $allocation['additional'],
+                                                'remitted' => $allocation['remitted']
+                                            );
+
+                                            if( isset( $allocations_data[$allocation['id']] ) )
+                                            {
+                                                $allocations_data[$allocation['id']]['items'][] = $item;
+                                            }
+                                            else
+                                            {
+                                                $allocations_data[$allocation['id']] = array(
+                                                    'id' => $allocation['id'],
+                                                    'business_date' => $allocation['business_date'],
+                                                    'shift_id' => $allocation['shift_id'],
+                                                    'shift_num' => $allocation['shift_num'],
+                                                    'assignee' => $allocation['assignee'],
+                                                    'assignee_type' => $allocation['assignee_type'],
+                                                    'allocation_status' => $allocation['allocation_status'],
+                                                    'cashier_id' => $allocation['cashier_id']
+                                                );
+                                                $allocations_data[$allocation['id']]['items'] = array( $item );
+                                            }
+                                        }
+
+                                        $this->_response( array(
+                                            'allocations' => array_values( $allocations_data ),
+                                            'total' => $total_allocations,
+                                            'pending' => $pending_allocations ) );
                                     }
-                                }
+                                    break;
 
-                                $this->_response( array(
-                                    'allocations' => array_values( $allocations_data ),
-                                    'total' => $total_allocations,
-                                    'pending' => $pending_allocations ) );
-                                break;
-
-                            case 'collections_summary': // mopping collections
-                                $params = array(
-                                        'processing_date' => param( $this->input->get(), 'processing_date' ),
-                                        'business_date' => param( $this->input->get(), 'business_date' ),
-                                        'page' => param( $this->input->get(), 'page' ),
-                                        'limit' => param( $this->input->get(), 'limit' ),
-                                    );
-                                $collections = $store->get_collections_summary( $params );
-                                $total_collections = $store->count_collections( $params );
-                                $collections_data = array();
-                                foreach( $collections as $collection )
-                                {
-                                    $item = array(
-                                        'item_id' => $collection['item_id'],
-                                        'item_name' => $collection['item_name'],
-                                        'item_description' => $collection['item_description'],
-                                        'quantity' => $collection['quantity'],
-                                        'status' => $collection['mopping_item_status']
-                                    );
-
-                                    if( isset( $collections_data[$collection['mopping_id']] ) )
+                                case 'collections_summary': // mopping collections
+                                    // Check permissions
+                                    if( !$current_user->check_permissions( 'collections', 'view' ) )
                                     {
-                                        $collections_data[$collection['mopping_id']]['items'][] = $item;
+                                        $this->_error( 403, 'You are not allowed to access this resource' );
                                     }
                                     else
                                     {
-                                        $collections_data[$collection['mopping_id']] = array(
-                                            'id' => $collection['id'],
-                                            'processing_datetime' => $collection['processing_datetime'],
-                                            'business_date' => $collection['business_date'],
-                                            'shift_id' => $collection['shift_id'],
-                                            'shift_num' => $collection['shift_num'],
-                                            'cashier_shift_id' => $collection['cashier_shift_id'],
-                                            'cashier_shift_num' => $collection['cashier_shift_num']
-                                        );
-                                        $collections_data[$collection['mopping_id']]['items'] = array( $item );
+                                        $params = array(
+                                                'processing_date' => param( $this->input->get(), 'processing_date' ),
+                                                'business_date' => param( $this->input->get(), 'business_date' ),
+                                                'page' => param( $this->input->get(), 'page' ),
+                                                'limit' => param( $this->input->get(), 'limit' ),
+                                            );
+                                        $collections = $store->get_collections_summary( $params );
+                                        $total_collections = $store->count_collections( $params );
+                                        $collections_data = array();
+                                        foreach( $collections as $collection )
+                                        {
+                                            $item = array(
+                                                'item_id' => $collection['item_id'],
+                                                'item_name' => $collection['item_name'],
+                                                'item_description' => $collection['item_description'],
+                                                'quantity' => $collection['quantity'],
+                                                'status' => $collection['mopping_item_status']
+                                            );
+
+                                            if( isset( $collections_data[$collection['mopping_id']] ) )
+                                            {
+                                                $collections_data[$collection['mopping_id']]['items'][] = $item;
+                                            }
+                                            else
+                                            {
+                                                $collections_data[$collection['mopping_id']] = array(
+                                                    'id' => $collection['id'],
+                                                    'processing_datetime' => $collection['processing_datetime'],
+                                                    'business_date' => $collection['business_date'],
+                                                    'shift_id' => $collection['shift_id'],
+                                                    'shift_num' => $collection['shift_num'],
+                                                    'cashier_shift_id' => $collection['cashier_shift_id'],
+                                                    'cashier_shift_num' => $collection['cashier_shift_num']
+                                                );
+                                                $collections_data[$collection['mopping_id']]['items'] = array( $item );
+                                            }
+                                        }
+                                        $this->_response( array(
+                                            'collections' => array_values( $collections_data ),
+                                            'total' => $total_collections ) );
                                     }
-                                }
-                                $this->_response( array(
-                                    'collections' => array_values( $collections_data ),
-                                    'total' => $total_collections ) );
-                                break;
-                            case 'conversions': // item conversions
-                                $params = array(
-                                        'date' => param( $this->input->get(), 'date' ),
-                                        'input' => param( $this->input->get(), 'input' ),
-                                        'output' => param( $this->input->get(), 'output' ),
-                                        'page' => param( $this->input->get(), 'page' ),
-                                        'limit' => param( $this->input->get(), 'limit' ),
-                                        'format' => 'array'
-                                    );
-                                $conversions = $store->get_conversions( $params );
-                                $total_conversions = $store->count_conversions( $params );
-                                $pending_conversions = $store->count_pending_conversions( $params );
-
-                                $this->_response( array(
-                                    'conversions' => $conversions,
-                                    'total' => $total_conversions,
-                                    'pending' => $pending_conversions ) );
-                                break;
-
-                            case 'inventory_history':
-                                $start_time = param( $this->input->get(), 'start', date( TIMESTAMP_FORMAT, strtotime( 'now - 1 day' ) ) );
-                                $end_time =  param( $this->input->get(), 'end', date( TIMESTAMP_FORMAT ) );
-
-                                // TODO: Check if $start < $end
-
-                                $data = $store->get_transactions_date_range( $start_time, $end_time );
-                                $starting_balances = $store->get_inventory_balances( $start_time );
-
-                                $data_array = array();
-
-                                foreach( $starting_balances as $row )
-                                {
-                                    $data_array[$row['item_id']] = array(
-                                        'data' => array(),
-                                        'init_balance' => is_null( $row['balance'] ) ? 0 : $row['balance'],
-                                        'name' => $row['item_name'],
-                                        'id' => $row['item_id'] );
-                                }
-
-                                foreach( $data as $row )
-                                {
-                                    if( isset( $data_array[$row['item_id']] ) )
+                                    break;
+                                case 'conversions': // item conversions
+                                    // Check permissions
+                                    if( !$current_user->check_permissions( 'conversions', 'view' ) )
                                     {
-                                        $data_array[$row['item_id']]['data'][$row['timestamp']] = $row['balance'];
+                                        $this->_error( 403, 'You are not allowed to access this resource' );
                                     }
                                     else
                                     {
-                                        $data_array[$row['item_id']] = array(
-                                            'data' => array( $row['timestamp'] => $row['balance'] ),
-                                            'init_balance' => $row['balance'] - $row['quantity'],
-                                            'name' => $row['item_name'],
-                                            'id' => $row['item_id'] );
+                                        $params = array(
+                                                'date' => param( $this->input->get(), 'date' ),
+                                                'input' => param( $this->input->get(), 'input' ),
+                                                'output' => param( $this->input->get(), 'output' ),
+                                                'page' => param( $this->input->get(), 'page' ),
+                                                'limit' => param( $this->input->get(), 'limit' ),
+                                                'format' => 'array'
+                                            );
+                                        $conversions = $store->get_conversions( $params );
+                                        $total_conversions = $store->count_conversions( $params );
+                                        $pending_conversions = $store->count_pending_conversions( $params );
+
+                                        $this->_response( array(
+                                            'conversions' => $conversions,
+                                            'total' => $total_conversions,
+                                            'pending' => $pending_conversions ) );
                                     }
-                                }
+                                    break;
 
-                                $start_time = round( strtotime( $start_time ) / 60 ) * 60 ;
-                                $end_time = round( strtotime( $end_time ) / 60 ) * 60;
+                                case 'inventory_history':
+                                    // Check permissions
+                                    if( !$current_user->check_permissions( 'dashboard', 'history' ) )
+                                    {
+                                        $this->_error( 403, 'You are not allowed to access this resource' );
+                                    }
+                                    else
+                                    {
+                                        $start_time = param( $this->input->get(), 'start', date( TIMESTAMP_FORMAT, strtotime( 'now - 1 day' ) ) );
+                                        $end_time =  param( $this->input->get(), 'end', date( TIMESTAMP_FORMAT ) );
 
-                                $this->_response( array(
-                                    'series' => array_values( $data_array ),
-                                    'start_time' => $start_time ,
-                                    'end_time' => $end_time ) );
-                                break;
+                                        // TODO: Check if $start < $end
 
-                            case 'items': // inventory items
-                                $items = $store->get_items();
-                                $items_data = array();
-                                $additional_fields = array(
-                                    'item_name' => array( 'type' => 'string' ),
-                                    'item_group' => array( 'type' => 'string' ),
-                                    'item_description' => array( 'type' => 'string' ),
-                                    'teller_allocatable' => array( 'type' => 'boolean' ),
-                                    'teller_remittable' => array( 'type' => 'boolean' ),
-                                    'machine_allocatable' => array( 'type' => 'boolean' ),
-                                    'machine_remittable' => array( 'type' => 'boolean' )
-                                );
-                                foreach( $items as $item )
-                                {
-                                    $items_data[] = $item->as_array( $additional_fields );
-                                }
+                                        $data = $store->get_transactions_date_range( $start_time, $end_time );
+                                        $starting_balances = $store->get_inventory_balances( $start_time );
 
-                                $this->_response( $items_data );
-                                break;
+                                        $data_array = array();
 
-                            case 'receipts': // receipts
-                                $includes = param( $this->input->get(), 'include' );
-                                $includes = explode( ',', $includes );
-                                $params = array(
-                                        'date' => param( $this->input->get(), 'date' ),
-                                        'src' => param( $this->input->get(), 'src' ),
-                                        'status' => param( $this->input->get(), 'status' ),
-                                        'page' => param( $this->input->get(), 'page' ),
-                                        'limit' => param( $this->input->get(), 'limit' ),
-                                        'includes' => $includes
+                                        foreach( $starting_balances as $row )
+                                        {
+                                            $data_array[$row['item_id']] = array(
+                                                'data' => array(),
+                                                'init_balance' => is_null( $row['balance'] ) ? 0 : $row['balance'],
+                                                'name' => $row['item_name'],
+                                                'id' => $row['item_id'] );
+                                        }
+
+                                        foreach( $data as $row )
+                                        {
+                                            if( isset( $data_array[$row['item_id']] ) )
+                                            {
+                                                $data_array[$row['item_id']]['data'][$row['timestamp']] = $row['balance'];
+                                            }
+                                            else
+                                            {
+                                                $data_array[$row['item_id']] = array(
+                                                    'data' => array( $row['timestamp'] => $row['balance'] ),
+                                                    'init_balance' => $row['balance'] - $row['quantity'],
+                                                    'name' => $row['item_name'],
+                                                    'id' => $row['item_id'] );
+                                            }
+                                        }
+
+                                        $start_time = round( strtotime( $start_time ) / 60 ) * 60 ;
+                                        $end_time = round( strtotime( $end_time ) / 60 ) * 60;
+
+                                        $this->_response( array(
+                                            'series' => array_values( $data_array ),
+                                            'start_time' => $start_time ,
+                                            'end_time' => $end_time ) );
+                                    }
+                                    break;
+
+                                case 'items': // inventory items
+                                    $items = $store->get_items();
+                                    $items_data = array();
+                                    $additional_fields = array(
+                                        'item_name' => array( 'type' => 'string' ),
+                                        'item_group' => array( 'type' => 'string' ),
+                                        'item_description' => array( 'type' => 'string' ),
+                                        'teller_allocatable' => array( 'type' => 'boolean' ),
+                                        'teller_remittable' => array( 'type' => 'boolean' ),
+                                        'machine_allocatable' => array( 'type' => 'boolean' ),
+                                        'machine_remittable' => array( 'type' => 'boolean' )
                                     );
-                                $receipts = $store->get_receipts( $params );
-                                $total_receipts = $store->count_receipts( $params );
-                                $pending_receipts = $store->count_pending_receipts( $params );
-
-                                $receipts_data = array();
-                                $array_params = array();
-
-                                if( $params['includes'] && in_array( 'validation', $params['includes'] ) )
-                                {
-                                    $array_params = array(
-                                        'transval_receipt_status' => array( 'type' => 'integer' ),
-                                        'transval_receipt_datetime' => array( 'type' => 'datetime' ),
-                                        'transval_receipt_sweeper' => array( 'type' => 'string' ),
-                                        'transval_receipt_user_id' => array( 'type' => 'integer' ),
-                                        'transval_receipt_shift_id' => array( 'type' => 'integer' ),
-                                        'transval_transfer_status' => array( 'type' => 'integer' ),
-                                        'transval_transfer_datetime' => array( 'type' => 'datetime' ),
-                                        'transval_transfer_sweeper' => array( 'type' => 'string' ),
-                                        'transval_transfer_user_id' => array( 'type' => 'integer' ),
-                                        'transval_category' => array( 'type' => 'integer' ),
-                                        'transval_transfer_shift_id' => array( 'type' => 'integer' ) );
-                                }
-
-                                foreach( $receipts as $receipt )
-                                {
-                                    $items = $receipt->get_items( FALSE );
-                                    $r = $receipt->as_array( $array_params );
                                     foreach( $items as $item )
                                     {
-                                        $r['items'][] = $item->as_array( array(
-                                            'item_name' => array( 'type' => 'string' ),
-                                            'item_description' => array( 'type' => 'stirng' ) ) );
+                                        $items_data[] = $item->as_array( $additional_fields );
                                     }
-                                    $receipts_data[] = $r;
-                                }
 
-                                $this->_response( array(
-                                    'receipts' => $receipts_data,
-                                    'total' => $total_receipts,
-                                    'pending' => $pending_receipts
-                                ) );
-                                break;
+                                    $this->_response( $items_data );
+                                    break;
 
-                            case 'shifts': // store shifts
-                                $shifts = $store->get_shifts();
-                                $shifts_data = array();
-                                foreach( $shifts as $shift )
-                                {
-                                    $shifts_data[] = $shift->as_array();
-                                }
-
-                                $this->_response( $shifts_data );
-                                break;
-
-                            case 'transfers': // transfers
-                                $transfer_id = param_type( $this->uri->rsegment( 5 ), 'integer' );
-                                $includes = param( $this->input->get(), 'include' );
-                                $includes = explode( ',', $includes );
-                                if( $transfer_id )
-                                {
-                                    $this->load->library( 'transfer' );
-                                    $Transfer = new Transfer();
-                                    $transfer = $Transfer->get_by_id( $transfer_id );
-                                    if( $transfer )
+                                case 'receipts': // receipts
+                                    // Check permissions
+                                    if( !$current_user->check_permissions( 'transfers', 'view' ) )
                                     {
-                                        $transfer_data = $transfer->as_array();
-
-                                        $transfer_items = $transfer->get_items();
-                                        $transfer_items_data = array();
-
-
-                                        foreach( $transfer_items as $item )
-                                        {
-                                            $transfer_items_data[] = $item->as_array( array(
-                                                'item_name' => array( 'type' => 'string' ),
-                                                'item_description' => array( 'type' => 'string' ),
-                                                'category_name' => array( 'type' => 'string' ),
-                                                'is_transfer_category' => array( 'type' => 'boolean' ) ) );
-                                        }
-                                        $transfer_data['items'] = $transfer_items_data;
-
-                                        $this->_response( $transfer_data );
+                                        $this->_error( 403, 'You are not allowed to access this resource' );
                                     }
                                     else
                                     {
-                                        $this->_error( 404, 'Transfer record not found' );
-                                    }
-                                }
-                                else
-                                {
-                                    $params = array(
-                                        'date' => param( $this->input->get(), 'date' ),
-                                        'dst' => param( $this->input->get(), 'dst' ),
-                                        'status' => param( $this->input->get(), 'status' ),
-                                        'page' => param( $this->input->get(), 'page' ),
-                                        'limit' => param( $this->input->get(), 'limit' ),
-                                        'includes' => $includes
-                                    );
-                                    $transfers = $store->get_transfers( $params );
-                                    $total_transfers = $store->count_transfers( $params );
-                                    $pending_transfers = $store->count_pending_transfers( $params );
+                                        $includes = param( $this->input->get(), 'include' );
+                                        $includes = explode( ',', $includes );
+                                        $params = array(
+                                                'date' => param( $this->input->get(), 'date' ),
+                                                'src' => param( $this->input->get(), 'src' ),
+                                                'status' => param( $this->input->get(), 'status' ),
+                                                'page' => param( $this->input->get(), 'page' ),
+                                                'limit' => param( $this->input->get(), 'limit' ),
+                                                'includes' => $includes
+                                            );
+                                        $receipts = $store->get_receipts( $params );
+                                        $total_receipts = $store->count_receipts( $params );
+                                        $pending_receipts = $store->count_pending_receipts( $params );
 
-                                    $transfers_data = array();
-                                    $array_params = array();
+                                        $receipts_data = array();
+                                        $array_params = array();
 
-                                    if( $params['includes'] && in_array( 'validation', $params['includes'] ) )
-                                    {
-                                        $array_params = array(
-                                            'transval_id' => array( 'type' => 'integer' ),
-                                            'transval_receipt_status' => array( 'type' => 'integer' ),
-                                            'transval_receipt_datetime' => array( 'type' => 'datetime' ),
-                                            'transval_receipt_sweeper' => array( 'type' => 'string' ),
-                                            'transval_receipt_user_id' => array( 'type' => 'integer' ),
-                                            'transval_receipt_shift_id' => array( 'type' => 'integer' ),
-                                            'transval_transfer_status' => array( 'type' => 'integer' ),
-                                            'transval_transfer_datetime' => array( 'type' => 'datetime' ),
-                                            'transval_transfer_sweeper' => array( 'type' => 'string' ),
-                                            'transval_transfer_user_id' => array( 'type' => 'integer' ),
-                                            'transval_transfer_shift_id' => array( 'type' => 'integer' ),
-                                            'transval_category' => array( 'type' => 'integer' ),
-                                            'transval_status' => array( 'type' => 'integer' ) );
-                                    }
-
-                                    foreach( $transfers as $transfer )
-                                    {
-                                        $items = $transfer->get_items( FALSE );
-                                        $r = $transfer->as_array( $array_params );
-                                        foreach( $items as $item )
+                                        if( $params['includes'] && in_array( 'validation', $params['includes'] ) )
                                         {
-                                            $r['items'][] = $item->as_array( array(
-                                                'item_name' => array( 'type' => 'string' ),
-                                                'item_description' => array( 'type' => 'stirng' ) ) );
+                                            $array_params = array(
+                                                'transval_receipt_status' => array( 'type' => 'integer' ),
+                                                'transval_receipt_datetime' => array( 'type' => 'datetime' ),
+                                                'transval_receipt_sweeper' => array( 'type' => 'string' ),
+                                                'transval_receipt_user_id' => array( 'type' => 'integer' ),
+                                                'transval_receipt_shift_id' => array( 'type' => 'integer' ),
+                                                'transval_transfer_status' => array( 'type' => 'integer' ),
+                                                'transval_transfer_datetime' => array( 'type' => 'datetime' ),
+                                                'transval_transfer_sweeper' => array( 'type' => 'string' ),
+                                                'transval_transfer_user_id' => array( 'type' => 'integer' ),
+                                                'transval_category' => array( 'type' => 'integer' ),
+                                                'transval_transfer_shift_id' => array( 'type' => 'integer' ) );
                                         }
-                                        $transfers_data[] = $r;
+
+                                        foreach( $receipts as $receipt )
+                                        {
+                                            $items = $receipt->get_items( FALSE );
+                                            $r = $receipt->as_array( $array_params );
+                                            foreach( $items as $item )
+                                            {
+                                                $r['items'][] = $item->as_array( array(
+                                                    'item_name' => array( 'type' => 'string' ),
+                                                    'item_description' => array( 'type' => 'stirng' ) ) );
+                                            }
+                                            $receipts_data[] = $r;
+                                        }
+
+                                        $this->_response( array(
+                                            'receipts' => $receipts_data,
+                                            'total' => $total_receipts,
+                                            'pending' => $pending_receipts
+                                        ) );
+                                    }
+                                    break;
+
+                                case 'shifts': // store shifts
+                                    $shifts = $store->get_shifts();
+                                    $shifts_data = array();
+                                    foreach( $shifts as $shift )
+                                    {
+                                        $shifts_data[] = $shift->as_array();
                                     }
 
-                                    $this->_response( array(
-                                        'transfers' => $transfers_data,
-                                        'total' => $total_transfers,
-                                        'pending' => $pending_transfers
-                                    ) );
-                                }
-                                break;
+                                    $this->_response( $shifts_data );
+                                    break;
 
-                            case 'transactions': // transactions
-                                $params = array(
-                                    'item' => param( $this->input->get(), 'item' ),
-                                    'type' => param( $this->input->get(), 'type' ),
-                                    'date' => param( $this->input->get(), 'date' ),
-                                    'page' => param( $this->input->get(), 'page' ),
-                                    'limit' => param( $this->input->get(), 'limit' ),
-                                    'order' => 'transaction_datetime DESC, id DESC'
-                                );
-                                $transactions = $store->get_transactions( $params );
-                                $total_transactions = $store->count_transactions( $params );
-                                $transactions_data = array();
+                                case 'transfers': // transfers
+                                    // Check permissions
+                                    if( !$current_user->check_permissions( 'transfers', 'view' ) )
+                                    {
+                                        $this->_error( 403, 'You are not allowed to access this resource' );
+                                    }
+                                    else
+                                    {
+                                        $transfer_id = param_type( $this->uri->rsegment( 5 ), 'integer' );
+                                        $includes = param( $this->input->get(), 'include' );
+                                        $includes = explode( ',', $includes );
+                                        if( $transfer_id )
+                                        {
+                                            $this->load->library( 'transfer' );
+                                            $Transfer = new Transfer();
+                                            $transfer = $Transfer->get_by_id( $transfer_id );
+                                            if( $transfer )
+                                            {
+                                                $transfer_data = $transfer->as_array();
 
-                                $additional_fields = array(
-                                    'item_name' => array( 'type' => 'string' ),
-                                    'item_description' => array( 'type' => 'string' ),
-                                    'shift_num' => array( 'type' => 'string' )
-                                );
+                                                $transfer_items = $transfer->get_items();
+                                                $transfer_items_data = array();
 
-                                foreach( $transactions as $transaction )
-                                {
-                                    $transactions_data[] = $transaction->as_array( $additional_fields );
-                                }
 
-                                $this->_response( array(
-                                    'transactions' => $transactions_data,
-                                    'total' => $total_transactions ) );
-                                break;
+                                                foreach( $transfer_items as $item )
+                                                {
+                                                    $transfer_items_data[] = $item->as_array( array(
+                                                        'item_name' => array( 'type' => 'string' ),
+                                                        'item_description' => array( 'type' => 'string' ),
+                                                        'category_name' => array( 'type' => 'string' ),
+                                                        'is_transfer_category' => array( 'type' => 'boolean' ) ) );
+                                                }
+                                                $transfer_data['items'] = $transfer_items_data;
 
-                            default:
-                                $this->_error( 404, sprintf( '%s resource not found', $relation ) );
+                                                $this->_response( $transfer_data );
+                                            }
+                                            else
+                                            {
+                                                $this->_error( 404, 'Transfer record not found' );
+                                            }
+                                        }
+                                        else
+                                        {
+                                            $params = array(
+                                                'date' => param( $this->input->get(), 'date' ),
+                                                'dst' => param( $this->input->get(), 'dst' ),
+                                                'status' => param( $this->input->get(), 'status' ),
+                                                'page' => param( $this->input->get(), 'page' ),
+                                                'limit' => param( $this->input->get(), 'limit' ),
+                                                'includes' => $includes
+                                            );
+                                            $transfers = $store->get_transfers( $params );
+                                            $total_transfers = $store->count_transfers( $params );
+                                            $pending_transfers = $store->count_pending_transfers( $params );
+
+                                            $transfers_data = array();
+                                            $array_params = array();
+
+                                            if( $params['includes'] && in_array( 'validation', $params['includes'] ) )
+                                            {
+                                                $array_params = array(
+                                                    'transval_id' => array( 'type' => 'integer' ),
+                                                    'transval_receipt_status' => array( 'type' => 'integer' ),
+                                                    'transval_receipt_datetime' => array( 'type' => 'datetime' ),
+                                                    'transval_receipt_sweeper' => array( 'type' => 'string' ),
+                                                    'transval_receipt_user_id' => array( 'type' => 'integer' ),
+                                                    'transval_receipt_shift_id' => array( 'type' => 'integer' ),
+                                                    'transval_transfer_status' => array( 'type' => 'integer' ),
+                                                    'transval_transfer_datetime' => array( 'type' => 'datetime' ),
+                                                    'transval_transfer_sweeper' => array( 'type' => 'string' ),
+                                                    'transval_transfer_user_id' => array( 'type' => 'integer' ),
+                                                    'transval_transfer_shift_id' => array( 'type' => 'integer' ),
+                                                    'transval_category' => array( 'type' => 'integer' ),
+                                                    'transval_status' => array( 'type' => 'integer' ) );
+                                            }
+
+                                            foreach( $transfers as $transfer )
+                                            {
+                                                $items = $transfer->get_items( FALSE );
+                                                $r = $transfer->as_array( $array_params );
+                                                foreach( $items as $item )
+                                                {
+                                                    $r['items'][] = $item->as_array( array(
+                                                        'item_name' => array( 'type' => 'string' ),
+                                                        'item_description' => array( 'type' => 'stirng' ) ) );
+                                                }
+                                                $transfers_data[] = $r;
+                                            }
+
+                                            $this->_response( array(
+                                                'transfers' => $transfers_data,
+                                                'total' => $total_transfers,
+                                                'pending' => $pending_transfers
+                                            ) );
+                                        }
+                                    }
+                                    break;
+
+                                case 'transactions': // transactions
+                                    // Check permissions
+                                    if( !$current_user->check_permissions( 'transactions', 'view' ) )
+                                    {
+                                        $this->_error( 403, 'You are not allowed to access this resource' );
+                                    }
+                                    else
+                                    {
+                                        $params = array(
+                                            'item' => param( $this->input->get(), 'item' ),
+                                            'type' => param( $this->input->get(), 'type' ),
+                                            'date' => param( $this->input->get(), 'date' ),
+                                            'page' => param( $this->input->get(), 'page' ),
+                                            'limit' => param( $this->input->get(), 'limit' ),
+                                            'order' => 'transaction_datetime DESC, id DESC'
+                                        );
+                                        $transactions = $store->get_transactions( $params );
+                                        $total_transactions = $store->count_transactions( $params );
+                                        $transactions_data = array();
+
+                                        $additional_fields = array(
+                                            'item_name' => array( 'type' => 'string' ),
+                                            'item_description' => array( 'type' => 'string' ),
+                                            'shift_num' => array( 'type' => 'string' )
+                                        );
+
+                                        foreach( $transactions as $transaction )
+                                        {
+                                            $transactions_data[] = $transaction->as_array( $additional_fields );
+                                        }
+
+                                        $this->_response( array(
+                                            'transactions' => $transactions_data,
+                                            'total' => $total_transactions ) );
+                                    }
+                                    break;
+
+                                default:
+                                    $this->_error( 404, sprintf( '%s resource not found', $relation ) );
+                            }
                         }
                     }
                     else
@@ -1484,6 +1594,7 @@ class Api_v1 extends CI_Controller {
     public function transfers()
     {
         $request_method = $this->input->method();
+        $current_user = current_user();
 
         $this->load->library( 'transfer' );
         $Transfer = new Transfer();
@@ -1491,104 +1602,118 @@ class Api_v1 extends CI_Controller {
         switch( $request_method )
         {
             case 'get':
-                $transfer_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
-                $relation = param_type( $this->uri->rsegment( 4 ), 'string' );
-                $includes = param( $this->input->get(), 'include' );
-                $includes = explode( ',', $includes );
-                if( $transfer_id )
+                // Check permissions
+                if( !$current_user->check_permissions( 'transfers', 'view' ) && !$current_user->check_permissions( 'transfer_validations', 'view' ) )
                 {
-                    $transfer = $Transfer->get_by_id( $transfer_id );
-                    if( $transfer )
+                    $this->_error( 403, 'You are not allowed to access this resource' );
+                }
+                else
+                {
+                    $transfer_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
+                    $relation = param_type( $this->uri->rsegment( 4 ), 'string' );
+                    $includes = param( $this->input->get(), 'include' );
+                    $includes = explode( ',', $includes );
+                    if( $transfer_id )
                     {
-                        switch( $relation )
+                        $transfer = $Transfer->get_by_id( $transfer_id );
+                        if( $transfer )
                         {
-                            case NULL:
-                                $transfer_data = $transfer->as_array();
-                                $items = $transfer->get_items();
-                                $items_data = array();
-                                foreach( $items as $item )
+                            // Check permissions
+                            if( ( !$transfer->get( 'origin_id' ) || !is_store_member( $transfer->get( 'origin_id' ), current_user( TRUE ) ) )
+                                && ( !$transfer->get( 'destination_id' ) || !is_store_member( $transfer->get( 'destination_id' ), current_user( TRUE ) ) ) )
+                            { // current user is not a member of the originating store OR the destination store
+                                $this->_error( 403, 'You are not allowed to access this resource' );
+                            }
+                            else
+                            {
+                                switch( $relation )
                                 {
-                                    $items_data[] = $item->as_array( array(
-                                        'item_name' => array( 'type', 'string' ),
-                                        'item_description' => array( 'type', 'string' ),
-                                        'category_name' => array( 'type', 'string' ) ) );
+                                    case NULL:
+                                        $transfer_data = $transfer->as_array();
+                                        $items = $transfer->get_items();
+                                        $items_data = array();
+                                        foreach( $items as $item )
+                                        {
+                                            $items_data[] = $item->as_array( array(
+                                                'item_name' => array( 'type', 'string' ),
+                                                'item_description' => array( 'type', 'string' ),
+                                                'category_name' => array( 'type', 'string' ) ) );
+                                        }
+                                        $transfer_data['items'] = $items_data;
+                                        if( in_array( 'validation', $includes ) )
+                                        {
+                                            $validation = $transfer->get_transfer_validation();
+                                            if( $validation )
+                                            {
+                                                $transfer_data['validation'] = $validation->as_array();
+                                            }
+                                            else
+                                            {
+                                                $transfer_data['validation'] = NULL;
+                                            }
+                                        }
+
+                                        $this->_response( $transfer_data );
+                                        break;
+
+                                    default:
+                                        $this->_error( 404, sprintf( '%s resource not found', $relation ) );
                                 }
-                                $transfer_data['items'] = $items_data;
-                                if( in_array( 'validation', $includes ) )
-                                {
-                                    $validation = $transfer->get_transfer_validation();
-                                    if( $validation )
-                                    {
-                                        $transfer_data['validation'] = $validation->as_array();
-                                    }
-                                    else
-                                    {
-                                        $transfer_data['validation'] = NULL;
-                                    }
-                                }
-
-                                $this->_response( $transfer_data );
-                                break;
-
-                            case 'items':
-                                break;
-
-                            default:
-                                $this->_error( 404, sprintf( '%s resource not found', $relation ) );
+                            }
+                        }
+                        else
+                        {
+                            $this->_error( 404, 'Transfer record not found' );
                         }
                     }
                     else
                     {
-                        $this->_error( 404, 'Transfer record not found' );
-                    }
-                }
-                else
-                {
-                    $includes = param( $this->input->get(), 'include' );
-                    $includes = explode( ',', $includes );
-                    $params = array(
-                        'includes' => $includes,
-                        'sent' => param( $this->input->get(), 'sent' ),
-                        'received' => param( $this->input->get(), 'received' ),
-                        'src' => param( $this->input->get(), 'src' ),
-                        'dst' => param( $this->input->get(), 'dst' ),
-                        'status' => param( $this->input->get(), 'status' ),
-                        'validation_status' => param( $this->input->get(), 'validation_status' ),
-                        'page' => param( $this->input->get(), 'page' ),
-                        'limit' => param( $this->input->get(), 'limit' ),
-                    );
-                    $transfers = $Transfer->get_transfers( $params );
-                    $total_transfers = $Transfer->count_transfers( $params );
-                    $pending_transfers = $Transfer->count_pending_transfers( $params );
-                    $transfers_data = array();
-                    $array_params = array();
+                        $includes = param( $this->input->get(), 'include' );
+                        $includes = explode( ',', $includes );
+                        $params = array(
+                            'includes' => $includes,
+                            'sent' => param( $this->input->get(), 'sent' ),
+                            'received' => param( $this->input->get(), 'received' ),
+                            'src' => param( $this->input->get(), 'src' ),
+                            'dst' => param( $this->input->get(), 'dst' ),
+                            'status' => param( $this->input->get(), 'status' ),
+                            'validation_status' => param( $this->input->get(), 'validation_status' ),
+                            'page' => param( $this->input->get(), 'page' ),
+                            'limit' => param( $this->input->get(), 'limit' ),
+                        );
+                        $transfers = $Transfer->get_transfers( $params );
+                        $total_transfers = $Transfer->count_transfers( $params );
+                        $pending_transfers = $Transfer->count_pending_transfers( $params );
+                        $transfers_data = array();
+                        $array_params = array();
 
-                    if( $params['includes'] && in_array( 'validation', $params['includes'] ) )
-                    {
-                        $array_params = array(
-                            'transval_id' => array( 'type' => 'integer' ),
-                            'transval_receipt_status' => array( 'type' => 'integer' ),
-                            'transval_receipt_datetime' => array( 'type' => 'datetime' ),
-                            'transval_receipt_sweeper' => array( 'type' => 'string' ),
-                            'transval_receipt_user_id' => array( 'type' => 'integer' ),
-                            'transval_receipt_shift_id' => array( 'type' => 'integer' ),
-                            'transval_transfer_status' => array( 'type' => 'integer' ),
-                            'transval_transfer_datetime' => array( 'type' => 'datetime' ),
-                            'transval_transfer_sweeper' => array( 'type' => 'string' ),
-                            'transval_transfer_user_id' => array( 'type' => 'integer' ),
-                            'transval_transfer_shift_id' => array( 'type' => 'integer' ),
-                            'transval_category' => array( 'type' => 'integer' ),
-                            'transval_status' => array( 'type' => 'integer' ) );
-                    }
-                    foreach( $transfers as $transfer )
-                    {
-                        $transfers_data[] = $transfer->as_array( $array_params );
-                    }
+                        if( $params['includes'] && in_array( 'validation', $params['includes'] ) )
+                        {
+                            $array_params = array(
+                                'transval_id' => array( 'type' => 'integer' ),
+                                'transval_receipt_status' => array( 'type' => 'integer' ),
+                                'transval_receipt_datetime' => array( 'type' => 'datetime' ),
+                                'transval_receipt_sweeper' => array( 'type' => 'string' ),
+                                'transval_receipt_user_id' => array( 'type' => 'integer' ),
+                                'transval_receipt_shift_id' => array( 'type' => 'integer' ),
+                                'transval_transfer_status' => array( 'type' => 'integer' ),
+                                'transval_transfer_datetime' => array( 'type' => 'datetime' ),
+                                'transval_transfer_sweeper' => array( 'type' => 'string' ),
+                                'transval_transfer_user_id' => array( 'type' => 'integer' ),
+                                'transval_transfer_shift_id' => array( 'type' => 'integer' ),
+                                'transval_category' => array( 'type' => 'integer' ),
+                                'transval_status' => array( 'type' => 'integer' ) );
+                        }
+                        foreach( $transfers as $transfer )
+                        {
+                            $transfers_data[] = $transfer->as_array( $array_params );
+                        }
 
-                    $this->_response( array(
-                        'transfers' => $transfers_data,
-                        'total' => $total_transfers,
-                        'pending' => $pending_transfers ) );
+                        $this->_response( array(
+                            'transfers' => $transfers_data,
+                            'total' => $total_transfers,
+                            'pending' => $pending_transfers ) );
+                    }
                 }
                 break;
 
@@ -1652,6 +1777,7 @@ class Api_v1 extends CI_Controller {
     public function transfer_validations()
     {
         $request_method = $this->input->method();
+        $current_user = current_user();
 
         $this->load->library( 'transfer_validation' );
         $Validation = new Transfer_validation();

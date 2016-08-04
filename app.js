@@ -73,100 +73,38 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 								var currentStoreId = response.store.id;
 								var sessionData = response;
 
-								console.log( 'Session data loaded' );
-
 								// Load session dependent data
 								console.log( 'Loading current inventory...' );
-								var initInventory = appData.getInventory( currentStoreId ).then(
-									function( response )
-									{
-										// do nothing
-									},
-									function( reason )
-									{
-										console.error( reason );
-									});
+								var initInventory = appData.getInventory( currentStoreId );
 
 								console.log( 'Loading store transactions...' );
-								var initTransactions = appData.getTransactions( currentStoreId ).then(
-									function( response )
-									{
-										// do nothing
-									},
-									function( reason )
-									{
-										console.error( reason );
-									});
+								var initTransactions = appData.getTransactions( currentStoreId );
 
 								console.log( 'Loading transfers...' );
-								var initTransfers = appData.getTransfers( currentStoreId ).then(
-									function( response )
-									{
-										// do nothing
-									},
-									function( reason )
-									{
-										console.error( reason );
-									});
+								var initTransferValidations = appData.getTransferValidations();
+
+								console.log( 'Loading transfers...' );
+								var initTransfers = appData.getTransfers( currentStoreId );
 
 								console.log( 'Loading receipts...' );
-								var initReceipts = appData.getReceipts( currentStoreId ).then(
-									function( response )
-									{
-										// do nothing
-									},
-									function( reason )
-									{
-										console.error( reason );
-									});
+								var initReceipts = appData.getReceipts( currentStoreId );
 
 								console.log( 'Loading adjustments...' );
-								var initAdjustments = appData.getAdjustments( currentStoreId ).then(
-									function( response )
-									{
-										// do nothing
-									},
-									function( reason )
-									{
-										console.error( reason );
-									});
+								var initAdjustments = appData.getAdjustments( currentStoreId );
 
 								console.log( 'Loading collections...' );
-								var initCollections = appData.getCollections( currentStoreId ).then(
-									function( response )
-									{
-										// do nothing
-									},
-									function( reason )
-									{
-										console.error( reason );
-									});
+								var initCollections = appData.getCollections( currentStoreId );
 
 								console.log( 'Loading allocations...' );
-								var initAllocations = appData.getAllocations( currentStoreId ).then(
-									function( response )
-									{
-										// do nothing
-									},
-									function( reason )
-									{
-										console.error( reason );
-									});
+								var initAllocations = appData.getAllocations( currentStoreId );
 
 								console.log( 'Loading conversions...' );
-								var initConversions = appData.getConversions( currentStoreId ).then(
-									function( response )
-									{
-										// do nothing
-									},
-									function( reason )
-									{
-										console.error( reason );
-									});
+								var initConversions = appData.getConversions( currentStoreId );
 
-								$q.all( [ initInventory, initTransactions, initTransfers, initReceipts, initAdjustments, initCollections, initAllocations, initConversions ] ).then(
+								$q.all( [ initInventory, initTransactions, initTransferValidations, initTransfers, initReceipts, initAdjustments, initCollections, initAllocations, initConversions ] ).then(
 									function( promises )
 									{
+										console.log( 'Finished loading session data' );
 										return sessionData;
 									});
 							},

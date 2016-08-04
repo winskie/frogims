@@ -619,7 +619,7 @@ $current_user = current_user();
 										</button>
 										<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'receipts', receipt )">
 											<li role="menuitem" ng-if="receipt.transfer_status == <?php echo TRANSFER_APPROVED;?> && checkPermissions( 'transfers', 'edit' )">
-												<a ui-sref="main.transfer({ transferItem: receipt, editMode: 'receipt' })">Receive...</a>
+												<a ui-sref="main.transfer({ transferItem: receipt, editMode: 'receipt' })">Edit receipt...</a>
 											</li>
 											<li role="menuitem" ng-if="receipt.transfer_status == <?php echo TRANSFER_APPROVED;?> && checkPermissions( 'transfers', 'edit' )">
 												<a href ng-click="receiveTransfer( receipt )">Quick receipt</a>

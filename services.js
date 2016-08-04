@@ -681,6 +681,11 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
         me.getTransactions = function( storeId )
 			{
+                if( !session.checkPermissions( 'transactions', 'view' ) )
+                {
+                    return;
+                }
+
 				var deferred = $q.defer();
 				$http({
 					method: 'GET',
@@ -720,6 +725,11 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
         me.getTransferValidations = function()
 			{
+                if( !session.checkPermissions( 'transferValidations', 'view' ) )
+                {
+                    return;
+                }
+
 				var deferred = $q.defer();
 				$http({
 					method: 'GET',
@@ -764,6 +774,11 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
         me.getTransfers = function( storeId )
 			{
+                if( !session.checkPermissions( 'transfers', 'view' ) )
+                {
+                    return;
+                }
+
 				var deferred = $q.defer();
 				$http({
 					method: 'GET',
@@ -805,6 +820,11 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
         me.getReceipts = function( storeId )
             {
+                if( !session.checkPermissions( 'receipts', 'view' ) )
+                {
+                    return;
+                }
+
                 var deferred = $q.defer();
 				$http({
 					method: 'GET',
@@ -846,6 +866,11 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
         me.getAdjustments = function( storeId )
             {
+                if( !session.checkPermissions( 'adjustments', 'view' ) )
+                {
+                    return;
+                }
+
                 var deferred = $q.defer();
 				$http({
 					method: 'GET',
@@ -885,6 +910,11 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
         me.getCollections = function( storeId )
             {
+                if( !session.checkPermissions( 'collections', 'view' ) )
+                {
+                    return;
+                }
+
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
@@ -922,6 +952,11 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
         me.getAllocations = function( storeId )
             {
+                if( !session.checkPermissions( 'allocations', 'view' ) )
+                {
+                    return;
+                }
+
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
@@ -961,6 +996,11 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
         me.getConversions = function( storeId )
             {
+                if( !session.checkPermissions( 'conversions', 'view' ) )
+                {
+                    return;
+                }
+
                 var deferred = $q.defer();
                 $http({
                     method: 'GET',
@@ -1721,43 +1761,43 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
             {
                 switch( group )
                 {
-                    case 'tranferValidation':
+                    case 'transferValidations':
                         me.getTransferValidations();
                         break;
 
-                    case 'transfer':
+                    case 'transfers':
                         me.getInventory( currentStoreId );
                         me.getTransferValidations();
                         me.getTransactions( currentStoreId );
                         me.getTransfers( currentStoreId );
                         break;
 
-                    case 'receipt':
+                    case 'receipts':
                         me.getInventory( currentStoreId );
                         me.getTransactions( currentStoreId );
                         me.getReceipts( currentStoreId );
                         break;
 
-                    case 'adjustment':
+                    case 'adjustments':
                         me.getInventory( currentStoreId );
                         me.getTransactions( currentStoreId );
                         me.getAdjustments(currentStoreId );
                         break;
 
-                    case 'collection':
+                    case 'collections':
                         me.getInventory( currentStoreId );
                         me.getTransactions( currentStoreId );
                         me.getCollections( currentStoreId );
                         me.getConversions( currentStoreId );
                         break;
 
-                    case 'allocation':
+                    case 'allocations':
                         me.getInventory( currentStoreId );
                         me.getTransactions( currentStoreId );
                         me.getAllocations( currentStoreId );
                         break
 
-                    case 'conversion':
+                    case 'conversions':
                         me.getInventory( currentStoreId );
                         me.getTransactions( currentStoreId );
                         me.getConversions( currentStoreId );

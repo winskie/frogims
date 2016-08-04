@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS groups
 )
 ENGINE=InnoDB;
 
--- user_status: 1 - active, 2 - locked, 3 - disabled
+-- user_status: 1 - active, 2 - locked
 -- user_role: 1 - administrator, 2 - standard user
 CREATE TABLE IF NOT EXISTS users
 (
