@@ -895,9 +895,45 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 				$scope.transferItem.validation.transval_category = $scope.data.selectedCategory.id;
 			};
 
+		$scope.prepareData = function()
+			{
+				var data = $scope.transferItem.validation ? angular.copy( $scope.transferItem.validation ) : null;
+
+				if( data )
+				{
+					if( typeof data.transval_receipt_sweeper === 'object' && data.transval_receipt_sweeper )
+					{
+						if( data.transval_receipt_sweeper.full_name )
+						{
+							data.transval_receipt_sweeper = data.transval_receipt_sweeper.full_name;
+						}
+						else
+						{
+							data.transval_receipt_sweeper = 'Unknown';
+							console.error( 'Unable to find user record' );
+						}
+					}
+
+					if( typeof data.transval_transfer_sweeper === 'object' && data.transval_transfer_sweeper )
+					{
+						if( data.transval_transfer_sweeper.full_name )
+						{
+							data.transval_transfer_sweeper = data.transval_transfer_sweeper.full_name;
+						}
+						else
+						{
+							data.transval_transfer_sweeper = 'Unknown';
+							console.error( 'Unable to find user record' );
+						}
+					}
+				}
+
+				return data;
+			};
+
 		$scope.validateReceipt = function()
 			{
-				var validation = $scope.transferItem.validation;
+				var validation = $scope.prepareData();
 				appData.saveTransferValidation( validation, 'validate_receipt' ).then(
 					function( response )
 					{
@@ -913,7 +949,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 
 		$scope.markReturned = function()
 			{
-				var validation = $scope.transferItem.validation;
+				var validation = $scope.prepareData();
 				appData.saveTransferValidation( validation, 'returned' ).then(
 					function( response )
 					{
@@ -929,7 +965,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 
 		$scope.validateTransfer = function()
 			{
-				var validation = $scope.transferItem.validation;
+				var validation = $scope.prepareData();
 				appData.saveTransferValidation( validation, 'validate_transfer' ).then(
 					function( response )
 					{
@@ -945,7 +981,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 
 		$scope.markDisputed = function()
 			{
-				var validation = $scope.transferItem.validation;
+				var validation = $scope.prepareData();
 				appData.saveTransferValidation( validation, 'dispute' ).then(
 					function( response )
 					{
@@ -961,7 +997,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 
 		$scope.markCompleted = function()
 			{
-				var validation = $scope.transferItem.validation || null;
+				var validation = $scope.prepareData() || null;
 				appData.saveTransferValidation( validation, 'complete' ).then(
 					function( response )
 					{
@@ -977,7 +1013,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 
 		$scope.markOngoing = function()
 			{
-				var validation = $scope.transferItem.validation || null;
+				var validation = $scope.prepareData() || null;
 				appData.saveTransferValidation( validation, 'ongoing' ).then(
 					function( response )
 					{
@@ -993,7 +1029,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 
 		$scope.markNotRequired = function()
 			{
-				var validation = $scope.transferItem.validation || null;
+				var validation = $scope.prepareData() || null;
 				appData.saveTransferValidation( validation, 'not_required' ).then(
 					function( response )
 					{
@@ -1450,7 +1486,20 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 					else
 					{
 						data.sender_name = 'Unknown';
-						console.error( 'Unable to find sweeper record' );
+						console.error( 'Unable to find user record' );
+					}
+				}
+
+				if( typeof data.recipient_name === 'object' && data.recipient_name )
+				{
+					if( data.recipient_name )
+					{
+						data.recipient_name = data.recipient_name.full_name;
+					}
+					else
+					{
+						data.recipient_name = 'Unknown';
+						console.error( 'Unable to find user record' );
 					}
 				}
 
