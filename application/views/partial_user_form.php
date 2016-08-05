@@ -68,16 +68,18 @@
 								</div>
 
 								<!-- Password -->
-								<div class="form-group" ng-if="data.viewMode == 'edit'">
+								<div class="form-group has-feedback" ng-if="data.viewMode == 'edit'">
 									<label class="control-label col-sm-4">New password</label>
 									<div class="col-sm-8 col-md-6 col-lg-4">
 										<input type="password" class="form-control"
 												ng-model="userItem.password">
+										<span class="glyphicon glyphicon-remove form-control-feedback text-danger"
+												ng-if="userItem.password != data.passwordConfirmation"></span>
 									</div>
 								</div>
 
 								<!-- Password Confirmation -->
-								<div class="form-group" ng-if="data.viewMode == 'edit'">
+								<div class="form-group has-feedback" ng-if="data.viewMode == 'edit'">
 									<label class="control-label col-sm-4">Confirm password</label>
 									<div class="col-sm-8 col-md-6 col-lg-4">
 										<input type="password" class="form-control"
