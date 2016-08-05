@@ -143,7 +143,6 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider )
 			resolve: {
 				adminDataLoaded: function( $q, session, adminData )
 					{
-						console.log( 'Initializing admin data...' );
 						var initUsers = adminData.getUsers();
 						var initGroups = adminData.getGroups();
 						$q.all( [ initUsers, initGroups ] ).then(

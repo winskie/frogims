@@ -25,7 +25,7 @@
                 <ul class="nav navbar-nav navbar-right">
                     <li uib-dropdown>
                         <a href class="navbar-link" uib-dropdown-toggle>
-                            <span class="navbar-username">{{ sessionData.currentUser.username }} <span ng-if="sessionData.isAdmin" class="label label-warning">ADMIN</span></span>
+                            <span class="navbar-username">{{ sessionData.currentUser.full_name }} <span ng-if="sessionData.isAdmin" class="label label-warning">ADMIN</span></span>
                         </a>
                         <ul class="dropdown-menu" uib-dropdown-menu>
                             <li>

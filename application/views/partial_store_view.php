@@ -464,11 +464,11 @@ $current_user = current_user();
 											<li role="menuitem" ng-if="transfer.transfer_status == <?php echo TRANSFER_PENDING;?> && checkPermissions( 'transfers', 'approve' )">
 												<a href ng-click="approveTransfer( transfer )">Approve</a>
 											</li>
-											<li role="menuitem" ng-if="transfer.transfer_status == <?php echo TRANSFER_PENDING;?> && checkPermissions( 'transfers', 'edit' )">
-												<a ui-sref="main.transfer({ transferItem: transfer, editMode: 'transfer' })">Edit...</a>
-											</li>
 											<li role="menuitem" ng-if="( transfer.transfer_status == <?php echo TRANSFER_PENDING;?> && checkPermissions( 'transfers', 'edit' ) ) || ( transfer.transfer_status == <?php echo TRANSFER_APPROVED;?> && checkPermissions( 'transfers', 'approve' ) ) ">
 												<a href ng-click="cancelTransfer( transfer )">Cancel</a>
+											</li>
+											<li role="menuitem" ng-if="transfer.transfer_status == <?php echo TRANSFER_PENDING;?> && checkPermissions( 'transfers', 'edit' )">
+												<a ui-sref="main.transfer({ transferItem: transfer, editMode: 'transfer' })">Edit...</a>
 											</li>
 										</ul>
 									</div>
@@ -619,10 +619,10 @@ $current_user = current_user();
 										</button>
 										<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'receipts', receipt )">
 											<li role="menuitem" ng-if="receipt.transfer_status == <?php echo TRANSFER_APPROVED;?> && checkPermissions( 'transfers', 'edit' )">
-												<a ui-sref="main.transfer({ transferItem: receipt, editMode: 'receipt' })">Edit receipt...</a>
+												<a href ng-click="receiveTransfer( receipt )">Quick receipt</a>
 											</li>
 											<li role="menuitem" ng-if="receipt.transfer_status == <?php echo TRANSFER_APPROVED;?> && checkPermissions( 'transfers', 'edit' )">
-												<a href ng-click="receiveTransfer( receipt )">Quick receipt</a>
+												<a ui-sref="main.transfer({ transferItem: receipt, editMode: 'receipt' })">Edit receipt...</a>
 											</li>
 										</ul>
 									</div>
@@ -1037,15 +1037,20 @@ $current_user = current_user();
 											<span class="caret"></span>
 										</button>
 										<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'allocations', row )">
+											<li role="menuitem" ng-if="row.allocation_status == <?php echo ALLOCATION_SCHEDULED;?> && checkPermissions( 'allocations', 'allocate' )">
+												<a href="#" ng-click="allocateAllocation( row )">Allocate</a>
+											</li>
+											<li role="menuitem" ng-if="row.allocation_status == <?php echo ALLOCATION_ALLOCATED;?> && checkPermissions( 'allocations', 'complete' )">
+												<a href="#" ng-click="completeAllocation( row )">Complete</a>
+											</li>
+											<li role="menuitem" ng-if="row.allocation_status == <?php echo ALLOCATION_SCHEDULED;?> && checkPermissions( 'allocations', 'edit' )">
+												<a href="#" ng-click="cancelAllocation( row )">Cancel</a>
+											</li>
 											<li role="menuitem" ng-if="row.allocation_status != <?php echo ALLOCATION_REMITTED;?>
 													&& row.allocation_status != <?php echo ALLOCATION_CANCELLED;?>
 													&& checkPermissions( 'allocations', 'edit' )">
 												<a ui-sref="main.allocation({ allocationItem: row, editMode: 'edit' })">Edit...</a>
 											</li>
-											<li role="menuitem" ng-if="row.allocation_status == <?php echo ALLOCATION_SCHEDULED;?> && checkPermissions( 'allocations', 'edit' )">
-												<a href="#" ng-click="cancelAllocation( row )">Cancel</a>
-											</li>
-
 										</ul>
 									</div>
 								</td>
@@ -1170,11 +1175,11 @@ $current_user = current_user();
 											<span class="caret"></span>
 										</button>
 										<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'conversions', conversion )">
-											<li role="menuitem" ng-if="conversion.conversion_status == <?php echo CONVERSION_PENDING;?> && checkPermissions( 'conversions', 'edit' )">
-												<a ui-sref="main.convert({ conversionItem: conversion })">Edit...</a>
-											</li>
 											<li role="menuitem" ng-if="conversion.conversion_status == <?php echo CONVERSION_PENDING;?> && checkPermissions( 'conversions', 'approve' )">
 												<a href ng-click="approveConversion( conversion )">Approve</a>
+											</li>
+											<li role="menuitem" ng-if="conversion.conversion_status == <?php echo CONVERSION_PENDING;?> && checkPermissions( 'conversions', 'edit' )">
+												<a ui-sref="main.convert({ conversionItem: conversion })">Edit...</a>
 											</li>
 										</ul>
 									</div>

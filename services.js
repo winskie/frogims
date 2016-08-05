@@ -820,7 +820,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
         me.getReceipts = function( storeId )
             {
-                if( !session.checkPermissions( 'receipts', 'view' ) )
+                if( !session.checkPermissions( 'transfers', 'view' ) )
                 {
                     return;
                 }
@@ -1514,8 +1514,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                     },
                     function( reason )
                     {
+                        notifications.showMessages( reason.data.errorMsg );
                         console.error( reason.data.errorMsg );
                         deferred.reject( reason.data.errorMsg );
+
                     });
 
                 return deferred.promise;
@@ -1579,7 +1581,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
                 return deferred.promise;
             };
 
-        me.remitAllocation = function( allocationData )
+        me.completeAllocation = function( allocationData )
             {
                 var deferred = $q.defer();
                 $http({

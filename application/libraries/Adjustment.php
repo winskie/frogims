@@ -329,15 +329,8 @@ class Adjustment extends Base_model {
 		$ci =& get_instance();
 
 		$ci->load->library( 'inventory' );
-		$inventory = new Inventory();
-		$inventory = $inventory->get_by_id( $this->store_inventory_id, array(
-			array(
-				'table' => 'items',
-				'fields' => array( 'item_name', 'item_description' ),
-				'relation' => 'items.id = store_inventory.item_id',
-				'join_type' => 'left'
-			)
-		) );
+		$Inventory = new Inventory();
+		$inventory = $Inventory->get_by_id( $this->store_inventory_id );
 
 		return $inventory;
 	}

@@ -236,7 +236,7 @@
     </button>
     <button type="button" class="btn btn-success"
         ng-if="allocationItem.allocation_status == <?php echo ALLOCATION_ALLOCATED;?> && checkPermissions( 'allocations', 'complete' )"
-        ng-click="remitAllocation()">Mark as completed
+        ng-click="completeAllocation()">Mark as completed
     </button>
     <button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'allocations' })">Close</button>
 </div>

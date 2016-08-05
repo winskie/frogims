@@ -15,7 +15,6 @@ class Api_v1 extends CI_Controller {
         $this->output->set_status_header( $status_code );
     }
 
-
     private function _error( $status_code = NULL, $description = NULL )
     {
         $this->response = array(
@@ -26,17 +25,10 @@ class Api_v1 extends CI_Controller {
         $this->output->set_status_header( $status_code );
     }
 
-
     private function _send_response()
     {
         $this->output->set_content_type( 'application/json' );
 		$this->output->set_output( json_encode( $this->response ) );
-    }
-
-
-    public function test( $v )
-    {
-        var_dump( $this->uri->rsegment( 3 ) );
     }
 
     public function adjustments()
@@ -64,12 +56,19 @@ class Api_v1 extends CI_Controller {
                         $adjustment = $Adjustment->get_by_id( $adjustment_id );
                         if( $adjustment )
                         {
-                            $adjustment_data = $adjustment->as_array( array(
-                                'item_name' => array( 'type' => 'string' ),
-                                'item_description' => array( 'type' => 'string' ),
-                                'full_name' => array( 'type' => 'string' ) ) );
+                            if( ! is_store_member( $adjustment->get_inventory()->get( 'store_id' ), current_user( TRUE ) ) )
+                            {
+                                $this->_error( 403, 'You are not allowed to access this resource' );
+                            }
+                            else
+                            {
+                                $adjustment_data = $adjustment->as_array( array(
+                                    'item_name' => array( 'type' => 'string' ),
+                                    'item_description' => array( 'type' => 'string' ),
+                                    'full_name' => array( 'type' => 'string' ) ) );
 
-                            $this->_response( $adjustment_data );
+                                $this->_response( $adjustment_data );
+                            }
                         }
                         else
                         {
@@ -156,39 +155,46 @@ class Api_v1 extends CI_Controller {
                         $allocation = $Allocation->get_by_id( $allocation_id );
                         if( $allocation )
                         {
-                            $allocation_data = $allocation->as_array();
-                            $allocation_items = $allocation->get_allocations();
-                            $remittance_items = $allocation->get_remittances();
-                            $allocation_items_data = array();
-                            $remittance_items_data = array();
-
-                            foreach( $allocation_items as $item )
+                            if( ! is_store_member( $allocation->get( 'store_id' ), current_user( TRUE ) ) )
                             {
-                                $allocation_items_data[] = $item->as_array( array(
-                                    'category_name' => array( 'type' => 'string' ),
-                                    'category_type' => array( 'type' => 'integer' ),
-                                    'item_name' => array( 'type' => 'string' ),
-                                    'item_description' => array( 'type' => 'string' ),
-                                    'teller_allocatable' => array( 'type' => 'boolean' ),
-                                    'machine_allocatable' => array( 'type' => 'boolean' ),
-                                    'cashier_shift_num' => array( 'type' => 'string' ) ) );
+                                $this->_error( 403, 'You are not allowed to access this resource' );
                             }
-                            $allocation_data['allocations'] = $allocation_items_data;
-
-                            foreach( $remittance_items as $item )
+                            else
                             {
-                                $remittance_items_data[] = $item->as_array( array(
-                                    'category_name' => array( 'type' => 'string' ),
-                                    'category_type' => array( 'type' => 'integer' ),
-                                    'item_name' => array( 'type' => 'string' ),
-                                    'item_description' => array( 'type' => 'string' ),
-                                    'teller_remittable' => array( 'type' => 'boolean' ),
-                                    'machine_remittable' => array( 'type' => 'boolean' ),
-                                    'cashier_shift_num' => array( 'type' => 'string' ) ) );
-                            }
-                            $allocation_data['remittances'] = $remittance_items_data;
+                                $allocation_data = $allocation->as_array();
+                                $allocation_items = $allocation->get_allocations();
+                                $remittance_items = $allocation->get_remittances();
+                                $allocation_items_data = array();
+                                $remittance_items_data = array();
 
-                            $this->_response( $allocation_data );
+                                foreach( $allocation_items as $item )
+                                {
+                                    $allocation_items_data[] = $item->as_array( array(
+                                        'category_name' => array( 'type' => 'string' ),
+                                        'category_type' => array( 'type' => 'integer' ),
+                                        'item_name' => array( 'type' => 'string' ),
+                                        'item_description' => array( 'type' => 'string' ),
+                                        'teller_allocatable' => array( 'type' => 'boolean' ),
+                                        'machine_allocatable' => array( 'type' => 'boolean' ),
+                                        'cashier_shift_num' => array( 'type' => 'string' ) ) );
+                                }
+                                $allocation_data['allocations'] = $allocation_items_data;
+
+                                foreach( $remittance_items as $item )
+                                {
+                                    $remittance_items_data[] = $item->as_array( array(
+                                        'category_name' => array( 'type' => 'string' ),
+                                        'category_type' => array( 'type' => 'integer' ),
+                                        'item_name' => array( 'type' => 'string' ),
+                                        'item_description' => array( 'type' => 'string' ),
+                                        'teller_remittable' => array( 'type' => 'boolean' ),
+                                        'machine_remittable' => array( 'type' => 'boolean' ),
+                                        'cashier_shift_num' => array( 'type' => 'string' ) ) );
+                                }
+                                $allocation_data['remittances'] = $remittance_items_data;
+
+                                $this->_response( $allocation_data );
+                            }
                         }
                         else
                         {
@@ -309,20 +315,27 @@ class Api_v1 extends CI_Controller {
                         $collection = $Collection->get_by_id( $collection_id );
                         if( $collection )
                         {
-                            $collection_data = $collection->as_array();
-                            $collection_items = $collection->get_items();
-                            $collection_items_data = array();
-                            foreach( $collection_items as $item )
+                            if( ! is_store_member( $collection->get( 'store_id' ), current_user( TRUE ) ) )
                             {
-                                $collection_items_data[] = $item->as_array( array(
-                                    'station_name' => array( 'type' => 'string' ),
-                                    'mopped_item_name' => array( 'type' => 'string' ),
-                                    'convert_to_name' => array( 'type' => 'string' ),
-                                    'mopped_station_name' => array( 'type' => 'string' ),
-                                    'processor_name' => array( 'type' => 'string' ) ) );
+                                $this->_error( 403, 'You are not allowed to access this resource' );
                             }
-                            $collection_data['items'] = $collection_items_data;
-                            $this->_response( $collection_data );
+                            else
+                            {
+                                $collection_data = $collection->as_array();
+                                $collection_items = $collection->get_items();
+                                $collection_items_data = array();
+                                foreach( $collection_items as $item )
+                                {
+                                    $collection_items_data[] = $item->as_array( array(
+                                        'station_name' => array( 'type' => 'string' ),
+                                        'mopped_item_name' => array( 'type' => 'string' ),
+                                        'convert_to_name' => array( 'type' => 'string' ),
+                                        'mopped_station_name' => array( 'type' => 'string' ),
+                                        'processor_name' => array( 'type' => 'string' ) ) );
+                                }
+                                $collection_data['items'] = $collection_items_data;
+                                $this->_response( $collection_data );
+                            }
                         }
                         else
                         {
@@ -473,7 +486,14 @@ class Api_v1 extends CI_Controller {
                                 $conversion = $Conversion->get_by_id( $conversion_id );
                                 if( $conversion )
                                 {
-                                    $this->_response( $conversion->as_array() );
+                                    if( ! is_store_member( $conversion->get( 'store_id' ), current_user( TRUE ) ) )
+                                    {
+                                        $this->_error( 403, 'You are not allowed to access this resource' );
+                                    }
+                                    else
+                                    {
+                                        $this->_response( $conversion->as_array() );
+                                    }
                                 }
                                 else
                                 {
@@ -1619,8 +1639,8 @@ class Api_v1 extends CI_Controller {
                         if( $transfer )
                         {
                             // Check permissions
-                            if( ( !$transfer->get( 'origin_id' ) || !is_store_member( $transfer->get( 'origin_id' ), current_user( TRUE ) ) )
-                                && ( !$transfer->get( 'destination_id' ) || !is_store_member( $transfer->get( 'destination_id' ), current_user( TRUE ) ) ) )
+                            if( ( ! $transfer->get( 'origin_id' ) || ! is_store_member( $transfer->get( 'origin_id' ), current_user( TRUE ) ) )
+                                && ( ! $transfer->get( 'destination_id' ) || ! is_store_member( $transfer->get( 'destination_id' ), current_user( TRUE ) ) ) )
                             { // current user is not a member of the originating store OR the destination store
                                 $this->_error( 403, 'You are not allowed to access this resource' );
                             }

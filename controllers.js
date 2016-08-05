@@ -799,6 +799,27 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 					});
 			};
 
+		// Allocations
+		$scope.allocateAllocation = function( allocationData )
+			{
+				appData.allocateAllocation( allocationData ).then(
+					function( response )
+					{
+						notifications.alert( 'Record marked as Allocated', 'success' );
+						appData.refresh( session.data.currentStore.id, 'allocations' );
+					});
+			};
+
+		$scope.completeAllocation = function( allocationData )
+			{
+				appData.completeAllocation( allocationData ).then(
+					function( response )
+					{
+						notifications.alert( 'Record marked as Completed', 'success' );
+						appData.refresh( session.data.currentStore.id, 'allocations' );
+					});
+			};
+
 		// Conversions
 		$scope.approveConversion = function( conversionData )
 			{
@@ -2815,12 +2836,12 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 				}
 			}
 
-		$scope.remitAllocation = function()
+		$scope.completeAllocation = function()
 			{
 				if( $scope.checkItems() )
 				{
 					var data = $scope.prepareAllocation();
-					appData.remitAllocation( data ).then(
+					appData.completeAllocation( data ).then(
 						function( response )
 						{
 							appData.refresh( session.data.currentStore.id, 'allocations' );

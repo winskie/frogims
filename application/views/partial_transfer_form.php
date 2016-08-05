@@ -167,7 +167,9 @@
 			</div>
 			<div class="form-group col-sm-6 col-md-3 col-lg-1">
 				<label class="control-label">Balance</label>
-				<p class="form-control-static text-center">{{ ( input.inventoryItem.quantity - input.itemReservedQuantity ) | number }}</p>
+				<p class="form-control-static text-center">
+					{{ ( data.editMode == 'externalReceipt' ? input.inventoryItem.quantity : ( input.inventoryItem.quantity - input.itemReservedQuantity ) ) | number }}
+				</p>
 			</div>
 			<div class="form-group col-sm-6 col-md-3 col-lg-2">
 				<label class="control-label">Quantity</label>
