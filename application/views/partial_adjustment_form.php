@@ -61,14 +61,14 @@
 				<label class="control-label col-sm-2">Transaction</label>
 				<div class="col-sm-12 col-md-6 col-lg-3" ng-switch-when="edit">
 					<select class="form-control"
-                            ng-model="data.selectedTransactionType"
-                            ng-options="type.typeName group by type.module for type in data.transactionTypes track by type.id"
-							ng-change="changeTransactionType()">
-                    </select>
+						ng-model="data.selectedTransactionType"
+						ng-options="type.typeName group by type.module for type in data.transactionTypes track by type.id"
+						ng-change="changeTransactionType()">
+					</select>
 				</div>
 
 				<div class="col-sm-12 col-md-6 col-lg-3" ng-switch-default>
-					<p class="form-control-static">{{ lookup( 'transactionTypes', adjustmentItem.adj_transaction_type ) }}</p>
+					<p class="form-control-static">{{ lookup( 'transactionTypes', '' + adjustmentItem.adj_transaction_type ) }}</p>
 				</div>
 			</div>
 
@@ -79,7 +79,7 @@
 				</div>
 
 				<div class="col-sm-6 col-md-4 col-lg-2" ng-switch-default>
-					<p class="form-control-static">{{ adjustmentItem.adj_transaction_id }}</p>
+					<p class="form-control-static">{{ adjustmentItem.adj_transaction_id ? adjustmentItem.adj_transaction_id : '---' }}</p>
 				</div>
 			</div>
 
@@ -90,12 +90,12 @@
 				</div>
 			</div>
 
-            <div class="form-group" ng-show="adjustmentItem.adjustment_status == <?php echo ADJUSTMENT_APPROVED;?>">
-                <label class="control-label col-sm-2">Approved by</label>
-                <div class="col-sm-8">
-                    <p class="form-control-static">{{ adjustmentItem.full_name }}</p>
-                </div>
-            </div>
+						<div class="form-group" ng-show="adjustmentItem.adjustment_status == <?php echo ADJUSTMENT_APPROVED;?>">
+								<label class="control-label col-sm-2">Approved by</label>
+								<div class="col-sm-8">
+										<p class="form-control-static">{{ adjustmentItem.full_name }}</p>
+								</div>
+						</div>
 		</form>
 	</div>
 

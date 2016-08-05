@@ -43,7 +43,7 @@ class Api_v1 extends CI_Controller {
         {
             case 'get':
                 // Check permissions
-                if( !$current_user->check_permissions( 'ADJUSTMENTS', 'view' ) )
+                if( !$current_user->check_permissions( 'adjustments', 'view' ) )
                 {
                     $this->_error( 403, 'You are not allowed to access this resource' );
                 }
