@@ -30,9 +30,10 @@ app.controller( 'AdminController', [ '$scope', '$state', '$stateParams', 'sessio
 				session.data.previousTab = tab;
 			};
 
-		$scope.resetDatabase = function()
+		$scope.resetDatabase = function( mode )
 			{
-				window.location = "/frogims/index.php/installer/reset_database";
+				if( ! mode ) mode = '';
+				window.location = "/frogims/index.php/installer/reset_database/" + mode;
 			};
 
 		$scope.newDatabase = function()

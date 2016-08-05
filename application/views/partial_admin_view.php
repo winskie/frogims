@@ -135,7 +135,8 @@
 					<h3 class="panel-title">Database</h3>
 				</div>
 				<div class="panel-body">
-					<button class="btn btn-danger" ng-click="resetDatabase()">Reset Database</button>
+					<button class="btn btn-danger" ng-click="resetDatabase( 'transactions' )">Reset Transactions</button>
+					<button class="btn btn-danger" ng-click="resetDatabase()">Reset All</button>
 					<button class="btn btn-danger" ng-click="newDatabase()">Recreate Database</button>
 				</div>
 			</div>

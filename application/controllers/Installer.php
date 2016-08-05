@@ -20,30 +20,30 @@ class Installer extends CI_Controller {
 		$this->db->query( "CREATE DATABASE IF NOT EXISTS frogims" );
 		$this->db->query( "USE frogims" );
 
-        echo 'Creating stations table...<br />';
-        $this->db->query( "
-                CREATE TABLE IF NOT EXISTS stations
-                (
-                    id INTEGER AUTO_INCREMENT NOT NULL,
-                    station_name VARCHAR(50) NOT NULL,
-                    station_short_name VARCHAR(10) NOT NULL,
-                    PRIMARY KEY (id)
-                )
-                ENGINE=InnoDB" );
+				echo 'Creating stations table...<br />';
+				$this->db->query( "
+								CREATE TABLE IF NOT EXISTS stations
+								(
+										id INTEGER AUTO_INCREMENT NOT NULL,
+										station_name VARCHAR(50) NOT NULL,
+										station_short_name VARCHAR(10) NOT NULL,
+										PRIMARY KEY (id)
+								)
+								ENGINE=InnoDB" );
 
-        echo 'Creating shifts table...<br />';
-        $this->db->query( "
-                CREATE TABLE IF NOT EXISTS shifts
-                (
-                    id INTEGER AUTO_INCREMENT NOT NULL,
-                    shift_num VARCHAR(10) NOT NULL,
-                    store_type INTEGER NOT NULL,
-                    shift_start_time TIME NOT NULL,
-                    shift_end_time TIME NOT NULL,
-                    description TEXT,
-                    PRIMARY KEY (id)
-                )
-                ENGINE=InnoDB" );
+				echo 'Creating shifts table...<br />';
+				$this->db->query( "
+								CREATE TABLE IF NOT EXISTS shifts
+								(
+										id INTEGER AUTO_INCREMENT NOT NULL,
+										shift_num VARCHAR(10) NOT NULL,
+										store_type INTEGER NOT NULL,
+										shift_start_time TIME NOT NULL,
+										shift_end_time TIME NOT NULL,
+										description TEXT,
+										PRIMARY KEY (id)
+								)
+								ENGINE=InnoDB" );
 
 		echo 'Creating groups table...<br />';
 		$this->db->query( "
@@ -104,7 +104,7 @@ class Installer extends CI_Controller {
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					store_name VARCHAR(100) NOT NULL,
 					store_code VARCHAR(6) NOT NULL,
-                    store_type INTEGER NOT NULL,
+										store_type INTEGER NOT NULL,
 					store_location VARCHAR(100) NOT NULL,
 					store_contact_number VARCHAR(25) NULL,
 					date_created DATETIME NOT NULL,
@@ -141,7 +141,7 @@ class Installer extends CI_Controller {
 					item_name VARCHAR(100) NOT NULL,
 					item_description VARCHAR(255) NULL,
 					item_group VARCHAR(100) NULL,
-                    base_item_id INTEGER NULL DEFAULT NULL,
+										base_item_id INTEGER NULL DEFAULT NULL,
 					teller_allocatable BOOLEAN NOT NULL DEFAULT 0,
 					teller_remittable BOOLEAN NOT NULL DEFAULT 0,
 					machine_allocatable BOOLEAN NOT NULL DEFAULT 0,
@@ -187,7 +187,7 @@ class Installer extends CI_Controller {
 					current_quantity INTEGER NOT NULL,
 					transaction_id INTEGER NOT NULL,
 					transaction_timestamp DATETIME NOT NULL,
-                    transaction_shift INTEGER NOT NULL,
+										transaction_shift INTEGER NOT NULL,
 					PRIMARY KEY (id),
 					INDEX transactions_main_ndx (transaction_datetime, transaction_type),
 					FOREIGN KEY transactions_store_inventory_fk (store_inventory_id) REFERENCES store_inventory (id)
@@ -202,7 +202,7 @@ class Installer extends CI_Controller {
 				(
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					store_inventory_id INTEGER NOT NULL,
-                    adjustment_shift INTEGER NOT NULL,
+										adjustment_shift INTEGER NOT NULL,
 					adjustment_type SMALLINT NULL,
 					adjusted_quantity INTEGER NOT NULL,
 					previous_quantity INTEGER NULL,
@@ -234,13 +234,13 @@ class Installer extends CI_Controller {
 					origin_name VARCHAR(100) NULL,
 					sender_id INTEGER NULL,
 					sender_name VARCHAR(100) NULL,
-                    sender_shift INTEGER NULL,
+										sender_shift INTEGER NULL,
 					transfer_datetime DATETIME NOT NULL,
 					destination_id INTEGER NULL,
 					destination_name VARCHAR(100) NULL,
 					recipient_id INTEGER NULL,
 					recipient_name VARCHAR(100) NULL,
-                    recipient_shift INTEGER NULL,
+										recipient_shift INTEGER NULL,
 					receipt_datetime DATETIME NULL,
 					transfer_status SMALLINT NOT NULL DEFAULT 1,
 					date_created DATETIME NOT NULL,
@@ -312,54 +312,54 @@ class Installer extends CI_Controller {
 				)
 				ENGINE=InnoDB" );
 
-        echo 'Creating conversion table table... <br />';
-        $this->db->query("
-                CREATE TABLE IF NOT EXISTS conversion_table
-                (
-                    id INTEGER AUTO_INCREMENT NOT NULL,
-                    source_item_id INTEGER NOT NULL,
-                    target_item_id INTEGER NOT NULL,
-                    conversion_factor INTEGER NOT NULL,
-                    PRIMARY KEY (id),
-                    FOREIGN KEY conversion_table_source_fk (source_item_id) REFERENCES items (id)
-                        ON UPDATE CASCADE
-                        ON DELETE CASCADE,
-                    FOREIGN KEY conversion_table_target_fk (target_item_id) REFERENCES items (id)
-                        ON UPDATE CASCADE
-                        ON DELETE CASCADE
-                )
-                ENGINE=InnoDB" );
+				echo 'Creating conversion table table... <br />';
+				$this->db->query("
+								CREATE TABLE IF NOT EXISTS conversion_table
+								(
+										id INTEGER AUTO_INCREMENT NOT NULL,
+										source_item_id INTEGER NOT NULL,
+										target_item_id INTEGER NOT NULL,
+										conversion_factor INTEGER NOT NULL,
+										PRIMARY KEY (id),
+										FOREIGN KEY conversion_table_source_fk (source_item_id) REFERENCES items (id)
+												ON UPDATE CASCADE
+												ON DELETE CASCADE,
+										FOREIGN KEY conversion_table_target_fk (target_item_id) REFERENCES items (id)
+												ON UPDATE CASCADE
+												ON DELETE CASCADE
+								)
+								ENGINE=InnoDB" );
 
-        echo 'Creating conversions table... <br />';
-        $this->db->query("
-                CREATE TABLE IF NOT EXISTS conversions
-                (
-                    id INTEGER AUTO_INCREMENT NOT NULL,
-                    store_id INTEGER NOT NULL,
-                    conversion_datetime DATETIME NOT NULL,
-                    conversion_shift INTEGER NOT NULL,
-                    source_inventory_id INTEGER NOT NULL,
-                    target_inventory_id INTEGER NOT NULL,
-                    source_quantity INTEGER NOT NULL,
-                    target_quantity INTEGER NOT NULL,
-                    remarks TEXT NULL DEFAULT NULL,
+				echo 'Creating conversions table... <br />';
+				$this->db->query("
+								CREATE TABLE IF NOT EXISTS conversions
+								(
+										id INTEGER AUTO_INCREMENT NOT NULL,
+										store_id INTEGER NOT NULL,
+										conversion_datetime DATETIME NOT NULL,
+										conversion_shift INTEGER NOT NULL,
+										source_inventory_id INTEGER NOT NULL,
+										target_inventory_id INTEGER NOT NULL,
+										source_quantity INTEGER NOT NULL,
+										target_quantity INTEGER NOT NULL,
+										remarks TEXT NULL DEFAULT NULL,
 					conversion_status SMALLINT NOT NULL DEFAULT 1,
 					created_by INTEGER NOT NULL,
-                    date_created DATETIME NOT NULL,
-                    date_modified TIMESTAMP NOT NULL,
-                    last_modified INTEGER NOT NULL,
-                    PRIMARY KEY (id),
-                    FOREIGN KEY conversions_store_fk (store_id) REFERENCES stores (id)
-                        ON UPDATE CASCADE
-                        ON DELETE CASCADE,
-                    FOREIGN KEY conversions_source_fk (source_inventory_id) REFERENCES store_inventory (id)
-                        ON UPDATE CASCADE
-                        ON DELETE RESTRICT,
-                    FOREIGN KEY conversions_target_fk (target_inventory_id) REFERENCES store_inventory (id)
-                        ON UPDATE CASCADE
-                        ON DELETE RESTRICT
-                )
-                ENGINE=InnoDB" );
+										date_created DATETIME NOT NULL,
+										date_modified TIMESTAMP NOT NULL,
+										last_modified INTEGER NOT NULL,
+										PRIMARY KEY (id),
+										FOREIGN KEY conversions_store_fk (store_id) REFERENCES stores (id)
+												ON UPDATE CASCADE
+												ON DELETE CASCADE,
+										FOREIGN KEY conversions_source_fk (source_inventory_id) REFERENCES store_inventory (id)
+												ON UPDATE CASCADE
+												ON DELETE RESTRICT,
+										FOREIGN KEY conversions_target_fk (target_inventory_id) REFERENCES store_inventory (id)
+												ON UPDATE CASCADE
+												ON DELETE RESTRICT
+								)
+								ENGINE=InnoDB" );
 
 		echo 'Creating allocations table...<br />';
 		$this->db->query( "
@@ -417,10 +417,10 @@ class Installer extends CI_Controller {
 				(
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					store_id INTEGER NOT NULL,
-                    processing_datetime DATETIME NOT NULL,
+										processing_datetime DATETIME NOT NULL,
 					business_date DATE NOT NULL,
 					shift_id INTEGER NOT NULL,
-                    cashier_shift_id INTEGER NOT NULL,
+										cashier_shift_id INTEGER NOT NULL,
 					date_created DATETIME NOT NULL,
 					date_modified TIMESTAMP NOT NULL,
 					last_modified INTEGER NOT NULL,
@@ -438,14 +438,14 @@ class Installer extends CI_Controller {
 				(
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					mopping_id INTEGER NOT NULL,
-                    mopped_station_id SMALLINT NOT NULL,
+										mopped_station_id SMALLINT NOT NULL,
 					mopped_item_id INTEGER NOT NULL,
 					mopped_quantity INTEGER NOT NULL DEFAULT 0,
-                    mopped_base_quantity INTEGER NOT NULL DEFAULT 0,
-                    converted_to INTEGER NULL,
-                    group_id INTEGER NULL DEFAULT NULL,
-                    mopping_item_status SMALLINT NOT NULL DEFAULT 1,
-                    processor_id INTEGER NOT NULL,
+										mopped_base_quantity INTEGER NOT NULL DEFAULT 0,
+										converted_to INTEGER NULL,
+										group_id INTEGER NULL DEFAULT NULL,
+										mopping_item_status SMALLINT NOT NULL DEFAULT 1,
+										processor_id INTEGER NOT NULL,
 					delivery_person VARCHAR(100) NOT NULL,
 					date_created DATETIME NOT NULL,
 					date_modified TIMESTAMP NOT NULL,
@@ -490,293 +490,346 @@ class Installer extends CI_Controller {
 		// Temporary set current shift
 		$this->session->current_shift_id = 1;
 
-		// Create system administrator group
-		echo 'Creating default system administrator group...';
-		flush();
-		$this->load->library( 'group' );
-		$admin_Group = new Group();
-		$admin_Group->set( 'group_name', 'System Administrators' );
-		$admin_Group = $admin_Group->db_save();
-		echo 'OK<br />';
-		flush();
-
-		// Create admin user
-		echo 'Creating default admin user...';
-        flush();
-		$this->load->library( 'user' );
-		$admin_User = new User();
-		$admin_User->set( 'username', 'admin' );
-		$admin_User->set( 'full_name', 'System Administrator' );
-		$admin_User->set( 'position', 'System Administrator' );
-		$admin_User->set( 'user_status', 1 ); // active
-		$admin_User->set( 'user_role', 1 ); // administrator
-		$admin_User->set( 'group_id', $admin_Group->get( 'id' ) );
-		$admin_User->set( 'last_modified', 1 );
-		$admin_User->set_password( 'admin' );
-		$admin_User->db_save();
-
-		echo 'OK<br />';
-        flush();
-
-        // Create default stations
-        echo 'Creating default stations...';
-        flush();
-        $this->db->query( 'INSERT INTO stations (id, station_name, station_short_name )
-                VALUES
-                    ( 1, "Recto", "RTO" ),
-                    ( 2, "Legarda", "LGD" ),
-                    ( 3, "Pureza", "PRZ" ),
-                    ( 4, "V.Mapa", "VMP" ),
-                    ( 5, "J.Ruiz", "JRZ" ),
-                    ( 6, "Gilmore", "GLM" ),
-                    ( 7, "Betty-Go - Belmonte", "BGB" ),
-                    ( 8, "Araneta Center - Cubao", "ACC" ),
-                    ( 9, "Anonas", "ANN" ),
-                    ( 10, "Katipunan", "KTP" ),
-                    ( 11, "Santolan", "STL" )' );
-        echo 'OK<br />';
-        flush();
-
-        // Create default shifts
-        echo 'Creating default shifts...';
-        flush();
-        $this->load->library( 'shift' );
-        $shifts = array(
-                array( 'Regular Shift', 1, 'Regular shift', '00:00:00', '23:59:59' ),
-                array( 'Prod S1', 2, 'Production Shift 1', '07:00:00', '14:59:59' ),
-                array( 'Prod S2', 2, 'Production Shift 2', '13:00:00', '20:59:59' ),
-                array( 'TGM S1', 3, 'Transport Shift 1', '06:00:00', '13:59:59' ),
-                array( 'TGM S2', 3, 'Transport Shift 2', '14:00:00', '21:59:59' ),
-                array( 'Cashier S1', 4, 'Cashier Shift 1', '06:00:00', '13:59:59' ),
-                array( 'Cashier S2', 4, 'Cashier Shift 2', '14:00:00', '21:59:59' ),
-                array( 'Cashier S3', 4, 'Cashier Shift 3', '22:00:00', '05:59:59' ),
-                array( 'Teller S1', 0, 'Teller Shift 1', '06:00:00', '13:59:59' ),
-                array( 'Teller S2', 0, 'Teller Shift 2', '14:00:00', '21:59:59' ),
-                array( 'Teller S3', 0, 'Teller Shift 3', '22:00:00', '05:59:59' )
-            );
-
-        foreach( $shifts as $s )
-        {
-            $shift = new Shift();
-            $shift->set( 'shift_num', $s[0] );
-            $shift->set( 'store_type', $s[1] );
-            $shift->set( 'description', $s[2] );
-            $shift->set( 'shift_start_time', $s[3] );
-            $shift->set( 'shift_end_time', $s[4] );
-            $shift->db_save();
-            unset( $shift );
-        }
-        echo 'OK<br />';
-        flush();
-
-		// Create default stores
-		echo 'Creating default stores...';
-        flush();
-		$this->load->library( 'Store' );
-		$stores = array(
-				array( 'Line 2 Depot', 'Line 2 Depot', 'TIMD', 1 ),
-				array( 'SASCU', 'Line 2 Depot', 'SASCU', 1 ),
-				array( 'TVM and Gates Management', 'Anonas Station', 'TGM', 3 ),
-				array( 'Ticket Production', 'J.Ruiz Station', 'TIMS', 2 ),
-				array( 'TASCU East', 'Anonas Station', 'TASCE', 1 ),
-				array( 'TASCU West', 'J.Ruiz Station', 'TASCW', 1 ),
-				array( 'Recto Cashroom', 'Recto Station', 'RCT', 4 ),
-				array( 'Legarda Cashroom', 'Legarda Station', 'LGRD', 4 ),
-				array( 'Pureza Cashroom', 'Pureza Station', 'PRZ', 4 ),
-				array( 'V.Mapa Cashroom', 'V.Mapa Station', 'VMP', 4 ),
-				array( 'J.Ruiz Cashroom', 'J.Ruiz Station', 'JRZ', 4 ),
-				array( 'Gilmore Cashroom', 'Gilmore Station', 'GLMR', 4 ),
-				array( 'Betty Go - Belmonte Cashroom', 'Betty Go - Belmonte Station', 'BTYG', 4 ),
-				array( 'Araneta Center - Cubao Cashroom', 'Araneta Center - Cubao Station', 'ACCB', 4 ),
-				array( 'Anonas Cashroom', 'Anonas Station', 'ANNS', 4 ),
-				array( 'Katipunan Cashroom', 'Katipunan  Station', 'KTPN', 4 ),
-				array( 'Santolan Cashroom', 'Santolan Station', 'STLN', 4 )
-			);
-
-		foreach( $stores as $s )
+		if( array_key_exists( 'mode', $params ) && $params['mode'] == 'transactions' )
 		{
-			$store = new Store();
-			$store->set( 'store_name', $s[0] );
-			$store->set( 'store_location', $s[1] );
-			$store->set( 'store_code', $s[2] );
-            $store->set( 'store_type', $s[3] );
-			$store->db_save();
-			unset( $store );
-		}
-		echo 'OK<br />';
-        flush();
+			$this->load->library( 'store' );
+			$this->load->library( 'item' );
 
-		// Adding admin user to first store
-		echo 'Adding admin user to first store...';
-		flush();
-		$this->load->library( 'store' );
-		$store = new Store();
-		$st_depot = $store->get_by_id( 1 );
-		$st_depot->add_member( $admin_User );
-		echo 'OK<br />';
-		flush();
-
-		// Create default items
-		echo 'Creating default items...';
-        flush();
-		$this->load->library( 'Item' );
-		$items = array(
-                array( 'L2 SJT', 'Line 2 Single Journey Ticket', NULL, 0, 1, 0, 0, 'SJT' ), // ID: 1
-                array( 'L2 SJT - Rigid Box', 'Line 2 Single Journey Ticket in Rigid Box', 1, 1, 1, 0, 0, 'SJT' ),
-				array( 'L2 SJT - Ticket Magazine', 'Line 2 Single Journey Ticket in Ticket Magazine', 1, 0, 0, 1, 0, 'SJT' ),
-				array( 'L2 SJT - Defective', 'Defective Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, NULL ),
-				array( 'L2 SJT - Damaged', 'Damaged Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, NULL ),
-
-				array( 'SVC', 'Stored Value Card', NULL, 0, 1, 0, 0, 'SVC' ), // ID: 6
-				array( 'SVC - Rigid Box', 'Stored Value Ticket in Rigid Box', 6, 1, 1, 0, 0, 'SVC' ),
-                array( 'SVC - Defective', 'Defective Stored Value Card', NULL, 0, 1, 0, 1, NULL ),
-                array( 'SVC - Damaged', 'Damaged Stored Value Card', NULL, 0, 1, 0, 1, NULL ),
-				array( 'SVC - TIR', 'Stored Value Card with TIR', NULL, 0, 1, 0, 0, NULL ),
-
-				array( 'Senior SVC', 'Senior Citizen Stored Value Card', NULL, 0, 0, 0, 0, 'Concessionary' ),
-				array( 'PWD SVC', 'Passenger with Disability Store Value Card', NULL, 0, 0, 0, 0, 'Concessionary' ),
-
-				array( 'L2 Ticket Coupon', 'Line 2 Ticket Coupon', NULL, 1, 1, 0, 0, NULL ),
-
-				array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0, NULL ), // ID: 14
-                array( 'L1 SJT', 'Line 1 Single Journey Ticket', 14, 0, 1, 0, 0, NULL ),
-				array( 'Staff Card', 'Staff Card', NULL, 0, 0, 0, 0, NULL )
-			);
-
-		foreach( $items as $i )
-		{
-			$item = new Item();
-			$item->set( 'item_name', $i[0] );
-			$item->set( 'item_description', $i[1] );
-            $item->set( 'base_item_id', $i[2] );
-			$item->set( 'teller_allocatable', $i[3] );
-			$item->set( 'teller_remittable', $i[4] );
-			$item->set( 'machine_allocatable', $i[5] );
-			$item->set( 'machine_remittable', $i[6] );
-			$item->set( 'item_group', $i[7] );
-			$item->db_save();
-			unset( $item );
-		}
-		echo 'OK<br />';
-        flush();
-
-		// Creating default inventory
-		echo 'Creating store inventories...';
-		$test_inventory = param( $params, 'test_inventory' );
-        flush();
-		$this->load->library( 'Inventory' );
-		$stores = new Store();
-		$stores = $stores->get_stores();
-		$items = new Item();
-		$items = $items->get_items();
-		foreach( $stores as $store )
-		{
-			foreach( $items as $item )
+			// Creating default inventory
+			echo 'Creating store inventories...';
+			$test_inventory = param( $params, 'test_inventory' );
+			flush();
+			$this->load->library( 'Inventory' );
+			$stores = new Store();
+			$stores = $stores->get_stores();
+			$items = new Item();
+			$items = $items->get_items();
+			foreach( $stores as $store )
 			{
-				$inventory = $store->add_item( $item );
-				$quantity = 0;
-				switch( $item->get( 'item_name' ) )
+				foreach( $items as $item )
 				{
-					case 'L2 SJT - Rigid Box':
-						if( $test_inventory ) $quantity = rand(10, 50);
-						break;
+					$inventory = $store->add_item( $item );
+					$quantity = 0;
+					switch( $item->get( 'item_name' ) )
+					{
+						case 'L2 SJT - Rigid Box':
+							if( $test_inventory ) $quantity = rand(10, 50);
+							break;
 
-					case 'L2 SJT - Ticket Magazine':
-						if( $test_inventory ) $quantity = rand(1, 8);
-						break;
+						case 'L2 SJT - Ticket Magazine':
+							if( $test_inventory ) $quantity = rand(1, 8);
+							break;
 
-					case 'SVC - Rigid Box':
-						if( $test_inventory ) $quantity = rand(1, 8);
-						break;
+						case 'SVC - Rigid Box':
+							if( $test_inventory ) $quantity = rand(1, 8);
+							break;
 
-					default:
-						switch( $item->get( 'item_group' ) )
-						{
-							case 'SJT':
-								if( $test_inventory ) $quantity = rand(5, 50);
-								break;
+						default:
+							switch( $item->get( 'item_group' ) )
+							{
+								case 'SJT':
+									if( $test_inventory ) $quantity = rand(5, 50);
+									break;
 
-							default:
-								if( $test_inventory ) $quantity = rand(0, 5);
-						}
+								default:
+									if( $test_inventory ) $quantity = rand(0, 5);
+							}
+					}
+					$inventory->transact( TRANSACTION_INIT, $quantity, date( TIMESTAMP_FORMAT ), 0 );
 				}
-				$inventory->transact( TRANSACTION_INIT, $quantity, date( TIMESTAMP_FORMAT ), 0 );
 			}
+			echo 'OK<br />';
+			flush();
 		}
-		echo 'OK<br />';
-        flush();
+		else
+		{
+			// Create system administrator group
+			echo 'Creating default system administrator group...';
+			flush();
+			$this->load->library( 'group' );
+			$admin_Group = new Group();
+			$admin_Group->set( 'group_name', 'System Administrators' );
+			$admin_Group = $admin_Group->db_save();
+			echo 'OK<br />';
+			flush();
 
-        // Create default conversion table
-        echo 'Creating default conversion table...';
-        flush();
-        $this->load->library( 'item' );
-        $values = array(
-			// SJT
-            array( 'L2 SJT', 'L2 SJT - Rigid Box', 50 ),
-            array( 'L2 SJT', 'L2 SJT - Ticket Magazine', 800 ),
-            array( 'L2 SJT', 'L2 SJT - Defective', 1 ),
-            array( 'L2 SJT', 'L2 SJT - Damaged', 1 ),
-            array( 'L2 SJT - Defective', 'L2 SJT - Damaged', 1 ),
+			// Create admin user
+			echo 'Creating default admin user...';
+			flush();
+			$this->load->library( 'user' );
+			$admin_User = new User();
+			$admin_User->set( 'username', 'admin' );
+			$admin_User->set( 'full_name', 'System Administrator' );
+			$admin_User->set( 'position', 'System Administrator' );
+			$admin_User->set( 'user_status', 1 ); // active
+			$admin_User->set( 'user_role', 1 ); // administrator
+			$admin_User->set( 'group_id', $admin_Group->get( 'id' ) );
+			$admin_User->set( 'last_modified', 1 );
+			$admin_User->set_password( 'admin' );
+			$admin_User->db_save();
 
-			// SVC
-            array( 'SVC', 'SVC - Rigid Box', 10 ),
-            array( 'SVC', 'SVC - Defective', 1 ),
-            array( 'SVC', 'SVC - Damaged', 1 ),
-            array( 'SVC - Defective', 'SVC - Damaged', 1 ),
-			array( 'SVC - Defective', 'SVC - TIR', 1 ),
-			array( 'SVC - TIR', 'SVC - Defective', 1 ),
+			echo 'OK<br />';
+			flush();
 
-			// Other cards
-			array( 'L1 SJT', 'Others', 1 )
-        );
+			// Create default stations
+			echo 'Creating default stations...';
+			flush();
+			$this->db->query( 'INSERT INTO stations (id, station_name, station_short_name )
+							VALUES
+									( 1, "Recto", "RTO" ),
+									( 2, "Legarda", "LGD" ),
+									( 3, "Pureza", "PRZ" ),
+									( 4, "V.Mapa", "VMP" ),
+									( 5, "J.Ruiz", "JRZ" ),
+									( 6, "Gilmore", "GLM" ),
+									( 7, "Betty-Go - Belmonte", "BGB" ),
+									( 8, "Araneta Center - Cubao", "ACC" ),
+									( 9, "Anonas", "ANN" ),
+									( 10, "Katipunan", "KTP" ),
+									( 11, "Santolan", "STL" )' );
+			echo 'OK<br />';
+			flush();
 
-        $item = new Item();
-        foreach( $values as $value )
-        {
-            $source = $item->get_by_name( $value[0] );
-            $target = $item->get_by_name( $value[1] );
+			// Create default shifts
+			echo 'Creating default shifts...';
+			flush();
+			$this->load->library( 'shift' );
+			$shifts = array(
+							array( 'Regular Shift', 1, 'Regular shift', '00:00:00', '23:59:59' ),
+							array( 'Prod S1', 2, 'Production Shift 1', '07:00:00', '14:59:59' ),
+							array( 'Prod S2', 2, 'Production Shift 2', '13:00:00', '20:59:59' ),
+							array( 'TGM S1', 3, 'Transport Shift 1', '06:00:00', '13:59:59' ),
+							array( 'TGM S2', 3, 'Transport Shift 2', '14:00:00', '21:59:59' ),
+							array( 'Cashier S1', 4, 'Cashier Shift 1', '06:00:00', '13:59:59' ),
+							array( 'Cashier S2', 4, 'Cashier Shift 2', '14:00:00', '21:59:59' ),
+							array( 'Cashier S3', 4, 'Cashier Shift 3', '22:00:00', '05:59:59' ),
+							array( 'Teller S1', 0, 'Teller Shift 1', '06:00:00', '13:59:59' ),
+							array( 'Teller S2', 0, 'Teller Shift 2', '14:00:00', '21:59:59' ),
+							array( 'Teller S3', 0, 'Teller Shift 3', '22:00:00', '05:59:59' )
+					);
 
-            $this->db->set( 'source_item_id', $source->get( 'id' ) );
-            $this->db->set( 'target_item_id', $target->get( 'id' ) );
-            $this->db->set( 'conversion_factor', $value[2] );
-            $this->db->insert( 'conversion_table' );
-        }
-        echo 'OK<br />';
-        flush();
+			foreach( $shifts as $s )
+			{
+					$shift = new Shift();
+					$shift->set( 'shift_num', $s[0] );
+					$shift->set( 'store_type', $s[1] );
+					$shift->set( 'description', $s[2] );
+					$shift->set( 'shift_start_time', $s[3] );
+					$shift->set( 'shift_end_time', $s[4] );
+					$shift->db_save();
+					unset( $shift );
+			}
+			echo 'OK<br />';
+			flush();
 
-		// Create default item categories
-		echo 'Creating default item categories...';
-		flush();
+			// Create default stores
+			echo 'Creating default stores...';
+			flush();
+			$this->load->library( 'Store' );
+			$stores = array(
+					array( 'Line 2 Depot', 'Line 2 Depot', 'TIMD', 1 ),
+					array( 'SASCU', 'Line 2 Depot', 'SASCU', 1 ),
+					array( 'TVM and Gates Management', 'Anonas Station', 'TGM', 3 ),
+					array( 'Ticket Production', 'J.Ruiz Station', 'TIMS', 2 ),
+					array( 'TASCU East', 'Anonas Station', 'TASCE', 1 ),
+					array( 'TASCU West', 'J.Ruiz Station', 'TASCW', 1 ),
+					array( 'Recto Cashroom', 'Recto Station', 'RCT', 4 ),
+					array( 'Legarda Cashroom', 'Legarda Station', 'LGRD', 4 ),
+					array( 'Pureza Cashroom', 'Pureza Station', 'PRZ', 4 ),
+					array( 'V.Mapa Cashroom', 'V.Mapa Station', 'VMP', 4 ),
+					array( 'J.Ruiz Cashroom', 'J.Ruiz Station', 'JRZ', 4 ),
+					array( 'Gilmore Cashroom', 'Gilmore Station', 'GLMR', 4 ),
+					array( 'Betty Go - Belmonte Cashroom', 'Betty Go - Belmonte Station', 'BTYG', 4 ),
+					array( 'Araneta Center - Cubao Cashroom', 'Araneta Center - Cubao Station', 'ACCB', 4 ),
+					array( 'Anonas Cashroom', 'Anonas Station', 'ANNS', 4 ),
+					array( 'Katipunan Cashroom', 'Katipunan  Station', 'KTPN', 4 ),
+					array( 'Santolan Cashroom', 'Santolan Station', 'STLN', 4 )
+				);
 
-		$values = array(
-				array( 'Initial Allocation', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1 ),
-				array( 'Additional Allocation', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1 ),
-				array( 'Magazine Load', 1, TRUE, FALSE, FALSE, FALSE, TRUE, 1 ),
-				array( 'Unsold / Loose', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
-				array( 'Defective', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
-				array( 'Reject Bin', 2, FALSE, TRUE, TRUE, FALSE, TRUE, 1 ),
-				array( 'TIR', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
-				array( 'Free Exit', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
-				array( 'Expired', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
-				array( 'Black Box', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
-				array( 'Unconfirmed', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 )
+			foreach( $stores as $s )
+			{
+				$store = new Store();
+				$store->set( 'store_name', $s[0] );
+				$store->set( 'store_location', $s[1] );
+				$store->set( 'store_code', $s[2] );
+							$store->set( 'store_type', $s[3] );
+				$store->db_save();
+				unset( $store );
+			}
+			echo 'OK<br />';
+			flush();
+
+			// Adding admin user to first store
+			echo 'Adding admin user to first store...';
+			flush();
+			$this->load->library( 'store' );
+			$store = new Store();
+			$st_depot = $store->get_by_id( 1 );
+			$st_depot->add_member( $admin_User );
+			echo 'OK<br />';
+			flush();
+
+			// Create default items
+			echo 'Creating default items...';
+			flush();
+			$this->load->library( 'Item' );
+			$items = array(
+					array( 'L2 SJT', 'Line 2 Single Journey Ticket', NULL, 0, 1, 0, 0, 'SJT' ), // ID: 1
+					array( 'L2 SJT - Rigid Box', 'Line 2 Single Journey Ticket in Rigid Box', 1, 1, 1, 0, 0, 'SJT' ),
+					array( 'L2 SJT - Ticket Magazine', 'Line 2 Single Journey Ticket in Ticket Magazine', 1, 0, 0, 1, 0, 'SJT' ),
+					array( 'L2 SJT - Defective', 'Defective Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, NULL ),
+					array( 'L2 SJT - Damaged', 'Damaged Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, NULL ),
+
+					array( 'SVC', 'Stored Value Card', NULL, 0, 1, 0, 0, 'SVC' ), // ID: 6
+					array( 'SVC - Rigid Box', 'Stored Value Ticket in Rigid Box', 6, 1, 1, 0, 0, 'SVC' ),
+					array( 'SVC - Defective', 'Defective Stored Value Card', NULL, 0, 1, 0, 1, NULL ),
+					array( 'SVC - Damaged', 'Damaged Stored Value Card', NULL, 0, 1, 0, 1, NULL ),
+					array( 'SVC - TIR', 'Stored Value Card with TIR', NULL, 0, 1, 0, 0, NULL ),
+
+					array( 'Senior SVC', 'Senior Citizen Stored Value Card', NULL, 0, 0, 0, 0, 'Concessionary' ),
+					array( 'PWD SVC', 'Passenger with Disability Store Value Card', NULL, 0, 0, 0, 0, 'Concessionary' ),
+
+					array( 'L2 Ticket Coupon', 'Line 2 Ticket Coupon', NULL, 1, 1, 0, 0, NULL ),
+
+					array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0, NULL ), // ID: 14
+					array( 'L1 SJT', 'Line 1 Single Journey Ticket', 14, 0, 1, 0, 0, NULL ),
+					array( 'Staff Card', 'Staff Card', NULL, 0, 0, 0, 0, NULL )
+				);
+
+			foreach( $items as $i )
+			{
+				$item = new Item();
+				$item->set( 'item_name', $i[0] );
+				$item->set( 'item_description', $i[1] );
+				$item->set( 'base_item_id', $i[2] );
+				$item->set( 'teller_allocatable', $i[3] );
+				$item->set( 'teller_remittable', $i[4] );
+				$item->set( 'machine_allocatable', $i[5] );
+				$item->set( 'machine_remittable', $i[6] );
+				$item->set( 'item_group', $i[7] );
+				$item->db_save();
+				unset( $item );
+			}
+			echo 'OK<br />';
+			flush();
+
+			// Creating default inventory
+			echo 'Creating store inventories...';
+			$test_inventory = param( $params, 'test_inventory' );
+			flush();
+			$this->load->library( 'Inventory' );
+			$stores = new Store();
+			$stores = $stores->get_stores();
+			$items = new Item();
+			$items = $items->get_items();
+			foreach( $stores as $store )
+			{
+				foreach( $items as $item )
+				{
+					$inventory = $store->add_item( $item );
+					$quantity = 0;
+					switch( $item->get( 'item_name' ) )
+					{
+						case 'L2 SJT - Rigid Box':
+							if( $test_inventory ) $quantity = rand(10, 50);
+							break;
+
+						case 'L2 SJT - Ticket Magazine':
+							if( $test_inventory ) $quantity = rand(1, 8);
+							break;
+
+						case 'SVC - Rigid Box':
+							if( $test_inventory ) $quantity = rand(1, 8);
+							break;
+
+						default:
+							switch( $item->get( 'item_group' ) )
+							{
+								case 'SJT':
+									if( $test_inventory ) $quantity = rand(5, 50);
+									break;
+
+								default:
+									if( $test_inventory ) $quantity = rand(0, 5);
+							}
+					}
+					$inventory->transact( TRANSACTION_INIT, $quantity, date( TIMESTAMP_FORMAT ), 0 );
+				}
+			}
+			echo 'OK<br />';
+			flush();
+
+			// Create default conversion table
+			echo 'Creating default conversion table...';
+			flush();
+			$this->load->library( 'item' );
+			$values = array(
+				// SJT
+				array( 'L2 SJT', 'L2 SJT - Rigid Box', 50 ),
+				array( 'L2 SJT', 'L2 SJT - Ticket Magazine', 800 ),
+				array( 'L2 SJT', 'L2 SJT - Defective', 1 ),
+				array( 'L2 SJT', 'L2 SJT - Damaged', 1 ),
+				array( 'L2 SJT - Defective', 'L2 SJT - Damaged', 1 ),
+
+				// SVC
+				array( 'SVC', 'SVC - Rigid Box', 10 ),
+				array( 'SVC', 'SVC - Defective', 1 ),
+				array( 'SVC', 'SVC - Damaged', 1 ),
+				array( 'SVC - Defective', 'SVC - Damaged', 1 ),
+				array( 'SVC - Defective', 'SVC - TIR', 1 ),
+				array( 'SVC - TIR', 'SVC - Defective', 1 ),
+
+				// Other cards
+				array( 'L1 SJT', 'Others', 1 )
 			);
 
-		foreach( $values as $value )
-		{
-			$this->db->set( 'category', $value[0] );
-			$this->db->set( 'category_type', $value[1] );
-			$this->db->set( 'is_allocation_category', $value[2] );
-			$this->db->set( 'is_remittance_category', $value[3] );
-			$this->db->set( 'is_transfer_category', $value[4] );
-			$this->db->set( 'is_teller', $value[5] );
-			$this->db->set( 'is_machine', $value[6] );
-			$this->db->set( 'category_status', $value[7] );
-			$this->db->insert( 'item_categories' );
-		}
-		echo 'OK<br />';
-		flush();
+			$item = new Item();
+			foreach( $values as $value )
+			{
+					$source = $item->get_by_name( $value[0] );
+					$target = $item->get_by_name( $value[1] );
 
+					$this->db->set( 'source_item_id', $source->get( 'id' ) );
+					$this->db->set( 'target_item_id', $target->get( 'id' ) );
+					$this->db->set( 'conversion_factor', $value[2] );
+					$this->db->insert( 'conversion_table' );
+			}
+			echo 'OK<br />';
+			flush();
+
+			// Create default item categories
+			echo 'Creating default item categories...';
+			flush();
+
+			$values = array(
+					array( 'Initial Allocation', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1 ),
+					array( 'Additional Allocation', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1 ),
+					array( 'Magazine Load', 1, TRUE, FALSE, FALSE, FALSE, TRUE, 1 ),
+					array( 'Unsold / Loose', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
+					array( 'Defective', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
+					array( 'Reject Bin', 2, FALSE, TRUE, TRUE, FALSE, TRUE, 1 ),
+					array( 'TIR', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
+					array( 'Free Exit', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
+					array( 'Expired', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
+					array( 'Black Box', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
+					array( 'Unconfirmed', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 )
+				);
+
+			foreach( $values as $value )
+			{
+				$this->db->set( 'category', $value[0] );
+				$this->db->set( 'category_type', $value[1] );
+				$this->db->set( 'is_allocation_category', $value[2] );
+				$this->db->set( 'is_remittance_category', $value[3] );
+				$this->db->set( 'is_transfer_category', $value[4] );
+				$this->db->set( 'is_teller', $value[5] );
+				$this->db->set( 'is_machine', $value[6] );
+				$this->db->set( 'category_status', $value[7] );
+				$this->db->insert( 'item_categories' );
+			}
+			echo 'OK<br />';
+			flush();
+		}
 
 		// Restore shift
 		$this->session->current_shift_id = $current_shift_id;
@@ -788,9 +841,9 @@ class Installer extends CI_Controller {
 	{
 		echo heading( 'Creating test data...', 3 );
 
-        echo 'Adding test users...';
-        flush();
-        $this->load->library( 'user' );
+		echo 'Adding test users...';
+		flush();
+		$this->load->library( 'user' );
 		$user1 = new User();
 		$user1->set( 'username', 'erhsatingin' );
 		$user1->set( 'full_name', 'Erwin Rommel H. Satingin' );
@@ -800,7 +853,7 @@ class Installer extends CI_Controller {
 		$user1->set_password( 'password123' );
 		$user1->db_save();
 
-        $user2 = new User();
+				$user2 = new User();
 		$user2->set( 'username', 'mmduron' );
 		$user2->set( 'full_name', 'Marlon M. Duron' );
 		$user2->set( 'position', 'Data Encoder-Controller' );
@@ -809,8 +862,8 @@ class Installer extends CI_Controller {
 		$user2->set_password( 'password123' );
 		$user2->db_save();
 
-        echo 'OK<br />';
-        flush();
+				echo 'OK<br />';
+				flush();
 
 		$this->load->library( 'store' );
 		$store = new Store();
@@ -830,44 +883,57 @@ class Installer extends CI_Controller {
 		}
 	}
 
-	public function reset_database()
+	public function reset_database( $mode = NULL )
 	{
 		echo heading( 'Resetting database...', 3 );
-        flush();
+		flush();
 		$this->db->trans_start();
 
 		$this->db->query( "SET FOREIGN_KEY_CHECKS = OFF" );
 
-        $this->db->query( "TRUNCATE TABLE stations" );
-        $this->db->query( "TRUNCATE TABLE shifts" );
-		$this->db->query( "TRUNCATE TABLE groups" );
-		$this->db->query( "TRUNCATE TABLE users" );
-		$this->db->query( "TRUNCATE TABLE stores" );
-		$this->db->query( "TRUNCATE TABLE store_users" );
-		$this->db->query( "TRUNCATE TABLE items" );
+		if( $mode != 'transactions' )
+		{
+			$this->db->query( "TRUNCATE TABLE stations" );
+			$this->db->query( "TRUNCATE TABLE shifts" );
+			$this->db->query( "TRUNCATE TABLE groups" );
+			$this->db->query( "TRUNCATE TABLE users" );
+			$this->db->query( "TRUNCATE TABLE stores" );
+			$this->db->query( "TRUNCATE TABLE store_users" );
+			$this->db->query( "TRUNCATE TABLE items" );
+			$this->db->query( "TRUNCATE TABLE item_categories" );
+		}
+
 		$this->db->query( "TRUNCATE TABLE store_inventory" );
 		$this->db->query( "TRUNCATE TABLE transactions" );
 		$this->db->query( "TRUNCATE TABLE adjustments" );
 		$this->db->query( "TRUNCATE TABLE transfers" );
 		$this->db->query( "TRUNCATE TABLE transfer_items" );
-        $this->db->query( "TRUNCATE TABLE conversion_table" );
-        $this->db->query( "TRUNCATE TABLE conversions" );
+		$this->db->query( "TRUNCATE TABLE conversion_table" );
+		$this->db->query( "TRUNCATE TABLE conversions" );
 		$this->db->query( "TRUNCATE TABLE allocations" );
 		$this->db->query( "TRUNCATE TABLE allocation_items" );
 		$this->db->query( "TRUNCATE TABLE mopping" );
 		$this->db->query( "TRUNCATE TABLE mopping_items" );
-		$this->db->query( "TRUNCATE TABLE item_categories" );
+
 
 		$this->db->query( "SET FOREIGN_KEY_CHECKS = OFF" );
 
-		$this->create_default_data( $this->input->get() );
+		$params = $this->input->get();
+		if( $mode == 'transactions' )
+		{
+			$params = array_merge( $params, array(
+				'mode' => $mode
+			));
+		}
+
+		$this->create_default_data( $params );
 		//$this->create_test_data();
 
 		$this->db->trans_complete();
 		echo heading( 'Database has been reset..', 3 );
 		echo '<br />';
 		echo 'Finished resetting the database. '.anchor('login', 'Login').' to the site.';
-        flush();
+		flush();
 	}
 
 	public function new_database()
@@ -886,13 +952,13 @@ class Installer extends CI_Controller {
 		echo heading( 'Database has been recreated..', 3 );
 		echo '<br />';
 		echo anchor('login', 'Login').' to the site.';
-        flush();
+		flush();
 	}
 
 	public function drop_database()
 	{
 		heading( 'Dropping database...', 3 );
-        flush();
+		flush();
 		$this->db->query( "DROP DATABASE frogims" );
 	}
 
