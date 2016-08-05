@@ -23,15 +23,23 @@ class Main extends MY_Controller {
 		//$this->login( 'admin', 1, 1 );
 		$this->load->view( 'index' );
 	}
-	
+
 	public function test()
 	{
 		echo phpinfo();
 	}
-	
+
 	public function view( $view )
 	{
-		$this->load->view( $view );
+		// check if valid session
+		if( $this->session->current_user_id )
+		{
+			$this->load->view( $view );
+		}
+		else
+		{
+			$this->load->view( 'expired_session_view' );
+		}
 	}
 
 	public function login( $username, $store_id, $shift_id )

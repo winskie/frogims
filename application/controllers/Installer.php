@@ -542,7 +542,7 @@ class Installer extends CI_Controller {
         flush();
         $this->load->library( 'shift' );
         $shifts = array(
-                array( 'No Shift', 1, 'No shift', '00:00:00', '23:59:59' ),
+                array( 'Regular Shift', 1, 'Regular shift', '00:00:00', '23:59:59' ),
                 array( 'Prod S1', 2, 'Production Shift 1', '07:00:00', '14:59:59' ),
                 array( 'Prod S2', 2, 'Production Shift 2', '13:00:00', '20:59:59' ),
                 array( 'TGM S1', 3, 'Transport Shift 1', '06:00:00', '13:59:59' ),
