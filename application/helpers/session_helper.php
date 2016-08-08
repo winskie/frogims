@@ -1,5 +1,14 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
+if( ! function_exists( 'is_logged_in' ) )
+{
+    function is_logged_in()
+    {
+        return isset( $_SESSION['current_user_id'] );
+    }
+}
+
+
 if( ! function_exists( 'get_store_id' ) )
 {
 	function get_store_id( $value, $use_current = TRUE )

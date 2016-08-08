@@ -1,5 +1,25 @@
 var appServices = angular.module( 'appServices', [] );
 
+appServices.factory( 'sessionInterceptor' , [ '$window',
+    function( $window )
+    {
+        var sessionInterceptor = {
+            responseError: function( response )
+                {
+                    if( response.status == 401 )
+                    { // Unauthorized, session timeout
+                        console.info( 'Session expired' );
+                        $window.location.href = baseUrl + 'index.php/login';
+                    }
+
+                    return response;
+                }
+        }
+
+        return sessionInterceptor;
+    }
+]);
+
 appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifications',
     function( $http, $q, $filter, baseUrl, notifications )
     {

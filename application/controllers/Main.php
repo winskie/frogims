@@ -32,7 +32,7 @@ class Main extends MY_Controller {
 	public function view( $view )
 	{
 		// check if valid session
-		if( $this->session->current_user_id )
+		if( is_logged_in() )
 		{
 			$this->load->view( $view );
 		}

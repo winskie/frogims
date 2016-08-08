@@ -9,22 +9,28 @@ class MY_Controller extends CI_Controller
 
         if( ! in_array( $this->uri->segment(2), $public_methods ) )
         {
-            if( $this->input->is_ajax_request() )
+            if( ! is_logged_in() )
             {
-                $response = array(
-                        'status' => 'fail',
-                        'errorMsg' => 'You are not allowed to access this resource'
-                    );
-
-                $this->output->set_content_type( 'application/json' );
-                $this->output->set_output( json_encode( $response ) );
-            }
-            else
-            {
-                if( ! $this->session->current_user_id )
+                if( $this->input->is_ajax_request() )
                 {
-                    // TODO: redirect window, currently only redirects view
-                    redirect( site_url( '/login' ) );
+                    $response = array(
+                            'status' => 'session_expired',
+                            'errorMsg' => 'Your session has already expired. You are no longer allowed to access this resource.'
+                        );
+
+                    $this->output->set_status_header( 401 );
+                    $this->output->set_content_type( 'application/json' );
+                    $this->output->set_output( json_encode( $response ) );
+                    $this->output->_display();
+                    exit;
+                }
+                else
+                {
+                    if( ! $this->session->current_user_id )
+                    {
+                        // TODO: redirect window, currently only redirects view
+                        redirect( site_url( '/login' ) );
+                    }
                 }
             }
         }

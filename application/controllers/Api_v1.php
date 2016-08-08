@@ -2,7 +2,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 // TODO: Extend MY_Controller instead after fixing session checking
-class Api_v1 extends CI_Controller {
+class Api_v1 extends MY_Controller {
 
     public $response = NULL;
 
