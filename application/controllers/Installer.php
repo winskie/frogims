@@ -500,10 +500,46 @@ class Installer extends CI_Controller {
 			$test_inventory = param( $params, 'test_inventory' );
 			flush();
 			$this->load->library( 'Inventory' );
-			$stores = new Store();
-			$stores = $stores->get_stores();
+			$Store = new Store();
+			$stores = $Store->get_stores();
 			$items = new Item();
 			$items = $items->get_items();
+
+			/*
+			$store = $Store->get_by_id( 1 );
+			foreach( $items as $item )
+			{
+				$inventory = $store->add_item( $item );
+				$quantity = 0;
+				switch( $item->get( 'item_name' ) )
+				{
+					case 'L2 SJT - Rigid Box':
+						if( $test_inventory ) $quantity = rand(10, 50);
+						break;
+
+					case 'L2 SJT - Ticket Magazine':
+						if( $test_inventory ) $quantity = rand(1, 8);
+						break;
+
+					case 'SVC - Rigid Box':
+						if( $test_inventory ) $quantity = rand(1, 8);
+						break;
+
+					default:
+						switch( $item->get( 'item_group' ) )
+						{
+							case 'SJT':
+								if( $test_inventory ) $quantity = rand(5, 50);
+								break;
+
+							default:
+								if( $test_inventory ) $quantity = rand(0, 5);
+						}
+				}
+				$inventory->transact( TRANSACTION_INIT, $quantity, date( TIMESTAMP_FORMAT ), 0 );
+			}
+			*/
+
 			foreach( $stores as $store )
 			{
 				foreach( $items as $item )

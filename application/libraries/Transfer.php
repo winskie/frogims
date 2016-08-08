@@ -631,8 +631,7 @@ class Transfer extends Base_model {
 			$ci->load->library( 'store' );
 			$ci->load->library( 'user' );
 
-			$current_store = new Store();
-			$current_store = $current_store->get_by_id( $ci->session->current_store_id );
+			$current_store = current_store();
 
 			$current_user = new User();
 			$current_user = $current_user->get_by_id( $ci->session->current_user_id );
@@ -775,6 +774,7 @@ class Transfer extends Base_model {
 			$inventory = $inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
 			if( ! $inventory )
 			{ // Somehow the inventory record was removed prior to cancellation of transfer, let's create a new inventory record
+				$current_store = current_store();
 				$ci->load->library( 'item' );
 
 				$new_item = new Item();
@@ -813,6 +813,7 @@ class Transfer extends Base_model {
 				$inventory = $inventory->get_by_store_item( $this->destination_id, $item->get( 'item_id' ) );
 				if( ! $inventory )
 				{ // Current store does not carry item yet, let's create a new inventory record
+					$current_store = current_store();
 					$ci->load->library( 'item' );
 
 					$new_item = new Item();
