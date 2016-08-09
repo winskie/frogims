@@ -243,7 +243,7 @@
 			<button type="button" class="btn btn-success" ng-click="approveTransfer()"
 					ng-disabled="transferItem.transfer_status != <?php echo TRANSFER_PENDING;?> || ! transferItem.sender_name || transferItem.items.length == 0"
 					ng-if="transferItem.transfer_status == <?php echo TRANSFER_PENDING;?>
-							&& transferItem.origin_id == <?php echo current_store( TRUE );?>
+							&& transferItem.origin_id == sessionData.currentStore.id
 							&& checkPermissions( 'transfers', 'approve' )">
 				<i class="glyphicon glyphicon-ok"></i> Approve
 			</button>
@@ -252,7 +252,7 @@
 		<div ng-if="['receipt', 'externalReceipt'].indexOf( data.editMode ) != -1">
 			<button type="button" class="btn btn-success" ng-click="receiveTransfer()"
 					ng-if="( data.editMode == 'externalReceipt' || transferItem.transfer_status == <?php echo TRANSFER_APPROVED;?> )
-							&& transferItem.destination_id == <?php echo current_store( TRUE );?>
+							&& transferItem.destination_id == sessionData.currentStore.id
 							&& checkPermissions( 'transfers', 'edit' )">
 					<i class="glyphicon glyphicon-ok"></i> Receive
 			</button>
@@ -262,13 +262,13 @@
 			<button type="button" class="btn btn-success" ng-click="approveTransfer()"
 					ng-disabled="transferItem.transfer_status != <?php echo TRANSFER_PENDING;?> || ! transferItem.sender_name || transferItem.items.length == 0"
 					ng-if="transferItem.transfer_status == <?php echo TRANSFER_PENDING;?>
-							&& transferItem.origin_id == <?php echo current_store( TRUE );?>
+							&& transferItem.origin_id == sessionData.currentStore.id
 							&& checkPermissions( 'transfers', 'approve' )">
 					<i class="glyphicon glyphicon-ok"></i> Approve
 			</button>
 			<button type="button" class="btn btn-success" ng-click="receiveTransfer()"
 					ng-if="( data.editMode == 'externalReceipt' || ( transferItem.transfer_status == <?php echo TRANSFER_APPROVED;?> && !data.isExternalDestination ) )
-							&& transferItem.destination_id == <?php echo current_store( TRUE );?>
+							&& transferItem.destination_id == sessionData.currentStore.id
 							&& checkPermissions( 'transfers', 'edit' )">
 					<i class="glyphicon glyphicon-ok"></i> Receive
 			</button>
