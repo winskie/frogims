@@ -937,6 +937,7 @@ class Installer extends CI_Controller {
 			$this->db->query( "TRUNCATE TABLE store_users" );
 			$this->db->query( "TRUNCATE TABLE items" );
 			$this->db->query( "TRUNCATE TABLE item_categories" );
+			$this->db->query( "TRUNCATE TABLE conversion_table" );
 		}
 
 		$this->db->query( "TRUNCATE TABLE store_inventory" );
@@ -944,7 +945,7 @@ class Installer extends CI_Controller {
 		$this->db->query( "TRUNCATE TABLE adjustments" );
 		$this->db->query( "TRUNCATE TABLE transfers" );
 		$this->db->query( "TRUNCATE TABLE transfer_items" );
-		$this->db->query( "TRUNCATE TABLE conversion_table" );
+		$this->db->query( "TRUNCATE TABLE transfer_validations" );
 		$this->db->query( "TRUNCATE TABLE conversions" );
 		$this->db->query( "TRUNCATE TABLE allocations" );
 		$this->db->query( "TRUNCATE TABLE allocation_items" );

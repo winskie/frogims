@@ -61,7 +61,7 @@ body
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: normal;
-    width: 75%;
+    max-width: 600px;
     padding-top: 8px;
 }
 
@@ -190,7 +190,15 @@ div.notification_wrapper div.notification.notice-visible {
     width: 25px;
 }
 
+div.quicksearch {
+    width: 150px;
+}
+
 /*************** Start of Filters ***************/
+button.btn-filter {
+    width: 120px;
+}
+
 div.filter_panel {
     transition: height 0.5s ease;
 }

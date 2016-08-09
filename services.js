@@ -1124,7 +1124,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
             {
                 if( includes )
                 {
-                    if( typeof includes == 'String' )
+                    if( typeof includes == 'string' )
                     {
                         includes = [ includes ];
                     }

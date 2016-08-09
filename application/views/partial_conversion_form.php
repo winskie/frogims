@@ -110,7 +110,7 @@
                 </div>
             </div>
 
-            <div ng-show="data.messages.length" class="alert alert-danger" role="alert">
+            <div ng-show="data.editMode != 'view' && data.messages.length" class="alert alert-danger" role="alert">
                 <ul>
                     <li ng-repeat="message in data.messages">{{ message }}</li>
                 </ul>

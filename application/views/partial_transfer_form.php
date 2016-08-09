@@ -242,14 +242,18 @@
 			</button>
 			<button type="button" class="btn btn-success" ng-click="approveTransfer()"
 					ng-disabled="transferItem.transfer_status != <?php echo TRANSFER_PENDING;?> || ! transferItem.sender_name || transferItem.items.length == 0"
-					ng-if="transferItem.transfer_status == <?php echo TRANSFER_PENDING;?> && checkPermissions( 'transfers', 'approve' )">
+					ng-if="transferItem.transfer_status == <?php echo TRANSFER_PENDING;?>
+							&& transferItem.origin_id == <?php echo current_store( TRUE );?>
+							&& checkPermissions( 'transfers', 'approve' )">
 				<i class="glyphicon glyphicon-ok"></i> Approve
 			</button>
 			<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: ( data.mode == 'transfer' ? 'transfers' : 'receipts' ) })">Close</button>
 		</div>
 		<div ng-if="['receipt', 'externalReceipt'].indexOf( data.editMode ) != -1">
 			<button type="button" class="btn btn-success" ng-click="receiveTransfer()"
-					ng-if="( data.editMode == 'externalReceipt' || transferItem.transfer_status == <?php echo TRANSFER_APPROVED;?> ) && checkPermissions( 'transfers', 'edit' )">
+					ng-if="( data.editMode == 'externalReceipt' || transferItem.transfer_status == <?php echo TRANSFER_APPROVED;?> )
+							&& transferItem.destination_id == <?php echo current_store( TRUE );?>
+							&& checkPermissions( 'transfers', 'edit' )">
 					<i class="glyphicon glyphicon-ok"></i> Receive
 			</button>
 			<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: ( data.mode == 'transfer' ? 'transfers' : 'receipts' ) })">Close</button>
@@ -257,11 +261,14 @@
 		<div ng-if="data.editMode == 'view'">
 			<button type="button" class="btn btn-success" ng-click="approveTransfer()"
 					ng-disabled="transferItem.transfer_status != <?php echo TRANSFER_PENDING;?> || ! transferItem.sender_name || transferItem.items.length == 0"
-					ng-if="transferItem.transfer_status == <?php echo TRANSFER_PENDING;?> && checkPermissions( 'transfers', 'approve' )">
+					ng-if="transferItem.transfer_status == <?php echo TRANSFER_PENDING;?>
+							&& transferItem.origin_id == <?php echo current_store( TRUE );?>
+							&& checkPermissions( 'transfers', 'approve' )">
 					<i class="glyphicon glyphicon-ok"></i> Approve
 			</button>
 			<button type="button" class="btn btn-success" ng-click="receiveTransfer()"
 					ng-if="( data.editMode == 'externalReceipt' || ( transferItem.transfer_status == <?php echo TRANSFER_APPROVED;?> && !data.isExternalDestination ) )
+							&& transferItem.destination_id == <?php echo current_store( TRUE );?>
 							&& checkPermissions( 'transfers', 'edit' )">
 					<i class="glyphicon glyphicon-ok"></i> Receive
 			</button>

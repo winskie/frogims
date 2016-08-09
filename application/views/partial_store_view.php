@@ -22,7 +22,6 @@ $current_user = current_user();
 							<th>Group</th>
 							<th>Description</th>
 							<th class="text-right">Quantity</th>
-							<th class="text-right">Buffer Level</th>
 							<th class="text-right">Reserved</th>
 						</tr>
 					</thead>
@@ -32,8 +31,10 @@ $current_user = current_user();
 							<td>{{ item.item_group }}</td>
 							<td>{{ item.item_description }}</td>
 							<td class="text-right">{{ item.quantity | number }}</td>
-							<td class="text-right">{{ item.buffer_level | number }}</td>
 							<td class="text-right">{{ item.reserved | number }}</td>
+						</tr>
+						<tr ng-if="!data.items.length">
+							<td colspan="5" class="text-center">No inventory items available</td>
 						</tr>
 					</tbody>
 				</table>
@@ -48,7 +49,7 @@ $current_user = current_user();
 						Transactions Summary <span class="label label-default" ng-if="filters.transactions.filtered">Filtered</span>
 					</h3>
 					<div class="pull-right">
-						<button class="btn btn-default btn-sm" ng-click="toggleFilters( 'transactions' )">
+						<button class="btn btn-default btn-sm btn-filter" ng-click="toggleFilters( 'transactions' )">
 							<i class="glyphicon glyphicon-filter"></i> {{ filterPanels.transactions ? 'Hide' : 'Show' }} filters
 						</button>
 						<button class="btn btn-default btn-sm" ng-click="updateTransactions( sessionData.currentStore.id )">
@@ -153,7 +154,7 @@ $current_user = current_user();
 						Transfer Validations <span class="label label-default" ng-if="filters.transferValidations.filtered">Filtered</span>
 					</h3>
 					<div class="pull-right">
-						<button class="btn btn-default btn-sm" ng-click="toggleFilters( 'transferValidations' )">
+						<button class="btn btn-default btn-sm btn-filter" ng-click="toggleFilters( 'transferValidations' )">
 							<i class="glyphicon glyphicon-filter"></i> {{ filterPanels.transferValidations ? 'Hide' : 'Show' }} filters
 						</button>
 						<button class="btn btn-default btn-sm" ng-click="updateTransferValidations()">
@@ -163,6 +164,16 @@ $current_user = current_user();
 					<div class="clearfix"></div>
 				</div>
 				<div class="panel-body">
+					<!-- Quick Search -->
+					<div class="text-right">
+						<div class="input-group quicksearch pull-right">
+							<span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
+							<input type="text" class="form-control"
+									ng-model="quicksearch.transferValidations"
+									ng-keypress="loadRecord( $event, 'transferValidations' )">
+						</div>
+					</div>
+
 					<!-- Filter Panel -->
 					<div class="row filter_panel" ng-show="filterPanels.transferValidations">
 						<div class="col-sm-6 col-md-3 col-lg-2">
@@ -230,109 +241,109 @@ $current_user = current_user();
 							</div>
 						</div>
 					</div>
-				</div>
-				<table class="table table-hover">
-					<thead>
-						<tr>
-							<th class="text-center">ID</th>
-							<th>Source</th>
-							<th>Source Validation</th>
-							<th>Destination</th>
-							<th>Destination Validation</th>
-							<th>Status</th>
-							<th></th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr ng-repeat="transfer in data.transferValidations">
-							<td class="text-center">
-								{{ transfer.id }}
-							</td>
-							<td>
-								{{ transfer.origin_name }}<br/>
-								{{ transfer.transfer_datetime }}
-							</td>
-							<td ng-switch on="transfer.transval_receipt_status == null || transfer.transval_status == <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
-								<div ng-class="{ 'text-success': transfer.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_VALIDATED; ?> }" ng-switch-when="false">
-									<i class="glyphicon glyphicon-ok text-success" ng-if="transfer.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_VALIDATED;?>"> </i>
-									<i class="glyphicon glyphicon-repeat text-danger" ng-if="transfer.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_RETURNED;?>"> </i>
-									{{ transfer.transval_receipt_status ? lookup( 'transferValidationReceiptStatus', transfer.transval_receipt_status ) : 'Not yet validated' }}<br/>
-									{{ transfer.transval_receipt_datetime }}<br />
-									{{ transfer.transval_receipt_sweeper }}<br />
-								</div>
-								<span class="text-muted" ng-switch-default>---</span>
-							</td>
-							<td>
-								{{ transfer.destination_name }}<br/>
-								{{ transfer.receipt_datetime ? transfer.receipt_datetime : 'For receipt' }}
-							</td>
-							<td ng-switch on="transfer.transval_transfer_status == null || transfer.transval_status == <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
-								<div ng-class="{ 'text-success': transfer.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_VALIDATED; ?>,
-										'text-danger': transfer.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_DISPUTED;?> }" ng-switch-when="false">
-									<i class="glyphicon glyphicon-ok text-success" ng-if="transfer.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_VALIDATED;?>"> </i>
-									<i class="glyphicon glyphicon-remove text-danger" ng-if="transfer.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_DISPUTED;?>"> </i>
-									{{ transfer.transval_transfer_status ? lookup( 'transferValidationTransferStatus', transfer.transval_transfer_status ) : '' }}<br/>
-									{{ transfer.transval_transfer_datetime }}<br />
-									{{ transfer.transval_transfer_sweeper }}<br />
-								</div>
-								<span class="text-muted" ng-switch-default>---</span>
-							</td>
-							<td>
-								<i class="glyphicon glyphicon-transfer"> </i>
-								<span>
-									{{ lookup( 'transferStatus', transfer.transfer_status ) }}
-								</span><br />
-								<i class="glyphicon glyphicon-certificate"
-										ng-class="{ 'status-completed': transfer.transval_status == <?php echo TRANSFER_VALIDATION_COMPLETED;?>,
-												'status-ongoing': transfer.transval_status == <?php echo TRANSFER_VALIDATION_ONGOING;?>,
-												'status-cancelled': transfer.transval_status == <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?> }"> </i>
-								<span class="text-muted" ng-if="transfer.transval_status == null">---</span>
-								<span ng-if="transfer.transval_status != null"
-										ng-class="{ 'status-completed': transfer.transval_status == <?php echo TRANSFER_VALIDATION_COMPLETED;?>,
-												'status-ongoing': transfer.transval_status == <?php echo TRANSFER_VALIDATION_ONGOING;?>,
-												'status-cancelled': transfer.transval_status == <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?> }">
-									{{ lookup( 'transferValidationStatus', transfer.transval_status ) }}
-								</span>
-							</td>
-							<td class="text-right vert-top">
-								<div class="btn-group" uib-dropdown>
-									<button type="button" class="btn btn-default" ui-sref="main.transferValidation({ transferItem: transfer, editMode: 'view' })">View details...</button>
-									<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="checkPermissions( 'transferValidations', 'complete' )">
-										<span class="caret"></span>
-									</button>
-									<ul uib-dropdown-menu role="menu">
-										<li role="menuitem" ng-if="checkPermissions( 'transferValidations', 'complete' )">
-											<a href ng-click="completeTransferValidation( transfer )"
-													ng-if="transfer.transval_status != null
-															&& transfer.transval_status != <?php echo TRANSFER_VALIDATION_COMPLETED; ?>
-															&& transfer.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED; ?>">Complete
-											</a>
-											<a href ng-click="transferValidationOngoing( transfer )"
-													ng-if="transfer.transval_status != null && transfer.transval_status != <?php echo TRANSFER_VALIDATION_ONGOING; ?>">Mark as Ongoing
-											</a>
-											<a href ng-click="transferValidationNotRequired( transfer )"
-													ng-if="transfer.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED; ?>">Validation not Required
-											</a>
-										</li>
-									</ul>
-								</div>
-							</td>
-						</tr>
-						<tr ng-show="!data.transferValidations.length">
-							<td colspan="7" class="text-center">No transfer transaction data available</td>
-						</tr>
-					</tbody>
-				</table>
 
-				<div class="text-center" ng-if="data.totals.transferValidations > filters.itemsPerPage">
-					<uib-pagination
-							total-items="data.totals.transferValidations"
-							items-per-page="filters.itemsPerPage"
-							ng-model="pagination.transferValidations"
-							ng-change="updateTransferValidations()">
-					</uib-pagination>
-				</div>
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th class="text-center">ID</th>
+								<th>Source</th>
+								<th>Source Validation</th>
+								<th>Destination</th>
+								<th>Destination Validation</th>
+								<th>Status</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="transfer in data.transferValidations">
+								<td class="text-center">
+									{{ transfer.id }}
+								</td>
+								<td>
+									{{ transfer.origin_name }}<br/>
+									{{ transfer.transfer_datetime }}
+								</td>
+								<td ng-switch on="transfer.transval_receipt_status == null || transfer.transval_status == <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
+									<div ng-class="{ 'text-success': transfer.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_VALIDATED; ?> }" ng-switch-when="false">
+										<i class="glyphicon glyphicon-ok text-success" ng-if="transfer.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_VALIDATED;?>"> </i>
+										<i class="glyphicon glyphicon-repeat text-danger" ng-if="transfer.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_RETURNED;?>"> </i>
+										{{ transfer.transval_receipt_status ? lookup( 'transferValidationReceiptStatus', transfer.transval_receipt_status ) : 'Not yet validated' }}<br/>
+										{{ transfer.transval_receipt_datetime }}<br />
+										{{ transfer.transval_receipt_sweeper }}<br />
+									</div>
+									<span class="text-muted" ng-switch-default>---</span>
+								</td>
+								<td>
+									{{ transfer.destination_name }}<br/>
+									{{ transfer.receipt_datetime ? transfer.receipt_datetime : 'For receipt' }}
+								</td>
+								<td ng-switch on="transfer.transval_transfer_status == null || transfer.transval_status == <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
+									<div ng-class="{ 'text-success': transfer.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_VALIDATED; ?>,
+											'text-danger': transfer.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_DISPUTED;?> }" ng-switch-when="false">
+										<i class="glyphicon glyphicon-ok text-success" ng-if="transfer.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_VALIDATED;?>"> </i>
+										<i class="glyphicon glyphicon-remove text-danger" ng-if="transfer.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_DISPUTED;?>"> </i>
+										{{ transfer.transval_transfer_status ? lookup( 'transferValidationTransferStatus', transfer.transval_transfer_status ) : '' }}<br/>
+										{{ transfer.transval_transfer_datetime }}<br />
+										{{ transfer.transval_transfer_sweeper }}<br />
+									</div>
+									<span class="text-muted" ng-switch-default>---</span>
+								</td>
+								<td>
+									<i class="glyphicon glyphicon-transfer"> </i>
+									<span>
+										{{ lookup( 'transferStatus', transfer.transfer_status ) }}
+									</span><br />
+									<i class="glyphicon glyphicon-certificate"
+											ng-class="{ 'status-completed': transfer.transval_status == <?php echo TRANSFER_VALIDATION_COMPLETED;?>,
+													'status-ongoing': transfer.transval_status == <?php echo TRANSFER_VALIDATION_ONGOING;?>,
+													'status-cancelled': transfer.transval_status == <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?> }"> </i>
+									<span class="text-muted" ng-if="transfer.transval_status == null">---</span>
+									<span ng-if="transfer.transval_status != null"
+											ng-class="{ 'status-completed': transfer.transval_status == <?php echo TRANSFER_VALIDATION_COMPLETED;?>,
+													'status-ongoing': transfer.transval_status == <?php echo TRANSFER_VALIDATION_ONGOING;?>,
+													'status-cancelled': transfer.transval_status == <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?> }">
+										{{ lookup( 'transferValidationStatus', transfer.transval_status ) }}
+									</span>
+								</td>
+								<td class="text-right vert-top">
+									<div class="btn-group" uib-dropdown>
+										<button type="button" class="btn btn-default" ui-sref="main.transferValidation({ transferItem: transfer, editMode: 'view' })">View details...</button>
+										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="checkPermissions( 'transferValidations', 'complete' )">
+											<span class="caret"></span>
+										</button>
+										<ul uib-dropdown-menu role="menu">
+											<li role="menuitem" ng-if="checkPermissions( 'transferValidations', 'complete' )">
+												<a href ng-click="completeTransferValidation( transfer )"
+														ng-if="transfer.transval_status != null
+																&& transfer.transval_status != <?php echo TRANSFER_VALIDATION_COMPLETED; ?>
+																&& transfer.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED; ?>">Complete
+												</a>
+												<a href ng-click="transferValidationOngoing( transfer )"
+														ng-if="transfer.transval_status != null && transfer.transval_status != <?php echo TRANSFER_VALIDATION_ONGOING; ?>">Mark as Ongoing
+												</a>
+												<a href ng-click="transferValidationNotRequired( transfer )"
+														ng-if="transfer.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED; ?>">Validation not Required
+												</a>
+											</li>
+										</ul>
+									</div>
+								</td>
+							</tr>
+							<tr ng-show="!data.transferValidations.length">
+								<td colspan="7" class="text-center">No transfer transaction data available</td>
+							</tr>
+						</tbody>
+					</table>
 
+					<div class="text-center" ng-if="data.totals.transferValidations > filters.itemsPerPage">
+						<uib-pagination
+								total-items="data.totals.transferValidations"
+								items-per-page="filters.itemsPerPage"
+								ng-model="pagination.transferValidations"
+								ng-change="updateTransferValidations()">
+						</uib-pagination>
+					</div>
+				</div>
 			</div>
 		</uib-tab>
 
@@ -347,7 +358,7 @@ $current_user = current_user();
 						Transfers <span class="label label-default" ng-if="filters.transfers.filtered">Filtered</span>
 					</h3>
 					<div class="pull-right">
-						<button class="btn btn-default btn-sm" ng-click="toggleFilters( 'transfers' )">
+						<button class="btn btn-default btn-sm btn-filter" ng-click="toggleFilters( 'transfers' )">
 							<i class="glyphicon glyphicon-filter"></i> {{ filterPanels.transfers ? 'Hide' : 'Show' }} filters
 						</button>&nbsp;
 						<span ng-if="checkPermissions( 'transfers', 'edit' )">
@@ -362,6 +373,16 @@ $current_user = current_user();
 					<div class="clearfix"></div>
 				</div>
 				<div class="panel-body">
+					<!-- Quick Search -->
+					<div class="text-right">
+						<div class="input-group quicksearch pull-right">
+							<span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
+							<input type="text" class="form-control"
+									ng-model="quicksearch.transfers"
+									ng-keypress="loadRecord( $event, 'transfers' )">
+						</div>
+					</div>
+
 					<!-- Filter Panel -->
 					<div class="filter_panel row" ng-show="filterPanels.transfers">
 						<div class="col-sm-4 col-md-3 col-lg-2">
@@ -406,6 +427,7 @@ $current_user = current_user();
 						</div>
 
 					</div>
+
 					<table class="table table-hover">
 						<thead>
 							<tr>
@@ -504,7 +526,7 @@ $current_user = current_user();
 						Receipts <span class="label label-default" ng-if="filters.receipts.filtered">Filtered</span>
 					</h3>
 					<div class="pull-right">
-						<button class="btn btn-default btn-sm" ng-click="toggleFilters( 'receipts' )">
+						<button class="btn btn-default btn-sm btn-filter" ng-click="toggleFilters( 'receipts' )">
 							<i class="glyphicon glyphicon-filter"></i> {{ filterPanels.receipts ? 'Hide' : 'Show' }} filters
 						</button>&nbsp;
 						<span ng-if="checkPermissions( 'transfers', 'edit' )">
@@ -519,6 +541,16 @@ $current_user = current_user();
 					<div class="clearfix"></div>
 				</div>
 				<div class="panel-body">
+					<!-- Quick Search -->
+					<div class="text-right">
+						<div class="input-group quicksearch pull-right">
+							<span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
+							<input type="text" class="form-control"
+									ng-model="quicksearch.receipts"
+									ng-keypress="loadRecord( $event, 'receipts' )">
+						</div>
+					</div>
+
 					<!-- Filter Panel -->
 					<div class="row filter_panel" ng-show="filterPanels.receipts">
 						<div class="col-sm-4 col-md-3 col-lg-2">
@@ -563,6 +595,7 @@ $current_user = current_user();
 						</div>
 
 					</div>
+
 					<table class="table">
 						<thead>
 							<tr>
@@ -658,7 +691,7 @@ $current_user = current_user();
 						Adjustments <span class="label label-default" ng-if="filters.adjustments.filtered">Filtered</span>
 					</h3>
 					<div class="pull-right">
-						<button class="btn btn-default btn-sm" ng-click="toggleFilters( 'adjustments' )">
+						<button class="btn btn-default btn-sm btn-filter" ng-click="toggleFilters( 'adjustments' )">
 							<i class="glyphicon glyphicon-filter"></i> {{ filterPanels.adjustments ? 'Hide' : 'Show' }} filters
 						</button>&nbsp;
 						<span ng-if="checkPermissions( 'adjustments', 'edit' )">
@@ -673,6 +706,16 @@ $current_user = current_user();
 					<div class="clearfix"></div>
 				</div>
 				<div class="panel-body">
+					<!-- Quick Search -->
+					<div class="text-right">
+						<div class="input-group quicksearch pull-right">
+							<span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
+							<input type="text" class="form-control"
+									ng-model="quicksearch.adjustments"
+									ng-keypress="loadRecord( $event, 'adjustments' )">
+						</div>
+					</div>
+
 					<!-- Filter Panel -->
 					<div class="row filter_panel" ng-show="filterPanels.adjustments">
 						<div class="col-sm-4 col-md-3 col-lg-2">
@@ -717,6 +760,7 @@ $current_user = current_user();
 						</div>
 
 					</div>
+
 					<table class="table">
 						<thead>
 							<tr>
@@ -784,7 +828,7 @@ $current_user = current_user();
 						Mopping Collection <span class="label label-default" ng-if="filters.collections.filtered">Filtered</span>
 					</h3>
 					<div class="pull-right">
-						<button class="btn btn-default btn-sm" ng-click="toggleFilters( 'collections' )">
+						<button class="btn btn-default btn-sm btn-filter" ng-click="toggleFilters( 'collections' )">
 							<i class="glyphicon glyphicon-filter"></i> {{ filterPanels.collections ? 'Hide' : 'Show' }} filters
 						</button>&nbsp;
 						<span ng-if="checkPermissions( 'collections', 'edit' )">
@@ -799,6 +843,16 @@ $current_user = current_user();
 					<div class="clearfix"></div>
 				</div>
 				<div class="panel-body">
+					<!-- Quick Search -->
+					<div class="text-right">
+						<div class="input-group quicksearch pull-right">
+							<span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
+							<input type="text" class="form-control"
+									ng-model="quicksearch.collections"
+									ng-keypress="loadRecord( $event, 'collections' )">
+						</div>
+					</div>
+
 					<!-- Filter Panel -->
 					<div class="row filter_panel" ng-show="filterPanels.collections">
 						<div class="col-sm-4 col-md-3 col-lg-2">
@@ -912,7 +966,7 @@ $current_user = current_user();
 						Allocations <span class="label label-default" ng-if="filters.allocations.filtered">Filtered</span>
 					</h3>
 					<div class="pull-right">
-						<button class="btn btn-default btn-sm" ng-click="toggleFilters( 'allocations' )">
+						<button class="btn btn-default btn-sm btn-filter" ng-click="toggleFilters( 'allocations' )">
 							<i class="glyphicon glyphicon-filter"></i> {{ filterPanels.allocations ? 'Hide' : 'Show' }} filters
 						</button>&nbsp;
 						<span ng-if="checkPermissions( 'allocations', 'edit' )">
@@ -927,6 +981,16 @@ $current_user = current_user();
 					<div class="clearfix"></div>
 				</div>
 				<div class="panel-body">
+					<!-- Quick Search -->
+					<div class="text-right">
+						<div class="input-group quicksearch pull-right">
+							<span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
+							<input type="text" class="form-control"
+									ng-model="quicksearch.allocations"
+									ng-keypress="loadRecord( $event, 'allocations' )">
+						</div>
+					</div>
+
 					<!-- Filter Panel -->
 					<div class="row filter_panel" ng-show="filterPanels.allocations">
 						<div class="col-sm-4 col-md-3 col-lg-2">
@@ -971,6 +1035,7 @@ $current_user = current_user();
 						</div>
 
 					</div>
+
 					<table class="table">
 						<thead>
 							<tr>
@@ -1085,7 +1150,7 @@ $current_user = current_user();
 						Conversions <span class="label label-default" ng-if="filters.conversions.filtered">Filtered</span>
 					</h3>
 					<div class="pull-right">
-						<button class="btn btn-default btn-sm" ng-click="toggleFilters( 'conversions' )">
+						<button class="btn btn-default btn-sm btn-filter" ng-click="toggleFilters( 'conversions' )">
 							<i class="glyphicon glyphicon-filter"></i> {{ filterPanels.conversions ? 'Hide' : 'Show' }} filters
 						</button>&nbsp;
 						<span ng-if="checkPermissions( 'conversions', 'edit' )">
@@ -1100,6 +1165,16 @@ $current_user = current_user();
 					<div class="clearfix"></div>
 				</div>
 				<div class="panel-body">
+					<!-- Quick Search -->
+					<div class="text-right clearfix">
+						<div class="input-group quicksearch pull-right">
+							<span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
+							<input type="text" class="form-control"
+									ng-model="quicksearch.conversions"
+									ng-keypress="loadRecord( $event, 'conversions' )">
+						</div>
+					</div>
+
 					<!-- Filter Panel -->
 					<div class="row filter_panel" ng-show="filterPanels.conversions">
 						<div class="col-sm-4 col-md-3 col-lg-2">
@@ -1143,7 +1218,7 @@ $current_user = current_user();
 							</div>
 						</div>
 					</div>
-					<!-- End of Filter Panel -->
+
 					<table class="table">
 						<thead>
 							<tr>
@@ -1179,7 +1254,7 @@ $current_user = current_user();
 												<a href ng-click="approveConversion( conversion )">Approve</a>
 											</li>
 											<li role="menuitem" ng-if="conversion.conversion_status == <?php echo CONVERSION_PENDING;?> && checkPermissions( 'conversions', 'edit' )">
-												<a ui-sref="main.convert({ conversionItem: conversion })">Edit...</a>
+												<a ui-sref="main.convert({ conversionItem: conversion, editMode: 'edit' })">Edit...</a>
 											</li>
 										</ul>
 									</div>

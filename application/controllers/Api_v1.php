@@ -57,7 +57,9 @@ class Api_v1 extends MY_Controller {
                         $adjustment = $Adjustment->get_by_id( $adjustment_id );
                         if( $adjustment )
                         {
-                            if( ! is_store_member( $adjustment->get_inventory()->get( 'store_id' ), current_user( TRUE ) ) )
+                            $adjustment_store_id = $adjustment->get_inventory()->get( 'store_id' );
+                            if( $adjustment_store_id != current_store( TRUE )
+                                || ! is_store_member( $adjustment_store_id, current_user( TRUE ) ) )
                             {
                                 $this->_error( 403, 'You are not allowed to access this resource' );
                             }
@@ -156,7 +158,8 @@ class Api_v1 extends MY_Controller {
                         $allocation = $Allocation->get_by_id( $allocation_id );
                         if( $allocation )
                         {
-                            if( ! is_store_member( $allocation->get( 'store_id' ), current_user( TRUE ) ) )
+                            if( $allocation->get( 'store_id' ) != current_store( TRUE )
+                                || ! is_store_member( $allocation->get( 'store_id' ), current_user( TRUE ) ) )
                             {
                                 $this->_error( 403, 'You are not allowed to access this resource' );
                             }
@@ -316,7 +319,8 @@ class Api_v1 extends MY_Controller {
                         $collection = $Collection->get_by_id( $collection_id );
                         if( $collection )
                         {
-                            if( ! is_store_member( $collection->get( 'store_id' ), current_user( TRUE ) ) )
+                            if( $collection->get( 'store_id') != current_store( TRUE )
+                                || ! is_store_member( $collection->get( 'store_id' ), current_user( TRUE ) ) )
                             {
                                 $this->_error( 403, 'You are not allowed to access this resource' );
                             }
@@ -487,7 +491,8 @@ class Api_v1 extends MY_Controller {
                                 $conversion = $Conversion->get_by_id( $conversion_id );
                                 if( $conversion )
                                 {
-                                    if( ! is_store_member( $conversion->get( 'store_id' ), current_user( TRUE ) ) )
+                                    if( $conversion->get( 'store_id' ) != current_store( TRUE )
+                                        || ! is_store_member( $conversion->get( 'store_id' ), current_user( TRUE ) ) )
                                     {
                                         $this->_error( 403, 'You are not allowed to access this resource' );
                                     }
@@ -1616,6 +1621,7 @@ class Api_v1 extends MY_Controller {
     {
         $request_method = $this->input->method();
         $current_user = current_user();
+        $current_store = current_store();
 
         $this->load->library( 'transfer' );
         $Transfer = new Transfer();
@@ -1640,8 +1646,14 @@ class Api_v1 extends MY_Controller {
                         if( $transfer )
                         {
                             // Check permissions
+                            /*
                             if( ( ! $transfer->get( 'origin_id' ) || ! is_store_member( $transfer->get( 'origin_id' ), current_user( TRUE ) ) )
                                 && ( ! $transfer->get( 'destination_id' ) || ! is_store_member( $transfer->get( 'destination_id' ), current_user( TRUE ) ) ) )
+
+                            */
+                            if( !in_array( $current_store->get( 'id' ), array( $transfer->get( 'origin_id' ), $transfer->get( 'destination_id' ) ) )
+                                || ( ( ! $transfer->get( 'origin_id' ) || ! is_store_member( $transfer->get( 'origin_id' ), current_user( TRUE ) ) )
+                                && ( ! $transfer->get( 'destination_id' ) || ! is_store_member( $transfer->get( 'destination_id' ), current_user( TRUE ) ) ) ) )
                             { // current user is not a member of the originating store OR the destination store
                                 $this->_error( 403, 'You are not allowed to access this resource' );
                             }

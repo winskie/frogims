@@ -41,8 +41,8 @@ app.controller( 'NotificationController', [ '$scope', '$timeout', 'appData', 'no
 	}
 ]);
 
-app.controller( 'MainController', [ '$rootScope', '$scope', '$state', 'session', 'lookup', 'notifications',
-	function( $rootScope, $scope, $state, session, lookup, notifications )
+app.controller( 'MainController', [ '$rootScope', '$scope', '$state', 'session', 'appData', 'lookup', 'notifications',
+	function( $rootScope, $scope, $state, session, appData, lookup, notifications )
 	{
 		var allowStoreChange = [ 'main.dashboard', 'main.store' ];
 
@@ -52,6 +52,107 @@ app.controller( 'MainController', [ '$rootScope', '$scope', '$state', 'session',
 		$scope.changeStore = session.changeStore;
 		$scope.changeShift = session.changeShift;
 		$scope.lookup = lookup.getX;
+		$scope.viewRecord = function( type, id )
+			{
+
+				switch( type )
+				{
+					case 'transferValidations':
+						appData.getTransfer( id, 'validation' ).then(
+							function( response )
+							{
+								if( response.status == 'ok' )
+								{
+									$state.go( 'main.transferValidation', { transferItem: response.data } );
+								}
+							});
+						break;
+
+					case 'transfers':
+						appData.getTransfer( id, 'validation' ).then(
+							function( response )
+							{
+								if( response.status == 'ok' )
+								{
+									if( response.data.origin_id == session.data.currentStore.id )
+									{
+										$state.go( 'main.transfer', { transferItem: response.data, editMode: 'transfer' } );
+									}
+									else
+									{
+										notifications.alert( 'Transfer record not found', 'error' );
+									}
+								}
+							});
+						break;
+
+					case 'receipts':
+						appData.getTransfer( id, 'validation' ).then(
+							function( response )
+							{
+								if( response.status == 'ok' )
+								{
+									if( response.data.destination_id == session.data.currentStore.id )
+									{
+										$state.go( 'main.transfer', { transferItem: response.data, editMode: 'receipt' } );
+									}
+									else
+									{
+										notifications.alert( 'Transfer record not found', 'error' );
+									}
+								}
+							});
+						break;
+
+					case 'adjustments':
+						appData.getAdjustment( id ).then(
+							function( response )
+							{
+								if( response.status == 'ok' )
+								{
+									$state.go( 'main.adjust', { adjustmentItem: response.data, editMode: 'edit' } );
+								}
+							});
+						break;
+
+					case 'conversions':
+						appData.getConversion( id ).then(
+							function( response )
+							{
+								if( response.status == 'ok' )
+								{
+									$state.go( 'main.convert', { conversionItem: response.data, editMode: 'edit' } );
+								}
+							});
+						break;
+
+					case 'collections':
+						appData.getCollection( id ).then(
+							function( response )
+							{
+								if( response.status == 'ok' )
+								{
+									$state.go( 'main.mopping', { moppingItem: response.data, editMode: 'edit' } );
+								}
+							});
+						break;
+
+					case 'allocations':
+						appData.getAllocation( id ).then(
+							function( response )
+							{
+								if( response.status == 'ok' )
+								{
+									$state.go( 'main.allocation', { allocationItem: response.data, editMode: 'edit' } );
+								}
+							});
+						break;
+
+					default:
+						// do nothing
+				}
+			};
+
 		$scope.notify = function( message )
 			{
 				notifications.alert( 'Hello!', 'error', 200 );
@@ -660,6 +761,16 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 				appData.filters[tab].filtered = false;
 			};
 
+		$scope.quicksearch = {};
+		$scope.loadRecord = function( event, type, mode )
+			{
+				if( ( event.type == 'keypress' ) && ( event.charCode == 13 ) )
+				{
+					$scope.viewRecord( type, $scope.quicksearch[type], mode );
+					$scope.quicksearch[type] = null;
+				}
+			};
+
 		$scope.showDatePicker = function( dp )
 			{
 				$scope.widgets[dp].opened = true;
@@ -1065,6 +1176,11 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 						}
 
 						$scope.data.selectedCategory = $filter( 'filter' )( $scope.data.transferCategories, { id: $scope.transferItem.validation.transval_category }, true )[0];
+
+						if( !$scope.checkPermissions( 'transferValidations', 'edit' ) || ( $scope.data.editMode != 'view' && $scope.transferItem.validation.transval_status != 1 ) )// TRANSFER_VALIDATION_ONGOING
+						{
+							$scope.data.editMode = 'view';
+						}
 					}
 				},
 				function( reason )
@@ -1668,6 +1784,26 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 							}
 						}
 
+						if( $scope.data.editMode == 'externalReceipt' || $scope.data.editMode == 'receipt' )
+						{
+							if( $scope.transferItem.transfer_status == 3 ) // TRANSFER_RECEIVED
+							{
+								$scope.data.editMode = 'view';
+							}
+						}
+						else if( $scope.data.editMode == 'externalTransfer' || $scope.data.editMode == 'transfer' )
+						{
+							if( $scope.transferItem.transfer_status == 2 ) // TRANSFER_APPROVED
+							{
+								$scope.data.editMode = 'view';
+							}
+						}
+
+						if( $scope.data.editMode != 'view' && !$scope.checkPermissions( 'transfers', 'edit' ) )
+						{
+							$scope.data.editMode = 'view';
+						}
+
 						if( $scope.transferItem.transfer_datetime )
 						{
 							$scope.transferItem.transfer_datetime = Date.parse( $stateParams.transferItem.transfer_datetime );
@@ -1844,6 +1980,11 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
 						$scope.data.selectedItem = $filter( 'filter' )( appData.data.items, { id: $stateParams.adjustmentItem.store_inventory_id }, true )[0];
 
 						$scope.data.selectedTransactionType = $filter( 'filter' )( $scope.data.transactionTypes, { id: $stateParams.adjustmentItem.adj_transaction_type }, true )[0];
+
+						if( !$scope.checkPermissions( 'adjustments', 'edit' ) || ( $scope.data.editMode != 'view' && $scope.adjustmentItem.adjustment_status != 1 ) ) // ADJUSTMENT_PENDING
+						{
+							$scope.data.editMode = 'view';
+						}
 					}
 				},
 				function( reason )
@@ -2076,6 +2217,7 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 		// Initialize
 		if( $stateParams.conversionItem )
 		{
+			$scope.data.editMode = $stateParams.editMode || 'view';
 			appData.getConversion( $stateParams.conversionItem.id ).then(
 				function( response )
 				{
@@ -2088,6 +2230,11 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 						$scope.data.sourceInventory = $filter( 'filter' )( appData.data.items, { id: $stateParams.conversionItem.source_inventory_id }, true )[0];
 						$scope.data.targetInventory = $filter( 'filter' )( appData.data.items, { id: $stateParams.conversionItem.target_inventory_id }, true )[0];
 
+						if( !$scope.checkPermissions( 'conversions', 'edit' ) || ( $scope.data.editMode != 'view' && $scope.conversionItem.conversion_status != 1 ) ) // CONVERSION_PENDING
+						{
+							$scope.data.editMode = 'view';
+						}
+
 						$scope.onInputItemChange();
 					}
 				}
@@ -2097,7 +2244,6 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 		{
 			$scope.onInputItemChange();
 		}
-
 	}
 ]);
 
@@ -2453,6 +2599,11 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 						$scope.moppingItem.business_date = Date.parse( $stateParams.moppingItem.business_date );
 						$scope.data.selectedPullOutShift = $filter( 'filter')( $scope.data.pullOutShifts, { id: $scope.moppingItem.cashier_shift_id }, true )[0];
 						$scope.checkItems();
+
+						if( $scope.data.editMode != 'view' && !$scope.checkPermissions( 'collections', 'edit' ) )
+						{
+							$scope.data.editMode = 'view';
+						}
 					}
 				},
 				function( reason )
@@ -2963,6 +3114,11 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 
 						$scope.onAssigneeTypeChange();
 						$scope.checkItems();
+
+						if( !$scope.checkPermissions( 'allocations', 'edit' ) || ( $scope.data.editMode != 'view' && $scope.allocationItem.allocation_status > 2 ) )
+						{
+							$scope.data.editMode = 'view';
+						}
 					}
 					else
 					{
