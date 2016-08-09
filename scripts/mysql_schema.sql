@@ -14,7 +14,7 @@ ENGINE=InnoDB;
 CREATE TABLE IF NOT EXISTS shifts
 (
     id INTEGER AUTO_INCREMENT NOT NULL,
-    shift_num VARCHAR(10) NOT NULL,
+    shift_num VARCHAR(15) NOT NULL,
     store_type INTEGER NOT NULL,
     description TEXT,
     shift_start_time TIME NOT NULL,

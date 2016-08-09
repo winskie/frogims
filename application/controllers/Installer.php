@@ -36,7 +36,7 @@ class Installer extends CI_Controller {
 								CREATE TABLE IF NOT EXISTS shifts
 								(
 										id INTEGER AUTO_INCREMENT NOT NULL,
-										shift_num VARCHAR(10) NOT NULL,
+										shift_num VARCHAR(15) NOT NULL,
 										store_type INTEGER NOT NULL,
 										shift_start_time TIME NOT NULL,
 										shift_end_time TIME NOT NULL,
