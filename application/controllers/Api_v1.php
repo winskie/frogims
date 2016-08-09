@@ -1651,7 +1651,8 @@ class Api_v1 extends MY_Controller {
                                 && ( ! $transfer->get( 'destination_id' ) || ! is_store_member( $transfer->get( 'destination_id' ), current_user( TRUE ) ) ) )
 
                             */
-                            if( !in_array( $current_store->get( 'id' ), array( $transfer->get( 'origin_id' ), $transfer->get( 'destination_id' ) ) )
+                            if( !$current_user->check_permissions( 'transfer_validations', 'view' )
+                                && !in_array( $current_store->get( 'id' ), array( $transfer->get( 'origin_id' ), $transfer->get( 'destination_id' ) ) )
                                 || ( ( ! $transfer->get( 'origin_id' ) || ! is_store_member( $transfer->get( 'origin_id' ), current_user( TRUE ) ) )
                                 && ( ! $transfer->get( 'destination_id' ) || ! is_store_member( $transfer->get( 'destination_id' ), current_user( TRUE ) ) ) ) )
                             { // current user is not a member of the originating store OR the destination store
