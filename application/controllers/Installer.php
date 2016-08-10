@@ -20,30 +20,30 @@ class Installer extends CI_Controller {
 		$this->db->query( "CREATE DATABASE IF NOT EXISTS frogims" );
 		$this->db->query( "USE frogims" );
 
-				echo 'Creating stations table...<br />';
-				$this->db->query( "
-								CREATE TABLE IF NOT EXISTS stations
-								(
-										id INTEGER AUTO_INCREMENT NOT NULL,
-										station_name VARCHAR(50) NOT NULL,
-										station_short_name VARCHAR(10) NOT NULL,
-										PRIMARY KEY (id)
-								)
-								ENGINE=InnoDB" );
+		echo 'Creating stations table...<br />';
+		$this->db->query( "
+				CREATE TABLE IF NOT EXISTS stations
+				(
+					id INTEGER AUTO_INCREMENT NOT NULL,
+					station_name VARCHAR(50) NOT NULL,
+					station_short_name VARCHAR(10) NOT NULL,
+					PRIMARY KEY (id)
+				)
+				ENGINE=InnoDB" );
 
-				echo 'Creating shifts table...<br />';
-				$this->db->query( "
-								CREATE TABLE IF NOT EXISTS shifts
-								(
-										id INTEGER AUTO_INCREMENT NOT NULL,
-										shift_num VARCHAR(15) NOT NULL,
-										store_type INTEGER NOT NULL,
-										shift_start_time TIME NOT NULL,
-										shift_end_time TIME NOT NULL,
-										description TEXT,
-										PRIMARY KEY (id)
-								)
-								ENGINE=InnoDB" );
+		echo 'Creating shifts table...<br />';
+		$this->db->query( "
+				CREATE TABLE IF NOT EXISTS shifts
+				(
+					id INTEGER AUTO_INCREMENT NOT NULL,
+					shift_num VARCHAR(15) NOT NULL,
+					store_type INTEGER NOT NULL,
+					shift_start_time TIME NOT NULL,
+					shift_end_time TIME NOT NULL,
+					description TEXT,
+					PRIMARY KEY (id)
+				)
+				ENGINE=InnoDB" );
 
 		echo 'Creating groups table...<br />';
 		$this->db->query( "
@@ -104,7 +104,7 @@ class Installer extends CI_Controller {
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					store_name VARCHAR(100) NOT NULL,
 					store_code VARCHAR(6) NOT NULL,
-										store_type INTEGER NOT NULL,
+					store_type INTEGER NOT NULL,
 					store_location VARCHAR(100) NOT NULL,
 					store_contact_number VARCHAR(25) NULL,
 					date_created DATETIME NOT NULL,
@@ -141,7 +141,7 @@ class Installer extends CI_Controller {
 					item_name VARCHAR(100) NOT NULL,
 					item_description VARCHAR(255) NULL,
 					item_group VARCHAR(100) NULL,
-										base_item_id INTEGER NULL DEFAULT NULL,
+					base_item_id INTEGER NULL DEFAULT NULL,
 					teller_allocatable BOOLEAN NOT NULL DEFAULT 0,
 					teller_remittable BOOLEAN NOT NULL DEFAULT 0,
 					machine_allocatable BOOLEAN NOT NULL DEFAULT 0,
@@ -187,7 +187,7 @@ class Installer extends CI_Controller {
 					current_quantity INTEGER NOT NULL,
 					transaction_id INTEGER NOT NULL,
 					transaction_timestamp DATETIME NOT NULL,
-										transaction_shift INTEGER NOT NULL,
+					transaction_shift INTEGER NOT NULL,
 					PRIMARY KEY (id),
 					INDEX transactions_main_ndx (transaction_datetime, transaction_type),
 					FOREIGN KEY transactions_store_inventory_fk (store_inventory_id) REFERENCES store_inventory (id)
@@ -202,7 +202,7 @@ class Installer extends CI_Controller {
 				(
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					store_inventory_id INTEGER NOT NULL,
-										adjustment_shift INTEGER NOT NULL,
+					adjustment_shift INTEGER NOT NULL,
 					adjustment_type SMALLINT NULL,
 					adjusted_quantity INTEGER NOT NULL,
 					previous_quantity INTEGER NULL,
@@ -234,13 +234,13 @@ class Installer extends CI_Controller {
 					origin_name VARCHAR(100) NULL,
 					sender_id INTEGER NULL,
 					sender_name VARCHAR(100) NULL,
-										sender_shift INTEGER NULL,
+					sender_shift INTEGER NULL,
 					transfer_datetime DATETIME NOT NULL,
 					destination_id INTEGER NULL,
 					destination_name VARCHAR(100) NULL,
 					recipient_id INTEGER NULL,
 					recipient_name VARCHAR(100) NULL,
-										recipient_shift INTEGER NULL,
+					recipient_shift INTEGER NULL,
 					receipt_datetime DATETIME NULL,
 					transfer_status SMALLINT NOT NULL DEFAULT 1,
 					date_created DATETIME NOT NULL,
@@ -312,54 +312,54 @@ class Installer extends CI_Controller {
 				)
 				ENGINE=InnoDB" );
 
-				echo 'Creating conversion table table... <br />';
-				$this->db->query("
-								CREATE TABLE IF NOT EXISTS conversion_table
-								(
-										id INTEGER AUTO_INCREMENT NOT NULL,
-										source_item_id INTEGER NOT NULL,
-										target_item_id INTEGER NOT NULL,
-										conversion_factor INTEGER NOT NULL,
-										PRIMARY KEY (id),
-										FOREIGN KEY conversion_table_source_fk (source_item_id) REFERENCES items (id)
-												ON UPDATE CASCADE
-												ON DELETE CASCADE,
-										FOREIGN KEY conversion_table_target_fk (target_item_id) REFERENCES items (id)
-												ON UPDATE CASCADE
-												ON DELETE CASCADE
-								)
-								ENGINE=InnoDB" );
+		echo 'Creating conversion table table... <br />';
+		$this->db->query("
+				CREATE TABLE IF NOT EXISTS conversion_table
+				(
+					id INTEGER AUTO_INCREMENT NOT NULL,
+					source_item_id INTEGER NOT NULL,
+					target_item_id INTEGER NOT NULL,
+					conversion_factor INTEGER NOT NULL,
+					PRIMARY KEY (id),
+					FOREIGN KEY conversion_table_source_fk (source_item_id) REFERENCES items (id)
+						ON UPDATE CASCADE
+						ON DELETE CASCADE,
+					FOREIGN KEY conversion_table_target_fk (target_item_id) REFERENCES items (id)
+						ON UPDATE CASCADE
+						ON DELETE CASCADE
+				)
+				ENGINE=InnoDB" );
 
-				echo 'Creating conversions table... <br />';
-				$this->db->query("
-								CREATE TABLE IF NOT EXISTS conversions
-								(
-										id INTEGER AUTO_INCREMENT NOT NULL,
-										store_id INTEGER NOT NULL,
-										conversion_datetime DATETIME NOT NULL,
-										conversion_shift INTEGER NOT NULL,
-										source_inventory_id INTEGER NOT NULL,
-										target_inventory_id INTEGER NOT NULL,
-										source_quantity INTEGER NOT NULL,
-										target_quantity INTEGER NOT NULL,
-										remarks TEXT NULL DEFAULT NULL,
+		echo 'Creating conversions table... <br />';
+		$this->db->query("
+				CREATE TABLE IF NOT EXISTS conversions
+				(
+					id INTEGER AUTO_INCREMENT NOT NULL,
+					store_id INTEGER NOT NULL,
+					conversion_datetime DATETIME NOT NULL,
+					conversion_shift INTEGER NOT NULL,
+					source_inventory_id INTEGER NOT NULL,
+					target_inventory_id INTEGER NOT NULL,
+					source_quantity INTEGER NOT NULL,
+					target_quantity INTEGER NOT NULL,
+					remarks TEXT NULL DEFAULT NULL,
 					conversion_status SMALLINT NOT NULL DEFAULT 1,
 					created_by INTEGER NOT NULL,
-										date_created DATETIME NOT NULL,
-										date_modified TIMESTAMP NOT NULL,
-										last_modified INTEGER NOT NULL,
-										PRIMARY KEY (id),
-										FOREIGN KEY conversions_store_fk (store_id) REFERENCES stores (id)
-												ON UPDATE CASCADE
-												ON DELETE CASCADE,
-										FOREIGN KEY conversions_source_fk (source_inventory_id) REFERENCES store_inventory (id)
-												ON UPDATE CASCADE
-												ON DELETE RESTRICT,
-										FOREIGN KEY conversions_target_fk (target_inventory_id) REFERENCES store_inventory (id)
-												ON UPDATE CASCADE
-												ON DELETE RESTRICT
-								)
-								ENGINE=InnoDB" );
+					date_created DATETIME NOT NULL,
+					date_modified TIMESTAMP NOT NULL,
+					last_modified INTEGER NOT NULL,
+					PRIMARY KEY (id),
+					FOREIGN KEY conversions_store_fk (store_id) REFERENCES stores (id)
+						ON UPDATE CASCADE
+						ON DELETE CASCADE,
+					FOREIGN KEY conversions_source_fk (source_inventory_id) REFERENCES store_inventory (id)
+						ON UPDATE CASCADE
+						ON DELETE RESTRICT,
+					FOREIGN KEY conversions_target_fk (target_inventory_id) REFERENCES store_inventory (id)
+						ON UPDATE CASCADE
+						ON DELETE RESTRICT
+				)
+				ENGINE=InnoDB" );
 
 		echo 'Creating allocations table...<br />';
 		$this->db->query( "
@@ -417,10 +417,10 @@ class Installer extends CI_Controller {
 				(
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					store_id INTEGER NOT NULL,
-										processing_datetime DATETIME NOT NULL,
+					processing_datetime DATETIME NOT NULL,
 					business_date DATE NOT NULL,
 					shift_id INTEGER NOT NULL,
-										cashier_shift_id INTEGER NOT NULL,
+					cashier_shift_id INTEGER NOT NULL,
 					date_created DATETIME NOT NULL,
 					date_modified TIMESTAMP NOT NULL,
 					last_modified INTEGER NOT NULL,
@@ -438,14 +438,14 @@ class Installer extends CI_Controller {
 				(
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					mopping_id INTEGER NOT NULL,
-										mopped_station_id SMALLINT NOT NULL,
+					mopped_station_id SMALLINT NOT NULL,
 					mopped_item_id INTEGER NOT NULL,
 					mopped_quantity INTEGER NOT NULL DEFAULT 0,
-										mopped_base_quantity INTEGER NOT NULL DEFAULT 0,
-										converted_to INTEGER NULL,
-										group_id INTEGER NULL DEFAULT NULL,
-										mopping_item_status SMALLINT NOT NULL DEFAULT 1,
-										processor_id INTEGER NOT NULL,
+					mopped_base_quantity INTEGER NOT NULL DEFAULT 0,
+					converted_to INTEGER NULL,
+					group_id INTEGER NULL DEFAULT NULL,
+					mopping_item_status SMALLINT NOT NULL DEFAULT 1,
+					processor_id INTEGER NOT NULL,
 					delivery_person VARCHAR(100) NOT NULL,
 					date_created DATETIME NOT NULL,
 					date_modified TIMESTAMP NOT NULL,
