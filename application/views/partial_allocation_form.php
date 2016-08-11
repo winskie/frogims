@@ -227,6 +227,7 @@
     <button type="button" class="btn btn-primary" ng-click="saveAllocation()"
         ng-if="data.editMode != 'view' && checkPermissions( 'allocations', 'edit' )
                 && ( allocationItem.allocation_status == <?php echo ALLOCATION_SCHEDULED;?> || allocationItem.allocation_status == <?php echo ALLOCATION_ALLOCATED;?> )">
+        <i class="glyphicon" ng-class="{ 'glyphicon-time': allocationItem.allocation_status == 1, 'glyphicon-floppy-disk': allocationItem.allocation_status != 1 }"> </i>
         {{ allocationItem.allocation_status == 1 ? 'Schedule' : 'Update' }}
     </button>
     <button type="button" class="btn btn-success"

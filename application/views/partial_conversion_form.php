@@ -106,7 +106,7 @@
                             ng-model="conversionItem.remarks"
                             ng-switch-when="edit">
 
-                    <p class="form-control-static" ng-switch-default>{{ conversionItem.remarks }}</p>
+                    <p class="form-control-static" ng-switch-default>{{ conversionItem.remarks ? conversionItem.remarks : '---' }}</p>
                 </div>
             </div>
 

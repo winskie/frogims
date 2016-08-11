@@ -238,6 +238,7 @@
 			<button type="button" class="btn btn-primary" ng-click="scheduleTransfer()"
 					ng-disabled="transferItem.items.length == 0"
 					ng-if="checkPermissions( 'transfers', 'edit' )">
+				<i class="glyphicon" ng-class="{ 'glyphicon-time': transferItem.id == null, 'glyphicon-floppy-disk': transferItem.id != null }"> </i>
 				{{ transferItem.id ? 'Update' : 'Schedule' }}
 			</button>
 			<button type="button" class="btn btn-success" ng-click="approveTransfer()"

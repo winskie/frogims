@@ -2083,8 +2083,6 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 				return $scope.data.valid_conversion;
 			};
 
-
-
 		$scope.onOutputItemChange = function()
 			{
 				var cf = [];
@@ -2131,6 +2129,8 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 		$scope.onInputItemChange = function()
 			{
 				var cfData = conversionTable.data;
+				var prevOutputItem = $scope.data.targetInventory;
+
 				$scope.conversionItem.source_inventory_id = $scope.data.sourceInventory.id;
 
 				// Get list of items where source item is convertible to
@@ -2153,7 +2153,15 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 
 				if( $scope.data.targetItems.length )
 				{
-					$scope.data.targetInventory = $scope.data.targetItems[0];
+					var prevItem = $filter( 'filter' )( $scope.data.targetItems, { id: prevOutputItem.id }, true );
+					if(  prevItem.length == 1 )
+					{
+						$scope.data.targetInventory = prevItem[0];
+					}
+					else
+					{
+						$scope.data.targetInventory = $scope.data.targetItems[0];
+					}
 					$scope.conversionItem.target_inventory_id = $scope.data.targetInventory.id;
 				}
 				else
@@ -2236,7 +2244,10 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 							$scope.data.editMode = 'view';
 						}
 
-						$scope.onInputItemChange();
+						if( $scope.data.editMode != 'view' && $scope.conversionItem.conversion_status == 2 ) // CONVERSION_APPROVED
+						{ // if we're only viewing the record and the conversion is already approved do not attempt to recompute output
+							$scope.onInputItemChange();
+						}
 					}
 				}
 			)
