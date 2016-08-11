@@ -6,8 +6,7 @@ class MY_Controller extends CI_Controller
     public function __construct( $public_methods = array() )
     {
         parent::__construct();
-
-        if( ! in_array( $this->uri->segment(2), $public_methods ) )
+        if( ! in_array( $this->uri->rsegment( 2 ), $public_methods ) )
         {
             if( ! is_logged_in() )
             {

@@ -14,7 +14,8 @@ app.controller( 'NotificationController', [ '$scope', '$timeout', 'appData', 'no
 				var newMessage = {
 						message: data.message,
 						type: data.type || 'info',
-						visible: false
+						visible: false,
+						duration: data.duration
 					};
 
 				$scope.data.messages.unshift( newMessage );
