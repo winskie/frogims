@@ -28,15 +28,16 @@
 										<i class="glyphicon glyphicon-refresh"></i>
 									</button>
 								</div>
-								<select class="form-control"
+								<select class="form-control ng-animate-disabled"
 										ng-model="data.selectedDestination"
 										ng-options="store.store_name for store in data.destinations track by store.id"
-										ng-if="data.editMode == 'transfer'"
+										ng-show="data.editMode == 'transfer'"
 										ng-change="changeDestination()">
 								</select>
-								<input type="text" class="form-control" placeholder="Enter name of external destination"
+								<input type="text" class="form-control ng-animate-disabled"
+										placeholder="Enter name of external destination"
 										ng-model="transferItem.destination_name"
-										ng-if="data.editMode == 'externalTransfer'">
+										ng-show="data.editMode == 'externalTransfer'">
 							</div>
 							<div class="col-sm-8" ng-if="[ 'transfer', 'externalTransfer' ].indexOf( data.editMode ) == -1">
 								<p class="form-control-static">{{ transferItem.destination_name }}</p>

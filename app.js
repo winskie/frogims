@@ -54,8 +54,9 @@ var app = angular.module( 'FROGIMS', [ 'ngAnimate', 'ui.router', 'ui.bootstrap',
 
 app.constant( 'baseUrl', baseUrl );
 
-app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider )
+app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider, $animateProvider )
 {
+	$animateProvider.classNameFilter( /^(?:(?!ng-animate-disabled).)*$/ ); // disable animation for elements with .ng-animate-disabled class
 	$httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'; // necessary to make Codeigniter's is_ajax_request() function work
 	$httpProvider.interceptors.push( 'sessionInterceptor' );
 	$urlRouterProvider.otherwise( '/main/store' );
