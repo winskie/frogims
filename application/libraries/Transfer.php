@@ -493,8 +493,11 @@ class Transfer extends Base_model {
 						&& $this->db_changes['transfer_status'] == TRANSFER_CANCELLED
 						&& $this->previousStatus == TRANSFER_PENDING )
 					{
-						$inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
-						$inventory->reserve( $item->get( 'quantity' ) * -1 );
+						if( !in_array( $item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ) )
+						{ // do not unreserved items that are already cancelled or voided
+							$inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
+							$inventory->reserve( $item->get( 'quantity' ) * -1 );
+						}
 					}
 
 					if( ! $item->get( 'id' ) )
