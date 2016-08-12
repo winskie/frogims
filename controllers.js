@@ -1220,7 +1220,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				inventoryItem: null,
 				itemReservedQuantity: 0,
 				itemCategory: null,
-				quantity: 0,
+				quantity: 1,
 				remarks: null,
 				allocation: null
 			};
@@ -1350,6 +1350,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				{ // remove only items not yet in databaes
 					var index = $scope.transferItem.items.indexOf( itemRow );
 					$scope.transferItem.items.splice( index, 1 );
+					$scope.getItemQuantities();
 				}
 			};
 

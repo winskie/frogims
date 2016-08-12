@@ -205,10 +205,10 @@
                 </select>
             </div>
 
-            <!-- Balance -->
-            <div class="form-group col-sm-6 col-md-3 col-lg-1">
-                <label class="control-label">Balance</label>
-                <p class="form-control-static text-center">{{ ( input.item.quantity - input.itemReservedQuantity ) | number }}</p>
+            <!-- Available Balance -->
+            <div class="form-group col-sm-6 col-md-3 col-lg-1" ng-if="data.allocationPhase == 'allocation'">
+                <label class="control-label">Available</label>
+                <p class="form-control-static text-center">{{ ( input.item.quantity - input.item.reserved - input.itemReservedQuantity ) | number }}</p>
             </div>
 
             <!-- Quantity-->

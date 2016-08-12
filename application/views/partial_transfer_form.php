@@ -166,16 +166,17 @@
 						ng-options="item as item.item_name for item in data.inventoryItems track by item.id">
 				</select>
 			</div>
-			<div class="form-group col-sm-6 col-md-3 col-lg-1">
-				<label class="control-label">Balance</label>
+			<div class="form-group col-sm-6 col-md-3 col-lg-1" ng-if="data.mode == 'transfer'">
+				<label class="control-label">Available</label>
 				<p class="form-control-static text-center">
-					{{ ( data.editMode == 'externalReceipt' ? input.inventoryItem.quantity : ( input.inventoryItem.quantity - input.itemReservedQuantity ) ) | number }}
+					{{ ( input.inventoryItem.quantity - input.inventoryItem.reserved - input.itemReservedQuantity ) | number }}
 				</p>
 			</div>
 			<div class="form-group col-sm-6 col-md-3 col-lg-2">
 				<label class="control-label">Quantity</label>
 				<input type="number" class="form-control"
 						ng-model="input.quantity"
+						min="1"
 						ng-keypress="addTransferItem( $event )">
 			</div>
 			<div class="form-group col-sm-12 col-md-6 col-lg-3" ng-if="data.showCategory">
@@ -185,7 +186,7 @@
 						ng-options="category as category.category for category in data.itemCategories track by category.id">
 				</select>
 			</div>
-			<div class="form-group" ng-class="{ 'col-sm-12 col-md-6 col-lg-3': data.showCategory, 'col-sm-12 col-md-6 col-lg-6': !data.showCategory }">
+			<div class="form-group" ng-class="{ 'col-sm-12 col-md-6 col-lg-2': data.showCategory, 'col-sm-12 col-md-6 col-lg-6': !data.showCategory }">
 				<label class="control-label">Remarks</label>
 				<input type="text" class="form-control"
 						ng-model="input.remarks"
