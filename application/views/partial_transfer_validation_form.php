@@ -225,7 +225,10 @@
 			</thead>
 			<tbody>
 				<tr ng-repeat="row in transferItem.items"
-						ng-class="{ 'bg-success': row.checked, 'text-danger': ( ( transferItem.transfer_status == <?php echo TRANSFER_RECEIVED;?> ) && ( row.quantity != row.quantity_received ) ) }">
+						ng-class="{ 'bg-success': row.checked,
+								'text-danger': ( ( transferItem.transfer_status == <?php echo TRANSFER_RECEIVED;?> ) && ( row.quantity != row.quantity_received ) ),
+								danger: ( [ <?php echo implode( ', ', array( TRANSFER_ITEM_VOIDED, TRANSFER_ITEM_CANCELLED ) );?> ].indexOf( row.transfer_item_status ) != -1 ),
+								deleted: ( [ <?php echo implode( ', ', array( TRANSFER_ITEM_VOIDED, TRANSFER_ITEM_CANCELLED ) );?> ].indexOf( row.transfer_item_status ) != -1 ) }">
 					<td class="text-center">{{ $index + 1 }}</td>
 					<td class="text-left">{{ row.item_name }}</td>
 					<td class="text-left">{{ row.remarks ? row.remarks : '---' }}</td>
@@ -235,7 +238,9 @@
 						<i class="glyphicon glyphicon-exclamation-sign text-danger"
 								ng-if="transferItem.transfer_status == <?php echo TRANSFER_RECEIVED;?> && row.quantity != row.quantity_received"> </i>
 						{{ row.quantity_received == null ? '---' : ( row.quantity_received | number ) }}</td>
-					<td class="text-center"><input type="checkbox" ng-model="row.checked"></td>
+					<td class="text-center">
+						<input type="checkbox" ng-model="row.checked" ng-if="row.transfer_item_status != 4 && row.transfer_item_status != 5">
+					</td>
 				</tr>
 				<tr ng-if="!transferItem.items.length">
 					<td colspan="7" class="text-center bg-warning">
