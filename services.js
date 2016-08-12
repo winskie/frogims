@@ -439,8 +439,14 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 						{ id: 5, categoryName: 'External' }
 					],
 				transferStatus: [
-						{ id: 1, statusName: 'Pending' },
+						{ id: 1, statusName: 'Scheduled' },
 						{ id: 2, statusName: 'Approved' },
+						{ id: 3, statusName: 'Received' },
+						{ id: 4, statusName: 'Cancelled' },
+					],
+				receiptStatus: [
+						{ id: 1, statusName: 'Scheduled' },
+						{ id: 2, statusName: 'Pending Receipt' },
 						{ id: 3, statusName: 'Received' },
 						{ id: 4, statusName: 'Cancelled' },
 					],
@@ -2146,8 +2152,14 @@ appServices.service( 'lookup',
 				'5': 'External'
 			},
 			transferStatus: {
-				'1': 'Pending',
+				'1': 'Scheduled',
 				'2': 'Approved',
+				'3': 'Received',
+				'4': 'Cancelled'
+			},
+			receiptStatus: {
+				'1': 'Scheduled',
+				'2': 'Pending Receipt',
 				'3': 'Received',
 				'4': 'Cancelled'
 			},

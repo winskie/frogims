@@ -167,7 +167,7 @@ $current_user = current_user();
 				</div>
 				<div class="panel-body">
 					<!-- Quick Search -->
-					<div class="text-right">
+					<div class="text-right clearfix">
 						<div class="input-group quicksearch pull-right">
 							<span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
 							<input type="text" class="form-control"
@@ -376,7 +376,7 @@ $current_user = current_user();
 				</div>
 				<div class="panel-body">
 					<!-- Quick Search -->
-					<div class="text-right">
+					<div class="text-right clearfix">
 						<div class="input-group quicksearch pull-right">
 							<span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
 							<input type="text" class="form-control"
@@ -544,7 +544,7 @@ $current_user = current_user();
 				</div>
 				<div class="panel-body">
 					<!-- Quick Search -->
-					<div class="text-right">
+					<div class="text-right clearfix">
 						<div class="input-group quicksearch pull-right">
 							<span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
 							<input type="text" class="form-control"
@@ -644,7 +644,7 @@ $current_user = current_user();
 								<td class="text-center vert-top">
 									<i class="glyphicon glyphicon-ok text-success" ng-if="receipt.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_VALIDATED;?>"> </i>
 									<i class="glyphicon glyphicon-remove text-danger" ng-if="receipt.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_DISPUTED;?>"> </i>
-									{{ lookup( 'transferStatus', receipt.transfer_status ) }}
+									{{ lookup( 'receiptStatus', receipt.transfer_status ) }}
 								</td>
 								<td class="text-right vert-top">
 									<div class="btn-group" uib-dropdown>
@@ -709,7 +709,7 @@ $current_user = current_user();
 				</div>
 				<div class="panel-body">
 					<!-- Quick Search -->
-					<div class="text-right">
+					<div class="text-right clearfix">
 						<div class="input-group quicksearch pull-right">
 							<span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
 							<input type="text" class="form-control"
@@ -846,7 +846,7 @@ $current_user = current_user();
 				</div>
 				<div class="panel-body">
 					<!-- Quick Search -->
-					<div class="text-right">
+					<div class="text-right clearfix">
 						<div class="input-group quicksearch pull-right">
 							<span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
 							<input type="text" class="form-control"
@@ -984,7 +984,7 @@ $current_user = current_user();
 				</div>
 				<div class="panel-body">
 					<!-- Quick Search -->
-					<div class="text-right">
+					<div class="text-right clearfix">
 						<div class="input-group quicksearch pull-right">
 							<span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
 							<input type="text" class="form-control"

@@ -68,7 +68,7 @@
 						<!-- Transfer Status -->
 						<div class="form-group">
 							<label class="control-label col-sm-4">Status</label>
-							<p class="form-control-static col-sm-7">{{ lookup( 'transferStatus', transferItem.transfer_status ) }}</p>
+							<p class="form-control-static col-sm-7">{{ transferItem.id ? lookup( ( data.mode == 'transfer' ? 'transferStatus' : 'receiptStatus' ), transferItem.transfer_status ) : 'New' }}</p>
 						</div>
 
 						<!-- Date of Transfer -->

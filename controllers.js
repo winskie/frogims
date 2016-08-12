@@ -643,7 +643,7 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 					opened: false
 				},
 				receiptsSources: angular.copy( appData.data.stores ),
-				receiptsStatus: angular.copy( appData.data.transferStatus ),
+				receiptsStatus: angular.copy( appData.data.receiptStatus ),
 
 				adjustmentsDate: {
 					opened: false
