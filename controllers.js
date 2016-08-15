@@ -77,7 +77,7 @@ app.controller( 'MainController', [ '$rootScope', '$scope', '$state', 'session',
 								{
 									if( response.data.origin_id == session.data.currentStore.id )
 									{
-										$state.go( 'main.transfer', { transferItem: response.data, editMode: 'transfer' } );
+										$state.go( 'main.transfer', { transferItem: response.data, editMode: 'auto' } );
 									}
 									else
 									{
@@ -95,7 +95,7 @@ app.controller( 'MainController', [ '$rootScope', '$scope', '$state', 'session',
 								{
 									if( response.data.destination_id == session.data.currentStore.id )
 									{
-										$state.go( 'main.transfer', { transferItem: response.data, editMode: 'receipt' } );
+										$state.go( 'main.transfer', { transferItem: response.data, editMode: 'auto' } );
 									}
 									else
 									{
@@ -111,7 +111,7 @@ app.controller( 'MainController', [ '$rootScope', '$scope', '$state', 'session',
 							{
 								if( response.status == 'ok' )
 								{
-									$state.go( 'main.adjust', { adjustmentItem: response.data, editMode: 'edit' } );
+									$state.go( 'main.adjust', { adjustmentItem: response.data, editMode: 'auto' } );
 								}
 							});
 						break;
@@ -122,7 +122,7 @@ app.controller( 'MainController', [ '$rootScope', '$scope', '$state', 'session',
 							{
 								if( response.status == 'ok' )
 								{
-									$state.go( 'main.convert', { conversionItem: response.data, editMode: 'edit' } );
+									$state.go( 'main.convert', { conversionItem: response.data, editMode: 'auto' } );
 								}
 							});
 						break;
@@ -133,7 +133,7 @@ app.controller( 'MainController', [ '$rootScope', '$scope', '$state', 'session',
 							{
 								if( response.status == 'ok' )
 								{
-									$state.go( 'main.mopping', { moppingItem: response.data, editMode: 'edit' } );
+									$state.go( 'main.mopping', { moppingItem: response.data, editMode: 'view' } );
 								}
 							});
 						break;
@@ -144,7 +144,7 @@ app.controller( 'MainController', [ '$rootScope', '$scope', '$state', 'session',
 							{
 								if( response.status == 'ok' )
 								{
-									$state.go( 'main.allocation', { allocationItem: response.data, editMode: 'edit' } );
+									$state.go( 'main.allocation', { allocationItem: response.data, editMode: 'auto' } );
 								}
 							});
 						break;
@@ -1199,7 +1199,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		$scope.data = {
 			mode: 'transfer', // transfer | receipt
-			editMode: $stateParams.editMode || 'transfer', // view, externalReceipt, externalTransfer, receipt, transfer
+			editMode: $stateParams.editMode || 'auto', // view, externalReceipt, externalTransfer, receipt, transfer
 			title: 'New Transfer',
 			sources: [],
 			destinations: [],
@@ -1487,7 +1487,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						break;
 
 					default:
-						console.error( 'Invalid entry mode' );
+						console.error( 'Invalid entry mode - ' + $scope.data.editMode );
 						// do nothing
 				}
 
@@ -1759,7 +1759,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		if( $stateParams.transferItem )
 		{
-			$scope.data.editMode = $stateParams.editMode || 'view';
+			$scope.data.editMode = $stateParams.editMode || 'auto';
 			appData.getTransfer( $stateParams.transferItem.id ).then(
 				function( response )
 				{
@@ -1767,7 +1767,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 					{
 						$scope.transferItem = response.data;
 
-						if( $stateParams.editMode != 'view' )
+						if( $scope.data.editMode == 'auto' )
 						{
 							if( ! $scope.transferItem.origin_id && $scope.transferItem.origin_name )
 							{
@@ -1789,16 +1789,63 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 						if( $scope.data.editMode == 'externalReceipt' || $scope.data.editMode == 'receipt' )
 						{
-							if( $scope.transferItem.transfer_status == 3 ) // TRANSFER_RECEIVED
+							switch( $scope.transferItem.transfer_status )
 							{
-								$scope.data.editMode = 'view';
+								case 1: // TRANSFER_SCHEDULED
+									$scope.data.editMode = 'view';
+									break;
+
+								case 2: // TRANSFER_APPROVED
+									if( $scope.data.editMode != 'receipt' )
+									{
+										$scope.data.editMode = 'view';
+									}
+									break;
+
+								case 3: // TRANSFER_RECEIVED
+									$scope.data.editMode = 'view';
+									break;
+
+								case 4: // TRANSFER_CANCELLED_SCHEDULED
+									$scope.data.editMode = 'view';
+									break;
+
+								case 5: // TRANSFER_CANCELLED_APPROVED
+									$scope.data.editMode = 'view';
+									break;
+
+								default:
+									$scope.data.editMode = 'view';
+									// do nothing
 							}
 						}
 						else if( $scope.data.editMode == 'externalTransfer' || $scope.data.editMode == 'transfer' )
 						{
-							if( $scope.transferItem.transfer_status == 2 ) // TRANSFER_APPROVED
+							switch( $scope.transferItem.transfer_status )
 							{
-								$scope.data.editMode = 'view';
+								case 1: // TRANSFER_SCHEDULED
+									// do nothing
+									break;
+
+								case 2: // TRANSFER_APPROVED
+									$scope.data.editMode = 'view';
+									break;
+
+								case 3: // TRANSFER_RECEIVED
+									$scope.data.editMode = 'view';
+									break;
+
+								case 4: // TRANSFER_CANCELLED_SCHEDULED
+									$scope.data.editMode = 'view';
+									break;
+
+								case 5: // TRANSFER_CANCELLED_APPROVED
+									$scope.data.editMode = 'view';
+									break;
+
+								default:
+									$scope.data.editMode = 'view';
+									// do nothing
 							}
 						}
 
@@ -1851,7 +1898,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 							var itemCount = $scope.transferItem.items.length;
 							for( var i = 0; i < itemCount; i++ )
 							{
-								if( ! $scope.transferItem.items[i].quantity_received )
+								if( ! $scope.transferItem.items[i].quantity_received && $scope.transferItem.items[i].transfer_item_status == 2 )
 								{
 									$scope.transferItem.items[i].quantity_received = $scope.transferItem.items[i].quantity;
 								}
@@ -1871,9 +1918,11 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 					notifications.alert( reason, 'error' );
 				});
 
-		};
-
-		$scope.changeEditMode();
+		}
+		else
+		{
+			$scope.changeEditMode();
+		}
 	}
 ]);
 
@@ -1881,7 +1930,7 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
 	function( $scope, $filter, $state, $stateParams, session, appData, notifications, transactionTypes )
 	{
 		$scope.data = {
-				editMode: $stateParams.editMode || 'view',
+				editMode: $stateParams.editMode || 'auto',
 				inventoryItems: angular.copy( appData.data.items ),
 				selectedItem: appData.data.items[0],
 				transactionTypes: angular.copy( transactionTypes )
@@ -1984,6 +2033,27 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
 
 						$scope.data.selectedTransactionType = $filter( 'filter' )( $scope.data.transactionTypes, { id: $stateParams.adjustmentItem.adj_transaction_type }, true )[0];
 
+						if( $scope.data.editMode == 'auto' )
+						{
+							switch( $scope.adjustmentItem.adjustment_status )
+							{
+								case 1: // ADJUSTMENT_PENDING
+									$scope.data.editMode = 'edit';
+									break;
+
+								case 2: // ADJUSTMENT_APPROVED
+									$scope.data.editMode = 'view';
+									break;
+
+								case 3: // ADJUSTMENT_CANCELLED
+									$scope.data.editMode = 'view';
+									break;
+
+								default:
+									$scope.data.editMode = 'view';
+							}
+						}
+
 						if( !$scope.checkPermissions( 'adjustments', 'edit' ) || ( $scope.data.editMode != 'view' && $scope.adjustmentItem.adjustment_status != 1 ) ) // ADJUSTMENT_PENDING
 						{
 							$scope.data.editMode = 'view';
@@ -2010,7 +2080,7 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 		var convertibleItems = [];
 
 		$scope.data = {
-				editMode: $stateParams.editMode || 'view',
+				editMode: $stateParams.editMode || 'auto',
 				conversionDatepicker: { format: 'yyyy-MM-dd HH:mm:ss', opened: false },
 				sourceItems: items,
 				targetItems: items,
@@ -2240,6 +2310,27 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 						$scope.conversionItem.target_quantity = parseInt( $stateParams.conversionItem.target_quantity );
 						$scope.data.sourceInventory = $filter( 'filter' )( appData.data.items, { id: $stateParams.conversionItem.source_inventory_id }, true )[0];
 						$scope.data.targetInventory = $filter( 'filter' )( appData.data.items, { id: $stateParams.conversionItem.target_inventory_id }, true )[0];
+
+						if( $scope.data.editMode == 'auto' )
+						{
+							switch( $scope.conversionItem.conversion_status )
+							{
+								case 1: // CONVERSION_PENDING
+									$scope.data.editMode = 'edit';
+									break;
+
+								case 2: // CONVERSION_APPROVED
+									$scope.data.editMode = 'view';
+									break;
+
+								case 3: // CONVERSION_CANCELLED
+									$scope.data.editMode = 'view';
+									break;
+
+								default:
+									$scope.data.editMode = 'view';
+							}
+						}
 
 						if( !$scope.checkPermissions( 'conversions', 'edit' ) || ( $scope.data.editMode != 'view' && $scope.conversionItem.conversion_status != 1 ) ) // CONVERSION_PENDING
 						{
@@ -2689,7 +2780,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 		}
 
 		$scope.data = {
-			editMode: $stateParams.editMode || 'new',
+			editMode: $stateParams.editMode || 'auto',
 			businessDatepicker: { format: 'yyyy-MM-dd', opened: false },
 			assigneeShifts: angular.copy( assigneeShifts ),
 			selectedAssigneeShift: null,
@@ -3128,6 +3219,31 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 
 						$scope.onAssigneeTypeChange();
 						$scope.checkItems();
+
+						if( $scope.data.editMode == 'auto' )
+						{
+							switch( $scope.allocationItem.allocation_status )
+							{
+								case 1: // ALLOCATION_SCHEDULED
+									$scope.data.editMode = 'edit';
+									break;
+
+								case 2: // ALLOCATION_ALLOCATED
+									$scope.data.editMode = 'edit';
+									break;
+
+								case 3: // ALLOCATION_REMITTED
+									$scope.data.editMode = 'view';
+									break;
+
+								case 4: // ALLOCATION_CANCELLED
+									$scope.data.editMode = 'view';
+									break;
+
+								default:
+									$scope.data.editMode = 'view';
+							}
+						}
 
 						if( !$scope.checkPermissions( 'allocations', 'edit' ) || ( $scope.data.editMode != 'view' && $scope.allocationItem.allocation_status > 2 ) )
 						{

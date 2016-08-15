@@ -490,7 +490,7 @@ class Transfer extends Base_model {
 					}
 
 					if( array_key_exists( 'transfer_status', $this->db_changes )
-						&& $this->db_changes['transfer_status'] == TRANSFER_CANCELLED
+						&& $this->db_changes['transfer_status'] == TRANSFER_PENDING_CANCELLED
 						&& $this->previousStatus == TRANSFER_PENDING )
 					{
 						if( !in_array( $item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ) )
@@ -534,7 +534,7 @@ class Transfer extends Base_model {
 							}
 							break;
 
-						case TRANSFER_CANCELLED:
+						case TRANSFER_APPROVED_CANCELLED:
 							$pre_cancellation_status = array( TRANSFER_APPROVED );
 							if( isset( $this->previousStatus ) && in_array( $this->previousStatus, $pre_cancellation_status ) )
 							{
@@ -679,7 +679,8 @@ class Transfer extends Base_model {
 
 					break;
 
-				case TRANSFER_CANCELLED:
+				case TRANSFER_PENDING_CANCELLED:
+				case TRANSFER_APPROVED_CANCELLED:
 					break;
 
 				case TRANSFER_RECEIVED:
@@ -946,7 +947,14 @@ class Transfer extends Base_model {
 		//$current_store = $current_store->get_by_id( $ci->session->current_store_id );
 
 		$ci->db->trans_start();
-		$this->set( 'transfer_status', TRANSFER_CANCELLED );
+		if( $this->transfer_status == TRANSFER_PENDING )
+		{
+			$this->set( 'transfer_status', TRANSFER_PENDING_CANCELLED );
+		}
+		elseif( $this->transfer_status == TRANSFER_APPROVED )
+		{
+			$this->set( 'transfer_status', TRANSFER_APPROVED_CANCELLED );
+		}
 		$result = $this->db_save();
 		if( $result )
 		{

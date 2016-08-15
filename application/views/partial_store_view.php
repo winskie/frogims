@@ -446,7 +446,7 @@ $current_user = current_user();
 								<td class="vert-top">{{ transfer.transfer_datetime }}</td>
 								<td class="vert-top">
 									<div>
-										{{ transfer.destination_name }}
+										{{ transfer.destination_name }} thru {{ transfer.sender_name }}
 									</div>
 									<div class="panel panel-default">
 										<table class="table table-condensed table-bordered table-details">
@@ -614,7 +614,7 @@ $current_user = current_user();
 								<td class="vert-top">{{ receipt.receipt_datetime }}</td>
 								<td class="vert-top">
 									<div>
-										{{ receipt.origin_name }} <span class="text-muted">- sent last {{ receipt.transfer_datetime }}</span>
+										{{ receipt.origin_name }} <span class="text-muted">- sent last {{ receipt.transfer_datetime }}</span> thru {{ receipt.sender_name }}
 									</div>
 									<div class="panel panel-default">
 										<table class="table table-condensed table-bordered table-details">

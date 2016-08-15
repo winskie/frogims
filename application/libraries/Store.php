@@ -430,7 +430,7 @@ class Store extends Base_model
 		$ci->load->library( 'transfer' );
 
 		// Do not show pending or scheduled transfers
-		$available_status = array( TRANSFER_APPROVED, TRANSFER_RECEIVED, TRANSFER_CANCELLED );
+		$available_status = array( TRANSFER_APPROVED, TRANSFER_RECEIVED, TRANSFER_APPROVED_CANCELLED );
 
 		$select = 't.*';
 
@@ -939,7 +939,7 @@ class Store extends Base_model
 		$ci->load->library( 'transfer' );
 
 		// Do not show pending or scheduled transfers
-		$available_status = array( TRANSFER_APPROVED, TRANSFER_RECEIVED, TRANSFER_CANCELLED );
+		$available_status = array( TRANSFER_APPROVED, TRANSFER_RECEIVED, TRANSFER_PENDING_CANCELLED );
 
 		$ci->db->select( 't.*' );
 		if( $receipt_date )

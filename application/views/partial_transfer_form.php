@@ -127,11 +127,12 @@
 					<td class="text-center">{{ $index + 1 }}</td>
 					<td class="text-left">{{ row.item_name }}</td>
 					<td class="text-center">{{ row.quantity | number }}</td>
-					<td class="text-center" ng-if="['receipt', 'externalReceipt', 'view' ].indexOf( data.editMode ) != -1">
+					<td class="text-center"
+							ng-if="['receipt', 'externalReceipt', 'view' ].indexOf( data.editMode ) != -1">
 						<input type="number" class="form-control"
 							ng-model="row.quantity_received"
-							ng-if="data.editMode != 'view'">
-						<span ng-if="data.editMode == 'view'">{{ row.quantity_received == null ? '---' : ( row.quantity_received | number ) }}</span>
+							ng-if="data.editMode != 'view' && row.transfer_item_status == 2">
+						<span ng-if="data.editMode == 'view' || row.transfer_item_status != 2">{{ row.quantity_received == null ? '---' : ( row.quantity_received | number ) }}</span>
 					</td>
 					<td class="text-left">{{ row.category_name ? row.category_name : '- None -' }}</td>
 					<td class="text-left">{{ row.remarks }}</td>

@@ -442,13 +442,15 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 						{ id: 1, statusName: 'Scheduled' },
 						{ id: 2, statusName: 'Approved' },
 						{ id: 3, statusName: 'Received' },
-						{ id: 4, statusName: 'Cancelled' },
+						{ id: 4, statusName: 'Cancelled - Scheduled' },
+						{ id: 5, statusName: 'Cancelled - Approved' },
 					],
 				receiptStatus: [
 						{ id: 1, statusName: 'Scheduled' },
 						{ id: 2, statusName: 'Pending Receipt' },
 						{ id: 3, statusName: 'Received' },
-						{ id: 4, statusName: 'Cancelled' },
+						{ id: 4, statusName: 'Cancelled - Scheduled' },
+						{ id: 5, statusName: 'Cancelled - Approved' },
 					],
 				adjustmentStatus: [
 						{ id: 1, statusName: 'Pending' },
@@ -2155,13 +2157,15 @@ appServices.service( 'lookup',
 				'1': 'Scheduled',
 				'2': 'Approved',
 				'3': 'Received',
-				'4': 'Cancelled'
+				'4': 'Cancelled',
+				'5': 'Cancelled'
 			},
 			receiptStatus: {
 				'1': 'Scheduled',
 				'2': 'Pending Receipt',
 				'3': 'Received',
-				'4': 'Cancelled'
+				'4': 'Cancelled',
+				'5': 'Cancelled'
 			},
 			adjustmentStatus: {
 				'1': 'Pending',
