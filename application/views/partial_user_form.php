@@ -73,8 +73,6 @@
 									<div class="col-sm-8 col-md-6 col-lg-4">
 										<input type="password" class="form-control"
 												ng-model="userItem.password">
-										<span class="glyphicon glyphicon-remove form-control-feedback text-danger"
-												ng-if="userItem.password != data.passwordConfirmation"></span>
 									</div>
 								</div>
 
@@ -84,6 +82,8 @@
 									<div class="col-sm-8 col-md-6 col-lg-4">
 										<input type="password" class="form-control"
 												ng-model="data.passwordConfirmation">
+										<span class="glyphicon glyphicon-remove form-control-feedback text-danger"
+												ng-if="userItem.password != data.passwordConfirmation && data.passwordConfirmation.length > 0"></span>
 									</div>
 								</div>
 							</div>
