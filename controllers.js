@@ -1700,7 +1700,8 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				for( var i = 0; i < n; i++ )
 				{
 					if( items[i].item_id == $scope.input.inventoryItem.item_id
-						&& items[i].transfer_item_status == 1 ) // TRANSFER_ITEM_SCHEDULED
+						&& items[i].transfer_item_status == 1
+						&& !items[i].id ) // TRANSFER_ITEM_SCHEDULED
 					{
 						$scope.input.itemReservedQuantity += items[i].quantity;
 					}

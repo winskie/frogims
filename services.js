@@ -9,7 +9,7 @@ appServices.factory( 'sessionInterceptor' , [ '$window',
 					if( response.status == 401 )
 					{ // Unauthorized, session timeout
 						console.info( 'Session expired' );
-						$window.location.href = baseUrl + 'index.php/login';
+						$window.location.href = baseUrl + 'index.php/login/timeout';
 					}
 
 					return response;

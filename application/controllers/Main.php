@@ -38,7 +38,7 @@ class Main extends MY_Controller {
 		}
 		else
 		{
-			$this->load->view( 'expired_session_view' );
+			echo 'Unauthorized access';
 		}
 	}
 
