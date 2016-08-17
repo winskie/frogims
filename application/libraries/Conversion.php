@@ -115,7 +115,7 @@ class Conversion extends Base_model {
         $source_inventory = $inventory->get_by_id( $this->source_inventory_id );
         $target_inventory = $inventory->get_by_id( $this->target_inventory_id );
         $target_quantity = $this->convert( $source_inventory->get( 'item_id' ), $target_inventory->get( 'item_id' ), $this->source_quantity );
-        $target_quantity = $target_quantity[$target_inventory->get('item_id')];
+        $target_quantity = $target_quantity[$target_inventory->get( 'item_id' )];
 
         if( $target_quantity )
         {
@@ -455,7 +455,7 @@ class Conversion extends Base_model {
             {
                 $row = $query->row_array();
                 return array(
-                        $source_item_id => $quantity * $row['conversion_factor']
+                        $target_item_id => $quantity * $row['conversion_factor']
                     );
             }
             else
