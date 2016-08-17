@@ -110,7 +110,7 @@
                 </div>
             </div>
 
-            <div ng-show="data.editMode != 'view' && data.messages.length" class="alert alert-danger" role="alert">
+            <div ng-show="data.messages.length" class="alert alert-danger" role="alert">
                 <ul>
                     <li ng-repeat="message in data.messages">{{ message }}</li>
                 </ul>
@@ -125,7 +125,7 @@
             ng-disabled="!data.valid_conversion"
             ng-if="conversionItem.conversion_status == <?php echo CONVERSION_PENDING;?> && checkPermissions( 'conversions', 'approve' )"
             ng-click="approveConversion()">
-        {{ mode ? mode : 'Convert' }}
+        {{ mode ? mode : 'Approve' }}
     </button>
     <button class="btn btn-default" ui-sref="main.store({ activeTab: 'conversions' })">Close</button>
 </div>

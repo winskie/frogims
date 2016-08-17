@@ -2342,6 +2342,13 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 						{ // if we're only viewing the record and the conversion is already approved do not attempt to recompute output
 							$scope.onInputItemChange();
 						}
+						else
+						{
+							// TODO: hack for populating $scope.data.factor without requesting for it
+							$scope.data.factor = $scope.conversionItem.target_quantity / $scope.conversionItem.source_quantity;
+							$scope.checkConversion();
+						}
+
 					}
 				}
 			)
