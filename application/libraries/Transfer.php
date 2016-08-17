@@ -534,8 +534,9 @@ class Transfer extends Base_model {
 							}
 							break;
 
+						case TRANSFER_PENDING_CANCELLED:
 						case TRANSFER_APPROVED_CANCELLED:
-							$pre_cancellation_status = array( TRANSFER_APPROVED );
+							$pre_cancellation_status = array( TRANSFER_PENDING, TRANSFER_APPROVED );
 							if( isset( $this->previousStatus ) && in_array( $this->previousStatus, $pre_cancellation_status ) )
 							{
 								$this->_transact_cancellation();
@@ -792,7 +793,10 @@ class Transfer extends Base_model {
 				$inventory->transact( TRANSACTION_TRANSFER_CANCEL, $quantity, $timestamp, $this->id );
 			}
 
-			$item->set( 'transfer_item_status', TRANSFER_ITEM_CANCELLED );
+			if( in_array( $item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_SCHEDULED, TRANSFER_ITEM_APPROVED ) ) )
+			{
+				$item->set( 'transfer_item_status', TRANSFER_ITEM_CANCELLED );
+			}
 			$item->db_save();
 		}
 		$ci->db->trans_complete();
