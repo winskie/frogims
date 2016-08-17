@@ -3,6 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Transfer extends Base_model {
 
+	protected $transfer_reference_num;
 	protected $origin_id;
 	protected $origin_name;
 	protected $sender_id;
@@ -33,6 +34,7 @@ class Transfer extends Base_model {
 		parent::__construct();
 		$this->primary_table = 'transfers';
 		$this->db_fields = array(
+				'transfer_reference_num' => array( 'type' => 'string' ),
 				'origin_id' => array( 'type' => 'integer' ),
 				'origin_name' => array( 'type' => 'string' ),
 				'sender_id' => array( 'type' => 'integer' ),

@@ -46,7 +46,18 @@
 					</div>
 
 					<div class="col-sm-4">
-
+						<!-- Reference Number -->
+						<div class="form-group">
+							<label class="control-label col-sm-4">Reference #</label>
+							<div class="col-sm-7" ng-switch on="[ 'receipt', 'view' ].indexOf( data.editMode ) == -1">
+								<input type="text" class="form-control"
+										ng-switch-when="true"
+										ng-model="transferItem.transfer_reference_num">
+								<p class="form-control-static" ng-switch-default>
+									{{ transferItem.transfer_reference_num ? transferItem.transfer_reference_num : '---' }}
+								</p>
+							</div>
+						</div>
 
 						<!-- Sweeper -->
 						<div class="form-group">
@@ -110,7 +121,7 @@
 				<tr>
 					<th class="text-center" style="width: 50px;">Row</th>
 					<th class="text-left">Item</th>
-					<th class="text-center" style="width: 100px;">Quantity</th>
+					<th class="text-center" style="width: 100px;">Declared</th>
 					<th class="text-center" style="width: 100px;"
 							ng-if="['receipt', 'externalReceipt', 'view' ].indexOf( data.editMode ) != -1">Received</th>
 					<th class="text-left">Category</th>
@@ -128,11 +139,13 @@
 					<td class="text-left">{{ row.item_name }}</td>
 					<td class="text-center">{{ row.quantity | number }}</td>
 					<td class="text-center"
-							ng-if="['receipt', 'externalReceipt', 'view' ].indexOf( data.editMode ) != -1">
+							ng-if="[ 'receipt', 'externalReceipt', 'view' ].indexOf( data.editMode ) != -1">
 						<input type="number" class="form-control"
 							ng-model="row.quantity_received"
-							ng-if="data.editMode != 'view' && row.transfer_item_status == 2">
-						<span ng-if="data.editMode == 'view' || row.transfer_item_status != 2">{{ row.quantity_received == null ? '---' : ( row.quantity_received | number ) }}</span>
+							ng-if="( data.editMode != 'view' && row.transfer_item_status == 2 ) || ( data.editMode == 'externalReceipt' && row.transfer_item_status == 1 )">
+						<span ng-if="( data.editMode == 'view' || row.transfer_item_status != 2 ) && !( data.editMode == 'externalReceipt' && row.transfer_item_status == 1 )">
+							{{ row.quantity_received == null ? '---' : ( row.quantity_received | number ) }}
+						</span>
 					</td>
 					<td class="text-left">{{ row.category_name ? row.category_name : '- None -' }}</td>
 					<td class="text-left">{{ row.remarks }}</td>

@@ -1227,6 +1227,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		$scope.transferItem = {
 				id: null,
+				transfer_reference_num: null,
 				origin_id: [ 'transfer', 'externalTransfer' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentStore.id : null,
 				origin_name: [ 'transfer', 'externalTransfer' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentStore.store_name : null,
 				sender_id: [ 'transfer', 'externalTransfer' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentUser.id : null,

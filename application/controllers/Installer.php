@@ -230,6 +230,7 @@ class Installer extends CI_Controller {
 				CREATE TABLE IF NOT EXISTS transfers
 				(
 					id INTEGER AUTO_INCREMENT NOT NULL,
+					transfer_reference_num VARCHAR(100) NULL,
 					origin_id INTEGER NULL,
 					origin_name VARCHAR(100) NULL,
 					sender_id INTEGER NULL,
