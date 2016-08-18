@@ -140,6 +140,7 @@ class Installer extends CI_Controller {
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					item_name VARCHAR(100) NOT NULL,
 					item_description VARCHAR(255) NULL,
+					item_unit VARCHAR(20) NULL,
 					item_group VARCHAR(100) NULL,
 					base_item_id INTEGER NULL DEFAULT NULL,
 					teller_allocatable BOOLEAN NOT NULL DEFAULT 0,
@@ -711,28 +712,28 @@ class Installer extends CI_Controller {
 			flush();
 			$this->load->library( 'Item' );
 			$items = array(
-					array( 'L2 SJT', 'Line 2 Single Journey Ticket', NULL, 0, 1, 0, 0, 'SJT' ), // ID: 1
-					array( 'L2 SJT - Rigid Box', 'Line 2 Single Journey Ticket in Rigid Box', 1, 1, 1, 0, 0, 'SJT' ),
-					array( 'L2 SJT - Ticket Magazine', 'Line 2 Single Journey Ticket in Ticket Magazine', 1, 0, 0, 1, 0, 'SJT' ),
-					array( 'L2 SJT - Defective', 'Defective Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, NULL ),
-					array( 'L2 SJT - Damaged', 'Damaged Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, NULL ),
+					array( 'L2 SJT', 'Line 2 Single Journey Ticket', NULL, 0, 1, 0, 0, 'SJT', 'piece' ), // ID: 1
+					array( 'L2 SJT - Rigid Box', 'Line 2 Single Journey Ticket in Rigid Box', 1, 1, 1, 0, 0, 'SJT', 'box' ),
+					array( 'L2 SJT - Ticket Magazine', 'Line 2 Single Journey Ticket in Ticket Magazine', 1, 0, 0, 1, 0, 'SJT', 'magazine' ),
+					array( 'L2 SJT - Defective', 'Defective Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, NULL, 'piece' ),
+					array( 'L2 SJT - Damaged', 'Damaged Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, NULL, 'piece' ),
 
-					array( 'SVC', 'Stored Value Card', NULL, 0, 1, 0, 0, 'SVC' ), // ID: 6
-					array( 'SVC - Rigid Box', 'Stored Value Ticket in Rigid Box', 6, 1, 1, 0, 0, 'SVC' ),
-					array( 'SVC - 25', 'Stored Value Ticket in 25', 6, 1, 1, 0, 0, 'SVC' ),
-					array( 'SVC - 150', 'Stored Value Ticket in 150', 6, 0, 0, 1, 0, 'SVC' ),
-					array( 'SVC - Defective', 'Defective Stored Value Card', NULL, 0, 1, 0, 1, NULL ),
-					array( 'SVC - Damaged', 'Damaged Stored Value Card', NULL, 0, 1, 0, 1, NULL ),
-					array( 'SVC - TIR', 'Stored Value Card with TIR', NULL, 0, 1, 0, 0, NULL ),
+					array( 'SVC', 'Stored Value Card', NULL, 0, 1, 0, 0, 'SVC', 'piece' ), // ID: 6
+					array( 'SVC - Rigid Box', 'Stored Value Ticket in Rigid Box', 6, 1, 1, 0, 0, 'SVC', 'box' ),
+					array( 'SVC - 25', 'Stored Value Ticket in 25', 6, 1, 1, 0, 0, 'SVC', 'box' ),
+					array( 'SVC - 150', 'Stored Value Ticket in 150', 6, 0, 0, 1, 0, 'SVC', 'box' ),
+					array( 'SVC - Defective', 'Defective Stored Value Card', NULL, 0, 1, 0, 1, NULL, 'piece' ),
+					array( 'SVC - Damaged', 'Damaged Stored Value Card', NULL, 0, 1, 0, 1, NULL, 'piece' ),
+					array( 'SVC - TIR', 'Stored Value Card with TIR', NULL, 0, 1, 0, 0, NULL, 'piece' ),
 
-					array( 'Senior SVC', 'Senior Citizen Stored Value Card', NULL, 0, 0, 0, 0, 'Concessionary' ),
-					array( 'PWD SVC', 'Passenger with Disability Store Value Card', NULL, 0, 0, 0, 0, 'Concessionary' ),
+					array( 'Senior SVC', 'Senior Citizen Stored Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece' ),
+					array( 'PWD SVC', 'Passenger with Disability Store Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece' ),
 
-					array( 'L2 Ticket Coupon', 'Line 2 Ticket Coupon', NULL, 1, 1, 0, 0, NULL ),
+					array( 'L2 Ticket Coupon', 'Line 2 Ticket Coupon', NULL, 1, 1, 0, 0, NULL, 'piece' ),
 
-					array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0, NULL ), // ID: 16
-					array( 'L1 SJT', 'Line 1 Single Journey Ticket', 16, 0, 1, 0, 0, NULL ),
-					array( 'Staff Card', 'Staff Card', NULL, 0, 0, 0, 0, NULL )
+					array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0, NULL, 'piece' ), // ID: 16
+					array( 'L1 SJT', 'Line 1 Single Journey Ticket', 16, 0, 1, 0, 0, NULL, 'piece' ),
+					array( 'Staff Card', 'Staff Card', NULL, 0, 0, 0, 0, NULL, 'piece' )
 				);
 
 			foreach( $items as $i )
@@ -746,6 +747,7 @@ class Installer extends CI_Controller {
 				$item->set( 'machine_allocatable', $i[5] );
 				$item->set( 'machine_remittable', $i[6] );
 				$item->set( 'item_group', $i[7] );
+				$item->set( 'item_unit', $i[8] );
 				$item->db_save();
 				unset( $item );
 			}

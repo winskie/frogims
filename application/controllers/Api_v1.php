@@ -1333,6 +1333,7 @@ class Api_v1 extends MY_Controller {
 									$items_data = array();
 									$additional_fields = array(
 										'item_name' => array( 'type' => 'string' ),
+										'item_unit' => array( 'type' => 'string' ),
 										'item_group' => array( 'type' => 'string' ),
 										'item_description' => array( 'type' => 'string' ),
 										'teller_allocatable' => array( 'type' => 'boolean' ),

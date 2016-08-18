@@ -218,7 +218,8 @@ class Store extends Base_model
 		$ci =& get_instance();
 		$ci->load->library( 'Inventory' );
 
-		$ci->db->select( 'si.*, i.item_name, i.item_group, i.item_description, i.teller_allocatable, i.teller_remittable, i.machine_allocatable, i.machine_remittable' );
+		$ci->db->select( 'si.*, i.item_name, i.item_unit, i.item_group, i.item_description,
+				i.teller_allocatable, i.teller_remittable, i.machine_allocatable, i.machine_remittable' );
 		$ci->db->where( 'store_id', $this->id );
 		$ci->db->join( 'items i', 'i.id = si.item_id' );
 		$query = $ci->db->get( 'store_inventory si' );

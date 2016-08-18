@@ -21,6 +21,7 @@ $current_user = current_user();
 							<th>Item</th>
 							<th>Group</th>
 							<th>Description</th>
+							<th>Unit</th>
 							<th class="text-right">Actual</th>
 							<th class="text-right">Reserved</th>
 							<th class="text-right">Available</th>
@@ -31,12 +32,13 @@ $current_user = current_user();
 							<td>{{ item.item_name }}</td>
 							<td>{{ item.item_group }}</td>
 							<td>{{ item.item_description }}</td>
+							<td class="text-center">{{ item.item_unit }}</td>
 							<td class="text-right">{{ item.quantity | number }}</td>
 							<td class="text-right">{{ item.reserved | number }}</td>
 							<td class="text-right">{{ ( item.quantity - item.reserved ) | number }}</td>
 						</tr>
 						<tr ng-if="!data.items.length">
-							<td colspan="6" class="text-center">No inventory items available</td>
+							<td colspan="7" class="text-center">No inventory items available</td>
 						</tr>
 					</tbody>
 				</table>
