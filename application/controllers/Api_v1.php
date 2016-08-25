@@ -1770,7 +1770,20 @@ class Api_v1 extends MY_Controller {
 						break;
 
 					case 'cancel':
-						if( $current_user->check_permissions( 'transfers', 'approve' ) )
+						switch( $transfer->get( 'transfer_status' ) )
+						{
+							case TRANSFER_PENDING:
+								$allowed = $current_user->check_permissions( 'transfers', 'edit' );
+								break;
+
+							case TRANSFER_APPROVED:
+								$allowed = $current_user->check_permissions( 'transfers', 'approve' );
+								break;
+
+							default:
+								$allowed = FALSE;
+						}
+						if( $allowed )
 						{
 							$result = $transfer->cancel();
 						}
