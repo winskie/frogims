@@ -54,6 +54,13 @@ var app = angular.module( 'FROGIMS', [ 'ngAnimate', 'ui.router', 'ui.bootstrap',
 
 app.constant( 'baseUrl', baseUrl );
 
+app.filter('parseDate', function()
+{
+  return function( input ) {
+    return new Date( input );
+  };
+});
+
 app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider, $animateProvider )
 {
 	$animateProvider.classNameFilter( /^(?:(?!ng-animate-disabled).)*$/ ); // disable animation for elements with .ng-animate-disabled class
