@@ -21,7 +21,7 @@ $current_user = current_user();
 							<th>Item</th>
 							<th>Group</th>
 							<th>Description</th>
-							<th>Unit</th>
+							<th class="text-center">Unit</th>
 							<th class="text-right">Actual</th>
 							<th class="text-right">Reserved</th>
 							<th class="text-right">Available</th>

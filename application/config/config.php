@@ -23,8 +23,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | a PHP script and you can easily do that on your own.
 |
 */
-$config['base_url'] = 'http://pluto/frogims/';
-//$config['base_url'] = 'http://cpu-13-0110:81/frogims/';
+//$config['base_url'] = 'http://localhost:81/frogims/';
+$config['base_url'] = 'http://192.168.100.100/frogims/';
 
 /*
 |--------------------------------------------------------------------------
@@ -370,7 +370,7 @@ $config['encryption_key'] = 'TheQuickBrownFoxJumpsOverTheLazyDog';
 */
 $config['sess_driver'] = 'files';
 $config['sess_cookie_name'] = 'ci_session';
-$config['sess_expiration'] = 7200;
+$config['sess_expiration'] = 600; // ten minutes
 $config['sess_save_path'] = NULL;
 $config['sess_match_ip'] = FALSE;
 $config['sess_time_to_update'] = 300;

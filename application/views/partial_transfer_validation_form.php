@@ -8,45 +8,45 @@
 				<div class="row">
 					<div class="col-sm-12 col-md-9 col-lg-10">
 						<div class="row">
-							<div class="col-sm-6">
+							<div class="col-sm-5">
 
 								<!-- Date of Transfer -->
 								<div class="form-group">
-									<label class="control-label col-sm-4">Date/Time</label>
-									<div class="col-sm-8">
+									<label class="control-label col-sm-5">Transfer Date/Time</label>
+									<div class="col-sm-7">
 										<p class="form-control-static">{{ transferItem.transfer_datetime | date: 'yyyy-MM-dd HH:mm:ss' }}</p>
 									</div>
 								</div>
 
 								<!-- Source -->
 								<div class="form-group">
-									<label class="control-label col-sm-4">Source</label>
-									<div class="col-sm-8">
+									<label class="control-label col-sm-5">Source</label>
+									<div class="col-sm-7">
 										<p class="form-control-static">{{ transferItem.origin_name }}</p>
 									</div>
 								</div>
 
 								<!-- Destination -->
 								<div class="form-group">
-									<label class="control-label col-sm-4">Destination</label>
-									<div class="col-sm-8">
+									<label class="control-label col-sm-5">Destination</label>
+									<div class="col-sm-7">
 										<p class="form-control-static">{{ transferItem.destination_name }}</p>
 									</div>
 								</div>
 
 								<!-- Transfer Status -->
 								<div class="form-group">
-									<label class="control-label col-sm-4">Transfer Status</label>
-									<p class="form-control-static col-sm-8">{{ lookup( 'transferStatus', transferItem.transfer_status ) }}</p>
+									<label class="control-label col-sm-5">Transfer Status</label>
+									<p class="form-control-static col-sm-7">{{ lookup( 'transferStatus', transferItem.transfer_status ) }}</p>
 								</div>
 							</div>
 
-							<div class="col-sm-6">
-								<!-- Receipt Status -->
+							<div class="col-sm-7">
+								<!-- Receipt Validation Status -->
 								<div class="form-group" ng-if="transferItem.transfer_status != <?php echo TRANSFER_PENDING;?>
 										&& transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
-									<label class="control-label col-sm-4">Receipt Status</label>
-									<p class="form-control-static col-sm-8" ng-switch on="transferItem.validation.transval_receipt_status != null">
+									<label class="control-label col-sm-5">Receipt Validation Status</label>
+									<p class="form-control-static col-sm-7" ng-switch on="transferItem.validation.transval_receipt_status != null">
 										<span ng-switch-when="true">
 											<i class="glyphicon glyphicon-ok text-success" ng-if="transferItem.validation.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_VALIDATED;?>"> </i>
 											<i class="glyphicon glyphicon-repeat text-danger" ng-if="transferItem.validation.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_RETURNED;?>"> </i>
@@ -59,8 +59,8 @@
 								<!-- Sweeper -->
 								<div class="form-group" ng-if="transferItem.transfer_status != <?php echo TRANSFER_PENDING;?>
 										&& transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
-									<label class="control-label col-sm-4">Received by</label>
-									<div class="col-sm-8" ng-switch on="( transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?> )
+									<label class="control-label col-sm-5">Validated by</label>
+									<div class="col-sm-7" ng-switch on="( transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?> )
 										&& ( transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_COMPLETED;?> )
 										&& ( transferItem.transfer_status != <?php echo TRANSFER_PENDING;?> )
 										&& ( transferItem.transfer_status != <?php echo TRANSFER_PENDING_CANCELLED;?> )
@@ -78,21 +78,21 @@
 								<!-- Category -->
 								<div class="form-group" ng-switch on="transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_COMPLETED;?>
 										&& checkPermissions( 'transferValidations', 'complete' )">
-									<label class="control-label col-sm-4">Transfer Category</label>
-									<div class="col-sm-8" ng-switch-when="true">
-										<select class="form-control col-sm-8"
+									<label class="control-label col-sm-5">Transfer Category</label>
+									<div class="col-sm-7" ng-switch-when="true">
+										<select class="form-control"
 												ng-model="data.selectedCategory"
 												ng-options="category.categoryName for category in data.transferCategories track by category.id"
 												ng-change="changeTransferCategory()">
 										</select>
 									</div>
-									<p class="form-control-static col-sm-8" ng-switch-default>{{ data.selectedCategory.categoryName }}</p>
+									<p class="form-control-static col-sm-7" ng-switch-default>{{ data.selectedCategory.categoryName }}</p>
 								</div>
 
 								<!-- Validation Status -->
 								<div class="form-group">
-									<label class="control-label col-sm-4">Validation Status</label>
-									<p class="form-control-static col-sm-8" ng-switch on="transferItem.validation.transval_status != null">
+									<label class="control-label col-sm-5">Validation Status</label>
+									<p class="form-control-static col-sm-7" ng-switch on="transferItem.validation.transval_status != null">
 										<span ng-switch-when="true">{{ lookup( 'transferValidationStatus', transferItem.validation.transval_status ) }}</span>
 										<span ng-switch-default>---</span>
 									</p>
@@ -137,25 +137,25 @@
 					<div class="col-sm-12 col-md-9 col-lg-10">
 						<div class="row">
 
-							<div class="col-sm-6">
+							<div class="col-sm-5">
 								<!-- Receipt Date -->
 								<div class="form-group">
-									<label class="control-label col-sm-4">Date/Time</label>
-									<p class="form-control-static col-sm-8">{{ transferItem.receipt_datetime ? ( transferItem.receipt_datetime | date: 'yyyy-MM-dd HH:mm:ss' ) : 'Pending receipt' }}</p>
+									<label class="control-label col-sm-5">Receipt Date/Time</label>
+									<p class="form-control-static col-sm-7">{{ transferItem.receipt_datetime ? ( transferItem.receipt_datetime | date: 'yyyy-MM-dd HH:mm:ss' ) : 'Pending receipt' }}</p>
 								</div>
 
 								<!-- Recipient -->
 								<div class="form-group">
-									<label class="control-label col-sm-4">Recipient</label>
-									<p class="form-control-static col-sm-8">{{ transferItem.recipient_name ? transferItem.recipient_name : 'Pending receipt' }}</p>
+									<label class="control-label col-sm-5">Recipient</label>
+									<p class="form-control-static col-sm-7">{{ transferItem.recipient_name ? transferItem.recipient_name : 'Pending receipt' }}</p>
 								</div>
 							</div>
 
-							<div class="col-sm-6" ng-if="transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
-								<!-- Delivery Status -->
+							<div class="col-sm-7" ng-if="transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
+								<!-- Delivery Validation Status -->
 								<div class="form-group" ng-if="transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
-									<label class="control-label col-sm-4">Delivery Status</label>
-									<p class="form-control-static col-sm-8" ng-switch on="transferItem.validation.transval_transfer_status != null">
+									<label class="control-label col-sm-5">Delivery Validation Status</label>
+									<p class="form-control-static col-sm-7" ng-switch on="transferItem.validation.transval_transfer_status != null">
 										<span ng-switch-when="true">
 											<i class="glyphicon glyphicon-ok text-success" ng-if="transferItem.validation.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_VALIDATED;?>"> </i>
 											<i class="glyphicon glyphicon-remove text-danger" ng-if="transferItem.validation.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_DISPUTED;?>"> </i>
@@ -167,8 +167,8 @@
 
 								<!-- Sweeper -->
 								<div class="form-group" ng-if="transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
-									<label class="control-label col-sm-4">Delivered by</label>
-									<div class="col-sm-8" ng-switch on="( transferItem.validation.transval_status == <?php echo TRANSFER_VALIDATION_COMPLETED; ?> )">
+									<label class="control-label col-sm-5">Validated by</label>
+									<div class="col-sm-7" ng-switch on="( transferItem.validation.transval_status == <?php echo TRANSFER_VALIDATION_COMPLETED; ?> )">
 										<input type="text" class="form-control"
 												ng-switch-when="false"
 												ng-model="transferItem.validation.transval_transfer_sweeper"
