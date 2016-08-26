@@ -94,7 +94,9 @@
 								</span>
 							</div>
 							<div class="col-sm-7" ng-if="[ 'transfer', 'externalTransfer', 'externalReceipt' ].indexOf( data.editMode ) == -1">
-								<p class="form-control-static">{{ transferItem.transfer_datetime | date: 'yyyy-MM-dd HH:mm:ss' }}</p>
+								<p class="form-control-static">
+									{{ transferItem.transfer_status == <?php echo TRANSFER_PENDING;?> ? ( transferItem.transfer_datetime | parseDate | date: 'yyyy-MM-dd' ) : ( transferItem.transfer_datetime | parseDate | date: 'yyyy-MM-dd HH:mm:ss' ) }}
+								</p>
 							</div>
 						</div>
 					</div>
