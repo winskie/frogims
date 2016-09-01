@@ -212,7 +212,9 @@
 	</div>
 
 	<!-- Receipt information -->
-	<div class="panel panel-default" ng-if="['view', 'receipt', 'externalReceipt'].indexOf( data.editMode ) != -1">
+	<div class="panel panel-default"
+			ng-if="['view', 'receipt', 'externalReceipt'].indexOf( data.editMode ) != -1
+					&& [<?php echo TRANSFER_PENDING_CANCELLED.', '.TRANSFER_APPROVED_CANCELLED;?>].indexOf( transferItem.transfer_status ) == -1">
 		<div class="panel-heading">
 			<h3 class="panel-title">Receipt Information</h3>
 		</div>
