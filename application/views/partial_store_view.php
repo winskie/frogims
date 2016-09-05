@@ -28,14 +28,16 @@ $current_user = current_user();
 						</tr>
 					</thead>
 					<tbody>
-						<tr ng-repeat="item in data.items" ng-class="{info: currentItem == item}">
+						<tr ng-repeat="item in data.items"
+							ng-class="{info: currentItem == item,
+									'text-muted': ( item.quantity === 0 && item.reserved === 0 && ( item.quantity - item.reserved ) === 0 ) }">
 							<td>{{ item.item_name }}</td>
 							<td>{{ item.item_group }}</td>
 							<td>{{ item.item_description }}</td>
 							<td class="text-center">{{ item.item_unit }}</td>
-							<td class="text-right">{{ item.quantity | number }}</td>
-							<td class="text-right">{{ item.reserved | number }}</td>
-							<td class="text-right">{{ ( item.quantity - item.reserved ) | number }}</td>
+							<td class="text-right">{{ item.quantity === 0 ? '---' : ( item.quantity | number ) }}</td>
+							<td class="text-right">{{ item.reserved === 0 ? '---' : ( item.reserved | number ) }}</td>
+							<td class="text-right">{{ ( item.quantity - item.reserved ) === 0 ? '---' : ( ( item.quantity - item.reserved ) | number ) }}</td>
 						</tr>
 						<tr ng-if="!data.items.length">
 							<td colspan="7" class="text-center">No inventory items available</td>
