@@ -336,15 +336,24 @@ class Allocation extends Base_model {
         $allowed_prev_status = array( ALLOCATION_SCHEDULED );
         if( ! in_array( $this->allocation_status, $allowed_prev_status ) )
         {
-            die( 'Cannot allocate non-scheduled allocations' );
+            set_message( 'Cannot allocate non-scheduled allocations' );
+            return FALSE;
         }
 
-        // Only the originating store can allocat
+        // Only the originating store can allocate
 		if( $ci->session->current_store_id != $this->store_id )
 		{
-			die( sprintf( 'Current store (%s) is not authorize to allocate items in this record',
+			set_message( sprintf( 'Current store (%s) is not authorize to allocate items in this record',
                     $ci->session->current_store_id ) );
+            return FALSE;
 		}
+
+        // Assignee must be specified
+        if( ! isset( $this->assignee ) )
+        {
+            set_message( sprintf( 'Allocation requires %s to be specified', $this->assignee_type == 1 ? 'teller name' : 'TVM number' ) );
+            return FALSE;
+        }
 
         $ci->db->trans_start();
         $this->set( 'allocation_status', ALLOCATION_ALLOCATED );
