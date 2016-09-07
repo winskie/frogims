@@ -404,11 +404,12 @@ class Transfer extends Base_model {
 
 		// In case of approval, check if delivery person is specified
 		if( array_key_exists( 'transfer_status', $this->db_changes )
-			&& $this->db_changes['transfer_status'] == TRANSFER_APPROVED )
+			&& $this->db_changes['transfer_status'] == TRANSFER_APPROVED
+			&& is_null( $this->destination_id ) )
 		{
-			if( ! $this->sender_name )
+			if( ! $this->recipient_name )
 			{
-				set_message( 'Approval requires name of delivery person be specified', 'error', 202 );
+				set_message( 'Approval requires name of person to deliver the items to', 'error', 202 );
 				return FALSE;
 			}
 		}
@@ -668,8 +669,8 @@ class Transfer extends Base_model {
 					$this->set( 'sender_id', $current_user->get( 'id' ) );
 
 					// Sender name - if not specified should be currently logged in user
-					$sender_name = isset( $this->sender_name ) ? $this->sender_name : $current_user->get( 'full_name' );
-					$this->set( 'sender_name', $sender_name );
+					//$sender_name = isset( $this->sender_name ) ? $this->sender_name : $current_user->get( 'full_name' );
+					//$this->set( 'sender_name', $sender_name );
 
 					// Update sender's Shift
 					$this->set( 'sender_shift', $current_shift );

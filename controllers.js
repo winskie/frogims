@@ -1508,9 +1508,9 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				var transferItemCount = transferItems.length;
 
 				// In case of transfer approval check if delivery person is specified
-				if( action == 'approve' && ! $scope.transferItem.sender_name )
+				if( $scope.data.editMode == 'externalTransfer' && action == 'approve' && ! $scope.transferItem.recipient_name )
 				{
-					notifications.alert( 'Please enter name of delivery person', 'warning' );
+					notifications.alert( 'Please enter name of person to deliver the items', 'warning' );
 					return false;
 				}
 

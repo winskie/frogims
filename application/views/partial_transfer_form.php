@@ -59,18 +59,18 @@
 							</div>
 						</div>
 
-						<!-- Sweeper -->
+						<!-- Recipient -->
 						<div class="form-group">
-							<label class="control-label col-sm-4">Delivered by</label>
+							<label class="control-label col-sm-4">Deliver to</label>
 							<div class="col-sm-7" ng-if="[ 'transfer', 'externalTransfer', 'externalReceipt' ].indexOf( data.editMode ) != -1">
 								<input type="text" class="form-control"
-										ng-model="transferItem.sender_name"
+										ng-model="transferItem.recipient_name"
 										ng-model-options="{ debounce: 500 }"
 										typeahead-editable="true"
 										uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
 							</div>
 							<div class="col-sm-7" ng-if="[ 'transfer', 'externalTransfer', 'externalReceipt' ].indexOf( data.editMode ) == -1">
-								<p class="form-control-static">{{ transferItem.sender_name }}</p>
+								<p class="form-control-static">{{ transferItem.recipient_name }}</p>
 							</div>
 						</div>
 					</div>
@@ -262,7 +262,7 @@
 				{{ transferItem.id ? 'Update' : 'Schedule' }}
 			</button>
 			<button type="button" class="btn btn-success" ng-click="approveTransfer()"
-					ng-disabled="transferItem.transfer_status != <?php echo TRANSFER_PENDING;?> || ! transferItem.sender_name || transferItem.items.length == 0"
+					ng-disabled="transferItem.transfer_status != <?php echo TRANSFER_PENDING;?> || ( ! transferItem.destination_id && ! transferItem.recipient_name ) || transferItem.items.length == 0"
 					ng-if="transferItem.transfer_status == <?php echo TRANSFER_PENDING;?>
 							&& transferItem.origin_id == sessionData.currentStore.id
 							&& checkPermissions( 'transfers', 'approve' )">
