@@ -724,19 +724,15 @@ class Installer extends CI_Controller {
 					array( 'SVC - 150', 'Stored Value Ticket in 150', 6, 0, 0, 1, 0, 'SVC', 'box' ),
 					array( 'SVC - Defective', 'Defective Stored Value Card', NULL, 0, 1, 0, 1, NULL, 'piece' ),
 					array( 'SVC - Damaged', 'Damaged Stored Value Card', NULL, 0, 1, 0, 1, NULL, 'piece' ),
-					array( 'SVC - CIR', 'Stored Value Card with Incident Report', NULL, 0, 0, 0, 0, NULL, 'piece' ),
 
 					array( 'Senior', 'Senior Citizen Stored Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece' ),
 					array( 'PWD', 'Passenger with Disability Store Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece' ),
 
-					array( 'Senior - CIR', 'Senior Citizen SVC with Incident Report', NULL, 0, 0, 0, 0, 'Concessionary', 'piece' ),
-					array( 'PWD - CIR', 'Passenger with Disability SVC with Incident Report', NULL, 0, 0, 0, 0, 'Concessionary', 'piece' ),
-
 					array( 'L2 Ticket Coupon', 'Line 2 Ticket Coupon', NULL, 1, 1, 0, 0, NULL, 'piece' ),
 
-					array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0, NULL, 'piece' ), // ID: 18
-					array( 'L1 SJT', 'Line 1 Single Journey Ticket', 18, 0, 1, 0, 0, NULL, 'piece' ),
-					array( 'MRT SJT', 'Line 3 Single Journey Ticket', 18, 0, 1, 0, 0, NULL, 'piece' ),
+					array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0, NULL, 'piece' ), // ID: 15
+					array( 'L1 SJT', 'Line 1 Single Journey Ticket', 15, 0, 1, 0, 0, NULL, 'piece' ),
+					array( 'MRT SJT', 'Line 3 Single Journey Ticket', 15, 0, 1, 0, 0, NULL, 'piece' ),
 					array( 'Staff Card', 'Staff Card', NULL, 0, 0, 0, 0, NULL, 'piece' )
 				);
 
@@ -823,11 +819,6 @@ class Installer extends CI_Controller {
 				array( 'SVC', 'SVC - 25', 25 ),
 				array( 'SVC', 'SVC - 150', 150 ),
 				array( 'SVC - Defective', 'SVC - Damaged', 1 ),
-				array( 'SVC - Defective', 'SVC - CIR', 1 ),
-
-				// Concessionary
-				array( 'Senior', 'Senior - CIR', 1 ),
-				array( 'PWD', 'PWD - CIR', 1 ),
 
 				// Other cards
 				array( 'L1 SJT', 'Others', 1 )
@@ -858,7 +849,6 @@ class Installer extends CI_Controller {
 					array( 'Unsold / Loose', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
 					array( 'Defective', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
 					array( 'Reject Bin', 2, FALSE, TRUE, TRUE, FALSE, TRUE, 1 ),
-					array( 'CIR', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
 					array( 'Free Exit', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
 					array( 'Expired', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
 					array( 'Code Red', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
