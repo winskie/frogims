@@ -450,7 +450,7 @@ $current_user = current_user();
 								<td class="vert-top">{{ transfer.transfer_status == <?php echo TRANSFER_PENDING;?> ? ( transfer.transfer_datetime | parseDate | date : 'yyyy-MM-dd' ) : transfer.transfer_datetime }}</td>
 								<td class="vert-top">
 									<div>
-										{{ transfer.destination_name }} {{ transfer.sender_name ? 'thru ' + transfer.sender_name : null }}
+										{{ transfer.destination_name }} {{ !empty( transfer.sender_name ) ? 'thru ' + transfer.sender_name : null }}
 									</div>
 									<div class="panel panel-default">
 										<table class="table table-condensed table-bordered table-details">
@@ -615,10 +615,10 @@ $current_user = current_user();
 						<tbody>
 							<tr ng-repeat="receipt in data.receipts">
 								<td class="text-center vert-top">{{ receipt.id }}</td>
-								<td class="vert-top">{{ receipt.receipt_datetime }}</td>
+								<td class="vert-top">{{ receipt.transfer_status != <?php echo TRANSFER_RECEIVED;?> ? '---' : receipt.receipt_datetime }}</td>
 								<td class="vert-top">
 									<div>
-										{{ receipt.origin_name }} <span class="text-muted">- sent last {{ receipt.transfer_datetime }}</span> thru {{ receipt.sender_name }}
+										{{ receipt.origin_name }} <span class="text-muted">- sent last {{ receipt.transfer_datetime }}</span>{{ receipt.sender_name ? ' thru ' + receipt.sender_name : null }}
 									</div>
 									<div class="panel panel-default">
 										<table class="table table-condensed table-bordered table-details">
