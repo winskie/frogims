@@ -61,16 +61,16 @@
 
 						<!-- Recipient -->
 						<div class="form-group">
-							<label class="control-label col-sm-4">Deliver to</label>
-							<div class="col-sm-7" ng-if="[ 'transfer', 'externalTransfer', 'externalReceipt' ].indexOf( data.editMode ) != -1">
+							<label class="control-label col-sm-4">{{ data.mode == 'transfer' ? 'Deliver to' : 'Delivered by' }}</label>
+							<div class="col-sm-7" ng-if="data.editMode != 'view'">
 								<input type="text" class="form-control"
-										ng-model="transferItem.recipient_name"
+										ng-model="transferItem[ data.mode == 'transfer' ? 'recipient_name' : 'sender_name']"
 										ng-model-options="{ debounce: 500 }"
 										typeahead-editable="true"
 										uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
 							</div>
-							<div class="col-sm-7" ng-if="[ 'transfer', 'externalTransfer', 'externalReceipt' ].indexOf( data.editMode ) == -1">
-								<p class="form-control-static">{{ transferItem.recipient_name }}</p>
+							<div class="col-sm-7" ng-if="data.editMode == 'view'">
+								<p class="form-control-static">{{ data.mode == 'transfer' ? transferItem.recipient_name : transferItem.sender_name }}</p>
 							</div>
 						</div>
 					</div>

@@ -1291,8 +1291,8 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		$scope.changeDestination = function()
 			{
-				$scope.transferItem.destination_id = $scope.data.selectedDestination.id;
-				$scope.transferItem.destination_name = $scope.data.selectedDestination.store_name;
+				$scope.transferItem.destination_id = $scope.data.selectedDestination ? $scope.data.selectedDestination.id : null;
+				$scope.transferItem.destination_name = $scope.data.selectedDestination ? $scope.data.selectedDestination.store_name : null;
 			}
 
 		$scope.showDatePicker = function( dp )
