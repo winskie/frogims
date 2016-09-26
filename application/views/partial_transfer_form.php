@@ -1,7 +1,24 @@
 <div  ng-if="checkPermissions( 'transfers', 'view' )">
 	<div class="panel panel-default">
-		<div class="panel-heading">
-			<h3 class="panel-title">{{ data.title }}</h3>
+		<div class="panel-heading clearfix" ng-switch on="data.editMode">
+			<div class="pull-left">
+				<span class="panel-title">{{ data.title }}</span>
+			</div>
+			<div class="pull-right" ng-switch-when="view">
+				<span class="panel-title">Category: <span style="font-weight: bold;">{{ data.selectedCategory.categoryName }}</span></span>
+			</div>
+			<div class="pull-right" uib-dropdown ng-switch-default>
+				<span class="panel-title">Category:
+					<a href uib-dropdown-toggle style="font-weight: bold; text-decoration: none;">
+						{{ data.selectedCategory.categoryName }} <span class="caret">
+					</a>
+				</span>
+				<ul class="dropdown-menu" uib-dropdown-menu>
+					<li ng-repeat="category in data.transferCategories">
+						<a href ng-click="changeTransferCategory( category )">{{ category.categoryName }}</a>
+					</li>
+				</ul>
+			</div>
 		</div>
 		<div class="panel-body">
 			<form class="form-horizontal">

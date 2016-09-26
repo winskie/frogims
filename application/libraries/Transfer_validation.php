@@ -14,7 +14,6 @@ class Transfer_validation extends Base_model {
 	protected $transval_transfer_sweeper;
 	protected $transval_transfer_user_id;
 	protected $transval_transfer_shift_id;
-	protected $transval_category;
 	protected $transval_status;
 
 	protected $transfer;
@@ -43,7 +42,6 @@ class Transfer_validation extends Base_model {
 				'transval_transfer_sweeper' => array( 'type' => 'string' ),
 				'transval_transfer_user_id' => array( 'type' => 'integer' ),
 				'transval_transfer_shift_id' => array( 'type' => 'integer' ),
-				'transval_category' => array( 'type' => 'integer' ),
 				'transval_status' => array( 'type' => 'integer' )
 			);
 

@@ -858,8 +858,7 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 			{
 				var data = {
 						id: validation.transval_id,
-						transval_transfer_id: validation.id,
-						transval_category: appData.suggestTransferCategory( validation )
+						transval_transfer_id: validation.id
 					};
 				appData.saveTransferValidation( data, 'not_required' ).then(
 					function( response )
@@ -968,32 +967,8 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'UserServices',
 	function( $scope, $filter, $state, $stateParams, session, appData, notifications, UserServices )
 	{
-		function getCategoryById( categoryId )
-		{
-			var categories = $scope.data.transferCategories;
-			var n = categories.length;
-
-			for( var i = 0; i < n; i++ )
-			{
-				if( categories[i].id == categoryId )
-				{
-					return categories[i];
-				}
-			}
-
-			return null;
-		}
-
-		function suggestTransferCategory()
-		{
-			var category = appData.suggestTransferCategory( $scope.transferItem );
-			$scope.data.selectedCategory = getCategoryById( category );
-			return category; // General
-		}
-
 		$scope.data = {
-				transferCategories: angular.copy( appData.data.transferCategories ),
-				selectedCategory: { id: 2, categoryName: 'Return Loose' }
+				editMode: $stateParams.editMode || 'view'
 			};
 
 		$scope.input = {};
@@ -1001,11 +976,6 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 		$scope.transferItem = {};
 
 		$scope.findUser = UserServices.findUser;
-
-		$scope.changeTransferCategory = function()
-			{
-				$scope.transferItem.validation.transval_category = $scope.data.selectedCategory.id;
-			};
 
 		$scope.prepareData = function()
 			{
@@ -1173,10 +1143,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 							{
 								$scope.transferItem.validation.transval_transfer_sweeper = session.data.currentUser.full_name;
 							}
-							$scope.transferItem.validation.transval_category = suggestTransferCategory();
 						}
-
-						$scope.data.selectedCategory = $filter( 'filter' )( $scope.data.transferCategories, { id: $scope.transferItem.validation.transval_category }, true )[0];
 
 						if( !$scope.checkPermissions( 'transferValidations', 'edit' ) || ( $scope.data.editMode != 'view' && $scope.transferItem.validation.transval_status != 1 ) )// TRANSFER_VALIDATION_ONGOING
 						{
@@ -1197,10 +1164,33 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 	{
 		var users = [];
 
+		function suggestTransferCategory()
+		{
+			var category = appData.suggestTransferCategory( $scope.transferItem );
+			$scope.data.selectedCategory = getCategoryById( category );
+			return category; // General
+		}
+
+		function getCategoryById( categoryId )
+		{
+			var categories = $scope.data.transferCategories;
+			var n = categories.length;
+
+			for( var i = 0; i < n; i++ )
+			{
+				if( categories[i].id == categoryId )
+				{
+					return categories[i];
+				}
+			}
+
+			return null;
+		}
+
 		$scope.data = {
 			mode: 'transfer', // transfer | receipt
 			editMode: $stateParams.editMode || 'auto', // view, externalReceipt, externalTransfer, receipt, transfer
-			title: 'New Transfer',
+			title: 'Transfer',
 			sources: [],
 			destinations: [],
 			selectedSource: null,
@@ -1210,11 +1200,16 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			inventoryItems: angular.copy( appData.data.items ),
 			itemCategories: [],
 			sweepers: [],
+			transferCategories: angular.copy( appData.data.transferCategories ),
+			selectedCategory: null,
+			autoCategory: true,
 			transferDatepicker: { format: 'yyyy-MM-dd', opened: false },
 			receiptDatepicker: { format: 'yyyy-MM-dd HH:mm:ss', opened: false },
 			showCategory: ( session.data.currentStore.store_type == 4 ),
 			showAllocationItemEntry: ( session.data.currentStore.store_type == 4 && $scope.checkPermissions( 'allocations', 'view' ) )
 		};
+
+		$scope.data.selectedCategory = getCategoryById( 2 );
 
 		$scope.input = {
 				inventoryItem: null,
@@ -1228,6 +1223,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 		$scope.transferItem = {
 				id: null,
 				transfer_reference_num: null,
+				transfer_category: null,
 				origin_id: [ 'transfer', 'externalTransfer' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentStore.id : null,
 				origin_name: [ 'transfer', 'externalTransfer' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentStore.store_name : null,
 				sender_id: [ 'transfer', 'externalTransfer' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentUser.id : null,
@@ -1278,21 +1274,38 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.transferItem.destination_id = null;
 						$scope.transferItem.destination_name = null;
 					}
+					else
+					{
+						$scope.transferItem.destination_id = $scope.data.selectedDestination.id;
+						$scope.transferItem.destination_name = $scope.data.selectedDestination.destination_name;
+					}
 				}
 
 				$scope.changeEditMode();
+				if( $scope.data.autoCategory )
+				{
+					$scope.transferItem.transfer_category = suggestTransferCategory();
+				}
 			};
 
 		$scope.changeSource = function()
 			{
-				$scope.transferItem.origin_id = $scope.data.selectedSource.id;
-				$scope.transferItem.origin_name = $scope.data.selectedSource.store_name;
+				$scope.transferItem.origin_id = $scope.data.selectedSource ? $scope.data.selectedSource.id : null;
+				$scope.transferItem.origin_name = $scope.data.selectedSource ? $scope.data.selectedSource.store_name : null;
+				if( $scope.data.autoCategory )
+				{
+					$scope.transferItem.transfer_category = suggestTransferCategory();
+				}
 			};
 
 		$scope.changeDestination = function()
 			{
 				$scope.transferItem.destination_id = $scope.data.selectedDestination ? $scope.data.selectedDestination.id : null;
 				$scope.transferItem.destination_name = $scope.data.selectedDestination ? $scope.data.selectedDestination.store_name : null;
+				if( $scope.data.autoCategory )
+				{
+					$scope.transferItem.transfer_category = suggestTransferCategory();
+				}
 			}
 
 		$scope.showDatePicker = function( dp )
@@ -1391,6 +1404,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						{
 							console.error( 'Unable to load destination stores' );
 						}
+
 						break;
 
 					case 'receipt':
@@ -1438,7 +1452,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 							$scope.data.selectedSource = session.data.currentStore;
 						}
 
-						$scope.data.destinations = [];
+						// $scope.data.destinations = []; // why do we need to clear this?
 						break;
 
 					case 'externalReceipt':
@@ -1446,7 +1460,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.data.title = 'External Receipt';
 						$scope.isExternalSource = true;
 						$scope.isExternalDestination = false;
-						$scope.data.sources = [];
+						// $scope.data.sources = []; // why do we need to clear this?
 
 						$scope.data.destinations = [ session.data.currentStore ];
 						if( $scope.transferItem.destination_id )
@@ -1501,6 +1515,12 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 					$scope.data.title = 'New ' + $scope.data.title;
 				}
 			}
+
+		$scope.changeTransferCategory = function( category)
+			{
+				$scope.data.selectedCategory = category;
+				$scope.transferItem.transfer_category = $scope.data.selectedCategory.id;
+			};
 
 		$scope.checkItems = function( action )
 			{
@@ -1760,6 +1780,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		if( $stateParams.transferItem )
 		{
+			$scope.data.autoCategory = false;
 			$scope.data.editMode = $stateParams.editMode || 'auto';
 			appData.getTransfer( $stateParams.transferItem.id ).then(
 				function( response )
@@ -1905,13 +1926,13 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 								}
 							}
 						}
-
+						$scope.data.selectedCategory = getCategoryById( $scope.transferItem.transfer_category );
 						$scope.changeEditMode();
-
+						$scope.data.autoCategory = true;
 					}
 					else
 					{
-						console.error( 'Unable to load mopping collection record' );
+						console.error( 'Unable to load transfer record' );
 					}
 				},
 				function( reason )
@@ -1923,6 +1944,12 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 		else
 		{
 			$scope.changeEditMode();
+			$scope.changeSource();
+			$scope.changeDestination();
+			if( $scope.data.autoCategory )
+			{
+				$scope.transferItem.transfer_category = suggestTransferCategory();
+			}
 		}
 	}
 ]);

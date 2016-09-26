@@ -75,20 +75,6 @@
 									</div>
 								</div>
 
-								<!-- Category -->
-								<div class="form-group" ng-switch on="transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_COMPLETED;?>
-										&& checkPermissions( 'transferValidations', 'complete' )">
-									<label class="control-label col-sm-5">Transfer Category</label>
-									<div class="col-sm-7" ng-switch-when="true">
-										<select class="form-control"
-												ng-model="data.selectedCategory"
-												ng-options="category.categoryName for category in data.transferCategories track by category.id"
-												ng-change="changeTransferCategory()">
-										</select>
-									</div>
-									<p class="form-control-static col-sm-7" ng-switch-default>{{ data.selectedCategory.categoryName }}</p>
-								</div>
-
 								<!-- Validation Status -->
 								<div class="form-group">
 									<label class="control-label col-sm-5">Validation Status</label>

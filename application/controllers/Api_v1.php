@@ -1386,7 +1386,6 @@ class Api_v1 extends MY_Controller {
 												'transval_transfer_datetime' => array( 'type' => 'datetime' ),
 												'transval_transfer_sweeper' => array( 'type' => 'string' ),
 												'transval_transfer_user_id' => array( 'type' => 'integer' ),
-												'transval_category' => array( 'type' => 'integer' ),
 												'transval_transfer_shift_id' => array( 'type' => 'integer' ) );
 										}
 
@@ -1494,7 +1493,6 @@ class Api_v1 extends MY_Controller {
 													'transval_transfer_sweeper' => array( 'type' => 'string' ),
 													'transval_transfer_user_id' => array( 'type' => 'integer' ),
 													'transval_transfer_shift_id' => array( 'type' => 'integer' ),
-													'transval_category' => array( 'type' => 'integer' ),
 													'transval_status' => array( 'type' => 'integer' ) );
 											}
 
@@ -1732,7 +1730,6 @@ class Api_v1 extends MY_Controller {
 								'transval_transfer_sweeper' => array( 'type' => 'string' ),
 								'transval_transfer_user_id' => array( 'type' => 'integer' ),
 								'transval_transfer_shift_id' => array( 'type' => 'integer' ),
-								'transval_category' => array( 'type' => 'integer' ),
 								'transval_status' => array( 'type' => 'integer' ) );
 						}
 						foreach( $transfers as $transfer )

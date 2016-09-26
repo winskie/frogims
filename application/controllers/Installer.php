@@ -232,6 +232,7 @@ class Installer extends CI_Controller {
 				(
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					transfer_reference_num VARCHAR(100) NULL,
+					transfer_category INTEGER NOT NULL DEFAULT 1,
 					origin_id INTEGER NULL,
 					origin_name VARCHAR(100) NULL,
 					sender_id INTEGER NULL,
@@ -302,7 +303,6 @@ class Installer extends CI_Controller {
 					transval_transfer_sweeper VARCHAR(100) NULL DEFAULT NULL,
 					transval_transfer_user_id INTEGER NULL DEFAULT NULL,
 					transval_transfer_shift_id INTEGER NULL DEFAULT NULL,
-					transval_category INTEGER NOT NULL DEFAULT 1,
 					transval_status SMALLINT NOT NULL DEFAULT 1,
 					date_created DATETIME NOT NULL,
 					date_modified TIMESTAMP NOT NULL,

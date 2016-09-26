@@ -432,11 +432,11 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 						{ id: 3, statusName: 'Not Required' },
 					],
 				transferCategories: [
-						{ id: 1, categoryName: 'None' },
-						{ id: 2, categoryName: 'General' },
+						{ id: 1, categoryName: 'External' },
+						{ id: 2, categoryName: 'Regular' },
 						{ id: 3, categoryName: 'Return Loose' },
 						{ id: 4, categoryName: 'Stock Replenishment' },
-						{ id: 5, categoryName: 'External' }
+						{ id: 5, categoryName: 'Cashroom to Cashroom' }
 					],
 				transferStatus: [
 						{ id: 1, statusName: 'Scheduled' },
@@ -1085,14 +1085,18 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 					{
 						category = 4; // Stock Replenishment
 					}
+					else if( origin.store_type == 4 && destination.store_type == 4 ) // Cashroom to Cashroom
+					{
+						category = 5; // Cashroom to Cashroom
+					}
 					else
 					{
-						category = 2; // General
+						category = 2; // Regular
 					}
 				}
 				else
 				{
-					category = 5; // External
+					category = 1; // External
 				}
 
 				return category;
