@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS stores
 	store_name VARCHAR(100) NOT NULL,
 	store_code VARCHAR(6) NOT NULL,
 	store_type INTEGER NOT NULL,
+	store_station_id SMALLINT NULL,
 	store_location VARCHAR(100) NOT NULL,
 	store_contact_number VARCHAR(25) NULL,
 	date_created DATETIME NOT NULL,
@@ -146,7 +147,7 @@ CREATE TABLE IF NOT EXISTS store_inventory
 ENGINE=InnoDB;
 
 -- transaction_type: 10 - transfer out, 11 - transfer in, 12 - transfer cancel
---                   20 - allocation, 21 - return loose,
+--                   20 - allocation, 21 - remittance,
 --                   30 - mopping
 --                   40 - adjustment
 CREATE TABLE IF NOT EXISTS transactions

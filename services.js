@@ -434,7 +434,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 				transferCategories: [
 						{ id: 1, categoryName: 'External' },
 						{ id: 2, categoryName: 'Regular' },
-						{ id: 3, categoryName: 'Return Loose' },
+						{ id: 3, categoryName: 'Ticket Turnover' },
 						{ id: 4, categoryName: 'Stock Replenishment' },
 						{ id: 5, categoryName: 'Cashroom to Cashroom' }
 					],
@@ -1079,7 +1079,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
 					if( origin.store_type == 4 && destination.store_type == 2 ) // Cashrooom to Production
 					{
-						category = 3; // Return Loose
+						category = 3; // Ticket Turnover
 					}
 					else if( origin.store_type == 3 && destination.store_type == 4 ) // TGM to Cashroom
 					{
@@ -2151,11 +2151,11 @@ appServices.service( 'lookup',
 				'2': 'Disputed'
 			},
 			transferCategories: {
-				'1': 'None',
+				'1': 'External',
 				'2': 'General',
-				'3': 'Return Loose',
+				'3': 'Ticket Turnover',
 				'4': 'Stock Replenishment',
-				'5': 'External'
+				'5': 'Cashroom to Cashroom'
 			},
 			transferStatus: {
 				'1': 'Scheduled',

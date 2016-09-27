@@ -105,6 +105,7 @@ class Installer extends CI_Controller {
 					store_name VARCHAR(100) NOT NULL,
 					store_code VARCHAR(6) NOT NULL,
 					store_type INTEGER NOT NULL,
+					store_station_id SMALLINT NULL,
 					store_location VARCHAR(100) NOT NULL,
 					store_contact_number VARCHAR(25) NULL,
 					date_created DATETIME NOT NULL,
@@ -665,23 +666,23 @@ class Installer extends CI_Controller {
 			flush();
 			$this->load->library( 'Store' );
 			$stores = array(
-					array( 'Line 2 Depot', 'Line 2 Depot', 'TIMD', 1 ),
-					array( 'SASCU', 'Line 2 Depot', 'SASCU', 1 ),
-					array( 'TVM and Gates Management', 'Anonas Station', 'TGM', 3 ),
-					array( 'Ticket Production', 'J.Ruiz Station', 'TIMS', 2 ),
-					array( 'TASCU East', 'Anonas Station', 'TASCE', 1 ),
-					array( 'TASCU West', 'J.Ruiz Station', 'TASCW', 1 ),
-					array( 'Recto Cashroom', 'Recto Station', 'RCT', 4 ),
-					array( 'Legarda Cashroom', 'Legarda Station', 'LGRD', 4 ),
-					array( 'Pureza Cashroom', 'Pureza Station', 'PRZ', 4 ),
-					array( 'V.Mapa Cashroom', 'V.Mapa Station', 'VMP', 4 ),
-					array( 'J.Ruiz Cashroom', 'J.Ruiz Station', 'JRZ', 4 ),
-					array( 'Gilmore Cashroom', 'Gilmore Station', 'GLMR', 4 ),
-					array( 'Betty Go - Belmonte Cashroom', 'Betty Go - Belmonte Station', 'BTYG', 4 ),
-					array( 'Araneta Center - Cubao Cashroom', 'Araneta Center - Cubao Station', 'ACCB', 4 ),
-					array( 'Anonas Cashroom', 'Anonas Station', 'ANNS', 4 ),
-					array( 'Katipunan Cashroom', 'Katipunan  Station', 'KTPN', 4 ),
-					array( 'Santolan Cashroom', 'Santolan Station', 'STLN', 4 )
+					array( 'Line 2 Depot', 'Line 2 Depot', 'TIMD', 1, NULL ),
+					array( 'SASCU', 'Line 2 Depot', 'SASCU', 1, NULL ),
+					array( 'TVM and Gates Management', 'Anonas Station', 'TGM', 3, 9 ),
+					array( 'Ticket Production', 'J.Ruiz Station', 'TIMS', 2, 5 ),
+					array( 'TASCU East', 'Anonas Station', 'TASCE', 1, 9 ),
+					array( 'TASCU West', 'J.Ruiz Station', 'TASCW', 1, 5 ),
+					array( 'Recto Cashroom', 'Recto Station', 'RCT', 4, 1 ),
+					array( 'Legarda Cashroom', 'Legarda Station', 'LGRD', 4, 2 ),
+					array( 'Pureza Cashroom', 'Pureza Station', 'PRZ', 4, 3 ),
+					array( 'V.Mapa Cashroom', 'V.Mapa Station', 'VMP', 4, 4 ),
+					array( 'J.Ruiz Cashroom', 'J.Ruiz Station', 'JRZ', 4, 5 ),
+					array( 'Gilmore Cashroom', 'Gilmore Station', 'GLMR', 4, 6 ),
+					array( 'Betty Go - Belmonte Cashroom', 'Betty Go - Belmonte Station', 'BTYG', 4, 7 ),
+					array( 'Araneta Center - Cubao Cashroom', 'Araneta Center - Cubao Station', 'ACCB', 4, 8 ),
+					array( 'Anonas Cashroom', 'Anonas Station', 'ANNS', 4, 9 ),
+					array( 'Katipunan Cashroom', 'Katipunan  Station', 'KTPN', 4, 10 ),
+					array( 'Santolan Cashroom', 'Santolan Station', 'STLN', 4, 11 )
 				);
 
 			foreach( $stores as $s )
@@ -690,7 +691,8 @@ class Installer extends CI_Controller {
 				$store->set( 'store_name', $s[0] );
 				$store->set( 'store_location', $s[1] );
 				$store->set( 'store_code', $s[2] );
-							$store->set( 'store_type', $s[3] );
+				$store->set( 'store_type', $s[3] );
+				$store->set( 'store_station_id', $s[4] );
 				$store->db_save();
 				unset( $store );
 			}

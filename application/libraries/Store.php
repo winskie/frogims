@@ -6,6 +6,7 @@ class Store extends Base_model
 	protected $store_name;
 	protected $store_code;
 	protected $store_type;
+	protected $store_station_id;
 	protected $store_location;
 	protected $store_contact_number;
 
@@ -23,6 +24,7 @@ class Store extends Base_model
 			'store_name' => array( 'type' => 'string' ),
 			'store_code' => array( 'type' => 'string' ),
 			'store_type' => array( 'type' => 'integer' ),
+			'store_station_id' => array( 'type' => 'integer' ),
 			'store_location' => array( 'type' => 'string' ),
 			'store_contact_number' => array( 'type' => 'string' )
 		);
