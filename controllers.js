@@ -1197,6 +1197,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			selectedDestination: null,
 			isExternalSource: false,
 			isExternalDestination: false,
+			stations: angular.copy( appData.data.stations ),
 			inventoryItems: angular.copy( appData.data.items ),
 			itemCategories: [],
 			sweepers: [],
@@ -1204,6 +1205,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			selectedCategory: null,
 			autoCategory: true,
 			transferDatepicker: { format: 'yyyy-MM-dd', opened: false },
+			turnoverDatepicker: { format: 'yyyy-MM-dd', opened: false },
 			receiptDatepicker: { format: 'yyyy-MM-dd HH:mm:ss', opened: false },
 			showCategory: ( session.data.currentStore.store_type == 4 ),
 			showAllocationItemEntry: ( session.data.currentStore.store_type == 4 && $scope.checkPermissions( 'allocations', 'view' ) )
@@ -1317,6 +1319,10 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				else if( dp == 'receipt' )
 				{
 					$scope.data.receiptDatepicker.opened = true;
+				}
+				else if( dp == 'turnover' )
+				{
+					$scope.data.turnoverDatepicker.opened = true;
 				}
 			};
 

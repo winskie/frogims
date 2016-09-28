@@ -315,6 +315,25 @@ class Installer extends CI_Controller {
 				)
 				ENGINE=InnoDB" );
 
+		echo 'Creating ticket turnovers table... <br />';
+		$this->db->query("
+				CREATE TABLE IF NOT EXISTS ticket_turnovers
+				(
+					id INTEGER AUTO_INCREMENT NOT NULL,
+					turnover_transfer_id INTEGER NOT NULL,
+					turnover_date DATETIME NOT NULL,
+					turnover_shift_id INTEGER NOT NULL,
+					turnover_station SMALLINT NOT NULL,
+					date_created DATETIME NOT NULL,
+					date_modified TIMESTAMP NOT NULL,
+					last_modified INTEGER NOT NULL,
+					PRIMARY KEY (id),
+					FOREIGN KEY turnover_transfer_fk (turnover_transfer_id) REFERENCES transfers (id)
+						ON UPDATE CASCADE
+						ON DELETE CASCADE
+				)
+				ENGINE=InnoDB" );
+
 		echo 'Creating conversion table table... <br />';
 		$this->db->query("
 				CREATE TABLE IF NOT EXISTS conversion_table
@@ -953,6 +972,7 @@ class Installer extends CI_Controller {
 		$this->db->query( "TRUNCATE TABLE transfers" );
 		$this->db->query( "TRUNCATE TABLE transfer_items" );
 		$this->db->query( "TRUNCATE TABLE transfer_validations" );
+		$this->db->query( "TRUNCATE TABLE ticket_turnovers" );
 		$this->db->query( "TRUNCATE TABLE conversions" );
 		$this->db->query( "TRUNCATE TABLE allocations" );
 		$this->db->query( "TRUNCATE TABLE allocation_items" );

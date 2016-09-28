@@ -118,12 +118,76 @@
 						</div>
 					</div>
 				</div>
-			</div>
-		</form>
+			</form>
+		</div>
 	</div>
 
-	<div class="panel panel-default" style="height: 300px; overflow-y: auto;">
+	<!-- Ticket Turnover Panel -->
+	<div class="panel panel-default">
 		<div class="panel-heading">
+			<h3 class="panel-title">Ticket Turnover</h3>
+		</div>
+		<div class="panel-body">
+			<form class="form-horizontal">
+				<div class="row">
+					<div class="col-sm-5">
+						<!-- Station -->
+						<div class="form-group">
+							<label class="control-label col-sm-3">Station</label>
+							<div class="col-sm-8">
+								<select class="form-control"
+										ng-model="data.selectedStation"
+										ng-options="station.station_name for station in data.stations track by station.id">
+								</select>
+							</div>
+							<p class="form-control-static col-sm-8" ng-hide="true">{{ transferItem.turnover.station_name }}</p>
+						</div>
+					</div>
+
+					<div class="col-sm-4"
+						<!-- Date -->
+						<div class="form-group">
+							<label class="control-label col-sm-4">Date</label>
+							<div class="input-group col-sm-7" ng-if="[ 'transfer', 'externalTransfer', 'externalReceipt' ].indexOf( data.editMode ) != -1">
+								<input type="text" class="form-control" uib-datepicker-popup="{{ data.turnoverDatepicker.format }}" is-open="data.turnoverDatepicker.opened"
+									min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)"
+									ng-model="transferItem.turnover.turnover_datetime" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" />
+								<span class="input-group-btn">
+									<button type="button" class="btn btn-default" ng-click="showDatePicker( 'turnover' )"><i class="glyphicon glyphicon-calendar"></i></button>
+								</span>
+							</div>
+							<div class="col-sm-7" ng-if="[ 'transfer', 'externalTransfer', 'externalReceipt' ].indexOf( data.editMode ) == -1">
+								<p class="form-control-static">
+									{{ transferItem.turnover.turnover_datetime | parseDate | date: 'yyyy-MM-dd' }}
+								</p>
+							</div>
+						</div>
+					</div>
+
+					<div class="col-sm-3">
+						<!-- Shift -->
+						<div class="form-group">
+							<label class="control-label col-sm-4">Shift</label>
+							<div class="input-group col-sm-6">
+								<select class="form-control"
+										ng-model="data.selectedCashierShift"
+										ng-options="shift.shift_num for shift in data.cashierShifts track by shift.id"
+										ng-change="onTurnoverShiftChange()">
+								</select>
+							</div>
+							<div class="input-group col-sm-6" ng-hide="true">
+								<p class="form-control-static">{{ data.selectedCashierShift.shift_num }}</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<!-- Transfer Items Panel -->
+	<div class="panel panel-default" style="height: 300px; overflow-y: auto;">
+		<div class="panel-heading clearfix">
 			<h3 class="panel-title pull-left">Transfer Items</h3>
 			<div class="pull-right col-sm-12 col-md-3" ng-if="data.showAllocationItemEntry && ( transferItem.transfer_status == <?php echo TRANSFER_PENDING;?> )">
 				<div class="input-group">
@@ -133,7 +197,6 @@
 						ng-keypress="addAllocationItems()">
 				</div>
 			</div>
-			<div class="clearfix"></div>
 		</div>
 		<table class="table table-condensed">
 			<thead>
