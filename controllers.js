@@ -1159,8 +1159,8 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 	}
 ]);
 
-app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'UserServices',
-	function( $scope, $filter, $state, $stateParams, session, appData, notifications, UserServices )
+app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$stateParams', '$uibModal', '$window', 'baseUrl', 'session', 'appData', 'notifications', 'UserServices', 'ReportServices',
+	function( $scope, $filter, $state, $stateParams, $uibModal, $window, baseUrl, session, appData, notifications, UserServices, ReportServices )
 	{
 		var users = [];
 
@@ -1771,6 +1771,33 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 					$scope.input.allocation = null;
 				}
 			}
+
+		// Modals
+		$scope.showDeliveryReceipt = function()
+			{
+				var modalInstance = $uibModal.open({
+						templateUrl: baseUrl + 'index.php/main/view/modal_delivery_receipt',
+						controller: 'DeliveryReceiptModalController',
+						controllerAs: '$ctrl',
+						resolve: {
+								transferItem: function()
+									{
+										return $scope.transferItem;
+									}
+							}
+					});
+
+				modalInstance.result.then(
+					function( params )
+					{
+						console.log( 'Report Parameters:', params );
+						ReportServices.generateReport( 'delivery_receipt', params );
+					},
+					function()
+					{
+						// do nothing
+					});
+			};
 
 		// Initialize controller
 		$scope.input.inventoryItem = $scope.data.inventoryItems[0];

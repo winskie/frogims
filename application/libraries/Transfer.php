@@ -165,6 +165,26 @@ class Transfer extends Base_model {
 		return NULL;
 	}
 
+
+	public function get_transfer_array()
+	{
+		$transfer_data = $this->as_array();
+		$items = $this->get_items();
+		$items_data = array();
+		foreach( $items as $item )
+		{
+			$items_data[] = $item->as_array( array(
+					'item_name' => array( 'type', 'string' ),
+					'item_description' => array( 'type', 'string' ),
+					'item_unit' => array( 'type', 'string' ),
+					'category_name' => array( 'type', 'string' ) ) );
+		}
+		$transfer_data['items'] = $items_data;
+
+		return $transfer_data;
+	}
+
+
 	public function count_transfers( $params = array() )
 	{
 		$ci =& get_instance();
@@ -321,7 +341,7 @@ class Transfer extends Base_model {
 		else
 		{
 			$ci->load->library( 'transfer_item' );
-			$ci->db->select( 'ti.*, i.item_name, i.item_description, ci.category as category_name, ci.is_transfer_category' );
+			$ci->db->select( 'ti.*, i.item_name, i.item_description, i.item_unit, ci.category as category_name, ci.is_transfer_category' );
 			$ci->db->where( 'transfer_id', $this->id );
 			$ci->db->join( 'items i', 'i.id = ti.item_id', 'left' );
 			$ci->db->join( 'item_categories ci', 'ci.id = ti.item_category_id', 'left' );

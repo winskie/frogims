@@ -34,7 +34,14 @@ class Main extends MY_Controller {
 		// check if valid session
 		if( is_logged_in() )
 		{
-			$this->load->view( $view );
+			if( substr( $view, 0, strlen( 'modal_' ) ) === 'modal_' )
+			{
+				$this->load->view( 'modals/'.$view );
+			}
+			else
+			{
+				$this->load->view( $view );
+			}
 		}
 		else
 		{
