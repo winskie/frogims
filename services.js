@@ -436,7 +436,8 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 						{ id: 2, categoryName: 'Regular' },
 						{ id: 3, categoryName: 'Ticket Turnover' },
 						{ id: 4, categoryName: 'Stock Replenishment' },
-						{ id: 5, categoryName: 'Cashroom to Cashroom' }
+						{ id: 5, categoryName: 'Cashroom to Cashroom' },
+						{ id: 6, categoryName: 'Blackbox Receipt' }
 					],
 				transferStatus: [
 						{ id: 1, statusName: 'Scheduled' },
@@ -1555,6 +1556,38 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 				return deferred.promise;
 			};
 
+		me.getTurnoverItems = function( storeId, date )
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/turnover_items',
+					params: {
+						date: $filter( 'date' )( date, 'yyyy-MM-dd' )
+					}
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							deferred.resolve( response.data.data );
+						}
+						else
+						{
+							notifications.showMessages( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						notifications.showMessage( reason.data.errorMsg );
+						console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
+
 		me.saveAllocation = function( allocationData )
 			{
 				var deferred = $q.defer();
@@ -2155,7 +2188,8 @@ appServices.service( 'lookup',
 				'2': 'General',
 				'3': 'Ticket Turnover',
 				'4': 'Stock Replenishment',
-				'5': 'Cashroom to Cashroom'
+				'5': 'Cashroom to Cashroom',
+				'6': 'Blackbox Receipt'
 			},
 			transferStatus: {
 				'1': 'Scheduled',

@@ -1159,8 +1159,8 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 	}
 ]);
 
-app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'UserServices',
-	function( $scope, $filter, $state, $stateParams, session, appData, notifications, UserServices )
+app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$stateParams', '$uibModal', '$window', 'baseUrl', 'session', 'appData', 'notifications', 'UserServices', 'ReportServices',
+	function( $scope, $filter, $state, $stateParams, $uibModal, $window, baseUrl, session, appData, notifications, UserServices, ReportServices )
 	{
 		var users = [];
 
@@ -1197,7 +1197,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			selectedDestination: null,
 			isExternalSource: false,
 			isExternalDestination: false,
-			stations: angular.copy( appData.data.stations ),
 			inventoryItems: angular.copy( appData.data.items ),
 			itemCategories: [],
 			sweepers: [],
@@ -1205,7 +1204,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			selectedCategory: null,
 			autoCategory: true,
 			transferDatepicker: { format: 'yyyy-MM-dd', opened: false },
-			turnoverDatepicker: { format: 'yyyy-MM-dd', opened: false },
 			receiptDatepicker: { format: 'yyyy-MM-dd HH:mm:ss', opened: false },
 			showCategory: ( session.data.currentStore.store_type == 4 ),
 			showAllocationItemEntry: ( session.data.currentStore.store_type == 4 && $scope.checkPermissions( 'allocations', 'view' ) )
@@ -1320,10 +1318,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				{
 					$scope.data.receiptDatepicker.opened = true;
 				}
-				else if( dp == 'turnover' )
-				{
-					$scope.data.turnoverDatepicker.opened = true;
-				}
 			};
 
 		$scope.addTransferItem = function( event )
@@ -1361,6 +1355,39 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 					//$scope.checkItems();
 					$scope.getItemQuantities();
+				}
+			};
+
+		$scope.addTurnoverItems = function( items )
+			{
+				for( var i = 0; i < items.length; i++ )
+				{
+					var itemRemarks;
+					switch( items[i].item_source )
+					{
+						case 'Blackbox':
+							itemRemarks = 'Transfer #' + items[i].source_id + ' - ' + items[i].assignee;
+							break;
+
+						case 'Remittance':
+							itemRemarks = 'Allocation #' + items[i].source_id + ' - ' + ( items[i].assignee_type == 2 ? 'TVM #' : '' ) + items[i].assignee;
+							break;
+					}
+
+					var data = {
+						item_name: items[i].item_name,
+						category_name: items[i].category,
+
+						item_id: items[i].item_id,
+						item_category_id: items[i].item_category_id,
+						quantity: items[i].quantity,
+						remarks: itemRemarks,
+						transfer_item_status: 1, // TRANSFER_ITEM_SCHEDULED
+						transfer_item_allocation_item_id: items[i].allocation_item_id,
+						transfer_item_transfer_item_id: items[i].transfer_item_id
+					}
+
+					$scope.transferItem.items.push( data );
 				}
 			};
 
@@ -1526,6 +1553,16 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			{
 				$scope.data.selectedCategory = category;
 				$scope.transferItem.transfer_category = $scope.data.selectedCategory.id;
+
+				switch( category.categoryName )
+				{
+					case 'Blackbox Receipt':
+						$scope.input.itemCategory = $filter( 'filter' )( $scope.data.itemCategories, { category: 'Black Box' }, true )[0];
+						break;
+
+					default:
+						//$scope.input.itemCategory = $scope.data.itemCategories[0];
+				}
 			};
 
 		$scope.checkItems = function( action )
@@ -1757,7 +1794,8 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 										item_category_id: remittances[i].allocation_category_id,
 										quantity: remittances[i].allocated_quantity,
 										remarks: 'From allocation #' + allocationItem.id + ' - ' + ( allocationItem.assignee_type == 2 ? 'TVM #' : '' ) + allocationItem.assignee,
-										transfer_item_status: 1 // TRANSFER_ITEM_SCHEDULED
+										transfer_item_status: 1, // TRANSFER_ITEM_SCHEDULED
+										allocation_id: remittances[i].id
 									};
 
 									$scope.transferItem.items.push( data );
@@ -1777,6 +1815,28 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 					$scope.input.allocation = null;
 				}
 			}
+
+		// Modals
+		$scope.showTurnoverItems = function()
+			{
+				console.log( 'Hello' );
+				var modalInstance = $uibModal.open({
+						templateUrl: baseUrl + 'index.php/main/view/modal_turnover_items',
+						controller: 'TurnoverItemModalController',
+						controllerAs: '$ctrl',
+						size: 'lg'
+					});
+
+				modalInstance.result.then(
+					function( items )
+					{
+						$scope.addTurnoverItems( items );
+					},
+					function()
+					{
+
+					});
+			};
 
 		// Initialize controller
 		$scope.input.inventoryItem = $scope.data.inventoryItems[0];

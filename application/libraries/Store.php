@@ -792,6 +792,91 @@ class Store extends Base_model
 	}
 
 
+	public function get_turnover_items( $params = array() )
+	{
+		$business_date = param( $params, 'date' );
+		$status = param( $params, 'status' );
+		$limit = param( $params, 'limit' );
+		$page = param( $params, 'page', 1 );
+		$order = param( $params, 'order', 'order_col ASC, shift_num ASC' );
+
+		$params = array();
+
+		$ci =& get_instance();
+
+		$transfer_item_statuses = array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED );
+
+		$sql = 'SELECT 1 AS order_col, "Remittance" AS item_source,
+					s.shift_num,
+					a.id AS source_id, a.assignee_type, a.assignee,
+					i.id AS item_id, i.item_name, i.item_description,
+					ic.id AS item_category_id, ic.category,
+					ai.allocated_quantity AS quantity,
+					ai.id AS allocation_item_id,
+					NULL AS transfer_item_id,
+					ti.id AS turnover_id
+				FROM allocations AS a
+				LEFT JOIN allocation_items AS ai
+					ON ai.allocation_id = a.id
+				LEFT JOIN shifts AS s
+					ON s.id = ai.cashier_shift_id
+				LEFT JOIN items AS i
+					ON i.id = ai.allocated_item_id
+				LEFT JOIN item_categories AS ic
+					ON ic.id = ai.allocation_category_id
+				LEFT JOIN transfer_items AS ti
+					ON ti.transfer_item_allocation_item_id = ai.id AND ti.transfer_item_status NOT IN ( '.implode( ', ', $transfer_item_statuses).' )
+
+				WHERE
+					ic.category_type = 2
+					AND i.turnover_item = 1';
+
+		if( $business_date )
+		{ // TODO: secure this parameter
+			$sql .= " AND a.business_date = ?";
+			$params[] = $business_date;
+		}
+
+		$sql .= ' UNION ALL
+
+				SELECT 2, "Blackbox",
+					s.shift_num,
+					t.id, NULL, t.origin_name,
+					i.id, i.item_name, i.item_description,
+					ic.id, ic.category,
+					ti.quantity_received,
+					NULL,
+					ti.id,
+					ti2.id AS turnover_id
+				FROM transfer_items AS ti
+				LEFT JOIN transfers AS t
+					ON t.id = ti.transfer_id
+				LEFT JOIN shifts AS s
+					ON s.id = t.recipient_shift
+				LEFT JOIN items AS i
+					ON i.id = ti.item_id
+				LEFT JOIN item_categories AS ic
+					ON ic.id = ti.item_category_id
+				LEFT JOIN transfer_items AS ti2
+					ON ti2.transfer_item_transfer_item_id = ti.id AND ti2.transfer_item_status NOT IN ( '.implode( ', ', $transfer_item_statuses).' )
+
+				WHERE
+					t.transfer_category = 6
+					AND i.turnover_item = 1';
+
+		if( $business_date )
+		{ // TODO: secure this parameter
+			$sql .= " AND DATE(t.receipt_datetime) = ?";
+			$params[] = $business_date;
+		}
+
+		$sql .= ' ORDER BY '.$order;
+
+		$remittances = $ci->db->query( $sql, $params );
+
+		return $remittances->result_array();
+	}
+
 	public function get_conversions( $params =array () )
 	{
 		$limit = param( $params, 'limit' );

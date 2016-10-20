@@ -148,6 +148,7 @@ class Installer extends CI_Controller {
 					teller_remittable BOOLEAN NOT NULL DEFAULT 0,
 					machine_allocatable BOOLEAN NOT NULL DEFAULT 0,
 					machine_remittable BOOLEAN NOT NULL DEFAULT 0,
+					turnover_item BOOLEAN NOT NULL DEFAULT 0,
 					date_created DATETIME NOT NULL,
 					date_modified DATETIME NOT NULL,
 					last_modified INTEGER NOT NULL,
@@ -278,13 +279,17 @@ class Installer extends CI_Controller {
 					quantity_received INTEGER NULL DEFAULT NULL,
 					remarks TEXT NULL DEFAULT NULL,
 					transfer_item_status SMALLINT NOT NULL DEFAULT 1,
+					transfer_item_allocation_item_id INTEGER NULL DEFAULT NULL,
+					transfer_item_transfer_item_id INTEGER NULL DEFAULT NULL,
 					date_created DATETIME NOT NULL,
 					date_modified TIMESTAMP NOT NULL,
 					last_modified INTEGER NOT NULL,
 					PRIMARY KEY (id),
 					FOREIGN KEY transfer_items_transfer_fk (transfer_id) REFERENCES transfers (id)
 						ON UPDATE CASCADE
-						ON DELETE CASCADE
+						ON DELETE CASCADE,
+					INDEX transfer_items_allocation_item_ndx ( transfer_item_allocation_item_id ),
+					INDEX transfer_items_transfer_item_ndx ( transfer_item_transfer_item_id )
 				)
 				ENGINE=InnoDB" );
 
@@ -310,25 +315,6 @@ class Installer extends CI_Controller {
 					last_modified INTEGER NOT NULL,
 					PRIMARY KEY (id),
 					FOREIGN KEY transval_items_transfer_fk (transval_transfer_id) REFERENCES transfers (id)
-						ON UPDATE CASCADE
-						ON DELETE CASCADE
-				)
-				ENGINE=InnoDB" );
-
-		echo 'Creating ticket turnovers table... <br />';
-		$this->db->query("
-				CREATE TABLE IF NOT EXISTS ticket_turnovers
-				(
-					id INTEGER AUTO_INCREMENT NOT NULL,
-					turnover_transfer_id INTEGER NOT NULL,
-					turnover_date DATETIME NOT NULL,
-					turnover_shift_id INTEGER NOT NULL,
-					turnover_station SMALLINT NOT NULL,
-					date_created DATETIME NOT NULL,
-					date_modified TIMESTAMP NOT NULL,
-					last_modified INTEGER NOT NULL,
-					PRIMARY KEY (id),
-					FOREIGN KEY turnover_transfer_fk (turnover_transfer_id) REFERENCES transfers (id)
 						ON UPDATE CASCADE
 						ON DELETE CASCADE
 				)
@@ -733,28 +719,28 @@ class Installer extends CI_Controller {
 			flush();
 			$this->load->library( 'Item' );
 			$items = array(
-					array( 'L2 SJT', 'Line 2 Single Journey Ticket', NULL, 0, 1, 0, 0, 'SJT', 'piece' ), // ID: 1
-					array( 'L2 SJT - Rigid Box', 'Line 2 Single Journey Ticket in Rigid Box', 1, 1, 1, 0, 0, 'SJT', 'box' ),
-					array( 'L2 SJT - Ticket Magazine', 'Line 2 Single Journey Ticket in Ticket Magazine', 1, 0, 0, 1, 0, 'SJT', 'magazine' ),
-					array( 'L2 SJT - Defective', 'Defective Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, NULL, 'piece' ),
-					array( 'L2 SJT - Damaged', 'Damaged Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, NULL, 'piece' ),
+					array( 'L2 SJT', 'Line 2 Single Journey Ticket', NULL, 0, 1, 0, 0, 'SJT', 'piece', 1 ), // ID: 1
+					array( 'L2 SJT - Rigid Box', 'Line 2 Single Journey Ticket in Rigid Box', 1, 1, 1, 0, 0, 'SJT', 'box', 0 ),
+					array( 'L2 SJT - Ticket Magazine', 'Line 2 Single Journey Ticket in Ticket Magazine', 1, 0, 0, 1, 0, 'SJT', 'magazine', 0 ),
+					array( 'L2 SJT - Defective', 'Defective Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, NULL, 'piece', 1 ),
+					array( 'L2 SJT - Damaged', 'Damaged Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, NULL, 'piece', 1 ),
 
-					array( 'SVC', 'Stored Value Card', NULL, 0, 1, 0, 0, 'SVC', 'piece' ), // ID: 6
-					array( 'SVC - Rigid Box', 'Stored Value Ticket in Rigid Box', 6, 1, 1, 0, 0, 'SVC', 'box' ),
-					array( 'SVC - 25', 'Stored Value Ticket in 25', 6, 1, 1, 0, 0, 'SVC', 'box' ),
-					array( 'SVC - 150', 'Stored Value Ticket in 150', 6, 0, 0, 1, 0, 'SVC', 'box' ),
-					array( 'SVC - Defective', 'Defective Stored Value Card', NULL, 0, 1, 0, 1, NULL, 'piece' ),
-					array( 'SVC - Damaged', 'Damaged Stored Value Card', NULL, 0, 1, 0, 1, NULL, 'piece' ),
+					array( 'SVC', 'Stored Value Card', NULL, 0, 1, 0, 0, 'SVC', 'piece', 1 ), // ID: 6
+					array( 'SVC - Rigid Box', 'Stored Value Ticket in Rigid Box', 6, 1, 1, 0, 0, 'SVC', 'box', 0 ),
+					array( 'SVC - 25', 'Stored Value Ticket in 25', 6, 1, 1, 0, 0, 'SVC', 'box', 0 ),
+					array( 'SVC - 150', 'Stored Value Ticket in 150', 6, 0, 0, 1, 0, 'SVC', 'box', 0 ),
+					array( 'SVC - Defective', 'Defective Stored Value Card', NULL, 0, 1, 0, 1, NULL, 'piece', 1 ),
+					array( 'SVC - Damaged', 'Damaged Stored Value Card', NULL, 0, 1, 0, 1, NULL, 'piece', 1 ),
 
-					array( 'Senior', 'Senior Citizen Stored Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece' ),
-					array( 'PWD', 'Passenger with Disability Store Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece' ),
+					array( 'Senior', 'Senior Citizen Stored Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece', 1 ),
+					array( 'PWD', 'Passenger with Disability Store Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece', 1 ),
 
-					array( 'L2 Ticket Coupon', 'Line 2 Ticket Coupon', NULL, 1, 1, 0, 0, NULL, 'piece' ),
+					array( 'L2 Ticket Coupon', 'Line 2 Ticket Coupon', NULL, 1, 1, 0, 0, NULL, 'piece', 0 ),
 
-					array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0, NULL, 'piece' ), // ID: 15
-					array( 'L1 SJT', 'Line 1 Single Journey Ticket', 15, 0, 1, 0, 0, NULL, 'piece' ),
-					array( 'MRT SJT', 'Line 3 Single Journey Ticket', 15, 0, 1, 0, 0, NULL, 'piece' ),
-					array( 'Staff Card', 'Staff Card', NULL, 0, 0, 0, 0, NULL, 'piece' )
+					array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0, NULL, 'piece', 1 ), // ID: 15
+					array( 'L1 SJT', 'Line 1 Single Journey Ticket', 15, 0, 1, 0, 0, NULL, 'piece', 1 ),
+					array( 'MRT SJT', 'Line 3 Single Journey Ticket', 15, 0, 1, 0, 0, NULL, 'piece', 1 ),
+					array( 'Staff Card', 'Staff Card', NULL, 0, 0, 0, 0, NULL, 'piece', 1 )
 				);
 
 			foreach( $items as $i )
@@ -769,6 +755,7 @@ class Installer extends CI_Controller {
 				$item->set( 'machine_remittable', $i[6] );
 				$item->set( 'item_group', $i[7] );
 				$item->set( 'item_unit', $i[8] );
+				$item->set( 'turnover_item', $i[9] );
 				$item->db_save();
 				unset( $item );
 			}
@@ -972,7 +959,6 @@ class Installer extends CI_Controller {
 		$this->db->query( "TRUNCATE TABLE transfers" );
 		$this->db->query( "TRUNCATE TABLE transfer_items" );
 		$this->db->query( "TRUNCATE TABLE transfer_validations" );
-		$this->db->query( "TRUNCATE TABLE ticket_turnovers" );
 		$this->db->query( "TRUNCATE TABLE conversions" );
 		$this->db->query( "TRUNCATE TABLE allocations" );
 		$this->db->query( "TRUNCATE TABLE allocation_items" );

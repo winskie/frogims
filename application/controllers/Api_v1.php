@@ -1409,6 +1409,28 @@ class Api_v1 extends MY_Controller {
 										) );
 									}
 									break;
+								case 'turnover_items':
+									// Check permissions
+									if( !$current_user->check_permissions( 'allocations', 'view' ) )
+									{
+										$this->_error( 403, 'You are not allowed to access this resource' );
+									}
+									else
+									{
+										$params = array(
+												'date' => param( $this->input->get(), 'date' ),
+												'status' => param( $this->input->get(), 'status' ),
+												'page' => param( $this->input->get(), 'page' ),
+												'limit' => param( $this->input->get(), 'limit' ),
+											);
+
+										$items = $store->get_turnover_items( $params );
+
+										$this->_response( array(
+											'items' => $items,
+											'query' => $this->db->last_query() ) );
+									}
+									break;
 
 								case 'shifts': // store shifts
 									$shifts = $store->get_shifts();

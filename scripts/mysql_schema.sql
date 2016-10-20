@@ -119,6 +119,7 @@ CREATE TABLE IF NOT EXISTS items
 	teller_remittable BOOLEAN NOT NULL DEFAULT 0,
 	machine_allocatable BOOLEAN NOT NULL DEFAULT 0,
 	machine_remittable BOOLEAN NOT NULL DEFAULT 0,
+	turnover_item BOOLEAN NOT NULL DEFAULT 0,
 	date_created DATETIME NOT NULL,
 	date_modified DATETIME NOT NULL,
 	last_modified INTEGER NOT NULL,
@@ -246,13 +247,17 @@ CREATE TABLE IF NOT EXISTS transfer_items
 	quantity_received INTEGER NULL DEFAULT NULL,
 	remarks TEXT NULL DEFAULT NULL,
 	transfer_item_status SMALLINT NOT NULL DEFAULT 1,
+	transfer_item_allocation_item_id INTEGER NULL DEFAULT NULL,
+	transfer_item_transfer_item_id INTEGER NULL DEFAULT NULL,
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,
 	last_modified INTEGER NOT NULL,
 	PRIMARY KEY (id),
 	FOREIGN KEY transfer_items_transfer_fk (transfer_id) REFERENCES transfers (id)
 		ON UPDATE CASCADE
-		ON DELETE CASCADE
+		ON DELETE CASCADE,
+	INDEX transfer_items_allocation_item_ndx ( transfer_item_allocation_item_id ),
+	INDEX transfer_items_transfer_item_ndx ( transfer_item_transfer_item_id )
 )
 ENGINE=InnoDB;
 
@@ -276,23 +281,6 @@ CREATE TABLE IF NOT EXISTS transfer_validations
 	last_modified INTEGER NOT NULL,
 	PRIMARY KEY (id),
 	FOREIGN KEY transval_items_transfer_fk (transval_transfer_id) REFERENCES transfers (id)
-		ON UPDATE CASCADE
-		ON DELETE CASCADE
-)
-ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS ticket_turnovers
-(
-	id INTEGER AUTO_INCREMENT NOT NULL,
-	turnover_transfer_id INTEGER NOT NULL,
-	turnover_date DATETIME NOT NULL,
-	turnover_shift_id INTEGER NOT NULL,
-	turnover_station SMALLINT NOT NULL,
-	date_created DATETIME NOT NULL,
-	date_modified TIMESTAMP NOT NULL,
-	last_modified INTEGER NOT NULL,
-	PRIMARY KEY (id),
-	FOREIGN KEY turnover_transfer_fk (turnover_transfer_id) REFERENCES transfers (id)
 		ON UPDATE CASCADE
 		ON DELETE CASCADE
 )

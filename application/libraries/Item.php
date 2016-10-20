@@ -12,6 +12,7 @@ class Item extends Base_model
     protected $teller_remittable;
     protected $machine_allocatable;
     protected $machine_remittable;
+    protected $turnover_item;
 
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
@@ -30,7 +31,8 @@ class Item extends Base_model
             'teller_allocatable' => array( 'type' => 'boolean' ),
             'teller_remittable' => array( 'type' => 'boolean' ),
             'machine_allocatable' => array( 'type' => 'boolean' ),
-            'machine_remittable' => array( 'type' => 'boolean' )
+            'machine_remittable' => array( 'type' => 'boolean' ),
+            'turnover_item' => array( 'type' => 'boolean' )
 		);
 	}
 
