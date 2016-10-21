@@ -1159,8 +1159,8 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 	}
 ]);
 
-app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$stateParams', '$uibModal', '$window', 'baseUrl', 'session', 'appData', 'notifications', 'UserServices', 'ReportServices',
-	function( $scope, $filter, $state, $stateParams, $uibModal, $window, baseUrl, session, appData, notifications, UserServices, ReportServices )
+app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$stateParams', '$uibModal', '$window', 'baseUrl', 'session', 'appData', 'notifications', 'UserServices',
+	function( $scope, $filter, $state, $stateParams, $uibModal, $window, baseUrl, session, appData, notifications, UserServices )
 	{
 		var users = [];
 
