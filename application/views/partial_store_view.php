@@ -30,7 +30,7 @@ $current_user = current_user();
 					<tbody>
 						<tr ng-repeat="item in data.items"
 							ng-class="{info: currentItem == item,
-									'text-muted': ( item.quantity === 0 && item.reserved === 0 && ( item.quantity - item.reserved ) === 0 ) }">
+									'text-extra-muted': ( item.quantity === 0 && item.reserved === 0 && ( item.quantity - item.reserved ) === 0 ) }">
 							<td>{{ item.item_name }}</td>
 							<td>{{ item.item_group }}</td>
 							<td>{{ item.item_description }}</td>
@@ -1080,9 +1080,9 @@ $current_user = current_user();
 											<tbody>
 												<tr ng-repeat="item in row.items">
 													<td>{{ item.item_description }}</td>
-													<td class="text-right">{{ item.allocation | number }}</td>
-													<td class="text-right">{{ item.additional | number }}</td>
-													<td class="text-right">{{ item.remitted | number }}</td>
+													<td class="text-right">{{ item.allocation === 0 ? '---' : ( item.allocation | number ) }}</td>
+													<td class="text-right">{{ item.additional === 0 ? '---' : ( item.additional | number ) }}</td>
+													<td class="text-right">{{ item.remitted === 0 ? '---' : ( item.remitted | number ) }}</td>
 												</tr>
 											</tbody>
 										</table>
@@ -1093,20 +1093,22 @@ $current_user = current_user();
 												<tr class="active">
 													<th>Item Description</th>
 													<th style="width: 70px;">Load</th>
+													<th style="width: 70px;">Loose</th>
 													<th style="width: 70px;">Reject</th>
 												</tr>
 											</thead>
 											<tbody>
 												<tr ng-repeat="item in row.items">
 													<td>{{ item.item_description }}</td>
-													<td class="text-right">{{ item.additional | number }}</td>
-													<td class="text-right">{{ item.remitted | number }}</td>
+													<td class="text-right">{{ item.additional === 0 ? '---' : ( item.additional | number ) }}</td>
+													<td class="text-right">{{ item.unsold === 0 ? '---' : ( item.unsold | number ) }}</td>
+													<td class="text-right">{{ item.rejected === 0 ? '---' : ( item.rejected | number ) }}</td>
 												</tr>
 											</tbody>
 										</table>
 									</div>
 								</td>
-								<td class="text-center vert-top">{{ lookup( 'allocationStatus', row.allocation_status ).status }}</td>
+								<td class="text-center vert-top">{{ ( row.valid_allocation == 0 ) && ( row.allocation_status == <?php echo ALLOCATION_SCHEDULED;?> ) ? 'Remitted' : lookup( 'allocationStatus', row.allocation_status ).status }}</td>
 								<td class="vert-top" ng-switch on="row.allocation_status">
 									<div class="btn-group" uib-dropdown>
 										<button type="button" class="btn btn-default" ui-sref="main.allocation({ allocationItem: row, editMode: 'view' })">View details...</button>
@@ -1114,10 +1116,10 @@ $current_user = current_user();
 											<span class="caret"></span>
 										</button>
 										<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'allocations', row )">
-											<li role="menuitem" ng-if="row.allocation_status == <?php echo ALLOCATION_SCHEDULED;?> && checkPermissions( 'allocations', 'allocate' )">
+											<li role="menuitem" ng-if="row.allocation_status == <?php echo ALLOCATION_SCHEDULED;?> && checkPermissions( 'allocations', 'allocate' ) && row.valid_allocation > 0 && row.assignee">
 												<a href="#" ng-click="allocateAllocation( row )">Allocate</a>
 											</li>
-											<li role="menuitem" ng-if="row.allocation_status == <?php echo ALLOCATION_ALLOCATED;?> && checkPermissions( 'allocations', 'complete' )">
+											<li role="menuitem" ng-if="( row.assignee_type != 1 || row.allocation_status == <?php echo ALLOCATION_ALLOCATED;?> ) && checkPermissions( 'allocations', 'complete' ) && ( ( row.valid_allocation > 0 ) || ( row.valid_remittance > 0 ) ) && row.assignee">
 												<a href="#" ng-click="completeAllocation( row )">Complete</a>
 											</li>
 											<li role="menuitem" ng-if="row.allocation_status == <?php echo ALLOCATION_SCHEDULED;?> && checkPermissions( 'allocations', 'edit' )">

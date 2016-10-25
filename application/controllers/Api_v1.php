@@ -1166,9 +1166,11 @@ class Api_v1 extends MY_Controller {
 												'allocated_item_id' => $allocation['allocated_item_id'],
 												'item_name' => $allocation['item_name'],
 												'item_description' => $allocation['item_description'],
-												'allocation' => $allocation['allocation'],
-												'additional' => $allocation['additional'],
-												'remitted' => $allocation['remitted']
+												'allocation' => intval( $allocation['allocation'] ),
+												'additional' => intval( $allocation['additional'] ),
+												'remitted' => intval( $allocation['remitted'] ),
+												'unsold' => intval( $allocation['unsold'] ),
+												'rejected' => intval( $allocation['rejected'] )
 											);
 
 											if( isset( $allocations_data[$allocation['id']] ) )
@@ -1185,10 +1187,15 @@ class Api_v1 extends MY_Controller {
 													'assignee' => $allocation['assignee'],
 													'assignee_type' => $allocation['assignee_type'],
 													'allocation_status' => $allocation['allocation_status'],
-													'cashier_id' => $allocation['cashier_id']
+													'cashier_id' => $allocation['cashier_id'],
+													'valid_allocation' => 0,
+													'valid_remittance' => 0
 												);
 												$allocations_data[$allocation['id']]['items'] = array( $item );
 											}
+
+											$allocations_data[$allocation['id']]['valid_allocation'] += intval( $allocation['valid_allocation'] );
+											$allocations_data[$allocation['id']]['valid_remittance'] += intval( $allocation['valid_remittance'] );
 										}
 
 										$this->_response( array(

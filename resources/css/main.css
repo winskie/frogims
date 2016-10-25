@@ -50,6 +50,11 @@ body
     padding-top: 20px;
 }
 
+.text-extra-muted
+{
+    color: #bbbbbb;
+}
+
 .defective
 {
 	color: #8b0000;

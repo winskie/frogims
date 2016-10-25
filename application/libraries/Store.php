@@ -718,7 +718,7 @@ class Store extends Base_model
 		$sql = 'SELECT
 					a.id, a.store_id, a.business_date, a.shift_id, a.station_id, a.assignee, a.assignee_type,	a.allocation_status, a.cashier_id,
 					s.shift_num,
-					x.allocated_item_id, x.item_name, x.item_description, x.allocation, x.additional, x.remitted
+					x.allocated_item_id, x.item_name, x.item_description, x.allocation, x.additional, x.remitted, x.unsold, x.rejected, x.valid_allocation, x.valid_remittance
 				FROM (
 					SELECT
 						allocation_id,
@@ -727,7 +727,11 @@ class Store extends Base_model
 						item_description,
 						SUM( IF( ic.is_allocation_category = TRUE AND category = "Initial Allocation" AND NOT allocation_item_status IN ('.implode( ', ', array( ALLOCATION_ITEM_CANCELLED, ALLOCATION_ITEM_VOIDED ) ).'), allocated_quantity, 0 ) ) AS allocation,
 						SUM( IF( ic.is_allocation_category = TRUE AND category IN ( "Additional Allocation", "Magazine Load" ) AND NOT allocation_item_status = '.ALLOCATION_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS additional,
-						SUM( IF( ic.is_remittance_category = TRUE AND NOT allocation_item_status = '.REMITTANCE_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS remitted
+						SUM( IF( ic.is_remittance_category = TRUE AND NOT allocation_item_status = '.REMITTANCE_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS remitted,
+						SUM( IF( ic.is_remittance_category = TRUE AND category = "Unsold / Loose" AND NOT allocation_item_status = '.REMITTANCE_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS unsold,
+						SUM( IF( ic.is_remittance_category = TRUE AND category = "Reject Bin" AND NOT allocation_item_status = '.REMITTANCE_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS rejected,
+						SUM( IF( ai.allocation_item_status IN ( '.implode( ',', array( ALLOCATION_ITEM_SCHEDULED, ALLOCATION_ITEM_ALLOCATED ) ).' ) AND ai.allocated_quantity > 0, 1, 0 ) ) AS valid_allocation,
+						SUM( IF( ai.allocation_item_status IN ( '.implode( ',', array( REMITTANCE_ITEM_PENDING, REMITTANCE_ITEM_REMITTED ) ).' ) AND ai.allocated_quantity > 0, 1, 0 ) ) AS valid_remittance
 					FROM allocation_items AS ai
 					LEFT JOIN allocations AS a
 						ON a.id = ai.allocation_id

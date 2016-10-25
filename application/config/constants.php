@@ -193,3 +193,7 @@ defined('ADJUSTMENT_TYPE_ACTUAL')	OR define('ADJUSTMENT_TYPE_ACTUAL', 1);
 // Mopped item status
 defined('MOPPED_ITEM_OK')       OR define('MOPPED_ITEM_OK', 1);
 defined('MOPPED_ITEM_VOID')     OR define('MOPPED_ITEM_VOID', 2);
+
+// Allocation assignee types
+defined('ALLOCATION_ASSIGNEE_TELLER')	OR define('ALLOCATION_ASSIGNEE_TELLER', 1);
+defined('ALLOCATION_ASSIGNEE_MACHINE')	OR define('ALLOCATION_ASSIGNEE_MACHINE', 2);

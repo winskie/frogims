@@ -719,13 +719,13 @@ class Installer extends CI_Controller {
 			flush();
 			$this->load->library( 'Item' );
 			$items = array(
-					array( 'L2 SJT', 'Line 2 Single Journey Ticket', NULL, 0, 1, 0, 0, 'SJT', 'piece', 1 ), // ID: 1
+					array( 'L2 SJT', 'Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, 'SJT', 'piece', 1 ), // ID: 1
 					array( 'L2 SJT - Rigid Box', 'Line 2 Single Journey Ticket in Rigid Box', 1, 1, 1, 0, 0, 'SJT', 'box', 0 ),
 					array( 'L2 SJT - Ticket Magazine', 'Line 2 Single Journey Ticket in Ticket Magazine', 1, 0, 0, 1, 0, 'SJT', 'magazine', 0 ),
 					array( 'L2 SJT - Defective', 'Defective Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, NULL, 'piece', 1 ),
 					array( 'L2 SJT - Damaged', 'Damaged Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, NULL, 'piece', 1 ),
 
-					array( 'SVC', 'Stored Value Card', NULL, 0, 1, 0, 0, 'SVC', 'piece', 1 ), // ID: 6
+					array( 'SVC', 'Stored Value Card', NULL, 0, 1, 0, 1, 'SVC', 'piece', 1 ), // ID: 6
 					array( 'SVC - Rigid Box', 'Stored Value Ticket in Rigid Box', 6, 1, 1, 0, 0, 'SVC', 'box', 0 ),
 					array( 'SVC - 25', 'Stored Value Ticket in 25', 6, 1, 1, 0, 0, 'SVC', 'box', 0 ),
 					array( 'SVC - 150', 'Stored Value Ticket in 150', 6, 0, 0, 1, 0, 'SVC', 'box', 0 ),
@@ -854,14 +854,14 @@ class Installer extends CI_Controller {
 					array( 'Initial Allocation', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1 ),
 					array( 'Additional Allocation', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1 ),
 					array( 'Magazine Load', 1, TRUE, FALSE, FALSE, FALSE, TRUE, 1 ),
-					array( 'Unsold / Loose', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
-					array( 'Defective', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
-					array( 'Reject Bin', 2, FALSE, TRUE, TRUE, FALSE, TRUE, 1 ),
+					array( 'Unsold / Loose', 2, FALSE, TRUE, TRUE, TRUE, TRUE, 1 ),
 					array( 'Free Exit', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
 					array( 'Expired', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
 					array( 'Code Red', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
+					array( 'Unconfirmed', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
+					array( 'TCERF', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
+					array( 'Reject Bin', 2, FALSE, TRUE, TRUE, FALSE, TRUE, 1 ),
 					array( 'Black Box', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
-					array( 'Unconfirmed', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 )
 				);
 
 			foreach( $values as $value )

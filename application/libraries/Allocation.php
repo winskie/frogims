@@ -18,6 +18,9 @@ class Allocation extends Base_model {
     protected $voided_allocations;
     protected $voided_remittances;
 
+    protected $has_valid_allocation_item;
+    protected $has_valid_remittance_item;
+
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
 	protected $last_modified_field = 'last_modified';
@@ -242,6 +245,9 @@ class Allocation extends Base_model {
             // Transact allocation
             $this->_transact_allocation();
 
+            // Transact remittance
+            $this->_transact_remittance();
+
             // Transact voided items
             $this->_transact_voided_items();
         }
@@ -265,7 +271,8 @@ class Allocation extends Base_model {
                 // Adjust inventory reservation level for new allocation request, if scheduled
                 if( isset( $this->store_id )
                         && ( $this->store_id == $ci->session->current_store_id )
-                        && ( $this->allocation_status == ALLOCATION_SCHEDULED ) )
+                        && ( $this->allocation_status == ALLOCATION_SCHEDULED )
+                        && ! empty( $this->allocations ) )
                 {
                     foreach( $this->allocations as $allocation )
                     {
@@ -292,10 +299,23 @@ class Allocation extends Base_model {
                 $result = $this->_db_insert();
 
                 // Save allocation items
-                foreach( $this->allocations as $allocation )
+                if( isset( $this->allocations ) )
                 {
-                    $allocation->set( 'allocation_id', $this->id );
-                    $allocation->db_save();
+                    foreach( $this->allocations as $allocation )
+                    {
+                        $allocation->set( 'allocation_id', $this->id );
+                        $allocation->db_save();
+                    }
+                }
+
+                // Save remittance items
+                if( isset( $this->remittances ) )
+                {
+                    foreach( $this->remittances as $remittance )
+                    {
+                        $remittance->set( 'allocation_id', $this->id );
+                        $remittance->db_save();
+                    }
                 }
 
                 // Transact allocation
@@ -303,6 +323,8 @@ class Allocation extends Base_model {
                 {
                     $this->_transact_allocation();
                 }
+
+                $this->_transact_remittance();
             }
             else
             {
@@ -348,6 +370,13 @@ class Allocation extends Base_model {
             return FALSE;
 		}
 
+        // There must be a valid allocation item
+        if( ! $this->_check_for_valid_allocation_item() )
+        {
+            set_message( 'Allocation does not contain any valid items' );
+            return FALSE;
+        }
+
         // Assignee must be specified
         if( ! isset( $this->assignee ) )
         {
@@ -379,17 +408,25 @@ class Allocation extends Base_model {
 
         // Only allow allocation from the following previous status:
         $allowed_prev_status = array( ALLOCATION_ALLOCATED );
-        if( ! in_array( $this->allocation_status, $allowed_prev_status ) )
+        if( $this->assignee_type == ALLOCATION_ASSIGNEE_TELLER && ! in_array( $this->allocation_status, $allowed_prev_status ) )
         {
-            die( 'Cannot remit non-allocated allocations' );
+            set_message( 'Cannot remit non-allocated allocations' );
+            return FALSE;
         }
 
         // Only the originating store can allocat
 		if( $ci->session->current_store_id != $this->store_id )
 		{
-			die( sprintf( 'Current store (%s) is not authorize to remit items in this record',
-                    $ci->session->current_store_id ) );
+            set_message( sprintf( 'Current store (%s) is not authorize to remit items in this record', $ci->session->current_store_id ) );
+			return FALSE;
 		}
+
+        // Assignee must be specified
+        if( ! isset( $this->assignee ) )
+        {
+            set_message( sprintf( 'Remittance requires %s to be specified', $this->assignee_type == 1 ? 'teller name' : 'TVM number' ) );
+            return FALSE;
+        }
 
         $ci->db->trans_start();
         $this->set( 'allocation_status', ALLOCATION_REMITTED );
@@ -643,9 +680,12 @@ class Allocation extends Base_model {
             switch( $this->allocation_status )
             {
                 case ALLOCATION_SCHEDULED:
-                    // There should not be any remittances during this allocation status
-                    set_message( 'There should not be any remittances during this allocation status', 'error' );
-                    return FALSE;
+                    if( $this->assignee_type == ALLOCATION_ASSIGNEE_TELLER )
+                    {
+                        // There should not be any remittances during this allocation status
+                        set_message( 'There should not be any remittances during this allocation status', 'error' );
+                        return FALSE;
+                    }
                     break;
 
                 case ALLOCATION_ALLOCATED:
@@ -695,7 +735,6 @@ class Allocation extends Base_model {
 
         $ci->load->library( 'inventory' );
         $allocations = $this->get_allocations();
-        $remittances = $this->get_remittances();
         $timestamp = date( TIMESTAMP_FORMAT );
 
         $ci->db->trans_start();
@@ -722,6 +761,20 @@ class Allocation extends Base_model {
             }
         }
 
+        $ci->db->trans_complete();
+
+        return $ci->db->trans_status();
+    }
+
+    public function _transact_remittance()
+    {
+        $ci =& get_instance();
+
+        $ci->load->library( 'inventory' );
+        $remittances = $this->get_remittances();
+        $timestamp = date( TIMESTAMP_FORMAT );
+
+        $ci->db->trans_start();
         foreach( $remittances as $remittance )
         {
             if( $remittance->get( 'allocation_item_status' ) == REMITTANCE_ITEM_PENDING )
@@ -791,6 +844,48 @@ class Allocation extends Base_model {
         $this->voided_remittances = NULL;
 
         return $ci->db->trans_status();
+    }
+
+    private function _check_for_valid_allocation_item( $force = FALSE )
+    {
+        if( ! isset( $this->has_valid_allocation_item ) || $force )
+        {
+            $this->has_valid_allocation_item = false;
+            $allocations = $this->get_allocations();
+
+            foreach( $allocations as $allocation )
+            {
+                if( in_array( $allocation->get( 'allocation_item_status' ), array( ALLOCATION_ITEM_SCHEDULED, ALLOCATION_ITEM_ALLOCATED ) )
+                    && $allocation->get( 'allocated_quantity' ) > 0 )
+                {
+                    $this->has_valid_allocation_item = true;
+                    break;
+                }
+            }
+        }
+
+        return $this->has_valid_allocation_item;
+    }
+
+    private function _check_for_valid_remittance_item( $force = FALSE )
+    {
+        if( ! isset( $this->has_valid_remittance_item ) || $force )
+        {
+            $this->has_valid_remittance_item = false;
+            $remittances = $this->get_remittances();
+
+            foreach( $remittances as $remittance )
+            {
+                if( in_array( $remittance->get( 'allocation_item_status' ), array( REMITTANCE_ITEM_PENDING, REMITTANCE_ITEM_REMITTED ) )
+                    && $remittance->get( 'allocated_quantity' ) > 0 )
+                {
+                    $this->has_valid_remittance_item = true;
+                    break;
+                }
+            }
+        }
+
+        return $this->has_valid_remittance_item;
     }
 
     public function load_from_data( $data = array(), $overwrite = TRUE )

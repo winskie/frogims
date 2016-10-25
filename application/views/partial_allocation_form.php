@@ -78,8 +78,8 @@
 </div>
 
 <div>
-    <uib-tabset justified="false">
-        <uib-tab heading="Allocations" select="updatePhase( 'allocation' )">
+    <uib-tabset justified="false" active="data.activeTab">
+        <uib-tab heading="Allocations" select="updatePhase( 'allocation' )" index="0">
             <div class="panel panel-default" style="margin: 20px 0; height: 300px; overflow-y: auto;">
                 <table class="table table-condensed">
                     <thead>
@@ -128,7 +128,7 @@
             </div>
         </uib-tab>
 
-        <uib-tab select="updatePhase( 'remittance' )" disable="allocationItem.allocation_status == 1">
+        <uib-tab select="updatePhase( 'remittance' )" index="1" disable="allocationItem.allocation_status == 1 && allocationItem.assignee_type == 1">
             <uib-tab-heading>
                 {{ data.remittancesTabLabel }}
             </uib-tab-heading>
@@ -227,8 +227,8 @@
     <button type="button" class="btn btn-primary" ng-click="saveAllocation()"
         ng-if="data.editMode != 'view' && checkPermissions( 'allocations', 'edit' )
                 && ( allocationItem.allocation_status == <?php echo ALLOCATION_SCHEDULED;?> || allocationItem.allocation_status == <?php echo ALLOCATION_ALLOCATED;?> )">
-        <i class="glyphicon" ng-class="{ 'glyphicon-time': allocationItem.allocation_status == 1, 'glyphicon-floppy-disk': allocationItem.allocation_status != 1 }"> </i>
-        {{ allocationItem.allocation_status == 1 ? 'Schedule' : 'Update' }}
+        <i class="glyphicon" ng-class="{ 'glyphicon-time': data.saveButton.icon == 'time', 'glyphicon-floppy-disk': data.saveButton.icon == 'floppy-disk' }"> </i>
+        {{ data.saveButton.label }}
     </button>
     <button type="button" class="btn btn-success"
         ng-disabled="allocationItem.allocations.length == 0 || ! allocationItem.assignee"
@@ -236,7 +236,9 @@
         ng-click="allocateAllocation()">Mark as allocated
     </button>
     <button type="button" class="btn btn-success"
-        ng-if="allocationItem.allocation_status == <?php echo ALLOCATION_ALLOCATED;?> && checkPermissions( 'allocations', 'complete' )"
+        ng-disabled="( allocationItem.allocations.length == 0 && allocationItem.remittances.length == 0 ) || ! allocationItem.assignee"
+        ng-if="( ( allocationItem.allocation_status == <?php echo ALLOCATION_ALLOCATED;?> && allocationItem.assignee_type == <?php echo ALLOCATION_ASSIGNEE_TELLER;?> )
+                || allocationItem.assignee_type == <?php echo ALLOCATION_ASSIGNEE_MACHINE;?> ) && checkPermissions( 'allocations', 'complete' )"
         ng-click="completeAllocation()">Mark as completed
     </button>
     <button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'allocations' })">Close</button>
