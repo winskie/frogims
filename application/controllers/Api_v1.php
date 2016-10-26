@@ -315,8 +315,8 @@ class Api_v1 extends MY_Controller {
 
 		$category_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
 
-		$this->load->library( 'item_category' );
-		$Category = new Item_category();
+		$this->load->library( 'category' );
+		$Category = new Category();
 
 		switch( $request_method )
 		{

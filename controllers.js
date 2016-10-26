@@ -1198,7 +1198,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			isExternalSource: false,
 			isExternalDestination: false,
 			inventoryItems: angular.copy( appData.data.items ),
-			itemCategories: [],
+			categories: [],
 			sweepers: [],
 			transferCategories: angular.copy( appData.data.transferCategories ),
 			selectedCategory: null,
@@ -1214,7 +1214,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 		$scope.input = {
 				inventoryItem: null,
 				itemReservedQuantity: 0,
-				itemCategory: null,
+				category: null,
 				quantity: 1,
 				remarks: null,
 				allocation: null
@@ -1324,15 +1324,15 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			{
 				if( ( event.type == 'keypress' ) && ( event.charCode == 13 )
 						&& $scope.input.inventoryItem
-						&& $scope.input.itemCategory
+						&& $scope.input.category
 						&& $scope.input.quantity > 0 )
 				{
 					var data = {
 							item_name: $scope.input.inventoryItem.item_name,
-							category_name: $scope.input.itemCategory.category,
+							category_name: $scope.input.category.category,
 
 							item_id: $scope.input.inventoryItem.item_id,
-							item_category_id: $scope.input.itemCategory.id,
+							transfer_item_category_id: $scope.input.category.id,
 							quantity: $scope.input.quantity,
 							remarks: $scope.input.remarks,
 							transfer_item_status: 1 // TRANSFER_ITEM_SCHEDULED
@@ -1379,7 +1379,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						category_name: items[i].category,
 
 						item_id: items[i].item_id,
-						item_category_id: items[i].item_category_id,
+						transfer_item_category_id: items[i].transfer_item_category_id,
 						quantity: items[i].quantity,
 						remarks: itemRemarks,
 						transfer_item_status: 1, // TRANSFER_ITEM_SCHEDULED
@@ -1557,11 +1557,11 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				switch( category.categoryName )
 				{
 					case 'Blackbox Receipt':
-						$scope.input.itemCategory = $filter( 'filter' )( $scope.data.itemCategories, { category: 'Black Box' }, true )[0];
+						$scope.input.category = $filter( 'filter' )( $scope.data.categories, { category: 'Black Box' }, true )[0];
 						break;
 
 					default:
-						//$scope.input.itemCategory = $scope.data.itemCategories[0];
+						//$scope.input.category = $scope.data.categories[0];
 				}
 			};
 
@@ -1791,7 +1791,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 										category_name: remittances[i].category_name,
 
 										item_id: remittances[i].allocated_item_id,
-										item_category_id: remittances[i].allocation_category_id,
+										transfer_item_category_id: remittances[i].allocation_category_id,
 										quantity: remittances[i].allocated_quantity,
 										remarks: 'From allocation #' + allocationItem.id + ' - ' + ( allocationItem.assignee_type == 2 ? 'TVM #' : '' ) + allocationItem.assignee,
 										transfer_item_status: 1, // TRANSFER_ITEM_SCHEDULED
@@ -1840,9 +1840,9 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		// Initialize controller
 		$scope.input.inventoryItem = $scope.data.inventoryItems[0];
-		$scope.data.itemCategories = $filter( 'filter' )( appData.data.itemCategories, { is_transfer_category: true }, true );
-		$scope.data.itemCategories.unshift( { id: null, category: '- None -' });
-		$scope.input.itemCategory = $scope.data.itemCategories[0];
+		$scope.data.categories = $filter( 'filter' )( appData.data.categories, { is_transfer_category: true }, true );
+		$scope.data.categories.unshift( { id: null, category: '- None -' });
+		$scope.input.category = $scope.data.categories[0];
 
 		if( $stateParams.transferItem )
 		{
@@ -2889,7 +2889,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 			selectedAssigneeType: { id: 1, typeName: 'Station Teller' },
 			inventoryItems: angular.copy( appData.data.items ),
 			selectedItem: null,
-			categories: angular.copy( appData.data.itemCategories ),
+			categories: angular.copy( appData.data.categories ),
 			allocationPhase: 'allocation',
 			activeTab: 0,
 			saveButton: { icon: 'time', label: 'Schedule' },
@@ -2974,7 +2974,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 
 		$scope.updateCategories = function()
 			{
-				$scope.data.categories = $filter( 'filter' )( appData.data.itemCategories, category_filter, true );
+				$scope.data.categories = $filter( 'filter' )( appData.data.categories, category_filter, true );
 				if( $scope.data.categories.length )
 				{
 					$scope.input.category = $scope.data.categories[0];

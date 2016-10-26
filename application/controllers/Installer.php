@@ -274,7 +274,7 @@ class Installer extends CI_Controller {
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					transfer_id INTEGER NOT NULL,
 					item_id INTEGER NOT NULL,
-					item_category_id INTEGER NULL DEFAULT NULL,
+					transfer_item_category_id INTEGER NULL DEFAULT NULL,
 					quantity INTEGER NOT NULL DEFAULT 0,
 					quantity_received INTEGER NULL DEFAULT NULL,
 					remarks TEXT NULL DEFAULT NULL,
@@ -468,9 +468,9 @@ class Installer extends CI_Controller {
 				)
 				ENGINE=InnoDB" );
 
-		echo 'Creating item_categories table...<br />';
+		echo 'Creating categories table...<br />';
 		$this->db->query( "
-				CREATE TABLE IF NOT EXISTS item_categories
+				CREATE TABLE IF NOT EXISTS categories
 				(
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					category VARCHAR(100) NOT NULL,
@@ -874,7 +874,7 @@ class Installer extends CI_Controller {
 				$this->db->set( 'is_teller', $value[5] );
 				$this->db->set( 'is_machine', $value[6] );
 				$this->db->set( 'category_status', $value[7] );
-				$this->db->insert( 'item_categories' );
+				$this->db->insert( 'categories' );
 			}
 			echo 'OK<br />';
 			flush();
@@ -949,7 +949,7 @@ class Installer extends CI_Controller {
 			$this->db->query( "TRUNCATE TABLE stores" );
 			$this->db->query( "TRUNCATE TABLE store_users" );
 			$this->db->query( "TRUNCATE TABLE items" );
-			$this->db->query( "TRUNCATE TABLE item_categories" );
+			$this->db->query( "TRUNCATE TABLE categories" );
 			$this->db->query( "TRUNCATE TABLE conversion_table" );
 		}
 

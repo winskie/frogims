@@ -409,7 +409,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 				stores: [],
 				activeUsers: [],
 
-				itemCategories: [],
+				categories: [],
 				transactionTypes: [
 						{ id: 0, typeName: 'Initial Balance', module: null },
 						{ id: 10, typeName: 'Transfer', module: 'Transfers' },
@@ -647,7 +647,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 				return deferred.promise;
 			};
 
-		me.getItemCategories = function()
+		me.getCategories = function()
 			{
 				var deferred = $q.defer();
 				$http({
@@ -659,7 +659,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 						if( response.data.status == 'ok' )
 						{
 							var d = response.data;
-							me.data.itemCategories = d.data;
+							me.data.categories = d.data;
 							deferred.resolve( d );
 						}
 						else

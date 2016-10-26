@@ -242,7 +242,7 @@ CREATE TABLE IF NOT EXISTS transfer_items
 	id INTEGER AUTO_INCREMENT NOT NULL,
 	transfer_id INTEGER NOT NULL,
 	item_id INTEGER NOT NULL,
-	item_category_id INTEGER NULL DEFAULT NULL,
+	transfer_item_category_id INTEGER NULL DEFAULT NULL,
 	quantity INTEGER NOT NULL DEFAULT 0,
 	quantity_received INTEGER NULL DEFAULT NULL,
 	remarks TEXT NULL DEFAULT NULL,
@@ -430,7 +430,7 @@ ENGINE=InnoDB;
 
 -- category_type: 1 - allocation, 2 - remittance
 -- category_status: 0 - inactive, 1 - in use
-CREATE TABLE IF NOT EXISTS item_categories
+CREATE TABLE IF NOT EXISTS categories
 (
 	id INTEGER AUTO_INCREMENT NOT NULL,
 	category VARCHAR(100) NOT NULL,

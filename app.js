@@ -318,7 +318,7 @@ app.run( [ '$rootScope', 'session', 'appData',
 			});
 
 		console.log( 'Loading item categories...' );
-		appData.getItemCategories().then(
+		appData.getCategories().then(
 			function( response )
 			{
 				// do nothing

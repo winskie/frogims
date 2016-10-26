@@ -55,13 +55,13 @@ class Allocation extends Base_model {
         else
         {
             $ci->load->library( 'allocation_item' );
-            $ci->db->select( 'ai.*, ic.category AS category_name, ic.category_type,
+            $ci->db->select( 'ai.*, c.category AS category_name, c.category_type,
                     i.item_name, i.item_description, i.teller_allocatable, i.machine_allocatable,
                     s.shift_num AS cashier_shift_num' );
             $ci->db->where( 'allocation_id', $this->id );
-            $ci->db->where( 'ic.category_type', 1 );
+            $ci->db->where( 'c.category_type', 1 );
             $ci->db->join( 'items i', 'i.id = ai.allocated_item_id', 'left' );
-            $ci->db->join( 'item_categories ic', 'ic.id = ai.allocation_category_id', 'left' );
+            $ci->db->join( 'categories c', 'c.id = ai.allocation_category_id', 'left' );
             $ci->db->join( 'shifts s', 's.id = ai.cashier_shift_id', 'left' );
             $query = $ci->db->get( 'allocation_items AS ai' );
             $allocations = $query->result( 'Allocation_item' );
@@ -86,13 +86,13 @@ class Allocation extends Base_model {
         else
         {
             $ci->load->library( 'allocation_item' );
-            $ci->db->select( 'ai.*, ic.category AS category_name, ic.category_type,
+            $ci->db->select( 'ai.*, c.category AS category_name, c.category_type,
                     i.item_name, i.item_description, i.teller_remittable, i.machine_remittable,
                     s.shift_num AS cashier_shift_num' );
             $ci->db->where( 'allocation_id', $this->id );
-            $ci->db->where( 'ic.category_type', 2 );
+            $ci->db->where( 'c.category_type', 2 );
             $ci->db->join( 'items i', 'i.id = ai.allocated_item_id', 'left' );
-            $ci->db->join( 'item_categories ic', 'ic.id = ai.allocation_category_id', 'left' );
+            $ci->db->join( 'categories c', 'c.id = ai.allocation_category_id', 'left' );
             $ci->db->join( 'shifts s', 's.id = ai.cashier_shift_id', 'left' );
             $query = $ci->db->get( 'allocation_items AS ai' );
             $remittances = $query->result( 'Allocation_item' );
@@ -507,15 +507,15 @@ class Allocation extends Base_model {
         $ci =& get_instance();
         $allocations = $this->get_allocations();
         $remittances = $this->get_remittances();
-        $item_categories_cache = array();
+        $categories_cache = array();
 
-        $ci->load->library( 'item_category' );
+        $ci->load->library( 'category' );
         $ci->load->library( 'item' );
 
         $pre_allocation_categories = array( 'Initial Allocation', 'Magazine Load' );
         $post_allocation_categories = array( 'Additional Allocation', 'Magazine Load' );
 
-        $item_categories_cache = array();
+        $categories_cache = array();
         $items_cache = array();
 
         $voided_allocations = array();

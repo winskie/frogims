@@ -210,8 +210,8 @@
 			<div class="form-group col-sm-12 col-md-6 col-lg-3" ng-if="data.showCategory">
 				<label class="control-label">Category</label>
 				<select class="form-control"
-						ng-model="input.itemCategory"
-						ng-options="category as category.category for category in data.itemCategories track by category.id">
+						ng-model="input.category"
+						ng-options="category as category.category for category in data.categories track by category.id">
 				</select>
 			</div>
 			<div class="form-group" ng-class="{ 'col-sm-12 col-md-6 col-lg-2': data.showCategory, 'col-sm-12 col-md-6 col-lg-6': !data.showCategory }">

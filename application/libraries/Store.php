@@ -725,11 +725,11 @@ class Store extends Base_model
 						allocated_item_id,
 						item_name,
 						item_description,
-						SUM( IF( ic.is_allocation_category = TRUE AND category = "Initial Allocation" AND NOT allocation_item_status IN ('.implode( ', ', array( ALLOCATION_ITEM_CANCELLED, ALLOCATION_ITEM_VOIDED ) ).'), allocated_quantity, 0 ) ) AS allocation,
-						SUM( IF( ic.is_allocation_category = TRUE AND category IN ( "Additional Allocation", "Magazine Load" ) AND NOT allocation_item_status = '.ALLOCATION_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS additional,
-						SUM( IF( ic.is_remittance_category = TRUE AND NOT allocation_item_status = '.REMITTANCE_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS remitted,
-						SUM( IF( ic.is_remittance_category = TRUE AND category = "Unsold / Loose" AND NOT allocation_item_status = '.REMITTANCE_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS unsold,
-						SUM( IF( ic.is_remittance_category = TRUE AND category = "Reject Bin" AND NOT allocation_item_status = '.REMITTANCE_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS rejected,
+						SUM( IF( c.is_allocation_category = TRUE AND category = "Initial Allocation" AND NOT allocation_item_status IN ('.implode( ', ', array( ALLOCATION_ITEM_CANCELLED, ALLOCATION_ITEM_VOIDED ) ).'), allocated_quantity, 0 ) ) AS allocation,
+						SUM( IF( c.is_allocation_category = TRUE AND category IN ( "Additional Allocation", "Magazine Load" ) AND NOT allocation_item_status = '.ALLOCATION_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS additional,
+						SUM( IF( c.is_remittance_category = TRUE AND NOT allocation_item_status = '.REMITTANCE_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS remitted,
+						SUM( IF( c.is_remittance_category = TRUE AND category = "Unsold / Loose" AND NOT allocation_item_status = '.REMITTANCE_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS unsold,
+						SUM( IF( c.is_remittance_category = TRUE AND category = "Reject Bin" AND NOT allocation_item_status = '.REMITTANCE_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS rejected,
 						SUM( IF( ai.allocation_item_status IN ( '.implode( ',', array( ALLOCATION_ITEM_SCHEDULED, ALLOCATION_ITEM_ALLOCATED ) ).' ) AND ai.allocated_quantity > 0, 1, 0 ) ) AS valid_allocation,
 						SUM( IF( ai.allocation_item_status IN ( '.implode( ',', array( REMITTANCE_ITEM_PENDING, REMITTANCE_ITEM_REMITTED ) ).' ) AND ai.allocated_quantity > 0, 1, 0 ) ) AS valid_remittance
 					FROM allocation_items AS ai
@@ -737,8 +737,8 @@ class Store extends Base_model
 						ON a.id = ai.allocation_id
 					LEFT JOIN items AS i
 						ON i.id = ai.allocated_item_id
-					LEFT JOIN item_categories AS ic
-						ON ic.id = ai.allocation_category_id';
+					LEFT JOIN categories AS c
+						ON c.id = ai.allocation_category_id';
 
 		if( $allocation_date || $assignee_type || $status )
 		{
@@ -814,7 +814,7 @@ class Store extends Base_model
 					s.shift_num,
 					a.id AS source_id, a.assignee_type, a.assignee,
 					i.id AS item_id, i.item_name, i.item_description,
-					ic.id AS item_category_id, ic.category,
+					c.id AS transfer_item_category_id, c.category,
 					ai.allocated_quantity AS quantity,
 					ai.id AS allocation_item_id,
 					NULL AS transfer_item_id,
@@ -826,13 +826,13 @@ class Store extends Base_model
 					ON s.id = ai.cashier_shift_id
 				LEFT JOIN items AS i
 					ON i.id = ai.allocated_item_id
-				LEFT JOIN item_categories AS ic
-					ON ic.id = ai.allocation_category_id
+				LEFT JOIN categories AS c
+					ON c.id = ai.allocation_category_id
 				LEFT JOIN transfer_items AS ti
 					ON ti.transfer_item_allocation_item_id = ai.id AND ti.transfer_item_status NOT IN ( '.implode( ', ', $transfer_item_statuses).' )
 
 				WHERE
-					ic.category_type = 2
+					c.category_type = 2
 					AND i.turnover_item = 1';
 
 		if( $business_date )
@@ -847,7 +847,7 @@ class Store extends Base_model
 					s.shift_num,
 					t.id, NULL, t.origin_name,
 					i.id, i.item_name, i.item_description,
-					ic.id, ic.category,
+					c.id, c.category,
 					ti.quantity_received,
 					NULL,
 					ti.id,
@@ -859,8 +859,8 @@ class Store extends Base_model
 					ON s.id = t.recipient_shift
 				LEFT JOIN items AS i
 					ON i.id = ti.item_id
-				LEFT JOIN item_categories AS ic
-					ON ic.id = ti.item_category_id
+				LEFT JOIN categories AS c
+					ON c.id = ti.transfer_item_category_id
 				LEFT JOIN transfer_items AS ti2
 					ON ti2.transfer_item_transfer_item_id = ti.id AND ti2.transfer_item_status NOT IN ( '.implode( ', ', $transfer_item_statuses).' )
 

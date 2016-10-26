@@ -5,7 +5,7 @@ class Transfer_item extends Base_model {
 
 	protected $transfer_id;
 	protected $item_id;
-	protected $item_category_id;
+	protected $transfer_item_category_id;
 	protected $quantity;
 	protected $quantity_received;
 	protected $remarks;
@@ -30,7 +30,7 @@ class Transfer_item extends Base_model {
 		$this->db_fields = array(
 			'transfer_id' => array( 'type' => 'integer' ),
 			'item_id' => array( 'type' => 'integer' ),
-			'item_category_id' => array( 'type' => 'integer' ),
+			'transfer_item_category_id' => array( 'type' => 'integer' ),
 			'quantity' => array( 'type' => 'integer' ),
 			'quantity_received' => array( 'type' => 'integer' ),
 			'remarks' => array( 'type' => 'string' ),
@@ -101,10 +101,10 @@ class Transfer_item extends Base_model {
 		if( ! isset( $this->category ) && isset( $this->item_id ) )
 		{
 			$ci =& get_instance();
-			$ci->load->library( 'item_category' );
-			$item_category = new Item_category();
-			$item_category = $item_category->get_by_id( $this->item_id );
-			$this->category = $item_category;
+			$ci->load->library( 'category' );
+			$category = new Category();
+			$category = $category->get_by_id( $this->item_id );
+			$this->category = $category;
 		}
 
 		return $this->category;
