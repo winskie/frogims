@@ -444,3 +444,19 @@ CREATE TABLE IF NOT EXISTS categories
 	PRIMARY KEY (id)
 )
 ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS item_categories
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	ic_item_id INTEGER NOT NULL,
+	ic_category_id INTEGER NOT NULL,
+	PRIMARY KEY (id),
+	UNIQUE ic_udx (ic_item_id, ic_category_id),
+	FOREIGN KEY ic_item_fk (ic_item_id) REFERENCES items (id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE,
+	FOREIGN KEY ic_category_fk (ic_category_id) REFERENCES categories (id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
+)
+ENGINE=InnoDB;

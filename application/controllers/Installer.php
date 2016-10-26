@@ -485,6 +485,24 @@ class Installer extends CI_Controller {
 				)
 				ENGINE=InnoDB" );
 
+		echo 'Creating item categories table...<br />';
+		$this->db->query( "
+				CREATE TABLE IF NOT EXISTS item_categories
+				(
+					id INTEGER AUTO_INCREMENT NOT NULL,
+					ic_item_id INTEGER NOT NULL,
+					ic_category_id INTEGER NOT NULL,
+					PRIMARY KEY (id),
+					UNIQUE ic_udx (ic_item_id, ic_category_id),
+					FOREIGN KEY ic_item_fk (ic_item_id) REFERENCES items (id)
+						ON UPDATE CASCADE
+						ON DELETE CASCADE,
+					FOREIGN KEY ic_category_fk (ic_category_id) REFERENCES categories (id)
+						ON UPDATE CASCADE
+						ON DELETE CASCADE
+				)
+				ENGINE=InnoDB" );
+
 		echo 'Done with creating database tables.';
 
 	}
@@ -846,8 +864,8 @@ class Installer extends CI_Controller {
 			echo 'OK<br />';
 			flush();
 
-			// Create default item categories
-			echo 'Creating default item categories...';
+			// Create default categories
+			echo 'Creating default categories...';
 			flush();
 
 			$values = array(
@@ -861,7 +879,7 @@ class Installer extends CI_Controller {
 					array( 'Unconfirmed', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
 					array( 'TCERF', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
 					array( 'Reject Bin', 2, FALSE, TRUE, TRUE, FALSE, TRUE, 1 ),
-					array( 'Black Box', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
+					array( 'Blackbox', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
 				);
 
 			foreach( $values as $value )
@@ -876,6 +894,83 @@ class Installer extends CI_Controller {
 				$this->db->set( 'category_status', $value[7] );
 				$this->db->insert( 'categories' );
 			}
+			echo 'OK<br />';
+			flush();
+
+			// Create default item categories
+			echo 'Creating default item categories...';
+			flush();
+
+			$values = array(
+					array( 'L2 SJT', 'Unsold / Loose' ),
+					array( 'L2 SJT', 'Free Exit' ),
+					array( 'L2 SJT', 'Expired' ),
+					array( 'L2 SJT', 'Unconfirmed' ),
+					array( 'L2 SJT', 'Code Red' ),
+
+					array( 'L2 SJT - Rigid Box', 'Initial Allocation' ),
+					array( 'L2 SJT - Rigid Box', 'Additional Allocation' ),
+					array( 'L2 SJT - Rigid Box', 'Unsold / Loose' ),
+
+					array( 'L2 SJT - Ticket Magazine', 'Magazine Load' ),
+
+					array( 'L2 SJT - Defective', 'TCERF' ),
+					array( 'L2 SJT - Defective', 'Reject Bin' ),
+					array( 'L2 SJT - Defective', 'Blackbox' ),
+
+					array( 'L2 SJT - Damaged', 'TCERF' ),
+					array( 'L2 SJT - Damaged', 'Reject Bin' ),
+					array( 'L2 SJT - Damaged', 'Blackbox' ),
+
+					array( 'SVC', 'Unsold / Loose' ),
+					array( 'SVC', 'Expired' ),
+
+					array( 'SVC - Rigid Box', 'Initial Allocation' ),
+					array( 'SVC - Rigid Box', 'Additional Allocation' ),
+					array( 'SVC - Rigid Box', 'Unsold / Loose' ),
+
+					array( 'SVC - 25', 'Initial Allocation' ),
+					array( 'SVC - 25', 'Additional Allocation' ),
+					array( 'SVC - 25', 'Unsold / Loose' ),
+
+					array( 'SVC - 150', 'Magazine Load' ),
+
+					array( 'SVC - Defective', 'Reject Bin' ),
+					array( 'SVC - Defective', 'Blackbox' ),
+
+					array( 'SVC - Damaged', 'Reject Bin' ),
+					array( 'SVC - Damaged', 'Blackbox' ),
+
+					array( 'Senior', 'Blackbox' ),
+
+					array( 'PWD', 'Blackbox' ),
+
+					array( 'L2 Ticket Coupon', 'Initial Allocation' ),
+					array( 'L2 Ticket Coupon', 'Additional Allocation' ),
+					array( 'L2 Ticket Coupon', 'Unsold / Loose' ),
+
+					array( 'Others', 'Blackbox' ),
+
+					array( 'L1 SJT', 'Blackbox' ),
+
+					array( 'MRT SJT', 'Blackbox' ),
+
+					array( 'Staff Card', 'Blackbox' )
+				);
+
+			$this->load->library( 'item' );
+			$this->load->library( 'category' );
+			$Item = new Item();
+			$Category = new Category();
+			foreach( $values as $value )
+			{
+				$item = $Item->get_by_name( $value[0] );
+				$category = $Category->get_by_name( $value[1] );
+				$this->db->set( 'ic_item_id', $item->get( 'id' ) );
+				$this->db->set( 'ic_category_id', $category->get( 'id' ) );
+				$this->db->insert( 'item_categories' );
+			}
+
 			echo 'OK<br />';
 			flush();
 		}
@@ -950,6 +1045,7 @@ class Installer extends CI_Controller {
 			$this->db->query( "TRUNCATE TABLE store_users" );
 			$this->db->query( "TRUNCATE TABLE items" );
 			$this->db->query( "TRUNCATE TABLE categories" );
+			$this->db->query( "TRUNCATE TABLE item_categories" );
 			$this->db->query( "TRUNCATE TABLE conversion_table" );
 		}
 

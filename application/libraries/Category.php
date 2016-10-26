@@ -28,6 +28,24 @@ class Category extends Base_model
 		);
 	}
 
+	public function get_by_name( $category_name )
+    {
+        $ci =& get_instance();
+
+        $ci->db->where( 'category', $category_name );
+        $ci->db->limit(1);
+        $query = $ci->db->get( $this->primary_table );
+
+        if( $query->num_rows() )
+        {
+            return $query->row( 0, get_class( $this ) );
+        }
+        else
+        {
+            return NULL;
+        }
+    }
+
 	public function get_categories( $params = array() )
 	{
 		$ci =& get_instance();
