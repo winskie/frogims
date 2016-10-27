@@ -1557,13 +1557,26 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				switch( category.categoryName )
 				{
 					case 'Blackbox Receipt':
-						$scope.input.category = $filter( 'filter' )( $scope.data.categories, { category: 'Black Box' }, true )[0];
+						$scope.input.category = $filter( 'filter' )( $scope.data.categories, { category: 'Blackbox' }, true )[0];
 						break;
 
 					default:
 						//$scope.input.category = $scope.data.categories[0];
 				}
 			};
+
+		$scope.onItemChange = function()
+			{
+				$scope.updateItemCategories();
+				$scope.getItemQuantities();
+			};
+
+		$scope.updateItemCategories = function()
+			{
+				console.log( $scope.input.inventoryItem );
+				$scope.data.categories = $filter( 'filter' )( $scope.input.inventoryItem.categories, { is_transfer_category: true }, true );
+				$scope.data.categories.unshift( { id: null, category: '- None -' });
+			}
 
 		$scope.checkItems = function( action )
 			{
@@ -1819,7 +1832,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 		// Modals
 		$scope.showTurnoverItems = function()
 			{
-				console.log( 'Hello' );
 				var modalInstance = $uibModal.open({
 						templateUrl: baseUrl + 'index.php/main/view/modal_turnover_items',
 						controller: 'TurnoverItemModalController',
@@ -1840,8 +1852,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		// Initialize controller
 		$scope.input.inventoryItem = $scope.data.inventoryItems[0];
-		$scope.data.categories = $filter( 'filter' )( appData.data.categories, { is_transfer_category: true }, true );
-		$scope.data.categories.unshift( { id: null, category: '- None -' });
+		$scope.updateItemCategories();
 		$scope.input.category = $scope.data.categories[0];
 
 		if( $stateParams.transferItem )
@@ -2967,14 +2978,13 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 		$scope.updatePhase = function( phase )
 			{
 				$scope.data.allocationPhase = phase;
-				$scope.updateCategories();
 				$scope.updateAllocatableItems();
 				$scope.updateSaveButton();
 			}
 
 		$scope.updateCategories = function()
 			{
-				$scope.data.categories = $filter( 'filter' )( appData.data.categories, category_filter, true );
+				$scope.data.categories = $filter( 'filter' )( $scope.input.item.categories, category_filter, true );
 				if( $scope.data.categories.length )
 				{
 					$scope.input.category = $scope.data.categories[0];
@@ -3013,6 +3023,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 				{
 					$scope.input.item = $scope.data.inventoryItems[0];
 				}
+				$scope.updateCategories();
 			};
 
 		$scope.onAssigneeTypeChange = function()
@@ -3057,14 +3068,18 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 				}
 				$scope.allocationItem.assignee_type = $scope.data.selectedAssigneeType.id;
 
-				$scope.updateCategories();
 				$scope.updateAllocatableItems();
-
 			};
 
 		$scope.onAssigneeShiftChange = function()
 			{
 				$scope.allocationItem.shift_id = $scope.data.selectedAssigneeShift.id;
+			};
+
+		$scope.onItemChange = function()
+			{
+				$scope.updateCategories();
+				$scope.getItemQuantities();
 			};
 
 		$scope.addAllocationItem = function()
@@ -3220,6 +3235,12 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 
 					default:
 						// do nothing
+				}
+
+				if( $scope.allocationItem.assignee_type == 1 && ! hasValidAllocationItem ) // ALLOCATION_ASSIGNEE_TELLER
+				{ // Tellers must have a valid allocation
+					notifications.alert( 'Allocation does not contain any valid items', 'warning' );
+					return false;
 				}
 
 				switch( $scope.allocationItem.allocation_status )
@@ -3436,8 +3457,6 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 
 						$scope.onAssigneeTypeChange();
 						$scope.onAssigneeShiftChange();
-						$scope.updateCategories();
-						$scope.updateAllocatableItems();
 						$scope.updateSaveButton();
 					}
 					else
@@ -3454,8 +3473,6 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 		{
 			$scope.onAssigneeTypeChange();
 			$scope.onAssigneeShiftChange();
-			$scope.updateCategories();
-			$scope.updateAllocatableItems();
 			$scope.updateSaveButton();
 		}
 	}

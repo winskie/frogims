@@ -63,6 +63,19 @@ class Item extends Base_model
         }
     }
 
+    public function get_categories()
+    {
+        $ci =& get_instance();
+        $ci->load->library( 'category' );
+
+        $ci->select( 'c.*' );
+        $ci->db->where( 'ic_item_id', $this->id );
+        $ci->db->join( 'categories c', 'c.id = ic_category_id', 'left' );
+        $query = $ci->db->get( 'item_categories' );
+
+        return $query->results( 'Category' );
+    }
+
     public function get_packed_items()
     {
         $ci =& get_instance();

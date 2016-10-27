@@ -1350,7 +1350,15 @@ class Api_v1 extends MY_Controller {
 									);
 									foreach( $items as $item )
 									{
-										$items_data[] = $item->as_array( $additional_fields );
+										$item_data = $item->as_array( $additional_fields );
+										$item_data['categories'] = array();
+										$categories = $item->get_categories();
+										foreach( $categories as $category )
+										{
+											$item_data['categories'][] = $category->as_array();
+										}
+
+										$items_data[] = $item_data;
 									}
 
 									$this->_response( $items_data );

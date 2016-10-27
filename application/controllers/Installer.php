@@ -878,6 +878,7 @@ class Installer extends CI_Controller {
 					array( 'Code Red', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
 					array( 'Unconfirmed', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
 					array( 'TCERF', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
+					array( 'TIR', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
 					array( 'Reject Bin', 2, FALSE, TRUE, TRUE, FALSE, TRUE, 1 ),
 					array( 'Blackbox', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
 				);
@@ -935,14 +936,17 @@ class Installer extends CI_Controller {
 
 					array( 'SVC - 150', 'Magazine Load' ),
 
+					array( 'SVC - Defective', 'TIR' ),
 					array( 'SVC - Defective', 'Reject Bin' ),
 					array( 'SVC - Defective', 'Blackbox' ),
 
 					array( 'SVC - Damaged', 'Reject Bin' ),
 					array( 'SVC - Damaged', 'Blackbox' ),
 
+					array( 'Senior', 'TIR' ),
 					array( 'Senior', 'Blackbox' ),
 
+					array( 'PWD', 'TIR' ),
 					array( 'PWD', 'Blackbox' ),
 
 					array( 'L2 Ticket Coupon', 'Initial Allocation' ),

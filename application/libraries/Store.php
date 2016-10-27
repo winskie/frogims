@@ -1451,4 +1451,37 @@ class Store extends Base_model
 
 		return $data->result_array();
 	}
+
+	// Stock Replenishment Receipts
+	public function get_delivery_summary( $date = NULL, $shift = NULL )
+	{
+		$ci =& get_instance();
+
+		$ci->db->select( 'ti.item_id, i.item_name, i.item_description, i.item_group, i.base_item_id, ti.transfer_item_category_id AS category_id, ti.quantity_received' );
+		$ci->db->join( 'transfers t', 't.id = ti.transfer_id', 'left' );
+		$ci->db->join( 'items i', 'i.id = ti.item_id', 'left' );
+		$ci->db->where( 'DATE( t.receipt_datetime )', $date );
+		$ci->db->where( 't.recipient_shift', $shift );
+		$ci->db->where( 't.transfer_category', TRANSFER_CATEGORY_REPLENISHMENT );
+
+		$query = $ci->db->get( 'transfer_items ti' );
+
+		return $query->result_array();
+	}
+
+	// Remittances
+	public function get_remittance_summary( $date = NULL, $shift = NULL )
+	{
+		$ci =& get_instance();
+
+		$ci->db->select( 'ai.allocated_item_id AS item_id, i.item_name, i.item_description, i.item_group, i.base_item_id, ai.allocation_category_id AS category_id, ai.allocated_quantity' );
+		$ci->db->join( 'allocations a', 'a.id = ai.allocation_id', 'left' );
+		$ci->db->join( 'items i', 'i.id = ai.allocated_item_id', 'left' );
+		$ci->db->where( 'a.business_date', $date );
+		$ci->db->where( 'ai.cashier_shift_id', $shift );
+
+		$query = $ci->db->get( 'allocation_items ai' );
+
+		return $query->result_array();
+	}
 }

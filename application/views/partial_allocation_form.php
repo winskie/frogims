@@ -191,7 +191,7 @@
                 <label class="control-label">Item</label>
                 <select class="form-control"
                         ng-model="input.item"
-                        ng-change="getItemQuantities()"
+                        ng-change="onItemChange()"
                         ng-options="item as item.item_name for item in data.inventoryItems track by item.id">
                 </select>
             </div>

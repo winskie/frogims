@@ -144,6 +144,12 @@ class Allocation extends Base_model {
         $result = NULL;
         $ci->db->trans_start();
 
+        if( $this->assignee_type == ALLOCATION_ASSIGNEE_TELLER && ! $this->_check_for_valid_allocation_item() )
+        { // Teller allocation must have a valid allocation item for all actions
+            set_message( 'Allocation does not contain any valid items' );
+            return FALSE;
+        }
+
         if( isset( $this->id ) )
         {
             if( $this->_check_items() )
