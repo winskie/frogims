@@ -39,6 +39,18 @@
 					</div>
 				</div>
 
+				<!-- Shift Turnovers -->
+				<div class="row">
+					<div class="form-group col-sm-12 col-md-6 col-lg-4">
+						<label class="control-label col-sm-6 col-md-6 col-lg-6">Shift Turnovers</label>
+						<div class="btn-group">
+							<label class="btn btn-default" ng-model="groupItem.group_perm_shift_turnover" uib-btn-radio="'none'">none</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_shift_turnover" uib-btn-radio="'view'">view</label>
+							<label class="btn btn-default" ng-model="groupItem.group_perm_shift_turnover" uib-btn-radio="'edit'">edit</label>
+						</div>
+					</div>
+				</div>
+
 				<!-- Transfers -->
 				<div class="row">
 					<div class="form-group col-sm-12 col-md-6 col-lg-4">

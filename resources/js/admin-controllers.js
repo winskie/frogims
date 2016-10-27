@@ -281,6 +281,7 @@ app.controller( 'GroupController', [ '$scope', '$state', '$stateParams', '$filte
 		$scope.groupItem = {
 			group_name: null,
 			group_perm_transaction: 'none',
+			group_perm_shift_turnover: 'none',
 			group_perm_transfer: 'none',
 			group_perm_transfer_approve: false,
 			group_perm_transfer_validation: 'none',

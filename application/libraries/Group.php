@@ -9,6 +9,7 @@ class Group extends Base_model {
 	protected $members;
 
 	protected $group_perm_transaction; // none | view
+	protected $group_perm_shift_turnover; // none | view | edit
 	protected $group_perm_transfer_validation; // none | view | edit
 	protected $group_perm_transfer_validation_complete; // true | false
 	protected $group_perm_transfer; // none | view | edit
@@ -41,6 +42,8 @@ class Group extends Base_model {
 			'is_admin' => array( 'type' => 'boolean' ),
 
 			'group_perm_transaction' => array( 'type' => 'string' ),
+
+			'group_perm_shift_turnover' => array( 'type' => 'string' ),
 
 			'group_perm_transfer_validation' => array( 'type' => 'string' ),
 			'group_perm_transfer_validation_complete' => array( 'type' => 'boolean' ),
@@ -162,6 +165,7 @@ class Group extends Base_model {
 		$permissions = array(
 			'transactions' => param_type( $this->group_perm_transaction, 'string' ),
 			'transfers' => param_type( $this->group_perm_transfer, 'string' ),
+			'shift_turnovers' => param_type( $this->group_perm_shift_turnover, 'string' ),
 			'transfers_approve' => param_type( $this->group_perm_transfer_approve, 'boolean' ),
 			'transfer_validations' => param_type( $this->group_perm_transfer_validation, 'string' ),
 			'transfer_validations_complete' => param_type( $this->group_perm_transfer_validation_complete, 'boolean' ),
@@ -193,6 +197,26 @@ class Group extends Base_model {
 
 					default:
 						return FALSE;
+				}
+				return in_array( $permission, $allowed_permissions );
+				break;
+
+			case 'shift_turnovers':
+				switch( $action )
+				{
+					case 'view':
+						$allowed_permissions = array( 'view', 'edit' );
+						$permission = $this->group_perm_shift_turnovers;
+						break;
+
+					case 'edit':
+						$allowed_permissions = array( 'edit' );
+						$permission = $this->group_perm_shift_turnovers;
+						break;
+
+					default:
+						return FALSE;
+
 				}
 				return in_array( $permission, $allowed_permissions );
 				break;

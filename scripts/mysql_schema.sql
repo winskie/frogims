@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS groups
 	id INTEGER AUTO_INCREMENT NOT NULL,
 	group_name VARCHAR(100) NOT NULL,
 	group_perm_transaction VARCHAR(4) NOT NULL DEFAULT 'none',
+	group_perm_shift_turnover VARCHAR(4) NOT NULL DEFAULT 'none',
 	group_perm_transfer VARCHAR(4) NOT NULL DEFAULT 'none',
 	group_perm_transfer_approve BOOLEAN NOT NULL DEFAULT 0,
 	group_perm_transfer_validation VARCHAR(4) NOT NULL DEFAULT 'none',
@@ -144,6 +145,39 @@ CREATE TABLE IF NOT EXISTS store_inventory
 	FOREIGN KEY store_inventory_item_fx (item_id) REFERENCES items (id)
 		ON UPDATE CASCADE
 		ON DELETE RESTRICT
+)
+ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS shift_turnovers
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	st_store_id INTEGER NOT NULL,
+	st_from_date DATE NOT NULL,
+	st_from_shift_id INTEGER NOT NULL,
+	st_to_date DATE NULL DEFAULT NULL,
+	st_to_shift_id INTEGER NULL DEFAULT NULL,
+	st_remarks TEXT,
+	date_created DATETIME NOT NULL,
+	date_modified DATETIME NOT NULL,
+	last_modified INTEGER NOT NULL,
+	PRIMARY KEY (id)
+)
+ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS shift_turnover_items
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	sti_turnover_id INTEGER NOT NULL,
+	sti_item_ID INTEGER NOT NULL,
+	sti_beginning_balance INTEGER NULL DEFAULT NULL,
+	sti_ending_balance INTEGER NULL DEFAULT NULL,
+	date_created DATETIME NOT NULL,
+	date_modified DATETIME NOT NULL,
+	last_modified INTEGER NOT NULL,
+	PRIMARY KEY (id),
+	FOREIGN KEY sti_shift_turnover_fk (sti_turnover_id) REFERENCES shift_turnovers (id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
 )
 ENGINE=InnoDB;
 

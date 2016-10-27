@@ -40,6 +40,7 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
 
 		me.permissions = {
 			transactions: 'none',
+			shift_turnovers: 'none',
 			transfers: 'none',
 			transfers_approve: false,
 			transfer_validations: 'none',
@@ -68,6 +69,24 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
 							case 'view':
 								allowedPermissions = [ 'view' ];
 								permission = me.permissions.transactions;
+								break;
+
+							default:
+								return false;
+						}
+						break;
+
+					case 'shift_turnovers':
+						switch( action )
+						{
+							case 'view':
+								allowedPermissions = [ 'view', 'edit' ];
+								permission = me.permissions.shift_turnovers;
+								break;
+
+							case 'edit':
+								allowedPermissions = [ 'edit' ];
+								permission = me.permissions.shift_turnovers;
 								break;
 
 							default:

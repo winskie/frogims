@@ -56,6 +56,9 @@
                 </li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href ng-click="startShift()"><span class="text-danger glyphicon glyphicon-exclamation-sign"></span> Shift Balances</a>
+                </li>
                 <li uib-dropdown>
                     <a href uib-dropdown-toggle>
                         {{ sessionData.currentShift.description }} <span class="caret"></span>

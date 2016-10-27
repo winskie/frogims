@@ -52,10 +52,15 @@ app.controller( 'MainController', [ '$rootScope', '$scope', '$state', 'session',
 		$scope.checkPermissions = session.checkPermissions;
 		$scope.changeStore = session.changeStore;
 		$scope.changeShift = session.changeShift;
+		$scope.startShift = function()
+			{
+				$state.go( 'main.shiftTurnover', { editMode: 'start' } );
+			};
+
+		$scope.endShift = session.endShift;
 		$scope.lookup = lookup.getX;
 		$scope.viewRecord = function( type, id )
 			{
-
 				switch( type )
 				{
 					case 'transferValidations':
@@ -961,6 +966,83 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 
 		// Init controller
 		appData.refresh( session.data.currentStore.id, 'all' );
+	}
+]);
+
+app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications',
+	function( $scope, $filter, $state, $stateParams, session, appData, notifications )
+	{
+		$scope.data = {
+				editMode: $stateParams.editmode || 'view',
+				businessDatepicker: { format: 'yyyy-MM-dd', opened: false },
+				turnoverShifts: [],
+				selectedTurnoverShift: null,
+			};
+
+		$scope.shiftTurnover = {
+				id: null,
+				st_store_id: session.data.currentStore.id,
+				st_from_date: new Date(),
+				st_from_shift: session.data.currentShift.id,
+				st_to_date: new Date(),
+				st_to_shift: session.data.currentShift.id,
+				st_remarks: null,
+				items: []
+			};
+
+		$scope.showDatePicker = function()
+			{
+				$scope.data.businessDatepicker.opened = true;
+			};
+
+		$scope.addShiftTurnoverItems = function()
+			{
+				var n = appData.data.items.length;
+
+				$scope.shiftTurnover.items = [];
+				for( var i = 0; i < n; i++ )
+				{
+					var items = appData.data.items;
+					$scope.shiftTurnover.items.push({
+						sti_item_id: items[i].item_id,
+						prev_balance: 0,
+						sti_beginning_balance: 0,
+						sti_ending_balance: null,
+
+						item_name: items[i].item_name,
+						item_group: items[i].item_group,
+						item_description: items[i].item_description,
+						item_unit: items[i].item_unit,
+					});
+				}
+			};
+
+		$scope.checkItems = function()
+			{
+
+			};
+
+		$scope.prepareTurnover = function()
+			{
+
+			};
+
+		$scope.saveTurnover = function()
+			{
+
+			};
+
+		// Load allocation item
+		if( $stateParams.shiftTurnover )
+		{
+
+		}
+		else
+		{
+			$scope.addShiftTurnoverItems();
+		}
+
+		console.log( $scope.shiftTurnover );
 	}
 ]);
 
