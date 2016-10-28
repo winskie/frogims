@@ -1346,7 +1346,10 @@ class Api_v1 extends MY_Controller {
 										'teller_allocatable' => array( 'type' => 'boolean' ),
 										'teller_remittable' => array( 'type' => 'boolean' ),
 										'machine_allocatable' => array( 'type' => 'boolean' ),
-										'machine_remittable' => array( 'type' => 'boolean' )
+										'machine_remittable' => array( 'type' => 'boolean' ),
+										'movement' => array( 'type' => 'integer' ),
+										'beginning_balance' => array( 'type' => 'integer' ),
+										'ending_balance' => array( 'type' => 'integer' ),
 									);
 									foreach( $items as $item )
 									{

@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS shifts
 	description TEXT,
 	shift_start_time TIME NOT NULL,
 	shift_end_time TIME NOT NULL,
+	shift_next_shift_id INTEGER NULL DEFAULT NULL,
+	shift_order SMALLINT NOT NULL DEFAULT 1,
 	PRIMARY KEY (id)
 )
 ENGINE=InnoDB;
@@ -168,7 +170,7 @@ CREATE TABLE IF NOT EXISTS shift_turnover_items
 (
 	id INTEGER AUTO_INCREMENT NOT NULL,
 	sti_turnover_id INTEGER NOT NULL,
-	sti_item_ID INTEGER NOT NULL,
+	sti_item_id INTEGER NOT NULL,
 	sti_beginning_balance INTEGER NULL DEFAULT NULL,
 	sti_ending_balance INTEGER NULL DEFAULT NULL,
 	date_created DATETIME NOT NULL,

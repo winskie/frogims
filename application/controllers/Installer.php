@@ -41,6 +41,8 @@ class Installer extends CI_Controller {
 					shift_start_time TIME NOT NULL,
 					shift_end_time TIME NOT NULL,
 					description TEXT,
+					shift_next_shift_id INTEGER NULL DEFAULT NULL,
+					shift_order SMALLINT NOT NULL DEFAULT 1,
 					PRIMARY KEY (id)
 				)
 				ENGINE=InnoDB" );
@@ -203,7 +205,7 @@ class Installer extends CI_Controller {
 				(
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					sti_turnover_id INTEGER NOT NULL,
-					sti_item_ID INTEGER NOT NULL,
+					sti_item_id INTEGER NOT NULL,
 					sti_beginning_balance INTEGER NULL DEFAULT NULL,
 					sti_ending_balance INTEGER NULL DEFAULT NULL,
 					date_created DATETIME NOT NULL,
@@ -695,17 +697,17 @@ class Installer extends CI_Controller {
 			flush();
 			$this->load->library( 'shift' );
 			$shifts = array(
-							array( 'Regular Shift', 1, 'Regular shift', '00:00:00', '23:59:59' ),
-							array( 'Prod S1', 2, 'Production Shift 1', '07:00:00', '14:59:59' ),
-							array( 'Prod S2', 2, 'Production Shift 2', '13:00:00', '20:59:59' ),
-							array( 'TGM S1', 3, 'Transport Shift 1', '06:00:00', '13:59:59' ),
-							array( 'TGM S2', 3, 'Transport Shift 2', '14:00:00', '21:59:59' ),
-							array( 'Cashier S1', 4, 'Cashier Shift 1', '06:00:00', '13:59:59' ),
-							array( 'Cashier S2', 4, 'Cashier Shift 2', '14:00:00', '21:59:59' ),
-							array( 'Cashier S3', 4, 'Cashier Shift 3', '22:00:00', '05:59:59' ),
-							array( 'Teller S1', 0, 'Teller Shift 1', '06:00:00', '13:59:59' ),
-							array( 'Teller S2', 0, 'Teller Shift 2', '14:00:00', '21:59:59' ),
-							array( 'Teller S3', 0, 'Teller Shift 3', '22:00:00', '05:59:59' )
+							array( 'Regular Shift', 1, 'Regular shift', '00:00:00', '23:59:59', NULL, 1 ), // id: 1
+							array( 'Prod S1', 2, 'Production Shift 1', '07:00:00', '14:59:59', 3, 1  ), // id: 2
+							array( 'Prod S2', 2, 'Production Shift 2', '13:00:00', '20:59:59', 2, 2 ), // id: 3
+							array( 'TGM S1', 3, 'Transport Shift 1', '06:00:00', '13:59:59', 5, 1 ), // id: 4
+							array( 'TGM S2', 3, 'Transport Shift 2', '14:00:00', '21:59:59', 4, 2 ), // id: 5
+							array( 'Cashier S1', 4, 'Cashier Shift 1', '06:00:00', '13:59:59', 7, 1 ), // id: 6
+							array( 'Cashier S2', 4, 'Cashier Shift 2', '14:00:00', '21:59:59', 8, 2 ), // id: 7
+							array( 'Cashier S3', 4, 'Cashier Shift 3', '22:00:00', '05:59:59', 6, 3 ), // id: 8
+							array( 'Teller S1', 0, 'Teller Shift 1', '06:00:00', '13:59:59', 10, 1 ), // id: 9
+							array( 'Teller S2', 0, 'Teller Shift 2', '14:00:00', '21:59:59', 11, 2 ), // id: 10
+							array( 'Teller S3', 0, 'Teller Shift 3', '22:00:00', '05:59:59', 9, 3 ) // id: 11
 					);
 
 			foreach( $shifts as $s )
@@ -716,6 +718,8 @@ class Installer extends CI_Controller {
 					$shift->set( 'description', $s[2] );
 					$shift->set( 'shift_start_time', $s[3] );
 					$shift->set( 'shift_end_time', $s[4] );
+					$shift->set( 'shift_next_shift_id', $s[5] );
+					$shift->set( 'shift_order', $s[6] );
 					$shift->db_save();
 					unset( $shift );
 			}

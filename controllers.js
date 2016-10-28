@@ -1005,14 +1005,16 @@ app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$st
 					var items = appData.data.items;
 					$scope.shiftTurnover.items.push({
 						sti_item_id: items[i].item_id,
-						prev_balance: 0,
-						sti_beginning_balance: 0,
-						sti_ending_balance: null,
+						sti_beginning_balance: items[i].beginning_balance,
+						sti_ending_balance: items[i].ending_balance,
 
 						item_name: items[i].item_name,
 						item_group: items[i].item_group,
 						item_description: items[i].item_description,
 						item_unit: items[i].item_unit,
+						movement: items[i].movement,
+						previous_balance: 0,
+						computed_ending_balance: ( items[i].beginning_balance || 0 ) + items[i].movement
 					});
 				}
 			};
@@ -1041,8 +1043,6 @@ app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$st
 		{
 			$scope.addShiftTurnoverItems();
 		}
-
-		console.log( $scope.shiftTurnover );
 	}
 ]);
 

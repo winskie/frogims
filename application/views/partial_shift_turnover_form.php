@@ -15,9 +15,11 @@
 				<th class="text-center">Group</th>
 				<th>Description</th>
 				<th class="text-center">Unit</th>
-				<th class="text-right" style="width: 100px;">Previous</th>
-				<th class="text-right" style="width: 100px;">Beginning</th>
-				<th class="text-right" style="width: 100px;">Ending</th>
+				<th class="text-right" style="width: 100px;">Turnover</th>
+				<th class="text-right" style="width: 100px;">A.Beginning</th>
+				<th class="text-right" style="width: 100px;">Movement</th>
+				<th class="text-right" style="width: 100px;">C.Ending</th>
+				<th class="text-right" style="width: 100px;">A.Endingl</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -28,12 +30,14 @@
 				<td class="text-center">{{ item.item_group }}</td>
 				<td>{{ item.item_description }}</td>
 				<td class="text-center">{{ item.item_unit }}</td>
-				<td class="text-right">{{ item.prev_balance | number }}</td>
+				<td class="text-right">{{ item.previous_balance | number }}</td>
 				<td class="text-right">
-					<input class="form-control input-sm" type="number" ng-model="item.sti_beginning_balance">
+					<input class="form-control input-sm text-right" type="number" ng-model="item.sti_beginning_balance">
 				</td>
+				<td class="text-right">{{ item.movement | number }}</td>
+				<td class="text-right">{{ item.computed_ending_balance | number }}</td>
 				<td class="text-right">
-					<input class="form-control input-sm" type="number" ng-model="item.sti_ending_balance">
+					<input class="form-control input-sm text-right" type="number" ng-model="item.sti_ending_balance">
 				</td>
 			</tr>
 			<tr ng-if="!shiftTurnover.items.length">

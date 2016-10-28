@@ -215,16 +215,79 @@ class Store extends Base_model
 	}
 
 
-	public function get_items( $format = 'object' )
+	public function get_items( $params = array() )
 	{
-		$ci =& get_instance();
-		$ci->load->library( 'Inventory' );
+		$business_date = param( $params, 'date', date( DATE_FORMAT ) );
+		$shift = param( $params, 'shift', current_shift( TRUE ) );
+		$format = param( $params, 'format', 'object' );
 
-		$ci->db->select( 'si.*, i.item_name, i.item_unit, i.item_group, i.item_description,
-				i.teller_allocatable, i.teller_remittable, i.machine_allocatable, i.machine_remittable' );
-		$ci->db->where( 'store_id', $this->id );
-		$ci->db->join( 'items i', 'i.id = si.item_id' );
-		$query = $ci->db->get( 'store_inventory si' );
+		$ci =& get_instance();
+		$ci->load->library( 'inventory' );
+
+		$query_params = array();
+		$sql = 'SELECT
+					si.*,
+					i.item_name, i.item_description, i.item_group, i.item_unit,
+					i.teller_allocatable, i.teller_remittable, i.machine_allocatable, i.machine_remittable,
+					ts.movement, sts.sti_beginning_balance AS beginning_balance, sts.sti_ending_balance AS ending_balance
+				FROM store_inventory AS si
+				LEFT JOIN items AS i
+					ON i.id = si.item_id
+				LEFT JOIN (';
+
+		if( $shift )
+		{
+			$sql .= ' SELECT
+						sti.sti_item_id,
+						sti.sti_beginning_balance,
+						sti.sti_ending_balance
+					FROM shift_turnover_items AS sti
+					LEFT JOIN shift_turnovers AS st
+						ON st.id = sti.sti_turnover_id
+					WHERE
+						st.st_store_id = ?
+						AND st.st_from_date = ?
+						AND st.st_from_shift_id = ?
+				) AS sts
+					ON sts.sti_item_id = i.id';
+
+			// TODO: Add index for st_store_id, st_from_date, st_from_shift_id
+			$query_params[] = $this->id;
+			$query_params[] = $business_date;
+			$query_params[] = $shift;
+		}
+
+		$sql .= ' LEFT JOIN (
+					SELECT
+						t.store_inventory_id,
+						SUM( transaction_quantity ) AS movement
+					FROM transactions AS t
+					LEFT JOIN store_inventory AS si
+						ON si.id = t.store_inventory_id
+					WHERE
+						si.store_id = ?
+						AND t.transaction_datetime >= ?
+						AND t.transaction_datetime <= ?';
+		$query_params[] = $this->id;
+		$query_params[] = $business_date.' 00:00:00';
+		$query_params[] = $business_date.' 23:59:59';
+
+		if( $shift )
+		{
+			$sql .= ' AND t.transaction_shift = ?';
+			$query_params[] = $shift;
+		}
+
+		$sql .= ' GROUP BY
+					t.store_inventory_id
+				) AS ts
+					ON ts.store_inventory_id = si.id
+				WHERE
+					store_id = ?';
+
+		$query_params[] = $this->id;
+
+		$query = $ci->db->query( $sql, $query_params );
 
 		if( $format == 'object')
 		{
