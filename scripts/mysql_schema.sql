@@ -150,6 +150,7 @@ CREATE TABLE IF NOT EXISTS store_inventory
 )
 ENGINE=InnoDB;
 
+-- st_status: 1 - open, 2 - close
 CREATE TABLE IF NOT EXISTS shift_turnovers
 (
 	id INTEGER AUTO_INCREMENT NOT NULL,
@@ -159,10 +160,13 @@ CREATE TABLE IF NOT EXISTS shift_turnovers
 	st_to_date DATE NULL DEFAULT NULL,
 	st_to_shift_id INTEGER NULL DEFAULT NULL,
 	st_remarks TEXT,
+	st_status SMALLINT NOT NULL DEFAULT 1,
 	date_created DATETIME NOT NULL,
 	date_modified DATETIME NOT NULL,
 	last_modified INTEGER NOT NULL,
-	PRIMARY KEY (id)
+	PRIMARY KEY (id),
+	UNIQUE st_from_undx (st_store_id, st_from_date, st_from_shift_id),
+	UNIQUE st_to_undx (st_store_id, st_to_date, st_to_shift_id)
 )
 ENGINE=InnoDB;
 
@@ -171,6 +175,7 @@ CREATE TABLE IF NOT EXISTS shift_turnover_items
 	id INTEGER AUTO_INCREMENT NOT NULL,
 	sti_turnover_id INTEGER NOT NULL,
 	sti_item_id INTEGER NOT NULL,
+	sti_inventory_id INTEGER NOT NULL,
 	sti_beginning_balance INTEGER NULL DEFAULT NULL,
 	sti_ending_balance INTEGER NULL DEFAULT NULL,
 	date_created DATETIME NOT NULL,

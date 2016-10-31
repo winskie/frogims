@@ -167,7 +167,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider
 	var shiftTurnover = {
 			name: 'main.shiftTurnover',
 			parent: main,
-			params: { editMode: 'view' },
+			params: { shiftTurnover: null, editMode: 'view' },
 			templateUrl: baseUrl + 'index.php/main/view/partial_shift_turnover_form',
 			controller: 'ShiftTurnoverController'
 		};

@@ -492,6 +492,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
 				items: [],
 				transactions: [],
+				shiftTurnovers: [],
 				transfers: [],
 				receipts: [],
 				adjustments: [],
@@ -501,6 +502,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
 				totals: {
 						transactions: 0,
+						shiftTurnovers: 0,
 						transferValidations: 0,
 						transfers: 0,
 						receipts: 0,
@@ -511,6 +513,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 					},
 
 				pending: {
+						shiftTurnovers: 0,
 						transferValidations: 0,
 						transfers: 0,
 						receipts: 0,
@@ -531,6 +534,11 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 					date: null,
 					item: { id: null, item_name: 'All', item_description: 'All' },
 					type: { id: null, typeName: 'All' },
+					filtered: false
+				},
+				shiftTurnovers: {
+					shift: null,
+					date: null,
 					filtered: false
 				},
 				transferValidations: {
@@ -592,6 +600,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
 		me.pagination = {
 				transactions: 1,
+				shiftTurnovers: 1,
 				transferValidations: 1,
 				transfers: 1,
 				receipts: 1,
@@ -769,6 +778,48 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 					});
 
 				return deferred.promise;
+			};
+
+		me.getShiftTurnovers = function( storeId )
+			{
+				if( !session.checkPermissions( 'shiftTurnovers', 'view' ) )
+				{
+					return;
+				}
+
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/shift_turnovers',
+					params: {
+						shift: me.filters.shiftTurnovers.shift ? me.filters.shiftTurnovers.shift : null,
+						date: $filter( 'date' )( me.filters.shiftTurnovers.date, 'yyyy-MM-dd' ),
+					}
+				}).then(
+						function( response )
+						{
+							if( response.data.status == 'ok' )
+							{
+								var d = response.data;
+
+								me.data.shiftTurnovers = d.data.shift_turnovers;
+								me.data.totals.shiftTurnovers = d.data.total;
+								me.data.pending.shiftTurnovers = d.data.pending;
+								deferred.resolve( d );
+							}
+							else
+							{
+								notifications.showMessages( response.data.errorMsg );
+								deferred.reject( response.data.errorMsg );
+							}
+						},
+						function( reason )
+						{
+							console.error( reason.data.errorMsg );
+							deferred.reject( reason.data.errorMsg );
+						});
+
+					return deferred.promise;
 			};
 
 		me.getTransferValidations = function()
@@ -1081,6 +1132,69 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 					{
 						console.error( reason.data.errorMsg );
 						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
+
+		// Shift Turnovers
+		me.getShiftTurnoverByStoreDateShift = function( store, date, shiftId )
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/shift_turnovers/date_shift',
+					params: {
+						store: store,
+						date: date,
+						shift: shiftId
+					}
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							deferred.resolve( response.data );
+						}
+						else
+						{
+							notifications.showMessages( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
+
+		me.saveShiftTurnover = function( turnover )
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'POST',
+					url: baseUrl + 'index.php/api/v1/shift_turnovers',
+					data: turnover,
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							deferred.resolve( response.data );
+						}
+						else
+						{
+							notifications.showMessages( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						console.error( reason.data.errorMsg );
+						deferred.reject( response.data.errorMsg );
 					});
 
 				return deferred.promise;
@@ -1847,6 +1961,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 			{
 				switch( group )
 				{
+					case 'shiftTurnovers':
+						me.getShiftTurnovers();
+						break;
+
 					case 'transferValidations':
 						me.getTransferValidations();
 						break;
@@ -1893,6 +2011,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 					default:
 						me.getInventory( currentStoreId );
 						me.getTransactions( currentStoreId );
+						me.getShiftTurnovers();
 						me.getTransferValidations();
 						me.getTransfers( currentStoreId );
 						me.getReceipts( currentStoreId );

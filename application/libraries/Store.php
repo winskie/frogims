@@ -12,6 +12,7 @@ class Store extends Base_model
 
 	protected $members;
 	protected $shifts;
+	protected $items;
 
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
@@ -229,7 +230,7 @@ class Store extends Base_model
 					si.*,
 					i.item_name, i.item_description, i.item_group, i.item_unit,
 					i.teller_allocatable, i.teller_remittable, i.machine_allocatable, i.machine_remittable,
-					ts.movement, sts.sti_beginning_balance AS beginning_balance, sts.sti_ending_balance AS ending_balance
+					ts.movement, sts.sti_beginning_balance, sts.sti_ending_balance
 				FROM store_inventory AS si
 				LEFT JOIN items AS i
 					ON i.id = si.item_id
@@ -291,7 +292,14 @@ class Store extends Base_model
 
 		if( $format == 'object')
 		{
-			return $query->result( 'Inventory' );
+			$items = array();
+			$store_items = $query->result( 'Inventory' );
+			foreach( $store_items as $store_item )
+			{
+				$items[$store_item->get( 'id' )] = $store_item;
+			}
+
+			return $items;
 		}
 		elseif( $format == 'array' )
 		{
@@ -1454,6 +1462,49 @@ class Store extends Base_model
 		$data = $ci->db->query( $sql, $params );
 
 		return $data->result_array();
+	}
+
+	public function get_inventory_movement( $params = array() )
+	{
+		$start_date = param( $params, 'start_date', 'date' );
+		$end_date = param( $params, 'end_date', 'date' );
+		$shift = param( $params, 'shift', 'integer' );
+
+		$ci =& get_instance();
+
+		$ci->db->select( 't.store_inventory_id' );
+		$ci->db->select_sum( 't.transaction_quantity', 'movement' );
+		$ci->db->join( 'store_inventory AS si', 'si.id = t.store_inventory_id', 'left' );
+		$ci->db->where( 'si.store_id', $this->id );
+
+		if( $start_date )
+		{
+			$ci->db->where( 't.transaction_datetime >=', $start_date.' 00:00:00' );
+		}
+
+		if( $end_date )
+		{
+			$ci->db->where( 't.transaction_datetime <=', $end_date.' 23:59:59' );
+		}
+
+		if( $shift )
+		{
+			$ci->db->where( 't.transaction_shift', $shift );
+		}
+
+		$ci->db->group_by( 't.store_inventory_id' );
+
+		$query = $ci->db->get( 'transactions AS t' );
+
+		$items = $query->result_array();
+
+		$inventory_movement = array();
+		foreach( $items as $item )
+		{
+			$inventory_movement[$item['store_inventory_id']] = param_type( $item['movement'], 'integer' );
+		}
+
+		return $inventory_movement;
 	}
 
 	public function get_inventory_balances( $date = NULL, $params = array() )

@@ -192,10 +192,13 @@ class Installer extends CI_Controller {
 					st_to_date DATE NULL DEFAULT NULL,
 					st_to_shift_id INTEGER NULL DEFAULT NULL,
 					st_remarks TEXT,
+					st_status SMALLINT NOT NULL DEFAULT 1,
 					date_created DATETIME NOT NULL,
 					date_modified DATETIME NOT NULL,
 					last_modified INTEGER NOT NULL,
-					PRIMARY KEY (id)
+					PRIMARY KEY (id),
+					UNIQUE st_from_undx (st_store_id, st_from_date, st_from_shift_id),
+					UNIQUE st_to_undx (st_store_id, st_to_date, st_to_shift_id)
 				)
 				ENGINE=InnoDB" );
 
@@ -206,6 +209,7 @@ class Installer extends CI_Controller {
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					sti_turnover_id INTEGER NOT NULL,
 					sti_item_id INTEGER NOT NULL,
+					sti_inventory_id INTEGER NOT NULL,
 					sti_beginning_balance INTEGER NULL DEFAULT NULL,
 					sti_ending_balance INTEGER NULL DEFAULT NULL,
 					date_created DATETIME NOT NULL,

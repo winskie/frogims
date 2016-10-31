@@ -206,12 +206,12 @@ class Group extends Base_model {
 				{
 					case 'view':
 						$allowed_permissions = array( 'view', 'edit' );
-						$permission = $this->group_perm_shift_turnovers;
+						$permission = $this->group_perm_shift_turnover;
 						break;
 
 					case 'edit':
 						$allowed_permissions = array( 'edit' );
-						$permission = $this->group_perm_shift_turnovers;
+						$permission = $this->group_perm_shift_turnover;
 						break;
 
 					default:

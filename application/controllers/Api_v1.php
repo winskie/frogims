@@ -1060,6 +1060,239 @@ class Api_v1 extends MY_Controller {
 		$this->_send_response();
 	}
 
+	public function shift_turnovers()
+	{
+		$request_method = $this->input->method();
+		$current_user = current_user();
+		$current_store = current_store();
+
+		$this->load->library( 'shift_turnover' );
+		$Turnover = new Shift_turnover();
+
+		switch( $request_method )
+		{
+			case 'get':
+				// Check permissions
+				if( !$current_user->check_permissions( 'shift_turnovers', 'view' ) )
+				{
+					$this->_error( 403, 'You are not allowed to access this resource' );
+				}
+				else
+				{
+					$action = $this->uri->rsegment( 3);
+
+					switch( $action )
+					{
+						case 'date_shift':
+							$store = param_type( $this->input->get( 'store' ), 'integer' );
+							$date = param_type( $this->input->get( 'date' ), 'string' );
+							$shift = param_type( $this->input->get( 'shift' ), 'integer' );
+
+							if( !$current_user->check_permissions( 'shift_turnovers', 'view' ) )
+							{
+								$this->_error( 403, 'You are not allowed to access this resource' );
+							}
+							else
+							{
+								$turnover = $Turnover->get_by_store_date_shift( $store, $date, $shift );
+								if( $turnover )
+								{
+									$turnover->load_turnover_items();
+									$turnover_data = $turnover->as_array();
+									$items = $turnover->get_items();
+									$items_data = array();
+									foreach( $items as $key => $item )
+									{
+										$items_data[] = $item->as_array(
+											array(
+												'item_name' => array( 'type' => 'string' ),
+												'item_description' => array( 'type' => 'string' ),
+												'item_group' => array( 'type' => 'string' ),
+												'item_unit' => array( 'type' => 'string' ),
+												'previous_balance' => array( 'type' => 'integer' ),
+												'movement' => array( 'type' => 'integer' )
+											)
+										);
+									}
+									$turnover_data['items'] = $items_data;
+									$this->_response( $turnover_data );
+								}
+								else
+								{
+									$this->load->library( 'shift' );
+									$Shift = new Shift();
+
+									$current_shift = $Shift->get_by_id( $shift );
+									$current_shift_order = $current_shift->get( 'shift_order' );
+
+									$turnover = new Shift_turnover();
+									$turnover->set( 'st_store_id', $store );
+									$turnover->set( 'st_from_date', $date );
+									$turnover->set( 'st_from_shift_id', $shift );
+
+									$next_shift_id = $current_shift->get( 'shift_next_shift_id' );
+									if( $next_shift_id )
+									{
+										$next_shift = $Shift->get_by_id( $next_shift_id );
+										$next_shift_order = $next_shift->get( 'shift_order' );
+
+										if( $current_shift_order < $next_shift_order )
+										{
+
+											$turnover->set( 'st_to_date', $date );
+											$turnover->set( 'st_to_shift_id', $next_shift_id );
+										}
+										else
+										{
+											$turnover->set( 'st_to_date', date( DATE_FORMAT, strtotime( $date.' + 1 day' ) ) );
+											$turnover->set( 'st_to_shift_id', $next_shift_id );
+										}
+									}
+									else
+									{
+										$turnover->set( 'st_to_date', date( DATE_FORMAT, strtotime( $date.' + 1 day' ) ) );
+										$turnover->set( 'st_to_shift_id', $shift );
+									}
+
+									$turnover->load_turnover_items();
+									$items = $turnover->get_items();
+									$items_data = array();
+									if( $items )
+									{
+										foreach( $items as $key => $item )
+										{
+											$items_data[] = $item->as_array(
+												array(
+													'item_name' => array( 'type' => 'string' ),
+													'item_description' => array( 'type' => 'string' ),
+													'item_group' => array( 'type' => 'string' ),
+													'item_unit' => array( 'type' => 'string' ),
+													'previous_balance' => array( 'type' => 'integer' ),
+													'movement' => array( 'type' => 'integer' )
+												)
+											);
+										}
+									}
+
+									$turnover_data = $turnover->as_array();
+									$turnover_data['items'] = $items_data;
+									$this->_response( $turnover_data );
+								}
+							}
+							break;
+
+						default:
+							$turnover_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
+
+							if( $turnover_id )
+							{
+								$turnover = $Turnover->get_by_id( $turnover_id );
+								if( $turnover )
+								{
+									if( !$current_user->check_permissions( 'shift_turnover', 'view' )
+										|| ( $current_store->get( 'id' ) !=  $turnover->get( 'store_id' ) ) )
+									{
+										$this->_error( 403, 'You are not allowed to access this resource' );
+									}
+									else
+									{
+										$turnover_data = $turnover->as_array();
+										$items = $turnover->get_items();
+										$items_data = array();
+										foreach( $items as $item )
+										{
+											$items_data[] = $item->as_array();
+										}
+										$turnover_data['items'] = $items_data;
+										$this->_response( $turnover_data );
+									}
+								}
+								else
+								{
+									$this->_error( 404, 'Transfer record not found' );
+								}
+							}
+							else
+							{
+								$params = array(
+									'shift' => param( $this->input->get(), 'shift' ),
+									'date' => param( $this->input->get(), 'date' ),
+									'page' => param( $this->input->get(), 'page' ),
+									'limit' => param( $this->input->get(), 'limit' ),
+								);
+								$turnovers = $Turnover->get_shift_turnovers( $params );
+								$total_turnovers = $Turnover->count_turnovers( $params );
+								$pending_turnovers = $Turnover->count_pending_turnovers( $params );
+								$turnovers_data = array();
+
+								foreach( $turnovers as $turnover )
+								{
+									$turnovers_data[] = $turnover->as_array();
+								}
+
+								$this->_response( array(
+									'shift_turnovers' => $turnovers_data,
+									'total' => $total_turnovers,
+									'pending' => $pending_turnovers ) );
+							}
+					}
+
+				}
+				break;
+
+			case 'post':
+				$action = param_type( $this->uri->rsegment( 3 ), 'string' );
+				$turnover_id = param( $this->input->post(), 'id' );
+				$turnover = $Turnover->load_from_data( $this->input->post() );
+				$current_user = current_user();
+				$result = FALSE;
+
+				if( !$current_user->check_permissions( 'shift_turnovers', 'edit' ) )
+				{
+					$this->_error( 403, 'You are not allowed to access this resource' );
+				}
+				else{
+					$this->db->trans_start();
+					switch( $action )
+					{
+						default:
+							$result = $turnover->db_save();
+					}
+
+					if( $result )
+					{
+						$turnover_items = $turnover->get_items();
+						$turnover_data = $turnover->as_array();
+						foreach( $turnover_items as $item )
+						{
+							$turnover_data['items'][$item->get( 'id' )] = $item->as_array();
+						}
+						$this->db->trans_complete();
+
+						if( $this->db->trans_status() )
+						{
+							$this->_response( $turnover_data, $turnover_id ? 200 : 201 );
+						}
+						else
+						{
+							$this->_error( 500, 'A database error has occurred while trying to save shift turnover record' );
+						}
+					}
+					else
+					{
+						$messages = get_messages();
+						$this->_error( 200, $messages );
+					}
+				}
+				break;
+
+			default:
+				$this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
+		}
+
+		$this->_send_response();
+	}
+
 	public function stations()
 	{
 		$request_method = $this->input->method();
@@ -1348,8 +1581,8 @@ class Api_v1 extends MY_Controller {
 										'machine_allocatable' => array( 'type' => 'boolean' ),
 										'machine_remittable' => array( 'type' => 'boolean' ),
 										'movement' => array( 'type' => 'integer' ),
-										'beginning_balance' => array( 'type' => 'integer' ),
-										'ending_balance' => array( 'type' => 'integer' ),
+										'sti_beginning_balance' => array( 'type' => 'integer' ),
+										'sti_ending_balance' => array( 'type' => 'integer' ),
 									);
 									foreach( $items as $item )
 									{

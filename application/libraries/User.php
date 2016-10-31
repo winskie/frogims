@@ -38,7 +38,7 @@ class User extends Base_model {
 		);
 	}
 
-    public function get_users( $params = array() )
+	public function get_users( $params = array() )
 	{
 		$query = param( $params, 'q' );
 		$role = param( $params, 'role' );
@@ -189,7 +189,7 @@ class User extends Base_model {
 
 		if( $query->num_rows() )
 		{
-			return $query->row( 0, get_class ($this ) );
+			return $query->row( 0, get_class ( $this ) );
 		}
 		else
 		{
