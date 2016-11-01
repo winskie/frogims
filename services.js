@@ -534,6 +534,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 					date: null,
 					item: { id: null, item_name: 'All', item_description: 'All' },
 					type: { id: null, typeName: 'All' },
+					shift: { id: null, shift_num: 'All', description: 'All' },
 					filtered: false
 				},
 				shiftTurnovers: {
@@ -751,6 +752,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 						date: $filter( 'date' )( me.filters.transactions.date, 'yyyy-MM-dd' ),
 						item: me.filters.transactions.item ? me.filters.transactions.item.item_id : null,
 						type: me.filters.transactions.type ? me.filters.transactions.type.id : null,
+						shift: me.filters.transactions.shift ? me.filters.transactions.shift.id : null,
 						page: me.pagination.transactions ? me.pagination.transactions : null,
 						limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
 					}

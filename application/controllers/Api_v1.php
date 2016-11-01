@@ -1803,6 +1803,7 @@ class Api_v1 extends MY_Controller {
 											'item' => param( $this->input->get(), 'item' ),
 											'type' => param( $this->input->get(), 'type' ),
 											'date' => param( $this->input->get(), 'date' ),
+											'shift' => param( $this->input->get(), 'shift' ),
 											'page' => param( $this->input->get(), 'page' ),
 											'limit' => param( $this->input->get(), 'limit' ),
 											'order' => 'transaction_datetime DESC, id DESC'

@@ -599,8 +599,8 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 	}
 ]);
 
-app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'session', 'appData', 'lookup', 'notifications', 'sessionData',
-	function( $scope, $state, $stateParams, session, appData, lookup, notifications, sessionData )
+app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'lookup', 'notifications', 'sessionData',
+	function( $scope, $filter, $state, $stateParams, session, appData, lookup, notifications, sessionData )
 	{
 		$scope.data = appData.data;
 		$scope.filters = angular.copy( appData.filters );
@@ -651,6 +651,7 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 				},
 				transactionsItems: angular.copy( appData.data.items ),
 				transactionsTypes: angular.copy( appData.data.transactionTypes ),
+				transactionsShifts: angular.copy( session.data.storeShifts ),
 
 				transferValidationsDateSent: {
 					opened: false
@@ -706,6 +707,7 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 
 		$scope.widgets.transactionsItems.unshift({ id: null, item_name: 'All', item_description: 'All' });
 		$scope.widgets.transactionsTypes.unshift({ id: null, typeName: 'All' });
+		$scope.widgets.transactionsShifts.unshift({ id: null, shift_num: 'All', description: 'All' });
 
 		$scope.widgets.transferValidationsSources.unshift({ id: null, store_name: 'All' });
 		$scope.widgets.transferValidationsSources.push({ id: '_ext_', store_name: 'External Sources' });
@@ -985,6 +987,15 @@ app.controller( 'FrontController', [ '$scope', '$state', '$stateParams', 'sessio
 		// Subscribe to notifications
 		notifications.subscribe( $scope, 'onChangeStore',  function( event, data )
 			{
+				$scope.widgets.transactionsShifts = session.data.storeShifts;
+				$scope.widgets.transactionsShifts.unshift({ id: null, shift_num: 'All', description: 'All' });
+
+				var currentShiftFilterId = $scope.filters.transactions.shift.id;
+				if( !$filter( 'filter' )( session.data.storeShifts, { id: currentShiftFilterId }, true ).length )
+				{
+					$scope.filters.transactions.shift = { id: null, shift_num: 'All', description: 'All' };
+					appData.filters.transactions.shift = { id: null, shift_num: 'All', description: 'All' };
+				}
 				appData.refresh( session.data.currentStore.id, data );
 			});
 
