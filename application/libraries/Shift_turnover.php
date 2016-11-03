@@ -143,6 +143,8 @@ class Shift_turnover extends Base_model
 			$ci->db->where( 'st_from_shift_id', $shift );
 		}
 
+		$ci->db->where( 'st_status', SHIFT_TURNOVER_OPEN );
+
 		$count = $ci->db->count_all_results( 'shift_turnovers' );
 
 		return $count;
@@ -294,15 +296,24 @@ class Shift_turnover extends Base_model
 		}
 
 		if( !isset( $this->id ) )
+		{ // new shift turnover
+			foreach( $this->items as $inv_id => $item )
+			{
+				$previous_balance = $item->get( 'previous_balance' );
+				$previous_balance = empty( $previous_balance ) ? 0 : $previous_balance;
+				$item->set( 'sti_beginning_balance', $previous_balance );
+				$item->set( 'sti_ending_balance', NULL );
+			}
+		}
+		else
 		{
 			foreach( $this->items as $inv_id => $item )
-			{ // Only do this if turnover is currently open and not when creating
+			{
 				$beginning_balance = $item->get( 'sti_beginning_balance' );
 				$beginning_balance = empty( $beginning_balance ) ? 0 : $beginning_balance;
 				$movement = $item->get( 'movement' );
 				$movement = empty( $movement ) ? 0 : $movement;
 				$ending_balance = $item->get( 'sti_ending_balance' );
-				$item->set( 'sti_beginning_balance', $item->get( 'previous_balance' ) );
 				if( empty( $ending_balance ) )
 				{
 					$item->set( 'sti_ending_balance', $beginning_balance + $movement );
@@ -329,6 +340,11 @@ class Shift_turnover extends Base_model
 						$item->set( 'sti_turnover_id', $this->id );
 					}
 
+					if( ( $this->st_status != SHIFT_TURNOVER_CLOSE ) && ( $item->get( 'sti_ending_balance') != NULL ) )
+					{
+						$item->set( 'sti_ending_balance', NULL );
+					}
+
 					if( $item->db_changes )
 					{
 						if( !$item->db_save() )
@@ -351,16 +367,21 @@ class Shift_turnover extends Base_model
 			}
 		}
 		else
-		{ // Check for valid new transfer status
+		{
 			if( $this->_check_data() )
 			{
 				// Set fields and updata record metadata
+				if( !isset( $this->st_status ) )
+				{
+					$this->set( 'st_status', SHIFT_TURNOVER_OPEN );
+				}
+
 				$this->_update_timestamps( TRUE );
 				$ci->db->set( $this->db_changes );
 
 				$result = $this->_db_insert();
 
-				// save transfer items
+				// save turnover items
 
 				foreach( $this->items as $item )
 				{
@@ -381,6 +402,32 @@ class Shift_turnover extends Base_model
 		$this->previousStatus = NULL;
 
 		return $result;
+	}
+
+	public function end_shift()
+	{
+		$ci =& get_instance();
+
+		$ci->db->trans_start();
+		$this->set( 'st_status', SHIFT_TURNOVER_CLOSE );
+		$result = $this->db_save();
+		if( $result )
+		{
+			$ci->db->trans_complete();
+			if( $ci->db->trans_status() )
+			{
+				return $this;
+			}
+			else
+			{
+				set_message( 'A database error has occurred while trying to close the shift.', 'error' );
+				return FALSE;
+			}
+		}
+		else
+		{
+			return FALSE;
+		}
 	}
 
 	public function load_from_data( $data = array(), $overwrite = TRUE )

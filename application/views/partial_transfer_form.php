@@ -214,7 +214,7 @@
 						ng-options="category as category.category for category in data.categories track by category.id">
 				</select>
 			</div>
-			<div class="form-group" ng-class="{ 'col-sm-12 col-md-6 col-lg-2': data.showCategory, 'col-sm-12 col-md-6 col-lg-6': !data.showCategory }">
+			<div class="form-group" ng-class="{ 'col-sm-12 col-md-6 col-lg-3': data.showCategory, 'col-sm-12 col-md-6 col-lg-6': !data.showCategory }">
 				<label class="control-label">Remarks</label>
 				<input type="text" class="form-control"
 						ng-model="input.remarks"

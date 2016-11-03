@@ -25,8 +25,11 @@
 					</div>
 				</div>
 			</div>
-
 			<div class="col-sm-6">
+				<div class="form-group" style="margin-right: 20px;">
+					<label class="control-label">Status:</label>
+					<p class="form-control-static">{{ shiftTurnover.st_status ? lookup( 'shiftTurnoverStatus', shiftTurnover.st_status ) : 'Pending' }}</p>
+				</div>
 				<div class="form-group">
 					<label class="control-label">Turnover to:</label>
 					<p class="form-control-static">{{ data.nextShift.description }} - {{ shiftTurnover.st_to_date | date: 'fullDate' }}</p>
@@ -74,14 +77,20 @@
 				<td>{{ item.item_description }}</td>
 				<td class="text-center">{{ item.item_unit }}</td>
 				<td class="text-center">{{ item.previous_balance ? ( item.previous_balance | number ) : '---' }}</td>
-				<td class="text-right">
-					<input class="form-control input-sm text-right" type="number" ng-model="item.sti_beginning_balance">
+				<td class="text-right" ng-switch on="shiftTurnover.st_status == 2 || data.editMode == 'view'">
+					<input class="form-control input-sm text-right" type="number" tabindex="{{ $index + 1 }}"
+						ng-switch-when="false"
+						ng-model="item.sti_beginning_balance">
+					<span ng-switch-default>{{ item.sti_beginning_balance }}</span>
 				</td>
 				<td class="text-center">{{ item.movement ? ( item.movement | number ) : '---' }}</td>
 				<td class="text-center">{{ ( item.sti_beginning_balance ? item.sti_beginning_balance : 0 ) + ( item.movement ? item.movement : 0 ) | number }}</td>
-				<td class="text-right">
-					<input class="form-control input-sm text-right" type="number"
-							ng-model="item.sti_ending_balance">
+				<td class="text-right" ng-switch on="shiftTurnover.st_status == 2 || data.editMode == 'view'">
+					<input class="form-control input-sm text-right" type="number" tabindex="{{  ( shiftTurnover.items.length ) + $index + 1 }}"
+						ng-switch-when="false"
+						ng-model="item.sti_ending_balance"
+						ng-disabled="shiftTurnover.st_status == null">
+					<span ng-switch-default>{{ item.sti_ending_balance }}</span>
 				</td>
 			</tr>
 			<tr ng-if="!shiftTurnover.items.length">
@@ -93,13 +102,22 @@
 
 <!-- Form buttons -->
 <div class="text-right">
-	<button type="button" class="btn btn-primary" ng-click="saveTurnover()"
-			<i class="glyphicon glyphicon-ok"></i> Update
+	<button type="button" class="btn"
+			ng-if="shiftTurnover.st_status != 2 && data.editMode != 'view'"
+			ng-class="{ 'btn-default': shiftTurnover.st_status == 1, 'btn-primary': shiftTurnover.st_status != 1 }"
+			ng-click="saveTurnover()"
+			<i class="glyphicon glyphicon-ok"></i> {{ shiftTurnover.st_status == null ? 'Start Shift' : 'Update Beginning Balances' }}
+	</button>
+	<button type="button" class="btn btn-primary"
+			ng-if="shiftTurnover.st_status == 1 && data.editMode != 'view'"
+			ng-click="saveTurnover( 'close' )"
+			<i class="glyphicon glyphicon-ok"></i> End Shift
 	</button>
 	<button type="button" class="btn btn-success" ng-click="receiveTransfer()"
 			ng-if="( data.editMode == 'externalReceipt' || ( transferItem.transfer_status == <?php echo TRANSFER_APPROVED;?> && !data.isExternalDestination ) )
 					&& transferItem.destination_id == sessionData.currentStore.id
-					&& checkPermissions( 'transfers', 'edit' )">
+					&& checkPermissions( 'transfers', 'edit' )
+					&& data.editMode != 'view'">
 			<i class="glyphicon glyphicon-ok"></i> Receive
 	</button>
 	<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'inventory' })">Close</button>

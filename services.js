@@ -32,6 +32,7 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
 
 				userStores: [],
 				storeShifts: [],
+				shiftBalance: null,
 
 				isAdmin: false,
 				previousState: null,
@@ -261,6 +262,7 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
 							me.data.currentShift = d.shift;
 							me.data.userStores = d.stores;
 							me.data.storeShifts = d.shifts;
+							me.data.shiftBalance = d.shift_balance;
 							me.data.isAdmin = d.is_admin;
 							me.permissions = d.permissions;
 
@@ -367,6 +369,7 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
 							me.data.currentStore = d.store;
 							me.data.storeShifts = d.shifts;
 							me.data.currentShift = d.suggested_shift;
+							me.data.shiftBalance = d.shift_balance;
 
 							notifications.notify( 'onChangeStore' );
 							deferred.resolve( d );
@@ -399,7 +402,8 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
 						{
 							var d = response.data.data;
 
-							me.data.currentShift = d;
+							me.data.currentShift = d.shift;
+							me.data.shiftBalance = d.shift_balance;
 							deferred.resolve( d );
 						}
 						else
@@ -444,6 +448,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 						{ id: 40, typeName: 'Adjustment', module: 'Adjustments' },
 						{ id: 50, typeName: 'Conversion From', module: 'Conversions' },
 						{ id: 51, typeName: 'Conversion To', module: 'Conversions' }
+					],
+				shiftTurnoverStatus: [
+						{ id: 1, statusName: 'Open' },
+						{ id: 2, statusName: 'Closed' }
 					],
 				transferValidationStatus: [
 						{ id: 1, statusName: 'Ongoing' },
@@ -1173,18 +1181,26 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 				return deferred.promise;
 			};
 
-		me.saveShiftTurnover = function( turnover )
+		me.saveShiftTurnover = function( turnover, action )
 			{
 				var deferred = $q.defer();
 				$http({
 					method: 'POST',
-					url: baseUrl + 'index.php/api/v1/shift_turnovers',
+					url: baseUrl + 'index.php/api/v1/shift_turnovers/' + action,
 					data: turnover,
 				}).then(
 					function( response )
 					{
 						if( response.data.status == 'ok' )
 						{
+							var shiftTurnover = response.data.data;
+							if( shiftTurnover.st_store_id == session.data.currentStore.id
+								&& shiftTurnover.st_from_shift_id == session.data.currentShift.id
+								&& shiftTurnover.st_from_date == $filter( 'date' )( new Date(), 'yyyy-MM-dd' ) )
+							{
+								console.log( 'Setting current shift balance info...', shiftTurnover );
+								session.data.shiftBalance = shiftTurnover;
+							}
 							deferred.resolve( response.data );
 						}
 						else
@@ -2309,6 +2325,10 @@ appServices.service( 'lookup',
 
 				'50': 'Conversion From',
 				'51': 'Conversion To'
+			},
+			shiftTurnoverStatus: {
+				'1': 'Open',
+				'2': 'Closed'
 			},
 			transferValidationStatus: {
 				'1': 'Ongoing',

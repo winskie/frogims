@@ -57,10 +57,19 @@ app.controller( 'MainController', [ '$rootScope', '$scope', '$filter', '$state',
 						function( response )
 						{
 							$scope.canSetShiftBalances = session.data.currentStore.store_type == 4;
+							$scope.shiftBalanceStatus = session.data.shiftBalance ? session.data.shiftBalance.st_status : 0;
 						});
 				};
 
-		$scope.changeShift = session.changeShift;
+		$scope.changeShift = function( newShift )
+				{
+					session.changeShift( newShift ).then(
+						function( response )
+						{
+							$scope.shiftBalanceStatus = session.data.shiftBalance ? session.data.shiftBalance.st_status : 0;
+						});
+				};
+
 		$scope.editShiftBalances = function()
 			{
 				var currentDate = $filter( 'date' )( new Date(), 'yyyy-MM-dd' )
@@ -71,17 +80,12 @@ app.controller( 'MainController', [ '$rootScope', '$scope', '$filter', '$state',
 						{
 							if( response.data )
 							{
-								$state.go( 'main.shiftTurnover', { editMode: 'start', shiftTurnover: response.data });
-							}
-							else
-							{
-								$state.go( 'main.shiftTurnover', { editMode: 'start' } );
+								$state.go( 'main.shiftTurnover', { editMode: 'edit', shiftTurnover: response.data });
 							}
 						}
 					});
 			};
 
-		$scope.endShift = session.endShift;
 		$scope.lookup = lookup.getX;
 		$scope.viewRecord = function( type, id )
 			{
@@ -192,8 +196,10 @@ app.controller( 'MainController', [ '$rootScope', '$scope', '$filter', '$state',
 			function( event, toState, toParams, fromState, fromParams )
 			{
 				$scope.canChangeStore = allowStoreChange.indexOf( $state.current.name ) != -1;
+				$scope.shiftBalanceStatus = session.data.shiftBalance ? session.data.shiftBalance.st_status : 0;
 			});
 
+		$scope.shiftBalanceStatus = session.data.shiftBalance ? session.data.shiftBalance.st_status : 0;
 		$scope.$on( '$destroy', clnStateChangeSuccess );
 	}
 ]);
@@ -987,7 +993,7 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 		// Subscribe to notifications
 		notifications.subscribe( $scope, 'onChangeStore',  function( event, data )
 			{
-				$scope.widgets.transactionsShifts = session.data.storeShifts;
+				$scope.widgets.transactionsShifts = angular.copy( session.data.storeShifts );
 				$scope.widgets.transactionsShifts.unshift({ id: null, shift_num: 'All', description: 'All' });
 
 				var currentShiftFilterId = $scope.filters.transactions.shift.id;
@@ -1008,7 +1014,7 @@ app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$st
 	function( $scope, $filter, $state, $stateParams, session, appData, notifications )
 	{
 		$scope.data = {
-				editMode: $stateParams.editmode || 'view',
+				editMode: $stateParams.editMode || 'view',
 				businessDatepicker: { format: 'yyyy-MM-dd', opened: false },
 				turnoverShifts: angular.copy( session.data.storeShifts ),
 				currentShift: null,
@@ -1059,7 +1065,7 @@ app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$st
 				return true;
 			};
 
-		$scope.prepareTurnover = function()
+		$scope.prepareTurnover = function( action )
 			{
 				// Make a deep copy to create a disconnected copy of the data from the scope model
 				var data = angular.copy( $scope.shiftTurnover );
@@ -1068,6 +1074,14 @@ app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$st
 				var itemCount = data.items.length;
 				for( var i = 0; i < itemCount; i++ )
 				{
+					if( !data.items[i].st_beginning_balance )
+					{
+						data.items[i].st_beginning_balance = 0;
+					}
+					if( action != 'close' )
+					{
+						data.items[i].st_ending_balance = null;
+					}
 					delete data.items[i].item_name;
 					delete data.items[i].item_group;
 					delete data.items[i].item_description;
@@ -1089,14 +1103,14 @@ app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$st
 				return data;
 			};
 
-		$scope.saveTurnover = function()
+		$scope.saveTurnover = function( action )
 			{
 				if( $scope.checkItems() )
 				{
 					// Prepare transfer
-					var data = $scope.prepareTurnover();
+					var data = $scope.prepareTurnover( action );
 
-					appData.saveShiftTurnover( data ).then(
+					appData.saveShiftTurnover( data, action ).then(
 						function( response )
 						{
 							appData.refresh( session.data.currentStore.id, 'turnover' );
@@ -1345,6 +1359,26 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			}
 
 			return null;
+		}
+
+		function filterItemsWithCategory( items, categoryName )
+		{
+			var n = items.length;
+			var m, filteredItems = [];
+			for( var i = 0; i < n; i++ )
+			{
+				m = items[i].categories.length;
+				for( var j = 0; j < m; j++ )
+				{
+					if( items[i].categories[j].category == categoryName )
+					{
+						filteredItems.push( items[i] );
+						break;
+					}
+				}
+			}
+
+			return filteredItems;
 		}
 
 		$scope.data = {
@@ -1709,7 +1743,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				}
 			}
 
-		$scope.changeTransferCategory = function( category)
+		$scope.changeTransferCategory = function( category )
 			{
 				$scope.data.selectedCategory = category;
 				$scope.transferItem.transfer_category = $scope.data.selectedCategory.id;
@@ -1717,11 +1751,21 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				switch( category.categoryName )
 				{
 					case 'Blackbox Receipt':
-						$scope.input.category = $filter( 'filter' )( $scope.data.categories, { category: 'Blackbox' }, true )[0];
+						var filteredItems;
+						filteredItems = filterItemsWithCategory( appData.data.items, 'Blackbox' );
+						if( filteredItems )
+						{
+							$scope.data.inventoryItems = filteredItems;
+							$scope.input.inventoryItem = $scope.data.inventoryItems[0];
+							$scope.onItemChange();
+							$scope.input.category = $filter( 'filter' )( $scope.data.categories, { category: 'Blackbox' }, true )[0];
+						}
 						break;
 
 					default:
-						//$scope.input.category = $scope.data.categories[0];
+						$scope.data.inventoryItems = angular.copy( appData.data.items );
+						$scope.onItemChange();
+						$scope.input.category = $scope.data.categories[0];
 				}
 			};
 
@@ -1733,10 +1777,9 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		$scope.updateItemCategories = function()
 			{
-				console.log( $scope.input.inventoryItem );
 				$scope.data.categories = $filter( 'filter' )( $scope.input.inventoryItem.categories, { is_transfer_category: true }, true );
 				$scope.data.categories.unshift( { id: null, category: '- None -' });
-			}
+			};
 
 		$scope.checkItems = function( action )
 			{

@@ -853,6 +853,7 @@ class Api_v1 extends MY_Controller {
 		$this->load->library( 'store' );
 		$this->load->library( 'user' );
 		$this->load->library( 'shift' );
+		$this->load->library( 'shift_turnover' );
 
 		$current_store = new Store();
 		$current_user = new User();
@@ -861,12 +862,14 @@ class Api_v1 extends MY_Controller {
 		$current_store = $current_store->get_by_id( $this->session->current_store_id );
 		$current_user = $current_user->get_by_id( $this->session->current_user_id );
 		$current_shift = $current_shift->get_by_id( $this->session->current_shift_id );
+		$shift_balance = $current_store->get_shift_balance( date( DATE_FORMAT ), $current_shift->get( 'id' ) );
 
 		$user_data = NULL;
 		$store_data = NULL;
 		$stores_data = NULL;
 		$shift_data = NULL;
 		$shifts_data = NULL;
+		$shift_balance_data = NULL;
 		$permissions_data = NULL;
 
 		if( $current_store )
@@ -904,6 +907,11 @@ class Api_v1 extends MY_Controller {
 			$shift_data = $current_shift->as_array();
 		}
 
+		if( $shift_balance )
+		{
+			$shift_balance_data = $shift_balance->as_array();
+		}
+
 		$response = array(
 				'status' => 'ok',
 				'data' => array(
@@ -912,6 +920,7 @@ class Api_v1 extends MY_Controller {
 					'stores' => $stores_data,
 					'shift' => $shift_data,
 					'shifts' => $shifts_data,
+					'shift_balance' => $shift_balance_data,
 					'is_admin' => is_admin(),
 					'permissions' => $permissions_data
 				)
@@ -954,7 +963,10 @@ class Api_v1 extends MY_Controller {
 								if( $new_shift->get( 'store_type' ) == $current_store->get( 'store_type') )
 								{
 									$this->session->current_shift_id = $new_shift->get( 'id' );
-									$this->_response( $new_shift->as_array() );
+									$shift_balance = $current_store->get_shift_balance( date( DATE_FORMAT ), $this->session->current_shift_id );
+									$this->_response( array(
+										'shift' => $new_shift->as_array(),
+										'shift_balance' => $shift_balance ? $shift_balance->as_array() : NULL ) );
 								}
 								else
 								{
@@ -996,9 +1008,12 @@ class Api_v1 extends MY_Controller {
 									}
 									$suggested_shift = $new_store->get_suggested_shift();
 									$this->session->current_shift_id = $suggested_shift ? $suggested_shift->get( 'id' ) : $shifts[0]->get( 'id' );
+									$shift_balance = $new_store->get_shift_balance( date( DATE_FORMAT ), $this->session->current_shift_id );
+
 									$this->_response( array(
 										'store' => $new_store->as_array(),
 										'shifts' => $shifts_data,
+										'shift_balance' => $shift_balance ? $shift_balance->as_array() : NULL,
 										'suggested_shift' => $suggested_shift ? $suggested_shift->as_array() : NULL
 									) );
 								}
@@ -1255,6 +1270,10 @@ class Api_v1 extends MY_Controller {
 					$this->db->trans_start();
 					switch( $action )
 					{
+						case 'close':
+							$result = $turnover->end_shift();
+							break;
+
 						default:
 							$result = $turnover->db_save();
 					}

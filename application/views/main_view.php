@@ -57,7 +57,14 @@
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 <li ng-if="canSetShiftBalances">
-                    <a href ng-click="editShiftBalances()"><span class="text-danger glyphicon glyphicon-exclamation-sign"></span> Shift Balances</a>
+                    <a href ng-click="editShiftBalances()">
+                        <span ng-class="{
+                                    'glyphicon-exclamation-sign text-danger': shiftBalanceStatus == 0,
+                                    'glyphicon-record': shiftBalanceStatus == 1,
+                                    'glyphicon-lock text-success': shiftBalanceStatus == 2 }"
+                                class="glyphicon">
+                        </span> Shift Balances
+                    </a>
                 </li>
                 <li uib-dropdown>
                     <a href uib-dropdown-toggle>

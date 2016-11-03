@@ -1478,6 +1478,38 @@ class Store extends Base_model
 		return $data->result_array();
 	}
 
+	public function get_shift_balance( $date = NULL, $shift_id = NULL )
+	{
+		$ci =& get_instance();
+
+		$ci->load->library( 'shift_turnover' );
+		if( empty( $date ) )
+		{
+			$date = date( DATE_FORMAT );
+		}
+
+		if( empty( $shift_id ) )
+		{
+			$shift_id = current_shift( TRUE );
+		}
+
+		if( $date && $shift_id )
+		{
+			$ci =& get_instance();
+
+			$ci->db->where( 'st_store_id', $this->id );
+			$ci->db->where( 'st_from_date', $date );
+			$ci->db->where( 'st_from_shift_id', $shift_id );
+			$query = $ci->db->get( 'shift_turnovers' );
+
+			return $query->row( 0, 'Shift_turnover' );
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+
 	public function get_inventory_movement( $params = array() )
 	{
 		$start_date = param( $params, 'start_date', 'date' );
