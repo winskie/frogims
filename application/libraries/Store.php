@@ -1510,11 +1510,12 @@ class Store extends Base_model
 		}
 	}
 
-	public function get_inventory_movement( $params = array() )
+	public function get_inventory_movement( $date = NULL, $shift = NULL )
 	{
-		$start_date = param( $params, 'start_date', 'date' );
-		$end_date = param( $params, 'end_date', 'date' );
-		$shift = param( $params, 'shift', 'integer' );
+		if( empty( $date ) )
+		{
+			$date = date( DATE_FORMAT );
+		}
 
 		$ci =& get_instance();
 
@@ -1523,14 +1524,10 @@ class Store extends Base_model
 		$ci->db->join( 'store_inventory AS si', 'si.id = t.store_inventory_id', 'left' );
 		$ci->db->where( 'si.store_id', $this->id );
 
-		if( $start_date )
+		if( $date )
 		{
-			$ci->db->where( 't.transaction_datetime >=', $start_date.' 00:00:00' );
-		}
-
-		if( $end_date )
-		{
-			$ci->db->where( 't.transaction_datetime <=', $end_date.' 23:59:59' );
+			$ci->db->where( 't.transaction_datetime >=', $date.' 00:00:00' );
+			$ci->db->where( 't.transaction_datetime <=', $date.' 23:59:59' );
 		}
 
 		if( $shift )

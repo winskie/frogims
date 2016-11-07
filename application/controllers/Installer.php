@@ -20,6 +20,52 @@ class Installer extends CI_Controller {
 		$this->db->query( "CREATE DATABASE IF NOT EXISTS frogims" );
 		$this->db->query( "USE frogims" );
 
+		echo 'Creating int table...<br />';
+		$this->db->query( "CREATE TABLE ints ( i tinyint ) ENGINE=InnoDB" );
+
+		echo 'Inserting int values...<br />';
+		$this->db->query( "INSERT INTO ints VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9)" );
+
+		echo 'Creating dates table...<br />';
+		$this->db->query( "
+				CREATE TABLE IF NOT EXISTS dates (
+					dt DATE NOT NULL PRIMARY KEY,
+					y SMALLINT NULL,
+					q tinyint NULL,
+					m tinyint NULL,
+					d tinyint NULL,
+					dw tinyint NULL,
+					monthName VARCHAR(9) NULL,
+					dayName VARCHAR(9) NULL,
+					w tinyint NULL,
+					isWeekday BOOLEAN NULL DEFAULT NULL,
+					isHoliday BOOLEAN NULL DEFAULT NULL,
+					holidayDescr VARCHAR(32) NULL,
+					locked BOOLEAN DEFAULT FALSE
+				)
+				ENGINE=InnoDB" );
+
+		echo 'Inserting date values...<br />';
+		$this->db->query( "
+				INSERT INTO dates (dt)
+				SELECT DATE('2015-01-01') + INTERVAL a.i*10000 + b.i*1000 + c.i*100 + d.i*10 + e.i DAY
+				FROM ints a JOIN ints b JOIN ints c JOIN ints d JOIN ints e
+				WHERE (a.i*10000 + b.i*1000 + c.i*100 + d.i*10 + e.i) <= 11322
+				ORDER BY 1" );
+
+		$this->db->query( "
+				UPDATE dates
+				SET isWeekday = CASE WHEN dayofweek(dt) IN (1,7) THEN 0 ELSE 1 END,
+					isHoliday = 0,
+					y = YEAR(dt),
+					q = quarter(dt),
+					m = MONTH(dt),
+					d = dayofmonth(dt),
+					dw = dayofweek(dt),
+					monthname = monthname(dt),
+					dayname = dayname(dt),
+					w = week(dt)" );
+
 		echo 'Creating stations table...<br />';
 		$this->db->query( "
 				CREATE TABLE IF NOT EXISTS stations

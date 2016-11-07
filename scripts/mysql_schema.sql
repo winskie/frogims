@@ -2,6 +2,45 @@ CREATE DATABASE IF NOT EXISTS frogims;
 
 USE frogims;
 
+-- Date Dimension
+CREATE TABLE ints ( i tinyint );
+INSERT INTO ints VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9);
+
+CREATE TABLE IF NOT EXISTS date_dim (
+	dt DATE NOT NULL PRIMARY KEY,
+	y SMALLINT NULL,
+	q tinyint NULL,
+	m tinyint NULL,
+	d tinyint NULL,
+	dw tinyint NULL,
+	monthName VARCHAR(9) NULL,
+	dayName VARCHAR(9) NULL,
+	w tinyint NULL,
+	isWeekday BOOLEAN NULL DEFAULT NULL,
+	isHoliday BOOLEAN NULL DEFAULT NULL,
+	holidayDescr VARCHAR(32) NULL,
+	locked BOOL DEFAULT FALSE
+)
+ENGINE=InnoDB;
+
+INSERT INTO date_dim (dt)
+SELECT DATE('2015-01-01') + INTERVAL a.i*10000 + b.i*1000 + c.i*100 + d.i*10 + e.i DAY
+FROM ints a JOIN ints b JOIN ints c JOIN ints d JOIN ints e
+WHERE (a.i*10000 + b.i*1000 + c.i*100 + d.i*10 + e.i) <= 11322
+ORDER BY 1;
+
+UPDATE date_dim
+SET isWeekday = CASE WHEN dayofweek(dt) IN (1,7) THEN 0 ELSE 1 END,
+	isHoliday = 0,
+	y = YEAR(dt),
+	q = quarter(dt),
+	m = MONTH(dt),
+	d = dayofmonth(dt),
+	dw = dayofweek(dt),
+	monthname = monthname(dt),
+	dayname = dayname(dt),
+	w = week(dt);
+
 CREATE TABLE IF NOT EXISTS stations
 (
 	id INTEGER AUTO_INCREMENT NOT NULL,
