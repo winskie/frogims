@@ -2,10 +2,10 @@
 
 if( ! function_exists( 'param' ) )
 {
-	function param( $param_array, $param, $default = NULL )
+	function param( $param_array, $param, $default = NULL, $type = NULL )
 	{
 		$r = NULL;
-		
+
 		if( is_array( $param_array ) && array_key_exists( $param, $param_array ) )
 		{
 			$r = $param_array[$param];
@@ -14,17 +14,22 @@ if( ! function_exists( 'param' ) )
 		{
 			$r = $default;
 		}
-				
+
+		if( $type )
+		{
+			$r = param_type( $r, $type );
+		}
+
 		return $r;
 	}
-	
+
 	function param_type( $param, $type = 'raw', $default = NULL )
 	{
         if( is_null( $param ) && is_null( $default ) )
         {
             return NULL;
         }
-        
+
 		switch( $type )
 		{
 			case 'boolean':
@@ -56,7 +61,7 @@ if( ! function_exists( 'param' ) )
                     }
 				}
 				break;
-				
+
 			case 'integer':
                 if( is_null( $param ) )
                 {
@@ -67,7 +72,7 @@ if( ! function_exists( 'param' ) )
                     $v = intval( $param );
                 }
 				break;
-				
+
 			case 'string':
                 if( is_null( $param ) )
                 {
@@ -78,7 +83,7 @@ if( ! function_exists( 'param' ) )
 				    $v = ( string ) $param;
                 }
 				break;
-				
+
 			case 'datetime': // this is a datetime string
 				if( is_null( $param ) )
 				{
@@ -89,7 +94,7 @@ if( ! function_exists( 'param' ) )
 					$v = date( TIMESTAMP_FORMAT, strtotime( $param ) );
 				}
 				break;
-						
+
 			case 'date': // this is a date string
 				if( is_null( $param ) )
 				{
@@ -100,7 +105,7 @@ if( ! function_exists( 'param' ) )
 					$v = date( DATE_FORMAT, strtotime( $param ) );
 				}
 				break;
-                
+
             case 'time':
                 if( is_null( $param ) )
                 {
@@ -111,11 +116,11 @@ if( ! function_exists( 'param' ) )
                     $v = date( 'H:i:s', strtotime( $param ) );
                 }
                 break;
-				
+
 			default:
 				$v = $param;
 		}
-		
+
 		return $v;
 	}
 }

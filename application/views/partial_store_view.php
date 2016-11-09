@@ -1305,5 +1305,61 @@ $current_user = current_user();
 			</div>
 		</uib-tab>
 
+		<!-- Shift Turnovers -->
+		<uib-tab index="9" select="onTabSelect('shiftTurnovers')" ng-if="sessionData.currentStore.store_type == 4 && checkPermissions( 'shiftTurnovers', 'view')"> <!-- Cashroom only -->
+			<uib-tab-heading>
+					Shift Turnovers <span ng-show="data.pending.shiftTurnovers > 0" class="label label-danger label-as-badge">{{ data.pending.shiftTurnovers }}</span>
+			</uib-tab-heading>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title pull-left">
+						Shift Turnovers <span class="label label-default" ng-if="filters.shiftTurnovers.filtered">Filtered</span>
+					</h3>
+					<div class="pull-right">
+						<button class="btn btn-default btn-sm btn-filter" ng-click="toggleFilters( 'shiftTurnovers' )">
+							<i class="glyphicon glyphicon-filter"></i> {{ filterPanels.shiftTurnovers ? 'Hide' : 'Show' }} filters
+						</button>&nbsp;
+						<span ng-if="checkPermissions( 'shiftTurnovers', 'edit' )">
+							<button class="btn btn-primary btn-sm" ui-sref="main.shiftTurnover({ editMode: 'edit' })">
+								<i class="glyphicon glyphicon-plus"></i> New Shift Turnover
+							</button>&nbsp;
+						</span>
+						<button class="btn btn-default btn-sm" ng-click="updateShiftTurnovers( sessionData.currentStore.id )">
+							<i class="glyphicon glyphicon-refresh"></i>
+						</button>
+					</div>
+					<div class="clearfix"></div>
+				</div>
+				<table class="table">
+					<thead>
+						<tr>
+							<th>Business Date</th>
+							<th>Shift</th>
+							<th>Status</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="turnover in data.shiftTurnovers">
+							<td>{{ turnover.business_date }}</td>
+							<td>{{ turnover.shift_num }}</td>
+							<td>{{ turnover.st_status == null ? '---' : lookup( 'shiftTurnoverStatus', turnover.st_status ) }}</td>
+							<td></td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="text-center" ng-if="data.totals.shiftTurnovers > filters.itemsPerPage">
+					<uib-pagination
+							total-items="data.totals.shiftTurnovers"
+							items-per-page="filters.itemsPerPage"
+							max-size="5"
+							boundary-link-numbers="true"
+							ng-model="pagination.shiftTurnovers"
+							ng-change="updateShiftTurnovers( sessionData.currentStore.id )">
+					</uib-pagination>
+				</div>
+			</div>
+		</uib>
+
 	</uib-tabset>
 </div>

@@ -1550,6 +1550,146 @@ class Store extends Base_model
 		return $inventory_movement;
 	}
 
+	public function get_shift_turnovers( $params = array() )
+	{
+		$ci =& get_instance();
+
+		$start_date = param( $params, 'start' );
+		$end_date = param( $params, 'end' );
+		$shift = param( $params, 'shift' );
+
+		if( empty( $start_date ) )
+		{
+			$start_date = date( DATE_FORMAT, strtotime( 'first day of this month' ) );
+		}
+		if( empty( $end_date ) )
+		{
+			$end_date = date( DATE_FORMAT );
+		}
+
+		$limit = param( $params, 'limit' );
+		$page = param( $params, 'page', 1 );
+
+		$shifts = $this->get_shifts();
+		$store_shifts = array();
+		foreach( $shifts as $loop_shift )
+		{
+			$store_shifts[] = param_type( $loop_shift->get( 'id' ), 'integer' );
+		}
+
+		$sql = "SELECT
+					x.dt AS business_date,
+					fs.shift_num AS shift_num,
+					x.shift_id,
+					x.st_from_shift_id,
+					x.st_to_date,
+					x.st_to_shift_id,
+					x.st_status,
+					x.shift_order,
+					SUM( issue_count ) AS has_issues
+				FROM (
+					SELECT
+						dt,
+						s.id AS shift_id,
+						s.shift_order,
+						st.st_from_shift_id,
+						st.st_to_date,
+						st.st_to_shift_id,
+						st.st_status,
+						sti.sti_inventory_id,
+						sti.sti_beginning_balance,
+						m.movement,
+						sti.sti_ending_balance,
+						IF( ( sti.sti_beginning_balance + COALESCE( m.movement, 0 ) ) = sti.sti_ending_balance, 0, 1 ) AS issue_count
+					FROM dates AS d
+					CROSS JOIN shifts AS s
+					LEFT JOIN shift_turnovers AS st
+						ON st.st_from_date = d.dt AND st.st_from_shift_id = s.id
+					LEFT JOIN shift_turnover_items AS sti
+						ON sti.sti_turnover_id = st.id
+					LEFT JOIN (
+						SELECT
+							store_inventory_id,
+							DATE( transaction_datetime ) AS business_date,
+							transaction_shift,
+							SUM( transaction_quantity ) AS movement
+						FROM transactions
+						LEFT JOIN store_inventory
+							ON store_inventory.id = transactions.store_inventory_id
+						WHERE
+							store_inventory.store_id = ?
+							AND transaction_datetime >= ?
+							AND transaction_datetime <= ?
+						GROUP BY
+							store_inventory_id, DATE( transaction_datetime ), transaction_shift
+					) AS m
+						ON m.store_inventory_id = sti.sti_inventory_id AND m.business_date = st.st_from_date AND m.transaction_shift = st.st_from_shift_id
+					WHERE dt BETWEEN ? AND ?
+						AND s.id IN ?
+				) AS x
+				LEFT JOIN shifts AS fs
+					ON fs.id = x.shift_id
+				LEFT JOIN shifts AS ts
+					ON ts.id = x.st_from_shift_id
+				GROUP BY x.dt, x.shift_id, x.st_from_shift_id, x.st_to_date, x.st_to_shift_id, x.st_status, x.shift_order
+				ORDER BY x.dt DESC, x.shift_order DESC";
+
+		$sql_params = array( $this->id, $start_date.' 00:00:00', $end_date.' 23:59:59', $start_date, $end_date, $store_shifts );
+
+		if( $limit )
+		{
+			$sql .= ' LIMIT ?, ?';
+			$sql_params[] = ( $page ? ( ( $page - 1 ) * $limit ) : 0 );
+			$sql_params[] = $limit;
+		}
+
+		$query = $ci->db->query( $sql, $sql_params );
+
+		return $query->result_array();
+	}
+
+	public function count_shift_turnovers( $params = array() )
+	{
+		$ci =& get_instance();
+
+		$start_date = param( $params, 'start' );
+		$end_date = param( $params, 'end' );
+
+		if( empty( $start_date ) )
+		{
+			$start_date = date( DATE_FORMAT, strtotime( 'first day of this month' ) );
+		}
+		if( empty( $end_date ) )
+		{
+			$end_date = date( DATE_FORMAT );
+		}
+
+		$shift = param( $params, 'shift' );
+
+		$limit = param( $params, 'limit' );
+		$page = param( $params, 'page', 1 );
+
+		$shifts = $this->get_shifts();
+		$store_shifts = array();
+		foreach( $shifts as $loop_shift )
+		{
+			$store_shifts[] = param_type( $loop_shift->get( 'id' ), 'integer' );
+		}
+
+		$sql = 'SELECT COUNT(*) AS numrows
+				FROM dates AS d
+				CROSS JOIN shifts AS s
+				WHERE
+					d.dt BETWEEN ? AND ?
+					AND s.id IN ?';
+
+		$sql_params = array( $start_date, $end_date, $store_shifts );
+		$query = $ci->db->query( $sql, $sql_params );
+		$count = intval( $query->row( 0 )->numrows );
+
+		return $count;
+	}
+
 	public function get_inventory_balances( $date = NULL, $params = array() )
 	{
 		$date = param_type( $date, 'datetime', date( TIMESTAMP_FORMAT ) );

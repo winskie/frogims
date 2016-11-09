@@ -1713,6 +1713,34 @@ class Api_v1 extends MY_Controller {
 									$this->_response( $shifts_data );
 									break;
 
+								case 'shift_turnovers': // shift turnovers
+									// Check permissions
+									if( !$current_user->check_permissions( 'shift_turnovers', 'view' ) )
+									{
+										$this->_error( 403, 'You are not allowed to access this resource' );
+									}
+									else
+									{
+										$params = array(
+												'start' => param( $this->input->get(), 'start' ),
+												'end' => param( $this->input->get(), 'end' ),
+												'shift' => param( $this->input->get(), 'shift' ),
+												'page' => param( $this->input->get(), 'page' ),
+												'limit' => param( $this->input->get(), 'limit', NULL, 'integer' ),
+											);
+
+										$turnovers = $store->get_shift_turnovers( $params );
+										$total_turnovers = $store->count_shift_turnovers( $params );
+										$pending_turnovers = 0;
+										$this->_response( array(
+											'shift_turnovers' => $turnovers,
+											'total' => $total_turnovers,
+											'pending' => $pending_turnovers,
+											'query' => preg_replace( "/\s+/", " ", $this->db->last_query() )
+										) );
+									}
+									break;
+
 								case 'transfers': // transfers
 									// Check permissions
 									if( !$current_user->check_permissions( 'transfers', 'view' ) )

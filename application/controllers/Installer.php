@@ -939,7 +939,8 @@ class Installer extends CI_Controller {
 				array( 'SVC - Defective', 'SVC - Damaged', 1 ),
 
 				// Other cards
-				array( 'L1 SJT', 'Others', 1 )
+				array( 'L1 SJT', 'Others', 1 ),
+				array( 'MRT SJT', 'Others', 1 )
 			);
 
 			$item = new Item();

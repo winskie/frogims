@@ -77,7 +77,7 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
 						}
 						break;
 
-					case 'shift_turnovers':
+					case 'shiftTurnovers':
 						switch( action )
 						{
 							case 'view':
@@ -546,8 +546,8 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 					filtered: false
 				},
 				shiftTurnovers: {
-					shift: null,
 					date: null,
+					shift: null,
 					filtered: false
 				},
 				transferValidations: {
@@ -804,6 +804,8 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 					params: {
 						shift: me.filters.shiftTurnovers.shift ? me.filters.shiftTurnovers.shift : null,
 						date: $filter( 'date' )( me.filters.shiftTurnovers.date, 'yyyy-MM-dd' ),
+						page: me.pagination.shiftTurnovers ? me.pagination.shiftTurnovers : null,
+						limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
 					}
 				}).then(
 						function( response )
@@ -1148,6 +1150,34 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 			};
 
 		// Shift Turnovers
+		me.getShiftTurnover = function( shiftTurnoverId )
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/shift_turnovers/' + shiftTurnoverId,
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							deferred.resolve( response.data );
+						}
+						else
+						{
+							notifications.showMessages( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
+
 		me.getShiftTurnoverByStoreDateShift = function( store, date, shiftId )
 			{
 				var deferred = $q.defer();
@@ -1980,7 +2010,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 				switch( group )
 				{
 					case 'shiftTurnovers':
-						me.getShiftTurnovers();
+						me.getShiftTurnovers( currentStoreId );
 						break;
 
 					case 'transferValidations':
@@ -2029,7 +2059,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 					default:
 						me.getInventory( currentStoreId );
 						me.getTransactions( currentStoreId );
-						me.getShiftTurnovers();
+						me.getShiftTurnovers( currentStoreId );
 						me.getTransferValidations();
 						me.getTransfers( currentStoreId );
 						me.getReceipts( currentStoreId );

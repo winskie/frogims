@@ -182,6 +182,17 @@ app.controller( 'MainController', [ '$rootScope', '$scope', '$filter', '$state',
 							});
 						break;
 
+					case 'shiftTurnovers':
+						appData.getShiftTurnover( id ).then(
+							function( response )
+							{
+								if( response.status == 'ok' )
+								{
+									$state.go( 'main.shiftTurnover', { shiftTurnover: response.data, editMode: 'auto' } );
+								}
+							});
+						break;
+
 					default:
 						// do nothing
 				}
@@ -619,7 +630,8 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 				adjustments: { index: 5, title: 'Adjustments' },
 				collections: { index: 6, title: 'Mopping Collections' },
 				allocations: { index: 7, title: 'Allocations' },
-				conversions: { index: 8, title: 'Conversions' }
+				conversions: { index: 8, title: 'Conversions' },
+				shiftTurnovers: { index: 9, title: 'Shift Turnovers' }
 			};
 
 		if( $stateParams.activeTab )
@@ -648,7 +660,8 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 				allocations: false,
 				adjustments: false,
 				collections: false,
-				conversions: false
+				conversions: false,
+				shiftTurnovers: false
 			};
 
 		$scope.widgets = {
@@ -782,6 +795,11 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 
 					case 'conversions':
 						$scope.updateConversions( currentStoreId );
+						break;
+
+					case 'shiftTurnovers':
+						$scope.updateShiftTurnovers( currentStoreId );
+						break;
 
 					default:
 						// none
@@ -869,6 +887,7 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 		$scope.updateCollections = appData.getCollections;
 		$scope.updateAllocations = appData.getAllocations;
 		$scope.updateConversions = appData.getConversions;
+		$scope.updateShiftTurnovers = appData.getShiftTurnovers;
 
 		// Transfer Validations
 		$scope.completeTransferValidation = function( validation )
