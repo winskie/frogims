@@ -427,6 +427,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 	function( $http, $q, $filter, baseUrl, session, notifications )
 	{
 		var me = this;
+
+		var currentDate = new Date();
+		var firstDay = new Date( currentDate.getFullYear(), currentDate.getMonth(), 1 );
+
 		me.data = {
 				stations: [],
 				stores: [],
@@ -546,8 +550,9 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 					filtered: false
 				},
 				shiftTurnovers: {
-					date: null,
-					shift: null,
+					startDate: firstDay,
+					endDate: currentDate,
+					shift: { id: null, shift_num: 'All', description: 'All' },
 					filtered: false
 				},
 				transferValidations: {
@@ -802,8 +807,9 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 					method: 'GET',
 					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/shift_turnovers',
 					params: {
-						shift: me.filters.shiftTurnovers.shift ? me.filters.shiftTurnovers.shift : null,
-						date: $filter( 'date' )( me.filters.shiftTurnovers.date, 'yyyy-MM-dd' ),
+						shift: me.filters.shiftTurnovers.shift ? me.filters.shiftTurnovers.shift.id : null,
+						start: $filter( 'date' )( me.filters.shiftTurnovers.startDate, 'yyyy-MM-dd' ),
+						end: $filter( 'date' )( me.filters.shiftTurnovers.endDate, 'yyyy-MM-dd' ),
 						page: me.pagination.shiftTurnovers ? me.pagination.shiftTurnovers : null,
 						limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
 					}

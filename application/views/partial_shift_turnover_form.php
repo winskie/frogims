@@ -44,7 +44,7 @@
 	<div class="panel-heading">
 		<h3 class="panel-title pull-left">Inventory</h3>
 		<div class="pull-right">
-			<button class="btn btn-default btn-sm" ng-click="updateBalance()">
+			<button class="btn btn-default btn-sm" ng-click="onChangeShift()">
 				<i class="glyphicon glyphicon-refresh"></i>
 			</button>
 		</div>
@@ -70,8 +70,7 @@
 		</thead>
 		<tbody>
 			<tr ng-repeat="item in shiftTurnover.items"
-				ng-class="{info: currentItem == item,
-						'text-extra-muted': ( item.quantity === 0 && item.reserved === 0 && ( item.quantity - item.reserved ) === 0 ) }">
+				ng-class="{'bg-danger': shiftTurnover.st_status == 2 && ( item.sti_ending_balance != item.sti_beginning_balance + item.movement ) }">
 				<td>{{ item.item_name }}</td>
 				<td class="text-center">{{ item.item_group }}</td>
 				<td>{{ item.item_description }}</td>
@@ -120,5 +119,5 @@
 					&& data.editMode != 'view'">
 			<i class="glyphicon glyphicon-ok"></i> Receive
 	</button>
-	<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'inventory' })">Close</button>
+	<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'shiftTurnovers' })">Close</button>
 </div>

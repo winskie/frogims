@@ -47,6 +47,7 @@ app.controller( 'MainController', [ '$rootScope', '$scope', '$filter', '$state',
 	{
 		var allowStoreChange = [ 'main.dashboard', 'main.store' ];
 
+		$scope.currentDate = new Date();
 		$scope.canChangeStore = allowStoreChange.indexOf( $state.current.name ) != -1;
 		$scope.canSetShiftBalances = session.data.currentStore.store_type == 4;
 		$scope.sessionData = session.data;
@@ -619,7 +620,12 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'lookup', 'notifications', 'sessionData',
 	function( $scope, $filter, $state, $stateParams, session, appData, lookup, notifications, sessionData )
 	{
-		$scope.data = appData.data;
+		$scope.data = {
+				inventoryView: 'shift',
+				inventoryViewLabel: 'Show system values'
+			};
+
+		$scope.appData = appData.data;
 		$scope.filters = angular.copy( appData.filters );
 		$scope.tabs = {
 				inventory: { index: 0, title: 'Inventory' },
@@ -648,6 +654,20 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 				session.data.previousTab = tab;
 			};
 
+		$scope.switchInventoryView = function()
+			{
+				if( $scope.data.inventoryView == 'shift' )
+				{
+					$scope.data.inventoryView = 'system';
+					$scope.data.inventoryViewLabel = 'Show system values';
+				}
+				else
+				{
+					$scope.data.inventoryView = 'shift';
+					$scope.data.inventoryViewLabel = 'Hide system values';
+				}
+			};
+
 		// ResultsPage
 		$scope.pagination = appData.pagination;
 
@@ -671,6 +691,14 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 				transactionsItems: angular.copy( appData.data.items ),
 				transactionsTypes: angular.copy( appData.data.transactionTypes ),
 				transactionsShifts: angular.copy( session.data.storeShifts ),
+
+				shiftTurnoverStartDate: {
+					opened: false
+				},
+				shiftTurnoverEndDate: {
+					opened: false
+				},
+				shiftTurnoverShifts: angular.copy( session.data.storeShifts ),
 
 				transferValidationsDateSent: {
 					opened: false
@@ -727,6 +755,8 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 		$scope.widgets.transactionsItems.unshift({ id: null, item_name: 'All', item_description: 'All' });
 		$scope.widgets.transactionsTypes.unshift({ id: null, typeName: 'All' });
 		$scope.widgets.transactionsShifts.unshift({ id: null, shift_num: 'All', description: 'All' });
+
+		$scope.widgets.shiftTurnoverShifts.unshift({ id: null, shift_num: 'All', description: 'All' });
 
 		$scope.widgets.transferValidationsSources.unshift({ id: null, store_name: 'All' });
 		$scope.widgets.transferValidationsSources.push({ id: '_ext_', store_name: 'External Sources' });
@@ -1015,16 +1045,23 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 				$scope.widgets.transactionsShifts = angular.copy( session.data.storeShifts );
 				$scope.widgets.transactionsShifts.unshift({ id: null, shift_num: 'All', description: 'All' });
 
+				$scope.widgets.shiftTurnoverShifts = angular.copy( session.data.storeShifts );
+
 				var currentShiftFilterId = $scope.filters.transactions.shift.id;
 				if( !$filter( 'filter' )( session.data.storeShifts, { id: currentShiftFilterId }, true ).length )
 				{
 					$scope.filters.transactions.shift = { id: null, shift_num: 'All', description: 'All' };
 					appData.filters.transactions.shift = { id: null, shift_num: 'All', description: 'All' };
+
+					$scope.filters.shiftTurnovers.shift = { id: null, shift_num: 'All', description: 'All' };
+					appData.filters.shiftTurnovers.shift = { id: null, shift_num: 'All', description: 'All' };
 				}
+
 				appData.refresh( session.data.currentStore.id, data );
 			});
 
 		// Init controller
+
 		appData.refresh( session.data.currentStore.id, 'all' );
 	}
 ]);
@@ -1033,6 +1070,7 @@ app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$st
 	function( $scope, $filter, $state, $stateParams, session, appData, notifications )
 	{
 		$scope.data = {
+				currentDate: new Date(),
 				editMode: $stateParams.editMode || 'view',
 				businessDatepicker: { format: 'yyyy-MM-dd', opened: false },
 				turnoverShifts: angular.copy( session.data.storeShifts ),
@@ -1047,7 +1085,7 @@ app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$st
 				st_store_id: session.data.currentStore.id,
 				st_from_date: new Date(),
 				st_from_shift_id: session.data.currentShift.id,
-				st_to_date: new Date(), // set to next day if shift is last in order
+				st_to_date: new Date(), // TODO: set to next day if shift is last in order
 				st_to_shift_id: session.data.currentShift.id,
 				st_remarks: null,
 				items: []
@@ -1065,18 +1103,10 @@ app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$st
 				}
 			};
 
+
 		$scope.onChangeShift = function()
 			{
-				var next_shift;
-
-				appData.getShiftTurnoverByStoreDateShift( session.data.currentStore.id, $scope.shiftTurnover.st_from_date, $scope.data.currentShift.id ).then(
-					function( response )
-					{
-						if( response.status == 'ok' )
-						{
-							$scope.initializeTurnover( response.data );
-						}
-					});
+				$scope.initializeTurnover( session.data.currentStore.id, $scope.shiftTurnover.st_from_date, $scope.data.currentShift.id );
 			};
 
 		$scope.checkItems = function()
@@ -1134,7 +1164,7 @@ app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$st
 						{
 							appData.refresh( session.data.currentStore.id, 'turnover' );
 							notifications.alert( 'Turnover record saved', 'success' );
-							$state.go( 'main.store', { activeTab: 'inventory' } );
+							$state.go( 'main.store', { activeTab: 'shiftTurnovers' } );
 						},
 						function( reason )
 						{
@@ -1143,17 +1173,57 @@ app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$st
 				}
 			};
 
-		$scope.initializeTurnover = function( shiftTurnover )
+		$scope.initializeTurnover = function( storeId, date, shiftId )
 			{
-				$scope.shiftTurnover = shiftTurnover;
-				$scope.data.currentShift = $filter( 'filter' )( session.data.storeShifts, { id: $scope.shiftTurnover.st_from_shift_id }, true )[0];
-				$scope.data.nextShift = $filter( 'filter' )( session.data.storeShifts, { id: $scope.shiftTurnover.st_to_shift_id }, true )[0];
-				$scope.shiftTurnover.st_from_date = new Date( $scope.shiftTurnover.st_from_date );
-				$scope.shiftTurnover.st_to_date = new Date( $scope.shiftTurnover.st_to_date );
+				appData.getShiftTurnoverByStoreDateShift( storeId, date, shiftId ).then(
+					function( response )
+					{
+						if( response.status == 'ok' )
+						{
+							$scope.shiftTurnover = response.data;
+							$scope.data.currentShift = $filter( 'filter' )( session.data.storeShifts, { id: $scope.shiftTurnover.st_from_shift_id }, true )[0];
+							$scope.data.nextShift = $filter( 'filter' )( session.data.storeShifts, { id: $scope.shiftTurnover.st_to_shift_id }, true )[0];
+							$scope.shiftTurnover.st_from_date = new Date( $scope.shiftTurnover.st_from_date );
+							$scope.shiftTurnover.st_to_date = new Date( $scope.shiftTurnover.st_to_date );
+
+							if( $scope.data.editMode == 'auto' )
+							{
+								switch( $scope.shiftTurnover )
+								{
+									case 1:
+										$scope.data.editMode = $scope.checkPermissions( 'shiftTurnovers', 'edit' ) ? 'edit' : 'view';
+										break;
+
+									case 2:
+										$scope.data.editMode = 'view';
+										break;
+
+									default:
+										$scope.data.editMode = 'view';
+								}
+							}
+						}
+						else
+						{
+							notifications.alert( 'Unable to load shift turnover record', 'error' );
+							$state.go( 'main.store', { activeTab: 'shiftTurnovers' });
+						}
+					}
+				);
+
 			};
 
 		// Load allocation item
-		$scope.initializeTurnover( $stateParams.shiftTurnover );
+		if( $stateParams.shiftTurnover )
+		{
+			var shiftTurnover = $stateParams.shiftTurnover;
+			$scope.initializeTurnover( shiftTurnover.st_store_id, shiftTurnover.st_from_date, shiftTurnover.st_from_shift_id );
+		}
+		else
+		{
+			var shiftTurnover = $scope.shiftTurnover;
+			$scope.initializeTurnover( shiftTurnover.st_store_id, shiftTurnover.st_from_date, shiftTurnover.st_from_shift_id );
+		}
 	}
 ]);
 

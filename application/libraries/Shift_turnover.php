@@ -8,6 +8,8 @@ class Shift_turnover extends Base_model
 	protected $st_from_shift_id;
 	protected $st_to_date;
 	protected $st_to_shift_id;
+	protected $st_start_user_id;
+	protected $st_end_user_id;
 	protected $st_remarks;
 	protected $st_status;
 
@@ -27,6 +29,8 @@ class Shift_turnover extends Base_model
 			'st_from_shift_id' => array( 'type' => 'integer' ),
 			'st_to_date' => array( 'type' => 'date' ),
 			'st_to_shift_id' => array( 'type' => 'integer' ),
+			'st_start_user_id' => array( 'type' => 'integer' ),
+			'st_end_user_id' => array( 'type' => 'integer' ),
 			'st_remarks' => array( 'type' => 'string' ),
 			'st_status' => array( 'type' => 'integer' )
 		);
@@ -340,7 +344,7 @@ class Shift_turnover extends Base_model
 						$item->set( 'sti_turnover_id', $this->id );
 					}
 
-					if( ( $this->st_status != SHIFT_TURNOVER_CLOSE ) && ( $item->get( 'sti_ending_balance') != NULL ) )
+					if( ( $this->st_status != SHIFT_TURNOVER_CLOSED ) && ( $item->get( 'sti_ending_balance') != NULL ) )
 					{
 						$item->set( 'sti_ending_balance', NULL );
 					}
@@ -376,6 +380,9 @@ class Shift_turnover extends Base_model
 					$this->set( 'st_status', SHIFT_TURNOVER_OPEN );
 				}
 
+				// Set current user
+				$this->set( 'st_start_user_id', current_user( TRUE ) );
+
 				$this->_update_timestamps( TRUE );
 				$ci->db->set( $this->db_changes );
 
@@ -409,7 +416,8 @@ class Shift_turnover extends Base_model
 		$ci =& get_instance();
 
 		$ci->db->trans_start();
-		$this->set( 'st_status', SHIFT_TURNOVER_CLOSE );
+		$this->set( 'st_end_user_id', current_user( TRUE ) );
+		$this->set( 'st_status', SHIFT_TURNOVER_CLOSED );
 		$result = $this->db_save();
 		if( $result )
 		{

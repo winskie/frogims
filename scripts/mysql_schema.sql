@@ -198,12 +198,20 @@ CREATE TABLE IF NOT EXISTS shift_turnovers
 	st_from_shift_id INTEGER NOT NULL,
 	st_to_date DATE NULL DEFAULT NULL,
 	st_to_shift_id INTEGER NULL DEFAULT NULL,
+	st_start_user_id INTEGER NULL DEFAULT NULL,
+	st_end_user_id INTEGER NULL DEFAULT NULL,
 	st_remarks TEXT,
 	st_status SMALLINT NOT NULL DEFAULT 1,
 	date_created DATETIME NOT NULL,
 	date_modified DATETIME NOT NULL,
 	last_modified INTEGER NOT NULL,
 	PRIMARY KEY (id),
+	FOREIGN KEY st_start_user_fk ( st_start_user_id ) REFERENCES users (id)
+		ON UPDATE CASCADE
+		ON DELETE RESTRICT,
+	FOREIGN KEY st_end_user_fk ( st_end_user_id ) REFERENCES users (id)
+		ON UPDATE CASCADE
+		ON DELETE RESTRICT,
 	UNIQUE st_from_undx (st_store_id, st_from_date, st_from_shift_id),
 	UNIQUE st_to_undx (st_store_id, st_to_date, st_to_shift_id)
 )

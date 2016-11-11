@@ -9,6 +9,9 @@ $current_user = current_user();
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left"> Inventory</h3>
 					<div class="pull-right">
+						<button class="btn btn-default btn-sm" ng-click="switchInventoryView()" ng-if="sessionData.currentStore.store_type == 4 && checkPermissions( 'shiftTurnovers', 'edit')">
+							{{ data.inventoryViewLabel }}
+						</button>
 						<button class="btn btn-default btn-sm" ng-click="updateInventory( sessionData.currentStore.id )">
 							<i class="glyphicon glyphicon-refresh"></i>
 						</button>
@@ -28,20 +31,35 @@ $current_user = current_user();
 						</tr>
 					</thead>
 					<tbody>
-						<tr ng-repeat="item in data.items"
+						<tr ng-repeat="item in appData.items"
 							ng-class="{info: currentItem == item,
-									'text-extra-muted': ( item.quantity === 0 && item.reserved === 0 && ( item.quantity - item.reserved ) === 0 ) }">
+									'text-extra-muted': !( data.inventoryView == 'system' && item.quantity !== 0 && item.reserved !== 0 && ( item.quantity - item.reserved ) !== 0 ) &&
+											( ( item.sti_beginning_balance + item.movement ) === 0 && item.reserved === 0 && ( ( item.sti_beginning_balance + item.movement ) - item.reserved ) === 0 ) }">
 							<td>{{ item.item_name }}</td>
 							<td>{{ item.item_group }}</td>
 							<td>{{ item.item_description }}</td>
 							<td class="text-center">{{ item.item_unit }}</td>
 							<td class="text-right">
-								{{ item.sti_beginning_balance ? ( ( item.sti_beginning_balance + item.movement ) | number ) : ( item.quantity === 0 ? '---' : ( item.quantity | number ) ) }}
+								<span>
+									{{ item.sti_beginning_balance ? ( ( item.sti_beginning_balance + item.movement ) | number ) : ( item.quantity === 0 ? '---' : ( item.quantity | number ) ) }}
+								</span>
+								 <span ng-if="data.inventoryView == 'system'">
+									({{ item.quantity === 0 ? '---' : ( item.quantity | number ) }})
+								</span>
 							</td>
-							<td class="text-right">{{ item.reserved === 0 ? '---' : ( item.reserved | number ) }}</td>
-							<td class="text-right">{{ ( ( item.sti_beginning_balance ? ( item.sti_beginning_balance + item.movement ) : item.quantity ) - item.reserved ) | number }}</td>
+							<td class="text-right">
+								{{ item.reserved === 0 ? '---' : ( item.reserved | number ) }}
+							</td>
+							<td class="text-right">
+								<span>
+									{{ ( ( item.sti_beginning_balance ? ( item.sti_beginning_balance + item.movement ) : item.quantity ) - item.reserved ) === 0 ? '---' : ( ( ( item.sti_beginning_balance ? ( item.sti_beginning_balance + item.movement ) : item.quantity ) - item.reserved ) | number ) }}
+								</span>
+								 <span ng-if="data.inventoryView == 'system'">
+									({{ ( item.quantity - item.reserved ) === 0 ? '---' : ( ( item.quantity - item.reserved ) | number ) }})
+								</span>
+							</td>
 						</tr>
-						<tr ng-if="!data.items.length">
+						<tr ng-if="!appData.items.length">
 							<td colspan="7" class="text-center">No inventory items available</td>
 						</tr>
 					</tbody>
@@ -133,7 +151,7 @@ $current_user = current_user();
 							</tr>
 						</thead>
 						<tbody>
-							<tr ng-repeat="transaction in data.transactions">
+							<tr ng-repeat="transaction in appData.transactions">
 								<td>{{ transaction.transaction_datetime }}</td>
 								<td>{{ transaction.item_name }}</td>
 								<td>{{ lookup( 'transactionTypes', '' + transaction.transaction_type ) }}</td>
@@ -142,14 +160,14 @@ $current_user = current_user();
 								<td class="text-right">{{ transaction.transaction_quantity | number }}</td>
 								<td class="text-right">{{ transaction.current_quantity | number }}</td>
 							</tr>
-							<tr ng-show="!data.transactions.length">
+							<tr ng-show="!appData.transactions.length">
 								<td colspan="6" class="text-center">No transaction data available</td>
 							</tr>
 						</tbody>
 					</table>
-					<div class="text-center" ng-if="data.totals.transactions > filters.itemsPerPage">
+					<div class="text-center" ng-if="appData.totals.transactions > filters.itemsPerPage">
 						<uib-pagination
-								total-items="data.totals.transactions"
+								total-items="appData.totals.transactions"
 								items-per-page="filters.itemsPerPage"
 								max-size="5"
 								boundary-link-numbers="true"
@@ -164,7 +182,7 @@ $current_user = current_user();
 		<!-- Transfer Validations-->
 		<uib-tab index="2" select="onTabSelect('transferValidations')" ng-if="sessionData.currentStore.store_type == 3 && checkPermissions( 'transferValidations', 'view')">
 			<uib-tab-heading>
-				Transfer Validations <span ng-show="data.pending.transferValidations > 0" class="label label-danger label-as-badge">{{ data.pending.transferValidations }}</span>
+				Transfer Validations <span ng-show="appData.pending.transferValidations > 0" class="label label-danger label-as-badge">{{ appData.pending.transferValidations }}</span>
 			</uib-tab-heading>
 			<div class="panel panel-default">
 				<div class="panel-heading">
@@ -273,7 +291,7 @@ $current_user = current_user();
 							</tr>
 						</thead>
 						<tbody>
-							<tr ng-repeat="transfer in data.transferValidations">
+							<tr ng-repeat="transfer in appData.transferValidations">
 								<td class="text-center">
 									{{ transfer.id }}
 								</td>
@@ -347,15 +365,15 @@ $current_user = current_user();
 									</div>
 								</td>
 							</tr>
-							<tr ng-show="!data.transferValidations.length">
+							<tr ng-show="!appData.transferValidations.length">
 								<td colspan="7" class="text-center">No transfer transaction data available</td>
 							</tr>
 						</tbody>
 					</table>
 
-					<div class="text-center" ng-if="data.totals.transferValidations > filters.itemsPerPage">
+					<div class="text-center" ng-if="appData.totals.transferValidations > filters.itemsPerPage">
 						<uib-pagination
-								total-items="data.totals.transferValidations"
+								total-items="appData.totals.transferValidations"
 								items-per-page="filters.itemsPerPage"
 								ng-model="pagination.transferValidations"
 								ng-change="updateTransferValidations()">
@@ -368,7 +386,7 @@ $current_user = current_user();
 		<!-- Outgoing -->
 		<uib-tab index="3" select="onTabSelect('transfers')" ng-if="checkPermissions( 'transfers', 'view')">
 			<uib-tab-heading>
-				Outgoing <span ng-show="data.pending.transfers > 0" class="label label-danger label-as-badge">{{ data.pending.transfers }}</span>
+				Outgoing <span ng-show="appData.pending.transfers > 0" class="label label-danger label-as-badge">{{ appData.pending.transfers }}</span>
 			</uib-tab-heading>
 			<div class="panel panel-default">
 				<div class="panel-heading">
@@ -457,7 +475,7 @@ $current_user = current_user();
 							</tr>
 						</thead>
 						<tbody>
-							<tr ng-repeat="transfer in data.transfers">
+							<tr ng-repeat="transfer in appData.transfers">
 								<td class="text-center vert-top">{{ transfer.id }}</td>
 								<td class="vert-top">
 									<span>{{ transfer.transfer_status == <?php echo TRANSFER_PENDING;?> ? ( transfer.transfer_datetime | parseDate | date : 'yyyy-MM-dd' ) : transfer.transfer_datetime }}</span><br/>
@@ -517,14 +535,14 @@ $current_user = current_user();
 									</div>
 								</td>
 							</tr>
-							<tr ng-show="!data.transfers.length">
+							<tr ng-show="!appData.transfers.length">
 								<td colspan="5" class="text-center">No transfer transaction data available</td>
 							</tr>
 						</tbody>
 					</table>
-					<div class="text-center" ng-if="data.totals.transfers > filters.itemsPerPage">
+					<div class="text-center" ng-if="appData.totals.transfers > filters.itemsPerPage">
 						<uib-pagination
-								total-items="data.totals.transfers"
+								total-items="appData.totals.transfers"
 								items-per-page="filters.itemsPerPage"
 								max-size="5"
 								boundary-link-numbers="true"
@@ -539,7 +557,7 @@ $current_user = current_user();
 		<!-- Incoming -->
 		<uib-tab index="4" select="onTabSelect('receipts')" ng-if="checkPermissions( 'transfers', 'view')">
 			<uib-tab-heading>
-				Incoming <span ng-show="data.pending.receipts > 0" class="label label-danger label-as-badge">{{ data.pending.receipts }}</span>
+				Incoming <span ng-show="appData.pending.receipts > 0" class="label label-danger label-as-badge">{{ appData.pending.receipts }}</span>
 			</uib-tab-heading>
 			<div class="panel panel-default">
 				<div class="panel-heading">
@@ -628,7 +646,7 @@ $current_user = current_user();
 							</tr>
 						</thead>
 						<tbody>
-							<tr ng-repeat="receipt in data.receipts">
+							<tr ng-repeat="receipt in appData.receipts">
 								<td class="text-center vert-top">{{ receipt.id }}</td>
 								<td class="vert-top">
 									<span>{{ receipt.transfer_status != <?php echo TRANSFER_RECEIVED;?> ? '---' : receipt.receipt_datetime }}</span><br/>
@@ -685,14 +703,14 @@ $current_user = current_user();
 									</div>
 								</td>
 							</tr>
-							<tr ng-show="!data.receipts.length">
+							<tr ng-show="!appData.receipts.length">
 								<td colspan="5" class="text-center">No receipt transaction data available</td>
 							</tr>
 						</tbody>
 					</table>
-					<div class="text-center" ng-if="data.totals.receipts > filters.itemsPerPage">
+					<div class="text-center" ng-if="appData.totals.receipts > filters.itemsPerPage">
 						<uib-pagination
-								total-items="data.totals.receipts"
+								total-items="appData.totals.receipts"
 								items-per-page="filters.itemsPerPage"
 								max-size="5"
 								boundary-link-numbers="true"
@@ -707,7 +725,7 @@ $current_user = current_user();
 		<!-- Adjustments -->
 		<uib-tab index="5" select="onTabSelect('adjustments')" ng-if="checkPermissions( 'adjustments', 'view' )">
 			<uib-tab-heading>
-				Adjustments <span ng-show="data.pending.adjustments > 0" class="label label-danger label-as-badge">{{ data.pending.adjustments }}</span>
+				Adjustments <span ng-show="appData.pending.adjustments > 0" class="label label-danger label-as-badge">{{ appData.pending.adjustments }}</span>
 			</uib-tab-heading>
 			<div class="panel panel-default">
 				<div class="panel-heading">
@@ -799,7 +817,7 @@ $current_user = current_user();
 							</tr>
 						</thead>
 						<tbody>
-							<tr ng-repeat="adjustment in data.adjustments">
+							<tr ng-repeat="adjustment in appData.adjustments">
 								<td class="text-center">{{ adjustment.id }}</td>
 								<td class="text_left">{{ adjustment.adjustment_timestamp }}</td>
 								<td class="text_left">{{ adjustment.item_name }}</td>
@@ -824,14 +842,14 @@ $current_user = current_user();
 									</div>
 								</td>
 							</tr>
-							<tr ng-show="!data.adjustments.length">
+							<tr ng-show="!appData.adjustments.length">
 								<td colspan="8" class="text-center">No adjustment transaction data available</td>
 							</tr>
 						</tbody>
 					</table>
-					<div class="text-center" ng-if="data.totals.adjustments > filters.itemsPerPage">
+					<div class="text-center" ng-if="appData.totals.adjustments > filters.itemsPerPage">
 						<uib-pagination
-								total-items="data.totals.adjustments"
+								total-items="appData.totals.adjustments"
 								items-per-page="filters.itemsPerPage"
 								ng-model="pagination.adjustments"
 								ng-change="updateAdjustments( sessionData.currentStore.id )">
@@ -926,7 +944,7 @@ $current_user = current_user();
 							</tr>
 						</thead>
 						<tbody>
-							<tr ng-repeat="collection in data.collections">
+							<tr ng-repeat="collection in appData.collections">
 								<td class="text-center vert-top">{{ collection.id }}</td>
 								<td class="text-left vert-top">{{ collection.processing_datetime }}<br />{{ collection.shift_num }}</td>
 								<td class="text-center vert-top">{{ collection.business_date }}<br />{{ collection.cashier_shift_num }}</td>
@@ -960,14 +978,14 @@ $current_user = current_user();
 									</div>
 								</td>
 							</tr>
-							<tr ng-show="data.collections.length == 0">
+							<tr ng-show="appData.collections.length == 0">
 								<td colspan="5" class="text-center">No mopping collection data available</td>
 							</tr>
 						</tbody>
 					</table>
-					<div class="text-center" ng-if="data.totals.collections > filters.itemsPerPage">
+					<div class="text-center" ng-if="appData.totals.collections > filters.itemsPerPage">
 						<uib-pagination
-								total-items="data.totals.collections"
+								total-items="appData.totals.collections"
 								items-per-page="filters.itemsPerPage"
 								max-size="5"
 								boundary-link-numbers="true"
@@ -982,7 +1000,7 @@ $current_user = current_user();
 		<!-- Allocation -->
 		<uib-tab index="7" select="onTabSelect('allocations')" ng-if="sessionData.currentStore.store_type == 4 && checkPermissions( 'allocations', 'view')"> <!-- Cashroom only -->
 			<uib-tab-heading>
-				Allocations <span ng-show="data.pending.allocations > 0" class="label label-danger label-as-badge">{{ data.pending.allocations }}</span>
+				Allocations <span ng-show="appData.pending.allocations > 0" class="label label-danger label-as-badge">{{ appData.pending.allocations }}</span>
 			</uib-tab-heading>
 			<div class="panel panel-default">
 				<div class="panel-heading">
@@ -1073,7 +1091,7 @@ $current_user = current_user();
 							</tr>
 						</thead>
 						<tbody>
-							<tr ng-repeat="row in data.allocations">
+							<tr ng-repeat="row in appData.allocations">
 								<td class="row-flag" ng-class="lookup( 'allocationStatus', row.allocation_status).className"></td>
 								<td class="text-center vert-top">{{ row.id }}</td>
 								<td class="text-left vert-top">{{ row.business_date }}<br />{{ row.shift_num }}</td>
@@ -1146,14 +1164,14 @@ $current_user = current_user();
 									</div>
 								</td>
 							</tr>
-							<tr ng-show="data.allocations.length == 0">
+							<tr ng-show="appData.allocations.length == 0">
 								<td colspan="7" class="text-center">No allocation data available</td>
 							</tr>
 						</tbody>
 					</table>
-					<div class="text-center" ng-if="data.totals.allocations > filters.itemsPerPage">
+					<div class="text-center" ng-if="appData.totals.allocations > filters.itemsPerPage">
 						<uib-pagination
-								total-items="data.totals.allocations"
+								total-items="appData.totals.allocations"
 								items-per-page="filters.itemsPerPage"
 								max-size="5"
 								boundary-link-numbers="true"
@@ -1168,7 +1186,7 @@ $current_user = current_user();
 		<!-- Conversions -->
 		<uib-tab index="8" select="onTabSelect('conversions')" ng-if="checkPermissions( 'conversions', 'view')">
 			<uib-tab-heading>
-					Conversions <span ng-show="data.pending.conversions > 0" class="label label-danger label-as-badge">{{ data.pending.conversions }}</span>
+					Conversions <span ng-show="appData.pending.conversions > 0" class="label label-danger label-as-badge">{{ appData.pending.conversions }}</span>
 			</uib-tab-heading>
 			<div class="panel panel-default">
 				<div class="panel-heading">
@@ -1260,7 +1278,7 @@ $current_user = current_user();
 							</tr>
 						</thead>
 						<tbody>
-							<tr ng-repeat="conversion in data.conversions">
+							<tr ng-repeat="conversion in appData.conversions">
 								<td class="text-center">{{ conversion.id }}</td>
 								<td class="text-left">{{ conversion.conversion_datetime }}</td>
 								<td class="text-left">{{ conversion.source_item_name }}</td>
@@ -1286,14 +1304,14 @@ $current_user = current_user();
 									</div>
 								</td>
 							</tr>
-							<tr ng-show="!data.conversions.length">
+							<tr ng-show="!appData.conversions.length">
 								<td colspan="8" class="text-center">No conversion transaction data available</td>
 							</tr>
 						</tbody>
 					</table>
-					<div class="text-center" ng-if="data.totals.conversions > filters.itemsPerPage">
+					<div class="text-center" ng-if="appData.totals.conversions > filters.itemsPerPage">
 						<uib-pagination
-								total-items="data.totals.conversions"
+								total-items="appData.totals.conversions"
 								items-per-page="filters.itemsPerPage"
 								max-size="5"
 								boundary-link-numbers="true"
@@ -1308,7 +1326,7 @@ $current_user = current_user();
 		<!-- Shift Turnovers -->
 		<uib-tab index="9" select="onTabSelect('shiftTurnovers')" ng-if="sessionData.currentStore.store_type == 4 && checkPermissions( 'shiftTurnovers', 'view')"> <!-- Cashroom only -->
 			<uib-tab-heading>
-					Shift Turnovers <span ng-show="data.pending.shiftTurnovers > 0" class="label label-danger label-as-badge">{{ data.pending.shiftTurnovers }}</span>
+					Shift Turnovers <span ng-show="appData.pending.shiftTurnovers > 0" class="label label-danger label-as-badge">{{ appData.pending.shiftTurnovers }}</span>
 			</uib-tab-heading>
 			<div class="panel panel-default">
 				<div class="panel-heading">
@@ -1319,44 +1337,105 @@ $current_user = current_user();
 						<button class="btn btn-default btn-sm btn-filter" ng-click="toggleFilters( 'shiftTurnovers' )">
 							<i class="glyphicon glyphicon-filter"></i> {{ filterPanels.shiftTurnovers ? 'Hide' : 'Show' }} filters
 						</button>&nbsp;
-						<span ng-if="checkPermissions( 'shiftTurnovers', 'edit' )">
-							<button class="btn btn-primary btn-sm" ui-sref="main.shiftTurnover({ editMode: 'edit' })">
-								<i class="glyphicon glyphicon-plus"></i> New Shift Turnover
-							</button>&nbsp;
-						</span>
 						<button class="btn btn-default btn-sm" ng-click="updateShiftTurnovers( sessionData.currentStore.id )">
 							<i class="glyphicon glyphicon-refresh"></i>
 						</button>
 					</div>
 					<div class="clearfix"></div>
 				</div>
-				<table class="table">
-					<thead>
-						<tr>
-							<th>Business Date</th>
-							<th>Shift</th>
-							<th>Status</th>
-							<th></th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr ng-repeat="turnover in data.shiftTurnovers">
-							<td>{{ turnover.business_date }}</td>
-							<td>{{ turnover.shift_num }}</td>
-							<td>{{ turnover.st_status == null ? '---' : lookup( 'shiftTurnoverStatus', turnover.st_status ) }}</td>
-							<td></td>
-						</tr>
-					</tbody>
-				</table>
-				<div class="text-center" ng-if="data.totals.shiftTurnovers > filters.itemsPerPage">
-					<uib-pagination
-							total-items="data.totals.shiftTurnovers"
-							items-per-page="filters.itemsPerPage"
-							max-size="5"
-							boundary-link-numbers="true"
-							ng-model="pagination.shiftTurnovers"
-							ng-change="updateShiftTurnovers( sessionData.currentStore.id )">
-					</uib-pagination>
+
+				<div class="panel-body">
+
+					<!-- Filter panel -->
+					<div class="row filter_panel" ng-show="filterPanels.shiftTurnovers">
+						<div class="col-sm-4 col-md-3 col-lg-2">
+							<div class="form-group">
+								<label class="control-label">Start Date</label>
+								<div class="input-group">
+									<input type="text" class="form-control" uib-datepicker-popup="{{ filters.dateFormat }}" is-open="widgets.shiftTurnoverStartDate.opened"
+										min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)"
+										ng-model="filters.shiftTurnovers.startDate" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" />
+									<span class="input-group-btn">
+										<button type="button" class="btn btn-default" ng-click="showDatePicker( 'shiftTurnoverStartDate' )"><i class="glyphicon glyphicon-calendar"></i></button>
+									</span>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-sm-4 col-md-3 col-lg-2">
+							<div class="form-group">
+								<label class="control-label">End Date</label>
+								<div class="input-group">
+									<input type="text" class="form-control" uib-datepicker-popup="{{ filters.dateFormat }}" is-open="widgets.shiftTurnoverEndDate.opened"
+										min-date="minDate" max-date="new Date()" datepicker-options="dateOptions" date-disabled="disabled(date, mode)"
+										ng-model="filters.shiftTurnovers.endDate" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" />
+									<span class="input-group-btn">
+										<button type="button" class="btn btn-default" ng-click="showDatePicker( 'shiftTurnoverEndDate' )"><i class="glyphicon glyphicon-calendar"></i></button>
+									</span>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-sm-3 col-md-3 col-lg-2">
+							<div class="form-group">
+								<label class="control-label">Shift</label>
+								<select class="form-control"
+										ng-model="filters.shiftTurnovers.shift"
+										ng-options="shift as shift.shift_num for shift in widgets.shiftTurnoverShifts track by shift.id">
+								</select>
+							</div>
+						</div>
+
+						<div>
+							<div class="form-group">
+								<button style="margin-top: 25px" class="btn btn-primary" ng-click="applyFilter( 'shiftTurnovers' )">Apply</button>
+								<button style="margin-top: 25px" class="btn btn-default" ng-click="clearFilter( 'shiftTurnovers' )">Clear</button>
+							</div>
+						</div>
+
+					</div>
+					<table class="table">
+						<thead>
+							<tr>
+								<th>Business Date</th>
+								<th>Shift</th>
+								<th>Started by</th>
+								<th>Closed by</th>
+								<th class="text-center">Status</th>
+								<th class="text-center" style="width: 175px;"></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="turnover in appData.shiftTurnovers">
+								<td>
+									{{ turnover.st_from_date | date: 'fullDate' }}
+									<span class="label label-info" ng-if="(turnover.st_from_date | date: 'yyyy-MM-dd' ) == ( currentDate | date: 'yyyy-MM-dd' ) && turnover.st_from_shift_id == sessionData.currentShift.id">current</span>
+								</td>
+								<td>{{ turnover.description }}</td>
+								<td>{{ turnover.start_user ? turnover.start_user : '---' }}</td>
+								<td>{{ turnover.end_user ? turnover.end_user : '---' }}</td>
+								<td class="text-center">
+									{{ turnover.st_status == null ? '---' : lookup( 'shiftTurnoverStatus', turnover.st_status ) }}
+									<span class="label label-danger label-as-badge" ng-if="turnover.st_status == <?php echo SHIFT_TURNOVER_CLOSED;?> && turnover.has_issues > 0">
+										{{ turnover.has_issues }}
+									</span>
+								</td>
+								<td class="text-right">
+									<button type="button" class="btn btn-default" ui-sref="main.shiftTurnover({ shiftTurnover: turnover, editMode: 'edit' })">View details...</button>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					<div class="text-center" ng-if="appData.totals.shiftTurnovers > filters.itemsPerPage">
+						<uib-pagination
+								total-items="appData.totals.shiftTurnovers"
+								items-per-page="filters.itemsPerPage"
+								max-size="5"
+								boundary-link-numbers="true"
+								ng-model="pagination.shiftTurnovers"
+								ng-change="updateShiftTurnovers( sessionData.currentStore.id )">
+						</uib-pagination>
+					</div>
 				</div>
 			</div>
 		</uib>

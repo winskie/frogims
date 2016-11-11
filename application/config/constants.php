@@ -208,4 +208,4 @@ defined('TRANSFER_CATEGORY_BLACKBOX')       OR define('MOPPED_ITEM_BLACKBOX', 6)
 
 // Shift turnover status
 defined('SHIFT_TURNOVER_OPEN')	OR define('SHIFT_TURNOVER_OPEN', 1);
-defined('SHIFT_TURNOVER_CLOSE') OR define('SHIFT_TURNOVER_CLOSE', 2);
+defined('SHIFT_TURNOVER_CLOSED') OR define('SHIFT_TURNOVER_CLOSED', 2);

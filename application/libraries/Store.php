@@ -1570,21 +1570,32 @@ class Store extends Base_model
 		$limit = param( $params, 'limit' );
 		$page = param( $params, 'page', 1 );
 
-		$shifts = $this->get_shifts();
-		$store_shifts = array();
-		foreach( $shifts as $loop_shift )
+		if( $shift )
 		{
-			$store_shifts[] = param_type( $loop_shift->get( 'id' ), 'integer' );
+			$store_shifts = array( $shift );
+		}
+		else
+		{
+			$shifts = $this->get_shifts();
+			$store_shifts = array();
+			foreach( $shifts as $loop_shift )
+			{
+				$store_shifts[] = param_type( $loop_shift->get( 'id' ), 'integer' );
+			}
 		}
 
+
 		$sql = "SELECT
-					x.dt AS business_date,
-					fs.shift_num AS shift_num,
-					x.shift_id,
-					x.st_from_shift_id,
+					? AS st_store_id,
+					x.dt AS st_from_date,
+					fs.description,
+					x.shift_id AS st_from_shift_id,
 					x.st_to_date,
 					x.st_to_shift_id,
 					x.st_status,
+					x.st_start_user_id,
+					su.full_name AS start_user,
+					eu.full_name AS end_user,
 					x.shift_order,
 					SUM( issue_count ) AS has_issues
 				FROM (
@@ -1592,10 +1603,11 @@ class Store extends Base_model
 						dt,
 						s.id AS shift_id,
 						s.shift_order,
-						st.st_from_shift_id,
 						st.st_to_date,
 						st.st_to_shift_id,
 						st.st_status,
+						st.st_start_user_id,
+						st.st_end_user_id,
 						sti.sti_inventory_id,
 						sti.sti_beginning_balance,
 						m.movement,
@@ -1630,11 +1642,15 @@ class Store extends Base_model
 				LEFT JOIN shifts AS fs
 					ON fs.id = x.shift_id
 				LEFT JOIN shifts AS ts
-					ON ts.id = x.st_from_shift_id
-				GROUP BY x.dt, x.shift_id, x.st_from_shift_id, x.st_to_date, x.st_to_shift_id, x.st_status, x.shift_order
+					ON ts.id = x.st_to_shift_id
+				LEFT JOIN users AS su
+					ON su.id = x.st_start_user_id
+				LEFT JOIN users AS eu
+					ON eu.id = x.st_end_user_id
+				GROUP BY x.dt, x.shift_id, x.st_to_date, x.st_to_shift_id, x.st_status, x.st_start_user_id, x.st_end_user_id,  x.shift_order
 				ORDER BY x.dt DESC, x.shift_order DESC";
 
-		$sql_params = array( $this->id, $start_date.' 00:00:00', $end_date.' 23:59:59', $start_date, $end_date, $store_shifts );
+		$sql_params = array( $this->id, $this->id, $start_date.' 00:00:00', $end_date.' 23:59:59', $start_date, $end_date, $store_shifts );
 
 		if( $limit )
 		{
