@@ -966,8 +966,8 @@ $current_user = current_user();
 										</table>
 									</div>
 								</td>
-								<td class="vert-top">
-									<div class="btn-group btn-block" uib-dropdown>
+								<td class="vert-top text-right">
+									<div class="btn-group" uib-dropdown>
 										<button id="split-button" type="button" class="btn btn-default" ui-sref="main.mopping({ moppingItem: collection, editMode: 'view' })">View details...</button>
 										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'collections', collection )">
 											<span class="caret"></span>

@@ -118,6 +118,8 @@
                         uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
             </div>
 
+            <?php
+            /* Temporarily hidden
             <div class="form-group col-sm-2">
                 <label class="control-label">Processed by</label>
                 <input type="text" class="form-control"
@@ -126,8 +128,10 @@
                         typeahead-editable="false"
                         uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
             </div>
+            */
+            ?>
 
-            <div class="form-group col-sm-2">
+            <div class="form-group col-sm-3">
                 <label class="control-label">Processed Item</label>
                 <select class="form-control"
                         ng-model="input.moppedItem"
@@ -143,7 +147,7 @@
                 -->
             </div>
 
-            <div class="form-group col-sm-2">
+            <div class="form-group col-sm-3">
                 <label class="control-label">Package into</label>
                 <select class="form-control"
                         ng-model="input.packAs"

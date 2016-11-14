@@ -2841,10 +2841,6 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 					{
 						notifications.alert( 'Please specify delivery person', 'warning' );
 					}
-					else if( ! $scope.input.processor )
-					{
-						notifications.alert( 'Please specify collection processor', 'warning' );
-					}
 					else if( $scope.input.moppedQuantity <= 0 )
 					{
 						notifications.alert( 'Quantity must have a value greater than 0', 'warning' );
@@ -2880,7 +2876,7 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 								mopped_quantity: parseInt( $scope.input.moppedQuantity ),
 								converted_to: ( $scope.input.packAs && $scope.input.packAs.id ) ? $scope.input.packAs.target_item_id : null,
 								group_id: null,
-								processor_id: $scope.input.processor.id,
+								processor_id: $scope.input.processor ? $scope.input.processor.id : null,
 								delivery_person: deliveryPerson,
 								mopped_item_status: 1 // MOPPING_ITEM_COLLECTED
 							};
