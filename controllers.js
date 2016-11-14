@@ -2566,6 +2566,8 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 						$scope.data.mode = ( $scope.data.factor == 1 ? 'convert' : 'pack' );
 						$scope.data.input.step = $scope.data.factor;
 						$scope.data.input.min = $scope.data.factor;
+						$scope.data.output.step = 1;
+						$scope.data.output.min = 1;
 
 						if( $scope.conversionItem.source_quantity < $scope.data.input.min )
 						{
@@ -2581,6 +2583,8 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 							$scope.data.mode = ( $scope.data.factor == 1 ? 'convert' : 'unpack' );
 							$scope.data.input.step = 1;
 							$scope.data.input.min = 1;
+							$scope.data.output.step = $scope.data.factor;
+							$scope.data.output.min = $scope.data.factor;
 						}
 					}
 				}
@@ -2657,6 +2661,28 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 				else if( $scope.data.mode == 'convert' )
 				{
 					$scope.conversionItem.target_quantity = $scope.conversionItem.source_quantity;
+				}
+
+				$scope.checkConversion();
+			};
+
+		$scope.calculateInput = function()
+			{
+				var factor = $scope.data.factor;
+
+				switch( $scope.data.mode )
+				{
+					case 'pack':
+						$scope.conversionItem.source_quantity = $scope.conversionItem.target_quantity * factor;
+						break;
+
+					case 'unpack':
+						$scope.conversionItem.source_quantity = $scope.conversionItem.target_quantity / factor;
+						break;
+
+					case 'convert':
+						$scope.conversionItem.source_quantity = $scope.conversionItem.target_quantity;
+						break;
 				}
 
 				$scope.checkConversion();
