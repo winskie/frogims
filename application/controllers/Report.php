@@ -101,15 +101,13 @@ class Report extends MY_Controller {
                     header( 'Accept-Ranges: bytes' );
                     readfile( $temp_file );
                 }
+
+                fclose( $fp );
             }
             catch ( Exception $e )
             {
                 echo 'exception: '.$e;
                 return FALSE;
-            }
-            finally
-            {
-                fclose( $fp );
             }
         }
         else
