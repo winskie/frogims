@@ -32,6 +32,7 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
 
 				userStores: [],
 				storeShifts: [],
+				shiftBalance: null,
 
 				isAdmin: false,
 				previousState: null,
@@ -40,6 +41,7 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
 
 		me.permissions = {
 			transactions: 'none',
+			shift_turnovers: 'none',
 			transfers: 'none',
 			transfers_approve: false,
 			transfer_validations: 'none',
@@ -68,6 +70,24 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
 							case 'view':
 								allowedPermissions = [ 'view' ];
 								permission = me.permissions.transactions;
+								break;
+
+							default:
+								return false;
+						}
+						break;
+
+					case 'shiftTurnovers':
+						switch( action )
+						{
+							case 'view':
+								allowedPermissions = [ 'view', 'edit' ];
+								permission = me.permissions.shift_turnovers;
+								break;
+
+							case 'edit':
+								allowedPermissions = [ 'edit' ];
+								permission = me.permissions.shift_turnovers;
 								break;
 
 							default:
@@ -242,6 +262,7 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
 							me.data.currentShift = d.shift;
 							me.data.userStores = d.stores;
 							me.data.storeShifts = d.shifts;
+							me.data.shiftBalance = d.shift_balance;
 							me.data.isAdmin = d.is_admin;
 							me.permissions = d.permissions;
 
@@ -348,6 +369,7 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
 							me.data.currentStore = d.store;
 							me.data.storeShifts = d.shifts;
 							me.data.currentShift = d.suggested_shift;
+							me.data.shiftBalance = d.shift_balance;
 
 							notifications.notify( 'onChangeStore' );
 							deferred.resolve( d );
@@ -380,7 +402,8 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
 						{
 							var d = response.data.data;
 
-							me.data.currentShift = d;
+							me.data.currentShift = d.shift;
+							me.data.shiftBalance = d.shift_balance;
 							deferred.resolve( d );
 						}
 						else
@@ -404,12 +427,16 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 	function( $http, $q, $filter, baseUrl, session, notifications )
 	{
 		var me = this;
+
+		var currentDate = new Date();
+		var firstDay = new Date( currentDate.getFullYear(), currentDate.getMonth(), 1 );
+
 		me.data = {
 				stations: [],
 				stores: [],
 				activeUsers: [],
 
-				itemCategories: [],
+				categories: [],
 				transactionTypes: [
 						{ id: 0, typeName: 'Initial Balance', module: null },
 						{ id: 10, typeName: 'Transfer', module: 'Transfers' },
@@ -426,6 +453,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 						{ id: 50, typeName: 'Conversion From', module: 'Conversions' },
 						{ id: 51, typeName: 'Conversion To', module: 'Conversions' }
 					],
+				shiftTurnoverStatus: [
+						{ id: 1, statusName: 'Open' },
+						{ id: 2, statusName: 'Closed' }
+					],
 				transferValidationStatus: [
 						{ id: 1, statusName: 'Ongoing' },
 						{ id: 2, statusName: 'Completed' },
@@ -436,7 +467,8 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 						{ id: 2, categoryName: 'Regular' },
 						{ id: 3, categoryName: 'Ticket Turnover' },
 						{ id: 4, categoryName: 'Stock Replenishment' },
-						{ id: 5, categoryName: 'Cashroom to Cashroom' }
+						{ id: 5, categoryName: 'Cashroom to Cashroom' },
+						{ id: 6, categoryName: 'Blackbox Receipt' }
 					],
 				transferStatus: [
 						{ id: 1, statusName: 'Scheduled' },
@@ -472,6 +504,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
 				items: [],
 				transactions: [],
+				shiftTurnovers: [],
 				transfers: [],
 				receipts: [],
 				adjustments: [],
@@ -481,6 +514,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
 				totals: {
 						transactions: 0,
+						shiftTurnovers: 0,
 						transferValidations: 0,
 						transfers: 0,
 						receipts: 0,
@@ -491,6 +525,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 					},
 
 				pending: {
+						shiftTurnovers: 0,
 						transferValidations: 0,
 						transfers: 0,
 						receipts: 0,
@@ -511,6 +546,13 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 					date: null,
 					item: { id: null, item_name: 'All', item_description: 'All' },
 					type: { id: null, typeName: 'All' },
+					shift: { id: null, shift_num: 'All', description: 'All' },
+					filtered: false
+				},
+				shiftTurnovers: {
+					startDate: firstDay,
+					endDate: currentDate,
+					shift: { id: null, shift_num: 'All', description: 'All' },
 					filtered: false
 				},
 				transferValidations: {
@@ -572,6 +614,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
 		me.pagination = {
 				transactions: 1,
+				shiftTurnovers: 1,
 				transferValidations: 1,
 				transfers: 1,
 				receipts: 1,
@@ -646,7 +689,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 				return deferred.promise;
 			};
 
-		me.getItemCategories = function()
+		me.getCategories = function()
 			{
 				var deferred = $q.defer();
 				$http({
@@ -658,7 +701,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 						if( response.data.status == 'ok' )
 						{
 							var d = response.data;
-							me.data.itemCategories = d.data;
+							me.data.categories = d.data;
 							deferred.resolve( d );
 						}
 						else
@@ -722,6 +765,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 						date: $filter( 'date' )( me.filters.transactions.date, 'yyyy-MM-dd' ),
 						item: me.filters.transactions.item ? me.filters.transactions.item.item_id : null,
 						type: me.filters.transactions.type ? me.filters.transactions.type.id : null,
+						shift: me.filters.transactions.shift ? me.filters.transactions.shift.id : null,
 						page: me.pagination.transactions ? me.pagination.transactions : null,
 						limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
 					}
@@ -749,6 +793,51 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 					});
 
 				return deferred.promise;
+			};
+
+		me.getShiftTurnovers = function( storeId )
+			{
+				if( !session.checkPermissions( 'shiftTurnovers', 'view' ) )
+				{
+					return;
+				}
+
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/shift_turnovers',
+					params: {
+						shift: me.filters.shiftTurnovers.shift ? me.filters.shiftTurnovers.shift.id : null,
+						start: $filter( 'date' )( me.filters.shiftTurnovers.startDate, 'yyyy-MM-dd' ),
+						end: $filter( 'date' )( me.filters.shiftTurnovers.endDate, 'yyyy-MM-dd' ),
+						page: me.pagination.shiftTurnovers ? me.pagination.shiftTurnovers : null,
+						limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
+					}
+				}).then(
+						function( response )
+						{
+							if( response.data.status == 'ok' )
+							{
+								var d = response.data;
+
+								me.data.shiftTurnovers = d.data.shift_turnovers;
+								me.data.totals.shiftTurnovers = d.data.total;
+								me.data.pending.shiftTurnovers = d.data.pending;
+								deferred.resolve( d );
+							}
+							else
+							{
+								notifications.showMessages( response.data.errorMsg );
+								deferred.reject( response.data.errorMsg );
+							}
+						},
+						function( reason )
+						{
+							console.error( reason.data.errorMsg );
+							deferred.reject( reason.data.errorMsg );
+						});
+
+					return deferred.promise;
 			};
 
 		me.getTransferValidations = function()
@@ -1061,6 +1150,105 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 					{
 						console.error( reason.data.errorMsg );
 						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
+
+		// Shift Turnovers
+		me.getShiftTurnover = function( shiftTurnoverId )
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/shift_turnovers/' + shiftTurnoverId,
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							deferred.resolve( response.data );
+						}
+						else
+						{
+							notifications.showMessages( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
+
+		me.getShiftTurnoverByStoreDateShift = function( store, date, shiftId )
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/shift_turnovers/date_shift',
+					params: {
+						store: store,
+						date: date,
+						shift: shiftId
+					}
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							deferred.resolve( response.data );
+						}
+						else
+						{
+							notifications.showMessages( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
+
+		me.saveShiftTurnover = function( turnover, action )
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'POST',
+					url: baseUrl + 'index.php/api/v1/shift_turnovers/' + action,
+					data: turnover,
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							var shiftTurnover = response.data.data;
+							if( shiftTurnover.st_store_id == session.data.currentStore.id
+								&& shiftTurnover.st_from_shift_id == session.data.currentShift.id
+								&& shiftTurnover.st_from_date == $filter( 'date' )( new Date(), 'yyyy-MM-dd' ) )
+							{
+								console.log( 'Setting current shift balance info...', shiftTurnover );
+								session.data.shiftBalance = shiftTurnover;
+							}
+							deferred.resolve( response.data );
+						}
+						else
+						{
+							notifications.showMessages( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						console.error( reason.data.errorMsg );
+						deferred.reject( response.data.errorMsg );
 					});
 
 				return deferred.promise;
@@ -1555,6 +1743,38 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 				return deferred.promise;
 			};
 
+		me.getTurnoverItems = function( storeId, date )
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/turnover_items',
+					params: {
+						date: $filter( 'date' )( date, 'yyyy-MM-dd' )
+					}
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							deferred.resolve( response.data.data );
+						}
+						else
+						{
+							notifications.showMessages( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						notifications.showMessage( reason.data.errorMsg );
+						console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
+
 		me.saveAllocation = function( allocationData )
 			{
 				var deferred = $q.defer();
@@ -1795,6 +2015,10 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 			{
 				switch( group )
 				{
+					case 'shiftTurnovers':
+						me.getShiftTurnovers( currentStoreId );
+						break;
+
 					case 'transferValidations':
 						me.getTransferValidations();
 						break;
@@ -1841,6 +2065,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 					default:
 						me.getInventory( currentStoreId );
 						me.getTransactions( currentStoreId );
+						me.getShiftTurnovers( currentStoreId );
 						me.getTransferValidations();
 						me.getTransfers( currentStoreId );
 						me.getReceipts( currentStoreId );
@@ -2137,6 +2362,10 @@ appServices.service( 'lookup',
 				'50': 'Conversion From',
 				'51': 'Conversion To'
 			},
+			shiftTurnoverStatus: {
+				'1': 'Open',
+				'2': 'Closed'
+			},
 			transferValidationStatus: {
 				'1': 'Ongoing',
 				'2': 'Completed',
@@ -2155,7 +2384,8 @@ appServices.service( 'lookup',
 				'2': 'General',
 				'3': 'Ticket Turnover',
 				'4': 'Stock Replenishment',
-				'5': 'Cashroom to Cashroom'
+				'5': 'Cashroom to Cashroom',
+				'6': 'Blackbox Receipt'
 			},
 			transferStatus: {
 				'1': 'Scheduled',

@@ -8,6 +8,8 @@ class Shift extends Base_model
     protected $shift_start_time;
     protected $shift_end_time;
 	protected $description;
+	protected $shift_next_shift_id;
+	protected $shift_order;
 
 	public function __construct()
 	{
@@ -18,10 +20,12 @@ class Shift extends Base_model
             'shift_num' => array( 'type' => 'string' ),
 			'description' => array( 'type' => 'string' ),
             'shift_start_time' => array( 'type' => 'time' ),
-            'shift_end_time' => array( 'type' => 'time' )
+            'shift_end_time' => array( 'type' => 'time' ),
+			'shift_next_shift_id' => array( 'type' => 'integer' ),
+			'shift_order' => array( 'type' => 'integer' )
 		);
 	}
-	
+
 	public function get_shifts( $params = array() )
 	{
 		$ci =& get_instance();
@@ -41,7 +45,7 @@ class Shift extends Base_model
 		}
 		$shifts = $ci->db->get( $this->primary_table );
 		$shifts = $shifts->result( get_class( $this ) );
-		
+
 		if( $format == 'array' )
 		{
 			$shifts_data = array();

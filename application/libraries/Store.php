@@ -12,6 +12,7 @@ class Store extends Base_model
 
 	protected $members;
 	protected $shifts;
+	protected $items;
 
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
@@ -215,20 +216,90 @@ class Store extends Base_model
 	}
 
 
-	public function get_items( $format = 'object' )
+	public function get_items( $params = array() )
 	{
-		$ci =& get_instance();
-		$ci->load->library( 'Inventory' );
+		$business_date = param( $params, 'date', date( DATE_FORMAT ) );
+		$shift = param( $params, 'shift', current_shift( TRUE ) );
+		$format = param( $params, 'format', 'object' );
 
-		$ci->db->select( 'si.*, i.item_name, i.item_unit, i.item_group, i.item_description,
-				i.teller_allocatable, i.teller_remittable, i.machine_allocatable, i.machine_remittable' );
-		$ci->db->where( 'store_id', $this->id );
-		$ci->db->join( 'items i', 'i.id = si.item_id' );
-		$query = $ci->db->get( 'store_inventory si' );
+		$ci =& get_instance();
+		$ci->load->library( 'inventory' );
+
+		$query_params = array();
+		$sql = 'SELECT
+					si.*,
+					i.item_name, i.item_description, i.item_group, i.item_unit,
+					i.teller_allocatable, i.teller_remittable, i.machine_allocatable, i.machine_remittable,
+					ts.movement, sts.sti_beginning_balance, sts.sti_ending_balance
+				FROM store_inventory AS si
+				LEFT JOIN items AS i
+					ON i.id = si.item_id
+				LEFT JOIN (';
+
+		if( $shift )
+		{
+			$sql .= ' SELECT
+						sti.sti_item_id,
+						sti.sti_beginning_balance,
+						sti.sti_ending_balance
+					FROM shift_turnover_items AS sti
+					LEFT JOIN shift_turnovers AS st
+						ON st.id = sti.sti_turnover_id
+					WHERE
+						st.st_store_id = ?
+						AND st.st_from_date = ?
+						AND st.st_from_shift_id = ?
+				) AS sts
+					ON sts.sti_item_id = i.id';
+
+			// TODO: Add index for st_store_id, st_from_date, st_from_shift_id
+			$query_params[] = $this->id;
+			$query_params[] = $business_date;
+			$query_params[] = $shift;
+		}
+
+		$sql .= ' LEFT JOIN (
+					SELECT
+						t.store_inventory_id,
+						SUM( transaction_quantity ) AS movement
+					FROM transactions AS t
+					LEFT JOIN store_inventory AS si
+						ON si.id = t.store_inventory_id
+					WHERE
+						si.store_id = ?
+						AND t.transaction_datetime >= ?
+						AND t.transaction_datetime <= ?';
+		$query_params[] = $this->id;
+		$query_params[] = $business_date.' 00:00:00';
+		$query_params[] = $business_date.' 23:59:59';
+
+		if( $shift )
+		{
+			$sql .= ' AND t.transaction_shift = ?';
+			$query_params[] = $shift;
+		}
+
+		$sql .= ' GROUP BY
+					t.store_inventory_id
+				) AS ts
+					ON ts.store_inventory_id = si.id
+				WHERE
+					store_id = ?';
+
+		$query_params[] = $this->id;
+
+		$query = $ci->db->query( $sql, $query_params );
 
 		if( $format == 'object')
 		{
-			return $query->result( 'Inventory' );
+			$items = array();
+			$store_items = $query->result( 'Inventory' );
+			foreach( $store_items as $store_item )
+			{
+				$items[$store_item->get( 'id' )] = $store_item;
+			}
+
+			return $items;
 		}
 		elseif( $format == 'array' )
 		{
@@ -291,6 +362,7 @@ class Store extends Base_model
 
 		$ci->load->library( 'transaction' );
 		$business_date = param( $params, 'date' );
+		$shift = param( $params, 'shift' );
 		$item_id = param( $params, 'item' );
 		$transaction_type = param( $params, 'type' );
 
@@ -316,7 +388,13 @@ class Store extends Base_model
 
 		if( $business_date )
 		{
-			$ci->db->where( 'DATE(transaction_datetime)', $business_date );
+			$ci->db->where( 'transaction_datetime >=', $business_date. ' 00:00:00' );
+			$ci->db->where( 'transaction_datetime <=', $business_date. ' 23:59:59' );
+		}
+
+		if( $shift )
+		{
+			$ci->db->where( 'transaction_shift', $shift );
 		}
 
 		if( $item_id )
@@ -718,23 +796,27 @@ class Store extends Base_model
 		$sql = 'SELECT
 					a.id, a.store_id, a.business_date, a.shift_id, a.station_id, a.assignee, a.assignee_type,	a.allocation_status, a.cashier_id,
 					s.shift_num,
-					x.allocated_item_id, x.item_name, x.item_description, x.allocation, x.additional, x.remitted
+					x.allocated_item_id, x.item_name, x.item_description, x.allocation, x.additional, x.remitted, x.unsold, x.rejected, x.valid_allocation, x.valid_remittance
 				FROM (
 					SELECT
 						allocation_id,
 						allocated_item_id,
 						item_name,
 						item_description,
-						SUM( IF( ic.is_allocation_category = TRUE AND category = "Initial Allocation" AND NOT allocation_item_status IN ('.implode( ', ', array( ALLOCATION_ITEM_CANCELLED, ALLOCATION_ITEM_VOIDED ) ).'), allocated_quantity, 0 ) ) AS allocation,
-						SUM( IF( ic.is_allocation_category = TRUE AND category IN ( "Additional Allocation", "Magazine Load" ) AND NOT allocation_item_status = '.ALLOCATION_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS additional,
-						SUM( IF( ic.is_remittance_category = TRUE AND NOT allocation_item_status = '.REMITTANCE_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS remitted
+						SUM( IF( c.is_allocation_category = TRUE AND category = "Initial Allocation" AND NOT allocation_item_status IN ('.implode( ', ', array( ALLOCATION_ITEM_CANCELLED, ALLOCATION_ITEM_VOIDED ) ).'), allocated_quantity, 0 ) ) AS allocation,
+						SUM( IF( c.is_allocation_category = TRUE AND category IN ( "Additional Allocation", "Magazine Load" ) AND NOT allocation_item_status = '.ALLOCATION_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS additional,
+						SUM( IF( c.is_remittance_category = TRUE AND NOT allocation_item_status = '.REMITTANCE_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS remitted,
+						SUM( IF( c.is_remittance_category = TRUE AND category = "Unsold / Loose" AND NOT allocation_item_status = '.REMITTANCE_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS unsold,
+						SUM( IF( c.is_remittance_category = TRUE AND category = "Reject Bin" AND NOT allocation_item_status = '.REMITTANCE_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS rejected,
+						SUM( IF( ai.allocation_item_status IN ( '.implode( ',', array( ALLOCATION_ITEM_SCHEDULED, ALLOCATION_ITEM_ALLOCATED ) ).' ) AND ai.allocated_quantity > 0, 1, 0 ) ) AS valid_allocation,
+						SUM( IF( ai.allocation_item_status IN ( '.implode( ',', array( REMITTANCE_ITEM_PENDING, REMITTANCE_ITEM_REMITTED ) ).' ) AND ai.allocated_quantity > 0, 1, 0 ) ) AS valid_remittance
 					FROM allocation_items AS ai
 					LEFT JOIN allocations AS a
 						ON a.id = ai.allocation_id
 					LEFT JOIN items AS i
 						ON i.id = ai.allocated_item_id
-					LEFT JOIN item_categories AS ic
-						ON ic.id = ai.allocation_category_id';
+					LEFT JOIN categories AS c
+						ON c.id = ai.allocation_category_id';
 
 		if( $allocation_date || $assignee_type || $status )
 		{
@@ -791,6 +873,91 @@ class Store extends Base_model
 		return $query->result_array();
 	}
 
+
+	public function get_turnover_items( $params = array() )
+	{
+		$business_date = param( $params, 'date' );
+		$status = param( $params, 'status' );
+		$limit = param( $params, 'limit' );
+		$page = param( $params, 'page', 1 );
+		$order = param( $params, 'order', 'order_col ASC, shift_num ASC' );
+
+		$params = array();
+
+		$ci =& get_instance();
+
+		$transfer_item_statuses = array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED );
+
+		$sql = 'SELECT 1 AS order_col, "Remittance" AS item_source,
+					s.shift_num,
+					a.id AS source_id, a.assignee_type, a.assignee,
+					i.id AS item_id, i.item_name, i.item_description,
+					c.id AS transfer_item_category_id, c.category,
+					ai.allocated_quantity AS quantity,
+					ai.id AS allocation_item_id,
+					NULL AS transfer_item_id,
+					ti.id AS turnover_id
+				FROM allocations AS a
+				LEFT JOIN allocation_items AS ai
+					ON ai.allocation_id = a.id
+				LEFT JOIN shifts AS s
+					ON s.id = ai.cashier_shift_id
+				LEFT JOIN items AS i
+					ON i.id = ai.allocated_item_id
+				LEFT JOIN categories AS c
+					ON c.id = ai.allocation_category_id
+				LEFT JOIN transfer_items AS ti
+					ON ti.transfer_item_allocation_item_id = ai.id AND ti.transfer_item_status NOT IN ( '.implode( ', ', $transfer_item_statuses).' )
+
+				WHERE
+					c.category_type = 2
+					AND i.turnover_item = 1';
+
+		if( $business_date )
+		{ // TODO: secure this parameter
+			$sql .= " AND a.business_date = ?";
+			$params[] = $business_date;
+		}
+
+		$sql .= ' UNION ALL
+
+				SELECT 2, "Blackbox",
+					s.shift_num,
+					t.id, NULL, t.origin_name,
+					i.id, i.item_name, i.item_description,
+					c.id, c.category,
+					ti.quantity_received,
+					NULL,
+					ti.id,
+					ti2.id AS turnover_id
+				FROM transfer_items AS ti
+				LEFT JOIN transfers AS t
+					ON t.id = ti.transfer_id
+				LEFT JOIN shifts AS s
+					ON s.id = t.recipient_shift
+				LEFT JOIN items AS i
+					ON i.id = ti.item_id
+				LEFT JOIN categories AS c
+					ON c.id = ti.transfer_item_category_id
+				LEFT JOIN transfer_items AS ti2
+					ON ti2.transfer_item_transfer_item_id = ti.id AND ti2.transfer_item_status NOT IN ( '.implode( ', ', $transfer_item_statuses).' )
+
+				WHERE
+					t.transfer_category = 6
+					AND i.turnover_item = 1';
+
+		if( $business_date )
+		{ // TODO: secure this parameter
+			$sql .= " AND DATE(t.receipt_datetime) = ?";
+			$params[] = $business_date;
+		}
+
+		$sql .= ' ORDER BY '.$order;
+
+		$remittances = $ci->db->query( $sql, $params );
+
+		return $remittances->result_array();
+	}
 
 	public function get_conversions( $params =array () )
 	{
@@ -865,6 +1032,7 @@ class Store extends Base_model
 		$ci->load->library( 'transaction' );
 
 		$business_date = param( $params, 'date' );
+		$shift = param( $params, 'shift' );
 		$item_id = param( $params, 'item' );
 		$transaction_type = param( $params, 'type' );
 
@@ -876,7 +1044,13 @@ class Store extends Base_model
 
 		if( $business_date )
 		{
-			$ci->db->where( 'DATE(transaction_datetime)', $business_date );
+			$ci->db->where( 'transaction_datetime >=', $business_date.' 00:00:00' );
+			$ci->db->where( 'transaction_datetime <=', $business_date.' 23:59:59' );
+		}
+
+		if( $shift )
+		{
+			$ci->db->where( 'transaction_shift', $shift );
 		}
 
 		if( $item_id )
@@ -1304,6 +1478,234 @@ class Store extends Base_model
 		return $data->result_array();
 	}
 
+	public function get_shift_balance( $date = NULL, $shift_id = NULL )
+	{
+		$ci =& get_instance();
+
+		$ci->load->library( 'shift_turnover' );
+		if( empty( $date ) )
+		{
+			$date = date( DATE_FORMAT );
+		}
+
+		if( empty( $shift_id ) )
+		{
+			$shift_id = current_shift( TRUE );
+		}
+
+		if( $date && $shift_id )
+		{
+			$ci =& get_instance();
+
+			$ci->db->where( 'st_store_id', $this->id );
+			$ci->db->where( 'st_from_date', $date );
+			$ci->db->where( 'st_from_shift_id', $shift_id );
+			$query = $ci->db->get( 'shift_turnovers' );
+
+			return $query->row( 0, 'Shift_turnover' );
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+
+	public function get_inventory_movement( $date = NULL, $shift = NULL )
+	{
+		if( empty( $date ) )
+		{
+			$date = date( DATE_FORMAT );
+		}
+
+		$ci =& get_instance();
+
+		$ci->db->select( 't.store_inventory_id' );
+		$ci->db->select_sum( 't.transaction_quantity', 'movement' );
+		$ci->db->join( 'store_inventory AS si', 'si.id = t.store_inventory_id', 'left' );
+		$ci->db->where( 'si.store_id', $this->id );
+
+		if( $date )
+		{
+			$ci->db->where( 't.transaction_datetime >=', $date.' 00:00:00' );
+			$ci->db->where( 't.transaction_datetime <=', $date.' 23:59:59' );
+		}
+
+		if( $shift )
+		{
+			$ci->db->where( 't.transaction_shift', $shift );
+		}
+
+		$ci->db->group_by( 't.store_inventory_id' );
+
+		$query = $ci->db->get( 'transactions AS t' );
+
+		$items = $query->result_array();
+
+		$inventory_movement = array();
+		foreach( $items as $item )
+		{
+			$inventory_movement[$item['store_inventory_id']] = param_type( $item['movement'], 'integer' );
+		}
+
+		return $inventory_movement;
+	}
+
+	public function get_shift_turnovers( $params = array() )
+	{
+		$ci =& get_instance();
+
+		$start_date = param( $params, 'start' );
+		$end_date = param( $params, 'end' );
+		$shift = param( $params, 'shift' );
+
+		if( empty( $start_date ) )
+		{
+			$start_date = date( DATE_FORMAT, strtotime( 'first day of this month' ) );
+		}
+		if( empty( $end_date ) )
+		{
+			$end_date = date( DATE_FORMAT );
+		}
+
+		$limit = param( $params, 'limit' );
+		$page = param( $params, 'page', 1 );
+
+		if( $shift )
+		{
+			$store_shifts = array( $shift );
+		}
+		else
+		{
+			$shifts = $this->get_shifts();
+			$store_shifts = array();
+			foreach( $shifts as $loop_shift )
+			{
+				$store_shifts[] = param_type( $loop_shift->get( 'id' ), 'integer' );
+			}
+		}
+
+
+		$sql = "SELECT
+					? AS st_store_id,
+					x.dt AS st_from_date,
+					fs.description,
+					x.shift_id AS st_from_shift_id,
+					x.st_to_date,
+					x.st_to_shift_id,
+					x.st_status,
+					x.st_start_user_id,
+					su.full_name AS start_user,
+					eu.full_name AS end_user,
+					x.shift_order,
+					SUM( issue_count ) AS has_issues
+				FROM (
+					SELECT
+						dt,
+						s.id AS shift_id,
+						s.shift_order,
+						st.st_to_date,
+						st.st_to_shift_id,
+						st.st_status,
+						st.st_start_user_id,
+						st.st_end_user_id,
+						sti.sti_inventory_id,
+						sti.sti_beginning_balance,
+						m.movement,
+						sti.sti_ending_balance,
+						IF( ( sti.sti_beginning_balance + COALESCE( m.movement, 0 ) ) = sti.sti_ending_balance, 0, 1 ) AS issue_count
+					FROM dates AS d
+					CROSS JOIN shifts AS s
+					LEFT JOIN shift_turnovers AS st
+						ON st.st_from_date = d.dt AND st.st_from_shift_id = s.id
+					LEFT JOIN shift_turnover_items AS sti
+						ON sti.sti_turnover_id = st.id
+					LEFT JOIN (
+						SELECT
+							store_inventory_id,
+							DATE( transaction_datetime ) AS business_date,
+							transaction_shift,
+							SUM( transaction_quantity ) AS movement
+						FROM transactions
+						LEFT JOIN store_inventory
+							ON store_inventory.id = transactions.store_inventory_id
+						WHERE
+							store_inventory.store_id = ?
+							AND transaction_datetime >= ?
+							AND transaction_datetime <= ?
+						GROUP BY
+							store_inventory_id, DATE( transaction_datetime ), transaction_shift
+					) AS m
+						ON m.store_inventory_id = sti.sti_inventory_id AND m.business_date = st.st_from_date AND m.transaction_shift = st.st_from_shift_id
+					WHERE dt BETWEEN ? AND ?
+						AND s.id IN ?
+				) AS x
+				LEFT JOIN shifts AS fs
+					ON fs.id = x.shift_id
+				LEFT JOIN shifts AS ts
+					ON ts.id = x.st_to_shift_id
+				LEFT JOIN users AS su
+					ON su.id = x.st_start_user_id
+				LEFT JOIN users AS eu
+					ON eu.id = x.st_end_user_id
+				GROUP BY x.dt, x.shift_id, x.st_to_date, x.st_to_shift_id, x.st_status, x.st_start_user_id, x.st_end_user_id,  x.shift_order
+				ORDER BY x.dt DESC, x.shift_order DESC";
+
+		$sql_params = array( $this->id, $this->id, $start_date.' 00:00:00', $end_date.' 23:59:59', $start_date, $end_date, $store_shifts );
+
+		if( $limit )
+		{
+			$sql .= ' LIMIT ?, ?';
+			$sql_params[] = ( $page ? ( ( $page - 1 ) * $limit ) : 0 );
+			$sql_params[] = $limit;
+		}
+
+		$query = $ci->db->query( $sql, $sql_params );
+
+		return $query->result_array();
+	}
+
+	public function count_shift_turnovers( $params = array() )
+	{
+		$ci =& get_instance();
+
+		$start_date = param( $params, 'start' );
+		$end_date = param( $params, 'end' );
+
+		if( empty( $start_date ) )
+		{
+			$start_date = date( DATE_FORMAT, strtotime( 'first day of this month' ) );
+		}
+		if( empty( $end_date ) )
+		{
+			$end_date = date( DATE_FORMAT );
+		}
+
+		$shift = param( $params, 'shift' );
+
+		$limit = param( $params, 'limit' );
+		$page = param( $params, 'page', 1 );
+
+		$shifts = $this->get_shifts();
+		$store_shifts = array();
+		foreach( $shifts as $loop_shift )
+		{
+			$store_shifts[] = param_type( $loop_shift->get( 'id' ), 'integer' );
+		}
+
+		$sql = 'SELECT COUNT(*) AS numrows
+				FROM dates AS d
+				CROSS JOIN shifts AS s
+				WHERE
+					d.dt BETWEEN ? AND ?
+					AND s.id IN ?';
+
+		$sql_params = array( $start_date, $end_date, $store_shifts );
+		$query = $ci->db->query( $sql, $sql_params );
+		$count = intval( $query->row( 0 )->numrows );
+
+		return $count;
+	}
+
 	public function get_inventory_balances( $date = NULL, $params = array() )
 	{
 		$date = param_type( $date, 'datetime', date( TIMESTAMP_FORMAT ) );
@@ -1361,5 +1763,38 @@ class Store extends Base_model
 		$data = $ci->db->query( $sql, $params );
 
 		return $data->result_array();
+	}
+
+	// Stock Replenishment Receipts
+	public function get_delivery_summary( $date = NULL, $shift = NULL )
+	{
+		$ci =& get_instance();
+
+		$ci->db->select( 'ti.item_id, i.item_name, i.item_description, i.item_group, i.base_item_id, ti.transfer_item_category_id AS category_id, ti.quantity_received' );
+		$ci->db->join( 'transfers t', 't.id = ti.transfer_id', 'left' );
+		$ci->db->join( 'items i', 'i.id = ti.item_id', 'left' );
+		$ci->db->where( 'DATE( t.receipt_datetime )', $date );
+		$ci->db->where( 't.recipient_shift', $shift );
+		$ci->db->where( 't.transfer_category', TRANSFER_CATEGORY_REPLENISHMENT );
+
+		$query = $ci->db->get( 'transfer_items ti' );
+
+		return $query->result_array();
+	}
+
+	// Remittances
+	public function get_remittance_summary( $date = NULL, $shift = NULL )
+	{
+		$ci =& get_instance();
+
+		$ci->db->select( 'ai.allocated_item_id AS item_id, i.item_name, i.item_description, i.item_group, i.base_item_id, ai.allocation_category_id AS category_id, ai.allocated_quantity' );
+		$ci->db->join( 'allocations a', 'a.id = ai.allocation_id', 'left' );
+		$ci->db->join( 'items i', 'i.id = ai.allocated_item_id', 'left' );
+		$ci->db->where( 'a.business_date', $date );
+		$ci->db->where( 'ai.cashier_shift_id', $shift );
+
+		$query = $ci->db->get( 'allocation_items ai' );
+
+		return $query->result_array();
 	}
 }

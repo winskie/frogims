@@ -20,6 +20,52 @@ class Installer extends CI_Controller {
 		$this->db->query( "CREATE DATABASE IF NOT EXISTS frogims" );
 		$this->db->query( "USE frogims" );
 
+		echo 'Creating int table...<br />';
+		$this->db->query( "CREATE TABLE ints ( i tinyint ) ENGINE=InnoDB" );
+
+		echo 'Inserting int values...<br />';
+		$this->db->query( "INSERT INTO ints VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9)" );
+
+		echo 'Creating dates table...<br />';
+		$this->db->query( "
+				CREATE TABLE IF NOT EXISTS dates (
+					dt DATE NOT NULL PRIMARY KEY,
+					y SMALLINT NULL,
+					q tinyint NULL,
+					m tinyint NULL,
+					d tinyint NULL,
+					dw tinyint NULL,
+					monthName VARCHAR(9) NULL,
+					dayName VARCHAR(9) NULL,
+					w tinyint NULL,
+					isWeekday BOOLEAN NULL DEFAULT NULL,
+					isHoliday BOOLEAN NULL DEFAULT NULL,
+					holidayDescr VARCHAR(32) NULL,
+					locked BOOLEAN DEFAULT FALSE
+				)
+				ENGINE=InnoDB" );
+
+		echo 'Inserting date values...<br />';
+		$this->db->query( "
+				INSERT INTO dates (dt)
+				SELECT DATE('2015-01-01') + INTERVAL a.i*10000 + b.i*1000 + c.i*100 + d.i*10 + e.i DAY
+				FROM ints a JOIN ints b JOIN ints c JOIN ints d JOIN ints e
+				WHERE (a.i*10000 + b.i*1000 + c.i*100 + d.i*10 + e.i) <= 11322
+				ORDER BY 1" );
+
+		$this->db->query( "
+				UPDATE dates
+				SET isWeekday = CASE WHEN dayofweek(dt) IN (1,7) THEN 0 ELSE 1 END,
+					isHoliday = 0,
+					y = YEAR(dt),
+					q = quarter(dt),
+					m = MONTH(dt),
+					d = dayofmonth(dt),
+					dw = dayofweek(dt),
+					monthname = monthname(dt),
+					dayname = dayname(dt),
+					w = week(dt)" );
+
 		echo 'Creating stations table...<br />';
 		$this->db->query( "
 				CREATE TABLE IF NOT EXISTS stations
@@ -41,6 +87,8 @@ class Installer extends CI_Controller {
 					shift_start_time TIME NOT NULL,
 					shift_end_time TIME NOT NULL,
 					description TEXT,
+					shift_next_shift_id INTEGER NULL DEFAULT NULL,
+					shift_order SMALLINT NOT NULL DEFAULT 1,
 					PRIMARY KEY (id)
 				)
 				ENGINE=InnoDB" );
@@ -52,6 +100,7 @@ class Installer extends CI_Controller {
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					group_name VARCHAR(100) NOT NULL,
 					group_perm_transaction VARCHAR(4) NOT NULL DEFAULT 'none',
+					group_perm_shift_turnover VARCHAR(4) NOT NULL DEFAULT 'none',
 					group_perm_transfer VARCHAR(4) NOT NULL DEFAULT 'none',
 					group_perm_transfer_approve BOOLEAN NOT NULL DEFAULT 0,
 					group_perm_transfer_validation VARCHAR(4) NOT NULL DEFAULT 'none',
@@ -148,6 +197,7 @@ class Installer extends CI_Controller {
 					teller_remittable BOOLEAN NOT NULL DEFAULT 0,
 					machine_allocatable BOOLEAN NOT NULL DEFAULT 0,
 					machine_remittable BOOLEAN NOT NULL DEFAULT 0,
+					turnover_item BOOLEAN NOT NULL DEFAULT 0,
 					date_created DATETIME NOT NULL,
 					date_modified DATETIME NOT NULL,
 					last_modified INTEGER NOT NULL,
@@ -174,6 +224,55 @@ class Installer extends CI_Controller {
 					FOREIGN KEY store_inventory_item_fx (item_id) REFERENCES items (id)
 						ON UPDATE CASCADE
 						ON DELETE RESTRICT
+				)
+				ENGINE=InnoDB" );
+
+		echo 'Creating shift turnovers table...<br />';
+		$this->db->query( "
+				CREATE TABLE IF NOT EXISTS shift_turnovers
+				(
+					id INTEGER AUTO_INCREMENT NOT NULL,
+					st_store_id INTEGER NOT NULL,
+					st_from_date DATE NOT NULL,
+					st_from_shift_id INTEGER NOT NULL,
+					st_to_date DATE NULL DEFAULT NULL,
+					st_to_shift_id INTEGER NULL DEFAULT NULL,
+					st_start_user_id INTEGER NULL DEFAULT NULL,
+					st_end_user_id INTEGER NULL DEFAULT NULL,
+					st_remarks TEXT,
+					st_status SMALLINT NOT NULL DEFAULT 1,
+					date_created DATETIME NOT NULL,
+					date_modified DATETIME NOT NULL,
+					last_modified INTEGER NOT NULL,
+					PRIMARY KEY (id),
+					FOREIGN KEY st_start_user_fk ( st_start_user_id ) REFERENCES users (id)
+						ON UPDATE CASCADE
+						ON DELETE RESTRICT,
+					FOREIGN KEY st_end_user_fk ( st_end_user_id ) REFERENCES users (id)
+						ON UPDATE CASCADE
+						ON DELETE RESTRICT,
+					UNIQUE st_from_undx (st_store_id, st_from_date, st_from_shift_id),
+					UNIQUE st_to_undx (st_store_id, st_to_date, st_to_shift_id)
+				)
+				ENGINE=InnoDB" );
+
+		echo 'Creating shift turnover items table...<br />';
+		$this->db->query( "
+				CREATE TABLE IF NOT EXISTS shift_turnover_items
+				(
+					id INTEGER AUTO_INCREMENT NOT NULL,
+					sti_turnover_id INTEGER NOT NULL,
+					sti_item_id INTEGER NOT NULL,
+					sti_inventory_id INTEGER NOT NULL,
+					sti_beginning_balance INTEGER NULL DEFAULT NULL,
+					sti_ending_balance INTEGER NULL DEFAULT NULL,
+					date_created DATETIME NOT NULL,
+					date_modified DATETIME NOT NULL,
+					last_modified INTEGER NOT NULL,
+					PRIMARY KEY (id),
+					FOREIGN KEY sti_shift_turnover_fk (sti_turnover_id) REFERENCES shift_turnovers (id)
+						ON UPDATE CASCADE
+						ON DELETE CASCADE
 				)
 				ENGINE=InnoDB" );
 
@@ -273,18 +372,22 @@ class Installer extends CI_Controller {
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					transfer_id INTEGER NOT NULL,
 					item_id INTEGER NOT NULL,
-					item_category_id INTEGER NULL DEFAULT NULL,
+					transfer_item_category_id INTEGER NULL DEFAULT NULL,
 					quantity INTEGER NOT NULL DEFAULT 0,
 					quantity_received INTEGER NULL DEFAULT NULL,
 					remarks TEXT NULL DEFAULT NULL,
 					transfer_item_status SMALLINT NOT NULL DEFAULT 1,
+					transfer_item_allocation_item_id INTEGER NULL DEFAULT NULL,
+					transfer_item_transfer_item_id INTEGER NULL DEFAULT NULL,
 					date_created DATETIME NOT NULL,
 					date_modified TIMESTAMP NOT NULL,
 					last_modified INTEGER NOT NULL,
 					PRIMARY KEY (id),
 					FOREIGN KEY transfer_items_transfer_fk (transfer_id) REFERENCES transfers (id)
 						ON UPDATE CASCADE
-						ON DELETE CASCADE
+						ON DELETE CASCADE,
+					INDEX transfer_items_allocation_item_ndx ( transfer_item_allocation_item_id ),
+					INDEX transfer_items_transfer_item_ndx ( transfer_item_transfer_item_id )
 				)
 				ENGINE=InnoDB" );
 
@@ -463,9 +566,9 @@ class Installer extends CI_Controller {
 				)
 				ENGINE=InnoDB" );
 
-		echo 'Creating item_categories table...<br />';
+		echo 'Creating categories table...<br />';
 		$this->db->query( "
-				CREATE TABLE IF NOT EXISTS item_categories
+				CREATE TABLE IF NOT EXISTS categories
 				(
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					category VARCHAR(100) NOT NULL,
@@ -477,6 +580,24 @@ class Installer extends CI_Controller {
 					is_machine BOOLEAN NOT NULL,
 					category_status SMALLINT NOT NULL DEFAULT 1,
 					PRIMARY KEY (id)
+				)
+				ENGINE=InnoDB" );
+
+		echo 'Creating item categories table...<br />';
+		$this->db->query( "
+				CREATE TABLE IF NOT EXISTS item_categories
+				(
+					id INTEGER AUTO_INCREMENT NOT NULL,
+					ic_item_id INTEGER NOT NULL,
+					ic_category_id INTEGER NOT NULL,
+					PRIMARY KEY (id),
+					UNIQUE ic_udx (ic_item_id, ic_category_id),
+					FOREIGN KEY ic_item_fk (ic_item_id) REFERENCES items (id)
+						ON UPDATE CASCADE
+						ON DELETE CASCADE,
+					FOREIGN KEY ic_category_fk (ic_category_id) REFERENCES categories (id)
+						ON UPDATE CASCADE
+						ON DELETE CASCADE
 				)
 				ENGINE=InnoDB" );
 
@@ -634,17 +755,17 @@ class Installer extends CI_Controller {
 			flush();
 			$this->load->library( 'shift' );
 			$shifts = array(
-							array( 'Regular Shift', 1, 'Regular shift', '00:00:00', '23:59:59' ),
-							array( 'Prod S1', 2, 'Production Shift 1', '07:00:00', '14:59:59' ),
-							array( 'Prod S2', 2, 'Production Shift 2', '13:00:00', '20:59:59' ),
-							array( 'TGM S1', 3, 'Transport Shift 1', '06:00:00', '13:59:59' ),
-							array( 'TGM S2', 3, 'Transport Shift 2', '14:00:00', '21:59:59' ),
-							array( 'Cashier S1', 4, 'Cashier Shift 1', '06:00:00', '13:59:59' ),
-							array( 'Cashier S2', 4, 'Cashier Shift 2', '14:00:00', '21:59:59' ),
-							array( 'Cashier S3', 4, 'Cashier Shift 3', '22:00:00', '05:59:59' ),
-							array( 'Teller S1', 0, 'Teller Shift 1', '06:00:00', '13:59:59' ),
-							array( 'Teller S2', 0, 'Teller Shift 2', '14:00:00', '21:59:59' ),
-							array( 'Teller S3', 0, 'Teller Shift 3', '22:00:00', '05:59:59' )
+							array( 'Regular Shift', 1, 'Regular shift', '00:00:00', '23:59:59', NULL, 1 ), // id: 1
+							array( 'Prod S1', 2, 'Production Shift 1', '07:00:00', '14:59:59', 3, 1  ), // id: 2
+							array( 'Prod S2', 2, 'Production Shift 2', '13:00:00', '20:59:59', 2, 2 ), // id: 3
+							array( 'TGM S1', 3, 'Transport Shift 1', '06:00:00', '13:59:59', 5, 1 ), // id: 4
+							array( 'TGM S2', 3, 'Transport Shift 2', '14:00:00', '21:59:59', 4, 2 ), // id: 5
+							array( 'Cashier S1', 4, 'Cashier Shift 1', '06:00:00', '13:59:59', 7, 1 ), // id: 6
+							array( 'Cashier S2', 4, 'Cashier Shift 2', '14:00:00', '21:59:59', 8, 2 ), // id: 7
+							array( 'Cashier S3', 4, 'Cashier Shift 3', '22:00:00', '05:59:59', 6, 3 ), // id: 8
+							array( 'Teller S1', 0, 'Teller Shift 1', '06:00:00', '13:59:59', 10, 1 ), // id: 9
+							array( 'Teller S2', 0, 'Teller Shift 2', '14:00:00', '21:59:59', 11, 2 ), // id: 10
+							array( 'Teller S3', 0, 'Teller Shift 3', '22:00:00', '05:59:59', 9, 3 ) // id: 11
 					);
 
 			foreach( $shifts as $s )
@@ -655,6 +776,8 @@ class Installer extends CI_Controller {
 					$shift->set( 'description', $s[2] );
 					$shift->set( 'shift_start_time', $s[3] );
 					$shift->set( 'shift_end_time', $s[4] );
+					$shift->set( 'shift_next_shift_id', $s[5] );
+					$shift->set( 'shift_order', $s[6] );
 					$shift->db_save();
 					unset( $shift );
 			}
@@ -714,28 +837,28 @@ class Installer extends CI_Controller {
 			flush();
 			$this->load->library( 'Item' );
 			$items = array(
-					array( 'L2 SJT', 'Line 2 Single Journey Ticket', NULL, 0, 1, 0, 0, 'SJT', 'piece' ), // ID: 1
-					array( 'L2 SJT - Rigid Box', 'Line 2 Single Journey Ticket in Rigid Box', 1, 1, 1, 0, 0, 'SJT', 'box' ),
-					array( 'L2 SJT - Ticket Magazine', 'Line 2 Single Journey Ticket in Ticket Magazine', 1, 0, 0, 1, 0, 'SJT', 'magazine' ),
-					array( 'L2 SJT - Defective', 'Defective Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, NULL, 'piece' ),
-					array( 'L2 SJT - Damaged', 'Damaged Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, NULL, 'piece' ),
+					array( 'L2 SJT', 'Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, 'SJT', 'piece', 1 ), // ID: 1
+					array( 'L2 SJT - Rigid Box', 'Line 2 Single Journey Ticket in Rigid Box', 1, 1, 1, 0, 0, 'SJT', 'box', 0 ),
+					array( 'L2 SJT - Ticket Magazine', 'Line 2 Single Journey Ticket in Ticket Magazine', 1, 0, 0, 1, 0, 'SJT', 'magazine', 0 ),
+					array( 'L2 SJT - Defective', 'Defective Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, NULL, 'piece', 1 ),
+					array( 'L2 SJT - Damaged', 'Damaged Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, NULL, 'piece', 1 ),
 
-					array( 'SVC', 'Stored Value Card', NULL, 0, 1, 0, 0, 'SVC', 'piece' ), // ID: 6
-					array( 'SVC - Rigid Box', 'Stored Value Ticket in Rigid Box', 6, 1, 1, 0, 0, 'SVC', 'box' ),
-					array( 'SVC - 25', 'Stored Value Ticket in 25', 6, 1, 1, 0, 0, 'SVC', 'box' ),
-					array( 'SVC - 150', 'Stored Value Ticket in 150', 6, 0, 0, 1, 0, 'SVC', 'box' ),
-					array( 'SVC - Defective', 'Defective Stored Value Card', NULL, 0, 1, 0, 1, NULL, 'piece' ),
-					array( 'SVC - Damaged', 'Damaged Stored Value Card', NULL, 0, 1, 0, 1, NULL, 'piece' ),
+					array( 'SVC', 'Stored Value Card', NULL, 0, 1, 0, 1, 'SVC', 'piece', 1 ), // ID: 6
+					array( 'SVC - Rigid Box', 'Stored Value Ticket in Rigid Box', 6, 1, 1, 0, 0, 'SVC', 'box', 0 ),
+					array( 'SVC - 25', 'Stored Value Ticket in 25', 6, 1, 1, 0, 0, 'SVC', 'box', 0 ),
+					array( 'SVC - 150', 'Stored Value Ticket in 150', 6, 0, 0, 1, 0, 'SVC', 'box', 0 ),
+					array( 'SVC - Defective', 'Defective Stored Value Card', NULL, 0, 1, 0, 1, NULL, 'piece', 1 ),
+					array( 'SVC - Damaged', 'Damaged Stored Value Card', NULL, 0, 1, 0, 1, NULL, 'piece', 1 ),
 
-					array( 'Senior', 'Senior Citizen Stored Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece' ),
-					array( 'PWD', 'Passenger with Disability Store Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece' ),
+					array( 'Senior', 'Senior Citizen Stored Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece', 1 ),
+					array( 'PWD', 'Passenger with Disability Store Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece', 1 ),
 
-					array( 'L2 Ticket Coupon', 'Line 2 Ticket Coupon', NULL, 1, 1, 0, 0, NULL, 'piece' ),
+					array( 'L2 Ticket Coupon', 'Line 2 Ticket Coupon', NULL, 1, 1, 0, 0, NULL, 'piece', 0 ),
 
-					array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0, NULL, 'piece' ), // ID: 15
-					array( 'L1 SJT', 'Line 1 Single Journey Ticket', 15, 0, 1, 0, 0, NULL, 'piece' ),
-					array( 'MRT SJT', 'Line 3 Single Journey Ticket', 15, 0, 1, 0, 0, NULL, 'piece' ),
-					array( 'Staff Card', 'Staff Card', NULL, 0, 0, 0, 0, NULL, 'piece' )
+					array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0, NULL, 'piece', 1 ), // ID: 15
+					array( 'L1 SJT', 'Line 1 Single Journey Ticket', 15, 0, 1, 0, 0, NULL, 'piece', 1 ),
+					array( 'MRT SJT', 'Line 3 Single Journey Ticket', 15, 0, 1, 0, 0, NULL, 'piece', 1 ),
+					array( 'Staff Card', 'Staff Card', NULL, 0, 0, 0, 0, NULL, 'piece', 1 )
 				);
 
 			foreach( $items as $i )
@@ -750,6 +873,7 @@ class Installer extends CI_Controller {
 				$item->set( 'machine_remittable', $i[6] );
 				$item->set( 'item_group', $i[7] );
 				$item->set( 'item_unit', $i[8] );
+				$item->set( 'turnover_item', $i[9] );
 				$item->db_save();
 				unset( $item );
 			}
@@ -823,7 +947,8 @@ class Installer extends CI_Controller {
 				array( 'SVC - Defective', 'SVC - Damaged', 1 ),
 
 				// Other cards
-				array( 'L1 SJT', 'Others', 1 )
+				array( 'L1 SJT', 'Others', 1 ),
+				array( 'MRT SJT', 'Others', 1 )
 			);
 
 			$item = new Item();
@@ -840,22 +965,23 @@ class Installer extends CI_Controller {
 			echo 'OK<br />';
 			flush();
 
-			// Create default item categories
-			echo 'Creating default item categories...';
+			// Create default categories
+			echo 'Creating default categories...';
 			flush();
 
 			$values = array(
 					array( 'Initial Allocation', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1 ),
 					array( 'Additional Allocation', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1 ),
 					array( 'Magazine Load', 1, TRUE, FALSE, FALSE, FALSE, TRUE, 1 ),
-					array( 'Unsold / Loose', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
-					array( 'Defective', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
-					array( 'Reject Bin', 2, FALSE, TRUE, TRUE, FALSE, TRUE, 1 ),
+					array( 'Unsold / Loose', 2, FALSE, TRUE, TRUE, TRUE, TRUE, 1 ),
 					array( 'Free Exit', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
 					array( 'Expired', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
 					array( 'Code Red', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
-					array( 'Black Box', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
-					array( 'Unconfirmed', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 )
+					array( 'Unconfirmed', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
+					array( 'TCERF', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
+					array( 'TIR', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
+					array( 'Reject Bin', 2, FALSE, TRUE, TRUE, FALSE, TRUE, 1 ),
+					array( 'Blackbox', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
 				);
 
 			foreach( $values as $value )
@@ -868,8 +994,88 @@ class Installer extends CI_Controller {
 				$this->db->set( 'is_teller', $value[5] );
 				$this->db->set( 'is_machine', $value[6] );
 				$this->db->set( 'category_status', $value[7] );
+				$this->db->insert( 'categories' );
+			}
+			echo 'OK<br />';
+			flush();
+
+			// Create default item categories
+			echo 'Creating default item categories...';
+			flush();
+
+			$values = array(
+					array( 'L2 SJT', 'Unsold / Loose' ),
+					array( 'L2 SJT', 'Free Exit' ),
+					array( 'L2 SJT', 'Expired' ),
+					array( 'L2 SJT', 'Unconfirmed' ),
+					array( 'L2 SJT', 'Code Red' ),
+
+					array( 'L2 SJT - Rigid Box', 'Initial Allocation' ),
+					array( 'L2 SJT - Rigid Box', 'Additional Allocation' ),
+					array( 'L2 SJT - Rigid Box', 'Unsold / Loose' ),
+
+					array( 'L2 SJT - Ticket Magazine', 'Magazine Load' ),
+
+					array( 'L2 SJT - Defective', 'TCERF' ),
+					array( 'L2 SJT - Defective', 'Reject Bin' ),
+					array( 'L2 SJT - Defective', 'Blackbox' ),
+
+					array( 'L2 SJT - Damaged', 'TCERF' ),
+					array( 'L2 SJT - Damaged', 'Reject Bin' ),
+					array( 'L2 SJT - Damaged', 'Blackbox' ),
+
+					array( 'SVC', 'Unsold / Loose' ),
+					array( 'SVC', 'Expired' ),
+
+					array( 'SVC - Rigid Box', 'Initial Allocation' ),
+					array( 'SVC - Rigid Box', 'Additional Allocation' ),
+					array( 'SVC - Rigid Box', 'Unsold / Loose' ),
+
+					array( 'SVC - 25', 'Initial Allocation' ),
+					array( 'SVC - 25', 'Additional Allocation' ),
+					array( 'SVC - 25', 'Unsold / Loose' ),
+
+					array( 'SVC - 150', 'Magazine Load' ),
+
+					array( 'SVC - Defective', 'TIR' ),
+					array( 'SVC - Defective', 'Reject Bin' ),
+					array( 'SVC - Defective', 'Blackbox' ),
+
+					array( 'SVC - Damaged', 'Reject Bin' ),
+					array( 'SVC - Damaged', 'Blackbox' ),
+
+					array( 'Senior', 'TIR' ),
+					array( 'Senior', 'Blackbox' ),
+
+					array( 'PWD', 'TIR' ),
+					array( 'PWD', 'Blackbox' ),
+
+					array( 'L2 Ticket Coupon', 'Initial Allocation' ),
+					array( 'L2 Ticket Coupon', 'Additional Allocation' ),
+					array( 'L2 Ticket Coupon', 'Unsold / Loose' ),
+
+					array( 'Others', 'Blackbox' ),
+
+					array( 'L1 SJT', 'Blackbox' ),
+
+					array( 'MRT SJT', 'Blackbox' ),
+
+					array( 'Staff Card', 'Blackbox' )
+				);
+
+			$this->load->library( 'item' );
+			$this->load->library( 'category' );
+			$Item = new Item();
+			$Category = new Category();
+			foreach( $values as $value )
+			{
+				$item = $Item->get_by_name( $value[0] );
+				$category = $Category->get_by_name( $value[1] );
+				$this->db->set( 'ic_item_id', $item->get( 'id' ) );
+				$this->db->set( 'ic_category_id', $category->get( 'id' ) );
 				$this->db->insert( 'item_categories' );
 			}
+
 			echo 'OK<br />';
 			flush();
 		}
@@ -943,11 +1149,14 @@ class Installer extends CI_Controller {
 			$this->db->query( "TRUNCATE TABLE stores" );
 			$this->db->query( "TRUNCATE TABLE store_users" );
 			$this->db->query( "TRUNCATE TABLE items" );
+			$this->db->query( "TRUNCATE TABLE categories" );
 			$this->db->query( "TRUNCATE TABLE item_categories" );
 			$this->db->query( "TRUNCATE TABLE conversion_table" );
 		}
 
 		$this->db->query( "TRUNCATE TABLE store_inventory" );
+		$this->db->query( "TRUNCATE TABLE shift_turnovers" );
+		$this->db->query( "TRUNCATE TABLE shift_turnover_items" );
 		$this->db->query( "TRUNCATE TABLE transactions" );
 		$this->db->query( "TRUNCATE TABLE adjustments" );
 		$this->db->query( "TRUNCATE TABLE transfers" );

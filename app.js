@@ -164,6 +164,14 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider
 			}
 		};
 
+	var shiftTurnover = {
+			name: 'main.shiftTurnover',
+			parent: main,
+			params: { shiftTurnover: null, editMode: 'view' },
+			templateUrl: baseUrl + 'index.php/main/view/partial_shift_turnover_form',
+			controller: 'ShiftTurnoverController'
+		};
+
 	var transferValidation = {
 			name: 'main.transferValidation',
 			parent: main,
@@ -273,6 +281,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider
 		.state( dashboard )
 		.state( main )
 		.state( store )
+		.state( shiftTurnover )
 		.state( transferValidation )
 		.state( transfer )
 		.state( adjust )
@@ -318,7 +327,7 @@ app.run( [ '$rootScope', 'session', 'appData',
 			});
 
 		console.log( 'Loading item categories...' );
-		appData.getItemCategories().then(
+		appData.getCategories().then(
 			function( response )
 			{
 				// do nothing

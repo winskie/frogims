@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Item_category extends Base_model
+class Category extends Base_model
 {
 	protected $category;
 	protected $category_type;
@@ -15,7 +15,7 @@ class Item_category extends Base_model
 	public function __construct()
 	{
 		parent::__construct();
-		$this->primary_table = 'item_categories';
+		$this->primary_table = 'categories';
 		$this->db_fields = array(
 			'category' => array( 'type' => 'string' ),
 			'category_type' => array( 'type' => 'integer' ),
@@ -27,20 +27,38 @@ class Item_category extends Base_model
             'category_status' => array( 'type' => 'integer' )
 		);
 	}
-    
+
+	public function get_by_name( $category_name )
+    {
+        $ci =& get_instance();
+
+        $ci->db->where( 'category', $category_name );
+        $ci->db->limit(1);
+        $query = $ci->db->get( $this->primary_table );
+
+        if( $query->num_rows() )
+        {
+            return $query->row( 0, get_class( $this ) );
+        }
+        else
+        {
+            return NULL;
+        }
+    }
+
 	public function get_categories( $params = array() )
 	{
 		$ci =& get_instance();
 		$format = param( $params, 'format', 'object' );
 		$status = param( $params, 'status', 1 );
-		
+
 		if( ! is_null( $status ) )
 		{
 			$ci->db->where( 'category_status', $status );
 		}
-		
+
 		$categories = $ci->db->get( $this->primary_table )->result( get_class( $this ) );
-		
+
 		if( $format == 'array' )
 		{
 			$categories_array = array();
@@ -48,7 +66,7 @@ class Item_category extends Base_model
 			{
 				$categories_array[] = $category->as_array();
 			}
-			
+
 			return $categories_array;
 		}
 		else

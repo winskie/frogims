@@ -92,9 +92,14 @@
                     </div>
 
                     <!-- Output quantity -->
-                    <div class="form-group text-center">
+                    <div class="form-group text-center" ng-switch on="data.editMode">
                         <label class="control-label">Output quantity</label>
-                        <p class="form-control-static text-center">{{ conversionItem.target_quantity | number }}</p>
+                        <input type="number" class="form-control" name="outputQuantity" id="outputQuantity"
+                                step="{{ data.output.step }}" min="{{ data.output.min }}"
+                                ng-model="conversionItem.target_quantity"
+                                ng-change="calculateInput()"
+                                ng-switch-when="edit">
+                        <p class="form-control-static text-center" ng-switch-default>{{ conversionItem.target_quantity | number }}</p>
                     </div>
                 </div>
             </div>

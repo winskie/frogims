@@ -341,10 +341,10 @@ class Transfer extends Base_model {
 		else
 		{
 			$ci->load->library( 'transfer_item' );
-			$ci->db->select( 'ti.*, i.item_name, i.item_description, i.item_unit, ci.category as category_name, ci.is_transfer_category' );
+			$ci->db->select( 'ti.*, i.item_name, i.item_description, i.item_unit, c.category as category_name, c.is_transfer_category' );
 			$ci->db->where( 'transfer_id', $this->id );
 			$ci->db->join( 'items i', 'i.id = ti.item_id', 'left' );
-			$ci->db->join( 'item_categories ci', 'ci.id = ti.item_category_id', 'left' );
+			$ci->db->join( 'categories c', 'c.id = ti.transfer_item_category_id', 'left' );
 			$query = $ci->db->get( 'transfer_items ti' );
 			$items = $query->result( 'Transfer_item' );
 
@@ -532,7 +532,11 @@ class Transfer extends Base_model {
 
 					if( $item->db_changes )
 					{
-						$item->db_save();
+						if( !$item->db_save() )
+						{
+							$ci->db->trans_rollback();
+							return FALSE;
+						}
 					}
 				}
 
@@ -617,10 +621,15 @@ class Transfer extends Base_model {
 				$result = $this->_db_insert();
 
 				// save transfer items
+
 				foreach( $this->items as $item )
 				{
 					$item->set( 'transfer_id', $this->id );
-					$item->db_save();
+					if( !$item->db_save() )
+					{
+						$ci->db->trans_rollback();
+						return FALSE;
+					}
 				}
 
 				// Transact transfer

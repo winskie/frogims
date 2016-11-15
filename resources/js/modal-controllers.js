@@ -1,7 +1,6 @@
 app.controller( 'DeliveryReceiptModalController', [ '$uibModalInstance', 'transferItem', 'UserServices',
 	function( $uibModalInstance, transferItem, UserServices )
 	{
-		console.log( 'Modal', transferItem );
 		var $ctrl = this;
 		$ctrl.params = {
 				preparedBy: null,
@@ -37,5 +36,72 @@ app.controller( 'DeliveryReceiptModalController', [ '$uibModalInstance', 'transf
 			{
 				$uibModalInstance.dismiss();
 			};
+	}
+]);
+
+app.controller( 'TurnoverItemModalController', [ '$filter', '$uibModalInstance', 'session', 'appData',
+	function( $filter, $uibModalInstance, session, appData )
+	{
+		var $ctrl = this;
+		$ctrl.input = {
+				datepicker: { value: new Date(), format: 'yyyy-MM-dd', opened: false }
+			};
+
+		$ctrl.data = {
+				checkAllItems: true,
+				items: []
+			};
+
+		$ctrl.showDatePicker = function()
+			{
+				$ctrl.input.datepicker.opened = true;
+			};
+
+		$ctrl.changeDate = function()
+			{
+				var date = $ctrl.input.datepicker.value;
+				appData.getTurnoverItems( session.data.currentStore.id, date ).then(
+					function( response )
+					{
+						for( var i = 0; i < response.items.length; i++ )
+						{
+							response.items[i].selected = true;
+						}
+						$ctrl.data.items = response.items;
+					},
+					function( reason )
+					{
+						console.error( reason );
+					} );
+			};
+
+		$ctrl.toggleCheckboxes = function()
+			{
+				for( var i = 0; i < $ctrl.data.items.length; i++ )
+				{
+					$ctrl.data.items[i].selected = $ctrl.data.checkAllItems && !$ctrl.data.items[i].turnover_id;
+				}
+			}
+
+		$ctrl.submit = function()
+			{
+				var selected = [];
+				for( var i = 0; i < $ctrl.data.items.length; i++ )
+				{
+					if( $ctrl.data.items[i].selected && !$ctrl.data.items[i].turnover_id )
+					{
+						selected.push( $ctrl.data.items[i] );
+					}
+				}
+				$uibModalInstance.close( selected );
+			};
+
+		$ctrl.close = function()
+			{
+				$uibModalInstance.dismiss();
+			};
+
+		// Initialize controller
+		$ctrl.changeDate();
 	}
 ]);

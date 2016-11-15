@@ -1,6 +1,7 @@
 body
 {
 	margin-top: 125px;
+    margin-bottom: 50px;
 }
 .table-details
 {
@@ -48,6 +49,11 @@ body
 #adminTabSet > div.tab-content,
 #userTabSet > div.tab-content {
     padding-top: 20px;
+}
+
+.text-extra-muted
+{
+    color: #bbbbbb;
 }
 
 .defective

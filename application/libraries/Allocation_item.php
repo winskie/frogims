@@ -2,7 +2,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Allocation_item extends Base_model {
-	
+
 	protected $allocation_id;
 	protected $cashier_shift_id;
     protected $cashier_id;
@@ -11,17 +11,17 @@ class Allocation_item extends Base_model {
     protected $allocation_category_id;
     protected $allocation_datetime;
     protected $allocation_item_status;
-	
+
 	protected $category = NULL;
 	protected $item = NULL;
-    
+
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
 	protected $last_modified_field = 'last_modified';
-    
+
     protected $previousStatus;
     protected $parentAllocation;
-	
+
 	public function __construct()
 	{
 		parent::__construct();
@@ -37,16 +37,16 @@ class Allocation_item extends Base_model {
                 'allocation_item_status' => array( 'type' => 'integer' )
 			);
 	}
-    
+
     public function set_parent( &$parent )
 	{
 		$this->parentAllocation = $parent;
 	}
-	
+
 	public function get_parent()
 	{
 		$ci =& get_instance();
-		
+
 		if( ! $this->parentAllocation )
 		{
 			$ci->load->library( 'allocation' );
@@ -54,24 +54,24 @@ class Allocation_item extends Base_model {
 			$allocation = $allocation->get_by_id( $this->allocation_id );
 			$this->parentAllocation = $allocation;
 		}
-		
+
 		return $this->parentAllocation;
 	}
-	
+
 	public function get_category()
 	{
 		if( ! isset( $this->category ) && isset( $this->allocation_category_id ) )
 		{
 			$ci =& get_instance();
-			$ci->load->library( 'item_category' );
-			$item_category = new Item_category();
-			$item_category = $item_category->get_by_id( $this->allocation_category_id );
-			$this->category = $item_category;
+			$ci->load->library( 'category' );
+			$category = new Category();
+			$category = $category->get_by_id( $this->allocation_category_id );
+			$this->category = $category;
 		}
-		
+
 		return $this->category;
 	}
-	
+
 	public function get_item()
 	{
 		if( ! isset( $this->item ) && isset( $this->allocated_item_id ) )
@@ -82,10 +82,10 @@ class Allocation_item extends Base_model {
 			$item = $item->get_by_id( $this->allocated_item_id );
 			$this->item = $item;
 		}
-		
+
 		return $this->item;
 	}
-    
+
     public function set( $property, $value )
 	{
 		if( $property == 'id' )
@@ -115,7 +115,7 @@ class Allocation_item extends Base_model {
 
 		return TRUE;
 	}
-    
+
     public function db_save()
 	{
 		// There are no pending changes, just return the record
@@ -123,20 +123,20 @@ class Allocation_item extends Base_model {
 		{
 			return $this;
 		}
-		
+
 		$ci =& get_instance();
-		
+
 		$result = NULL;
 		$ci->db->trans_start();
-        
+
         // Check for required default values
         $this->_set_defaults();
-        
+
 		if( isset( $this->id ) )
 		{
             // Set fields and update record metadata
             $this->_update_timestamps( FALSE );
-            
+
 			$ci->db->set( $this->db_changes );
 			$result = $this->_db_update();
 		}
@@ -148,12 +148,12 @@ class Allocation_item extends Base_model {
 			$result = $this->_db_insert();
 		}
 		$ci->db->trans_complete();
-		
+
 		if( $ci->db->trans_status() )
 		{
 			$this->_reset_db_changes();
             $this->previousStatus = NULL;
-            
+
 			return $result;
 		}
 		else
@@ -161,39 +161,39 @@ class Allocation_item extends Base_model {
 			return FALSE;
 		}
 	}
-    
+
     public function _set_defaults()
     {
         $ci =& get_instance();
-        
+
         if( ! isset( $this->allocation_datetime ) )
         {
             $this->set( 'allocation_datetime', date( TIMESTAMP_FORMAT ) );
         }
-        
+
         if( ! isset( $this->cashier_id ) )
         {
             $this->set( 'cashier_id', $ci->session->current_user_id );
         }
-        
+
         if( ! isset( $this->allocation_item_status ) )
         {
-			$item_category = $this->get_category();
-			switch( $item_category->get( 'category_type' ) )
+			$category = $this->get_category();
+			switch( $category->get( 'category_type' ) )
 			{
 				case 1:
             		$this->set( 'allocation_item_status', ALLOCATION_ITEM_SCHEDULED );
 					break;
-					
+
 				case 2:
 					$this->set( 'allocation_item_status',  REMITTANCE_ITEM_PENDING );
 					break;
-					
+
 				default:
 					die( 'Invalid allocation category type' );
 			}
         }
-        
+
         return TRUE;
     }
 }

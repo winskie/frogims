@@ -109,11 +109,21 @@ class Mopping_item extends Base_model {
 		}
 		else
 		{
-            // Set base quantity
-            $this->set( 'mopped_base_quantity', $this->_get_base_quantity( $this->mopped_item_id, $this->mopped_quantity ) );
+            if( $this->_check_data() )
+            {
+                // Check for required default values
+                $this->_set_default_values();
 
-			$ci->db->set( $this->db_changes );
-			$result = $this->_db_insert();
+                // Set base quantity
+                $this->set( 'mopped_base_quantity', $this->_get_base_quantity( $this->mopped_item_id, $this->mopped_quantity ) );
+
+                $ci->db->set( $this->db_changes );
+                $result = $this->_db_insert();
+            }
+            else
+            {
+                return FALSE;
+            }
 		}
 		$ci->db->trans_complete();
 
@@ -127,6 +137,15 @@ class Mopping_item extends Base_model {
 			return FALSE;
 		}
 	}
+
+    public function _set_default_values()
+    {
+        // Set current user as processor of collection
+        if( !isset( $this->processor_id ) )
+        {
+            $this->set( 'processor_id', current_user( TRUE ) );
+        }
+    }
 
     public function _get_base_quantity( $item_id, $quantity )
     {

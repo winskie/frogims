@@ -2,6 +2,45 @@ CREATE DATABASE IF NOT EXISTS frogims;
 
 USE frogims;
 
+-- Date Dimension
+CREATE TABLE ints ( i tinyint );
+INSERT INTO ints VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9);
+
+CREATE TABLE IF NOT EXISTS date_dim (
+	dt DATE NOT NULL PRIMARY KEY,
+	y SMALLINT NULL,
+	q tinyint NULL,
+	m tinyint NULL,
+	d tinyint NULL,
+	dw tinyint NULL,
+	monthName VARCHAR(9) NULL,
+	dayName VARCHAR(9) NULL,
+	w tinyint NULL,
+	isWeekday BOOLEAN NULL DEFAULT NULL,
+	isHoliday BOOLEAN NULL DEFAULT NULL,
+	holidayDescr VARCHAR(32) NULL,
+	locked BOOL DEFAULT FALSE
+)
+ENGINE=InnoDB;
+
+INSERT INTO date_dim (dt)
+SELECT DATE('2015-01-01') + INTERVAL a.i*10000 + b.i*1000 + c.i*100 + d.i*10 + e.i DAY
+FROM ints a JOIN ints b JOIN ints c JOIN ints d JOIN ints e
+WHERE (a.i*10000 + b.i*1000 + c.i*100 + d.i*10 + e.i) <= 11322
+ORDER BY 1;
+
+UPDATE date_dim
+SET isWeekday = CASE WHEN dayofweek(dt) IN (1,7) THEN 0 ELSE 1 END,
+	isHoliday = 0,
+	y = YEAR(dt),
+	q = quarter(dt),
+	m = MONTH(dt),
+	d = dayofmonth(dt),
+	dw = dayofweek(dt),
+	monthname = monthname(dt),
+	dayname = dayname(dt),
+	w = week(dt);
+
 CREATE TABLE IF NOT EXISTS stations
 (
 	id INTEGER AUTO_INCREMENT NOT NULL,
@@ -19,6 +58,8 @@ CREATE TABLE IF NOT EXISTS shifts
 	description TEXT,
 	shift_start_time TIME NOT NULL,
 	shift_end_time TIME NOT NULL,
+	shift_next_shift_id INTEGER NULL DEFAULT NULL,
+	shift_order SMALLINT NOT NULL DEFAULT 1,
 	PRIMARY KEY (id)
 )
 ENGINE=InnoDB;
@@ -28,6 +69,7 @@ CREATE TABLE IF NOT EXISTS groups
 	id INTEGER AUTO_INCREMENT NOT NULL,
 	group_name VARCHAR(100) NOT NULL,
 	group_perm_transaction VARCHAR(4) NOT NULL DEFAULT 'none',
+	group_perm_shift_turnover VARCHAR(4) NOT NULL DEFAULT 'none',
 	group_perm_transfer VARCHAR(4) NOT NULL DEFAULT 'none',
 	group_perm_transfer_approve BOOLEAN NOT NULL DEFAULT 0,
 	group_perm_transfer_validation VARCHAR(4) NOT NULL DEFAULT 'none',
@@ -119,6 +161,7 @@ CREATE TABLE IF NOT EXISTS items
 	teller_remittable BOOLEAN NOT NULL DEFAULT 0,
 	machine_allocatable BOOLEAN NOT NULL DEFAULT 0,
 	machine_remittable BOOLEAN NOT NULL DEFAULT 0,
+	turnover_item BOOLEAN NOT NULL DEFAULT 0,
 	date_created DATETIME NOT NULL,
 	date_modified DATETIME NOT NULL,
 	last_modified INTEGER NOT NULL,
@@ -143,6 +186,52 @@ CREATE TABLE IF NOT EXISTS store_inventory
 	FOREIGN KEY store_inventory_item_fx (item_id) REFERENCES items (id)
 		ON UPDATE CASCADE
 		ON DELETE RESTRICT
+)
+ENGINE=InnoDB;
+
+-- st_status: 1 - open, 2 - close
+CREATE TABLE IF NOT EXISTS shift_turnovers
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	st_store_id INTEGER NOT NULL,
+	st_from_date DATE NOT NULL,
+	st_from_shift_id INTEGER NOT NULL,
+	st_to_date DATE NULL DEFAULT NULL,
+	st_to_shift_id INTEGER NULL DEFAULT NULL,
+	st_start_user_id INTEGER NULL DEFAULT NULL,
+	st_end_user_id INTEGER NULL DEFAULT NULL,
+	st_remarks TEXT,
+	st_status SMALLINT NOT NULL DEFAULT 1,
+	date_created DATETIME NOT NULL,
+	date_modified DATETIME NOT NULL,
+	last_modified INTEGER NOT NULL,
+	PRIMARY KEY (id),
+	FOREIGN KEY st_start_user_fk ( st_start_user_id ) REFERENCES users (id)
+		ON UPDATE CASCADE
+		ON DELETE RESTRICT,
+	FOREIGN KEY st_end_user_fk ( st_end_user_id ) REFERENCES users (id)
+		ON UPDATE CASCADE
+		ON DELETE RESTRICT,
+	UNIQUE st_from_undx (st_store_id, st_from_date, st_from_shift_id),
+	UNIQUE st_to_undx (st_store_id, st_to_date, st_to_shift_id)
+)
+ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS shift_turnover_items
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	sti_turnover_id INTEGER NOT NULL,
+	sti_item_id INTEGER NOT NULL,
+	sti_inventory_id INTEGER NOT NULL,
+	sti_beginning_balance INTEGER NULL DEFAULT NULL,
+	sti_ending_balance INTEGER NULL DEFAULT NULL,
+	date_created DATETIME NOT NULL,
+	date_modified DATETIME NOT NULL,
+	last_modified INTEGER NOT NULL,
+	PRIMARY KEY (id),
+	FOREIGN KEY sti_shift_turnover_fk (sti_turnover_id) REFERENCES shift_turnovers (id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
 )
 ENGINE=InnoDB;
 
@@ -241,18 +330,22 @@ CREATE TABLE IF NOT EXISTS transfer_items
 	id INTEGER AUTO_INCREMENT NOT NULL,
 	transfer_id INTEGER NOT NULL,
 	item_id INTEGER NOT NULL,
-	item_category_id INTEGER NULL DEFAULT NULL,
+	transfer_item_category_id INTEGER NULL DEFAULT NULL,
 	quantity INTEGER NOT NULL DEFAULT 0,
 	quantity_received INTEGER NULL DEFAULT NULL,
 	remarks TEXT NULL DEFAULT NULL,
 	transfer_item_status SMALLINT NOT NULL DEFAULT 1,
+	transfer_item_allocation_item_id INTEGER NULL DEFAULT NULL,
+	transfer_item_transfer_item_id INTEGER NULL DEFAULT NULL,
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,
 	last_modified INTEGER NOT NULL,
 	PRIMARY KEY (id),
 	FOREIGN KEY transfer_items_transfer_fk (transfer_id) REFERENCES transfers (id)
 		ON UPDATE CASCADE
-		ON DELETE CASCADE
+		ON DELETE CASCADE,
+	INDEX transfer_items_allocation_item_ndx ( transfer_item_allocation_item_id ),
+	INDEX transfer_items_transfer_item_ndx ( transfer_item_transfer_item_id )
 )
 ENGINE=InnoDB;
 
@@ -425,7 +518,7 @@ ENGINE=InnoDB;
 
 -- category_type: 1 - allocation, 2 - remittance
 -- category_status: 0 - inactive, 1 - in use
-CREATE TABLE IF NOT EXISTS item_categories
+CREATE TABLE IF NOT EXISTS categories
 (
 	id INTEGER AUTO_INCREMENT NOT NULL,
 	category VARCHAR(100) NOT NULL,
@@ -437,5 +530,21 @@ CREATE TABLE IF NOT EXISTS item_categories
 	is_machine BOOLEAN NOT NULL,
 	category_status SMALLINT NOT NULL DEFAULT 1,
 	PRIMARY KEY (id)
+)
+ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS item_categories
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	ic_item_id INTEGER NOT NULL,
+	ic_category_id INTEGER NOT NULL,
+	PRIMARY KEY (id),
+	UNIQUE ic_udx (ic_item_id, ic_category_id),
+	FOREIGN KEY ic_item_fk (ic_item_id) REFERENCES items (id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE,
+	FOREIGN KEY ic_category_fk (ic_category_id) REFERENCES categories (id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
 )
 ENGINE=InnoDB;

@@ -122,16 +122,12 @@
 		</div>
 	</div>
 
+	<!-- Transfer Items Panel -->
 	<div class="panel panel-default" style="height: 300px; overflow-y: auto;">
 		<div class="panel-heading clearfix">
 			<h3 class="panel-title pull-left">Transfer Items</h3>
-			<div class="pull-right col-sm-12 col-md-3" ng-if="data.showAllocationItemEntry && ( transferItem.transfer_status == <?php echo TRANSFER_PENDING;?> )">
-				<div class="input-group">
-					<span class="input-group-addon">Allocation ID</span>
-					<input type="text" class="form-control text-right"
-						ng-model="input.allocation"
-						ng-keypress="addAllocationItems()">
-				</div>
+			<div class="pull-right" ng-if="data.showAllocationItemEntry && ( transferItem.transfer_status == <?php echo TRANSFER_PENDING;?> )">
+				<button class="btn btn-default" type="button" ng-if="data.selectedCategory.id == 3 && data.editMode == 'transfer'" ng-click="showTurnoverItems()">Select turnover items...</button>
 			</div>
 		</div>
 		<table class="table table-condensed">
@@ -139,7 +135,7 @@
 				<tr>
 					<th class="text-center" style="width: 50px;">Row</th>
 					<th class="text-left">Item</th>
-					<th class="text-center" style="width: 100px;">Declared</th>
+					<th class="text-center" style="width: 100px;">Quantity</th>
 					<th class="text-center" style="width: 100px;"
 							ng-if="['receipt', 'externalReceipt', 'view' ].indexOf( data.editMode ) != -1">Received</th>
 					<th class="text-left">Category</th>
@@ -194,7 +190,7 @@
 				<label class="control-label">Item</label>
 				<select class="form-control"
 						ng-model="input.inventoryItem"
-						ng-change="getItemQuantities()"
+						ng-change="onItemChange()"
 						ng-options="item as item.item_name for item in data.inventoryItems track by item.id">
 				</select>
 			</div>
@@ -214,11 +210,11 @@
 			<div class="form-group col-sm-12 col-md-6 col-lg-3" ng-if="data.showCategory">
 				<label class="control-label">Category</label>
 				<select class="form-control"
-						ng-model="input.itemCategory"
-						ng-options="category as category.category for category in data.itemCategories track by category.id">
+						ng-model="input.category"
+						ng-options="category as category.category for category in data.categories track by category.id">
 				</select>
 			</div>
-			<div class="form-group" ng-class="{ 'col-sm-12 col-md-6 col-lg-2': data.showCategory, 'col-sm-12 col-md-6 col-lg-6': !data.showCategory }">
+			<div class="form-group" ng-class="{ 'col-sm-12 col-md-6 col-lg-3': data.showCategory, 'col-sm-12 col-md-6 col-lg-6': !data.showCategory }">
 				<label class="control-label">Remarks</label>
 				<input type="text" class="form-control"
 						ng-model="input.remarks"

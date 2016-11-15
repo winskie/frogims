@@ -24,6 +24,19 @@ class Inventory extends Base_model
 		);
 	}
 
+	public function get_categories()
+    {
+        $ci =& get_instance();
+        $ci->load->library( 'category' );
+
+        $ci->db->select( 'c.*' );
+        $ci->db->where( 'ic_item_id', $this->item_id );
+        $ci->db->join( 'categories c', 'c.id = ic_category_id', 'left' );
+        $query = $ci->db->get( 'item_categories' );
+
+        return $query->custom_result_object( 'Category' );
+    }
+
 	public function get_by_store_item( $store_id, $item_id )
 	{
 		$ci =& get_instance();
@@ -136,17 +149,17 @@ class Inventory extends Base_model
 
 		return FALSE;
 	}
-	
-	
+
+
 	public function adjust( $quantity, $reason, $status )
 	{
 		$ci =& get_instance();
-		
+
 		$ci->load->library( 'adjustment' );
 		$adjustment = new Adjustment();
-		
+
 		$ci->db->trans_start();
-		
+
 		$adjustment->set( 'store_inventory_id', $this->id );
 		$adjustment->set( 'adjustment_type', ADJUSTMENT_TYPE_ACTUAL );
 		$adjustment->set( 'adjusted_quantity', $quantity );
@@ -155,14 +168,14 @@ class Inventory extends Base_model
 		$adjustment->set( 'adjustment_status', ADJUSTMENT_PENDING );
 		$adjustment->set( 'user_id', $ci->session->current_user_id );
 		$adjustment->db_save();
-		
+
 		$ci->db->trans_complete();
-		
+
 		if( $ci->db->trans_status() )
 		{
 			return TRUE;
 		}
-		
+
 		return FALSE;
 	}
 }
