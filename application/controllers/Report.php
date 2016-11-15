@@ -28,7 +28,7 @@ class Report extends MY_Controller {
 
 	private function _generate_report( $report_path, $format = NULL, $params = array() )
 	{
-        if( $this->config->item( 'report_mode') == 'JasperReports' )
+        if( $this->config->item( 'report_mode' ) == 'JasperReports' )
         {
             // Get default format
             if( is_null( $format ) )
@@ -55,8 +55,8 @@ class Report extends MY_Controller {
 
             // Set default report server user credentials
             $params = array_merge( array(
-                    'j_username' => 'jasperadmin',
-                    'j_password' => 'jasperadmin',
+                    'j_username' => $this->config->item( 'jasper_username' ),
+                    'j_password' => $this->config->item( 'jasper_password' )
                 ), $params );
 
             // temporary report file
@@ -123,6 +123,20 @@ class Report extends MY_Controller {
 	{
 		$params = $this->input->get();
 
+        $params = array_merge( array(
+                'TRANSFER_ID' => NULL,
+                'PREPARED_BY' => NULL,
+                'PREPARED_BY_POSITION' => NULL,
+                'CHECKED_BY' => NULL,
+                'CHECKED_BY_POSITION' => NULL,
+                'BEARER' => NULL,
+                'BEARER_ID' => NULL,
+                'ISSUED_BY' => NULL,
+                'ISSUED_BY_POSITION' => NULL,
+                'APPROVED_BY' => NULL,
+                'APPROVED_BY_POSITION' => NULL
+            ), $params );
+
         switch( $report_mode )
         {
             case 'JasperReports':
@@ -135,20 +149,6 @@ class Report extends MY_Controller {
                     $format = $params['format'];
                     unset( $params['format'] );
                 }
-
-                $params = array_merge( array(
-                        'TRANSFER_ID' => NULL,
-                        'PREPARED_BY' => NULL,
-                        'PREPARED_BY_POSITION' => NULL,
-                        'CHECKED_BY' => NULL,
-                        'CHECKED_BY_POSITION' => NULL,
-                        'BEARER' => NULL,
-                        'BEARER_ID' => NULL,
-                        'ISSUED_BY' => NULL,
-                        'ISSUED_BY_POSITION' => NULL,
-                        'APPROVED_BY' => NULL,
-                        'APPROVED_BY_POSITION' => NULL
-                    ), $params );
 
                 return $this->_generate_report( $report_path, $format, $params );
 
@@ -165,8 +165,6 @@ class Report extends MY_Controller {
                 unset( $params['TRANSFER_ID'] );
                 $this->load->view( 'reports/delivery_receipt', $params );
         }
-
-
 	}
 
 }
