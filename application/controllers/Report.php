@@ -119,7 +119,7 @@ class Report extends MY_Controller {
 	}
 
 
-	function delivery_receipt( $report_mode = 'HTML' )
+	function delivery_receipt( $report_mode = 'JasperReports' )
 	{
 		$params = $this->input->get();
 
