@@ -262,16 +262,21 @@ class Allocation extends Base_model {
             if( $this->_check_items() )
             {
                 // Check for valid new allocation status
-                $valid_new_status = array( ALLOCATION_SCHEDULED, ALLOCATION_ALLOCATED );
-                if( ! in_array( $this->allocation_status, $valid_new_status ) )
+                if( $this->assignee_type == ALLOCATION_ASSIGNEE_TELLER )
                 {
-                    die( 'Invalid allocation status for new record' );
+                    $valid_new_status = array( ALLOCATION_SCHEDULED, ALLOCATION_ALLOCATED );
+                    if( ! in_array( $this->allocation_status, $valid_new_status ) )
+                    {
+                        set_message( 'Invalid allocation status for new record' );
+                        return FALSE;
+                    }
                 }
 
                 // Check for valid assignee
                 if( $this->allocation_status == ALLOCATION_ALLOCATED && !$this->assignee )
                 {
-                    die( 'Allocation has no assignee defined' );
+                    set_message( 'Allocation has no assignee defined' );
+                    return FALSE;
                 }
 
                 // Adjust inventory reservation level for new allocation request, if scheduled
@@ -290,7 +295,8 @@ class Allocation extends Base_model {
                         }
                         else
                         {
-                            die( 'Cannot find inventory record' );
+                            set_message( 'Cannot find inventory record' );
+                            return FALSE;
                         }
                     }
                 }
@@ -325,12 +331,15 @@ class Allocation extends Base_model {
                 }
 
                 // Transact allocation
-                if( $this->allocation_status == ALLOCATION_ALLOCATED )
+                if( in_array( $this->allocation_status, array( ALLOCATION_ALLOCATED, ALLOCATION_REMITTED ) ) )
                 {
                     $this->_transact_allocation();
                 }
 
-                $this->_transact_remittance();
+                if( in_array( $this->allocation_status, array( ALLOCATION_REMITTED ) ) )
+                {
+                    $this->_transact_remittance();
+                }
             }
             else
             {
@@ -747,7 +756,7 @@ class Allocation extends Base_model {
         foreach( $allocations as $allocation )
         {
             if( $allocation->get( 'allocation_item_status' ) == ALLOCATION_ITEM_SCHEDULED
-                && $this->allocation_status == ALLOCATION_ALLOCATED )
+                && in_array( $this->allocation_status, array( ALLOCATION_ALLOCATED, ALLOCATION_REMITTED ) ) )
             {
                 $inventory = new Inventory();
                 $inventory = $inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ) );
@@ -783,7 +792,8 @@ class Allocation extends Base_model {
         $ci->db->trans_start();
         foreach( $remittances as $remittance )
         {
-            if( $remittance->get( 'allocation_item_status' ) == REMITTANCE_ITEM_PENDING )
+            if( $remittance->get( 'allocation_item_status' ) == REMITTANCE_ITEM_PENDING
+                && in_array( $this->allocation_status, array( ALLOCATION_REMITTED ) ) )
             {
                 $inventory = new Inventory();
                 $inventory = $inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ) );

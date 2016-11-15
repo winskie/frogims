@@ -32,10 +32,10 @@
 		<tbody>
 			<tr ng-repeat="row in $ctrl.data.items">
 				<td class="text-center">{{ $index + 1 }}</td>
-				<td>{{ row.item_description }}</td>
+				<td>{{ row.item_name }}</td>
 				<td class="text-center">{{ row.category }}</td>
 				<td class="text-center">{{ row.quantity | number }}</td>
-				<td class="text-center">{{ row.item_source + ( row.assignee ? ( ' - ' + row.assignee ) : '' ) }}</td>
+				<td class="text-center">{{ row.item_source + ( row.assignee ? ( row.assignee_type == 1 ? ' - '  : ' - TVM ' ) + row.assignee : '' ) }}</td>
 				<td class="text-center">{{ row.shift_num }}</td>
 				<td>
 					<input type="checkbox" ng-model="row.selected" ng-if="!row.turnover_id">

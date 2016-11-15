@@ -32,9 +32,7 @@ $current_user = current_user();
 					</thead>
 					<tbody>
 						<tr ng-repeat="item in appData.items"
-							ng-class="{info: currentItem == item,
-									'text-extra-muted': !( data.inventoryView == 'system' && item.quantity !== 0 && item.reserved !== 0 && ( item.quantity - item.reserved ) !== 0 ) &&
-											( ( item.sti_beginning_balance + item.movement ) === 0 && item.reserved === 0 && ( ( item.sti_beginning_balance + item.movement ) - item.reserved ) === 0 ) }">
+							ng-class="{ info: currentItem == item }">
 							<td>{{ item.item_name }}</td>
 							<td>{{ item.item_group }}</td>
 							<td>{{ item.item_description }}</td>
@@ -1139,7 +1137,7 @@ $current_user = current_user();
 									</div>
 								</td>
 								<td class="text-center vert-top">{{ ( row.valid_allocation == 0 ) && ( row.allocation_status == <?php echo ALLOCATION_SCHEDULED;?> ) ? 'Remitted' : lookup( 'allocationStatus', row.allocation_status ).status }}</td>
-								<td class="vert-top" ng-switch on="row.allocation_status">
+								<td class="vert-top text-right" ng-switch on="row.allocation_status">
 									<div class="btn-group" uib-dropdown>
 										<button type="button" class="btn btn-default" ui-sref="main.allocation({ allocationItem: row, editMode: 'view' })">View details...</button>
 										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'allocations', row )">
