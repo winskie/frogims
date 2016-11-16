@@ -99,16 +99,6 @@ $current_user = current_user();
 							</div>
 						</div>
 
-						<div class="col-sm-3 col-md-3 col-lg-2">
-							<div class="form-group">
-								<label class="control-label">Shift</label>
-								<select class="form-control"
-										ng-model="filters.transactions.shift"
-										ng-options="shift as shift.shift_num for shift in widgets.transactionsShifts track by shift.id">
-								</select>
-							</div>
-						</div>
-
 						<div class="col-sm-3">
 							<div class="form-group">
 								<label class="control-label">Item</label>
@@ -125,6 +115,16 @@ $current_user = current_user();
 								<select class="form-control"
 										ng-model="filters.transactions.type"
 										ng-options="type as type.typeName for type in widgets.transactionsTypes track by type.id">
+								</select>
+							</div>
+						</div>
+
+						<div class="col-sm-3 col-md-3 col-lg-2">
+							<div class="form-group">
+								<label class="control-label">Shift</label>
+								<select class="form-control"
+										ng-model="filters.transactions.shift"
+										ng-options="shift as shift.shift_num for shift in widgets.transactionsShifts track by shift.id">
 								</select>
 							</div>
 						</div>
