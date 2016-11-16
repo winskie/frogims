@@ -2568,7 +2568,6 @@ appServices.service( 'ReportServices', [ '$http', '$httpParamSerializer', '$q', 
 					}).then(
 						function( response )
 						{
-							console.log( response );
 							if( response.data.status == 'ok' )
 							{
 								me.reportMode = response.data.report_mode;
@@ -2599,6 +2598,7 @@ appServices.service( 'ReportServices', [ '$http', '$httpParamSerializer', '$q', 
 						switch( response )
 						{
 							case 'JasperReports':
+								console.log( 'Generating report...' );
 								$http({
 									method: 'GET',
 									url: url,
@@ -2613,6 +2613,7 @@ appServices.service( 'ReportServices', [ '$http', '$httpParamSerializer', '$q', 
 
 										// open in new window
 										$window.open( fileURL, '_blank', 'toolbar=no, menubar=no, location=no, titlebar=no' );
+										console.log( 'Report done.' );
 									},
 									function( reason )
 									{

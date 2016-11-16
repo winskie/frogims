@@ -135,6 +135,7 @@ class Report extends MY_Controller {
                 'APPROVED_BY_POSITION' => NULL
             ), $params );
 
+        $report_mode = $this->config->item( 'report_mode' );
         switch( $report_mode )
         {
             case 'JasperReports':
@@ -165,4 +166,67 @@ class Report extends MY_Controller {
         }
 	}
 
+    function receiving_report( $report_mode = 'JasperReports' )
+	{
+		$params = $this->input->get();
+
+        $params = array_merge( array(
+                'transfer_id' => NULL,
+                'received_from' => NULL,
+                'received_from_position' => NULL,
+                'received_by' => NULL,
+                'received_by_position' => NULL,
+                'checked_by' => NULL,
+                'checked_by_position' => NULL
+            ), $params );
+
+        $report_mode = $this->config->item( 'report_mode' );
+        switch( $report_mode )
+        {
+            case 'JasperReports':
+                $report_path = 'TMIS/receiving_report';
+
+                // Get report format
+                $format = NULL;
+                if( isset( $params['format'] ) )
+                {
+                    $format = $params['format'];
+                    unset( $params['format'] );
+                }
+
+                return $this->_generate_report( $report_path, $format, $params );
+
+            default:
+                // do nothing for now
+        }
+	}
+
+    function ticket_turnover()
+    {
+        $params = $this->input->get();
+
+        $params = array_merge( $params, array(
+                'transfer_id' => NULL
+            ), $params );
+
+        $report_mode = $this->config->item( 'report_mode' );
+        switch( $report_mode )
+        {
+            case 'JasperReports':
+                $report_path = 'TMIS/ticket_turnover';
+
+                // Get report format
+                $format = NULL;
+                if( isset( $params['format'] ) )
+                {
+                    $format = $params['format'];
+                    unset( $params['format'] );
+                }
+
+                return $this->_generate_report( $report_path, $format, $params );
+
+            default:
+                // do nothing for now
+        }
+    }
 }

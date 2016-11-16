@@ -1471,7 +1471,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 		}
 
 		$scope.data = {
-			mode: 'transfer', // transfer | receipt
+			mode: null, // transfer | receipt
 			editMode: $stateParams.editMode || 'auto', // view, externalReceipt, externalTransfer, receipt, transfer
 			title: 'Transfer',
 			sources: [],
@@ -2119,7 +2119,39 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 					)
 					$scope.input.allocation = null;
 				}
-			}
+			};
+
+		$scope.printReport = function( report )
+			{
+				switch( report )
+				{
+					case 'ticketTurnover':
+						var params = {
+								transfer_id: $scope.transferItem.id
+							};
+						report = 'ticket_turnover';
+						break;
+
+					case 'deliveryReceipt':
+						var params = {
+								TRANSFER_ID: $scope.transferItem.id
+							};
+						report = 'delivery_receipt';
+						break;
+
+					case 'receivingReport':
+						var params = {
+								transfer_id: $scope.transferItem.id
+							};
+						report = 'receiving_report';
+						break;
+
+					default:
+						return;
+				}
+
+				ReportServices.generateReport( report, params );
+			};
 
 		// Modals
 		$scope.showDeliveryReceipt = function()
@@ -2139,7 +2171,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				modalInstance.result.then(
 					function( params )
 					{
-						console.log( 'Report Parameters:', params );
 						ReportServices.generateReport( 'delivery_receipt', params );
 					},
 					function()
@@ -2184,28 +2215,33 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 					{
 						$scope.transferItem = response.data;
 
-						if( $scope.data.editMode == 'auto' )
+						if( $scope.data.editMode == 'auto' || $scope.data.editMode == 'view' )
 						{
 							if( ! $scope.transferItem.origin_id && $scope.transferItem.origin_name )
 							{
-								$scope.data.editMode = 'externalReceipt';
+								if( $scope.data.editMode == 'auto' ) $scope.data.editMode = 'externalReceipt';
+								$scope.data.mode = 'receipt';
 							}
 							else if( ! $scope.transferItem.destination_id && $scope.transferItem.destination_name )
 							{
-								$scope.data.editMode = 'externalTransfer';
+								if( $scope.data.editMode == 'auto' ) $scope.data.editMode = 'externalTransfer';
+								$scope.data.mode = 'transfer';
 							}
 							else if( $scope.transferItem.origin_id == session.data.currentStore.id )
 							{
-								$scope.data.editMode = 'transfer';
+								if( $scope.data.editMode == 'auto' ) $scope.data.editMode = 'transfer';
+								$scope.data.mode = 'transfer';
 							}
 							else if( $scope.transferItem.destination_id == session.data.currentStore.id )
 							{
-								$scope.data.editMode = 'receipt';
+								if( $scope.data.editMode == 'auto' ) $scope.data.editMode = 'receipt';
+								$scope.data.mode = 'receipt';
 							}
 						}
 
 						if( $scope.data.editMode == 'externalReceipt' || $scope.data.editMode == 'receipt' )
 						{
+							$scope.data.mode = 'receipt';
 							switch( $scope.transferItem.transfer_status )
 							{
 								case 1: // TRANSFER_SCHEDULED
@@ -2238,6 +2274,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						}
 						else if( $scope.data.editMode == 'externalTransfer' || $scope.data.editMode == 'transfer' )
 						{
+							$scope.data.mode = 'transfer';
 							switch( $scope.transferItem.transfer_status )
 							{
 								case 1: // TRANSFER_SCHEDULED
