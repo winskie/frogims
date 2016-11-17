@@ -287,6 +287,7 @@ class Installer extends CI_Controller {
 					transaction_quantity INTEGER NOT NULL DEFAULT 0,
 					current_quantity INTEGER NOT NULL,
 					transaction_id INTEGER NOT NULL,
+					transaction_item_id INTEGER NULL DEFAULT NULL,
 					transaction_timestamp DATETIME NOT NULL,
 					transaction_shift INTEGER NOT NULL,
 					PRIMARY KEY (id),

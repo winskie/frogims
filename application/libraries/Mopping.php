@@ -44,11 +44,11 @@ class Mopping extends Base_model {
         else
         {
             $ci->load->library( 'mopping_item' );
-            $ci->db->select( 'mi.*, s.station_name AS mopped_station_name, i.item_name AS mopped_item_name, i2.item_name AS convert_to_name, u.full_name AS processor_name' );
+            $ci->db->select( 'mi.*, IF( mi.mopped_station_id = 0, "Inventory",  s.station_name ) AS mopped_station_name, i.item_name AS mopped_item_name, i2.item_name AS convert_to_name, u.full_name AS processor_name' );
             $ci->db->where( 'mopping_id', $this->id );
             $ci->db->join( 'items i', 'i.id = mi.mopped_item_id', 'left' );
             $ci->db->join( 'items i2', 'i2.id = mi.converted_to', 'left' );
-            $ci->db->join( 'stations s', 's.id = mi.mopped_station_id' );
+            $ci->db->join( 'stations s', 's.id = mi.mopped_station_id', 'left' );
             $ci->db->join( 'users u', 'u.id = mi.processor_id', 'left' );
             $query = $ci->db->get( 'mopping_items mi' );
             $items = $query->result( 'Mopping_item' );
@@ -300,20 +300,22 @@ class Mopping extends Base_model {
         $ci->db->trans_start();
         foreach( $items as $item )
         {
-            if( $item->get( 'mopped_station_id' ) ) // skip items from inventory, i.e., mopped_station_id value is 0
+            $inventory = new Inventory();
+            $inventory = $inventory->get_by_store_item( $this->store_id, $item->get( 'mopped_item_id' ) );
+
+            if( $inventory )
             {
-                $inventory = new Inventory();
-                $inventory = $inventory->get_by_store_item( $this->store_id, $item->get( 'mopped_item_id' ) );
-                if( $inventory )
-                {
-                    $quantity = $item->get( 'mopped_quantity' );
-                    $inventory->transact( TRANSACTION_MOPPING_COLLECTION, $quantity, $timestamp, $this->id );
+                $quantity = $item->get( 'mopped_quantity' );
+                if( intval( $item->get( 'mopped_station_id' ) ) === 0 )
+                { // issuance from stock, deduct same quantity from inventory
+                    $inventory->transact( TRANSACTION_MOPPING_ISSUANCE, ( $quantity * -1 ), $timestamp, $this->id, $item->get( 'id' ) );
                 }
-                else
-                {
-                    set_message( sprintf( 'Inventory record not found for store %s and item %s.', $this->store_id, $item->get( 'mopped_item_id' ) ), 'error' );
-                    return FALSE;
-                }
+                $inventory->transact( TRANSACTION_MOPPING_COLLECTION, $quantity, $timestamp, $this->id, $item->get( 'id' ) );
+            }
+            else
+            {
+                set_message( sprintf( 'Inventory record not found for store %s and item %s.', $this->store_id, $item->get( 'mopped_item_id' ) ), 'error' );
+                return FALSE;
             }
         }
         $ci->db->trans_complete();
@@ -400,7 +402,7 @@ class Mopping extends Base_model {
                 if( $inventory )
                 {
                     $quantity = $v * -1;
-                    $inventory->transact( TRANSACTION_MOPPING_VOID, $quantity, $timestamp, $this->id );
+                    $inventory->transact( TRANSACTION_MOPPING_VOID, $quantity, $timestamp, $this->id, $k );
                 }
             }
             $ci->db->trans_complete();

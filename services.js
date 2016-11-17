@@ -449,6 +449,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 						{ id: 23, typeName: 'Void Remittance', module: 'Allocations' },
 						{ id: 30, typeName: 'Collection', module: 'Collections' },
 						{ id: 31, typeName: 'Void Collection', module: 'Collections' },
+						{ id: 32, typeName: 'Issuance to Production', module: 'Collections' },
 						{ id: 40, typeName: 'Adjustment', module: 'Adjustments' },
 						{ id: 50, typeName: 'Conversion From', module: 'Conversions' },
 						{ id: 51, typeName: 'Conversion To', module: 'Conversions' }
@@ -2356,6 +2357,7 @@ appServices.service( 'lookup',
 
 				'30': 'Mopping Collection',
 				'31': 'Void Collection',
+				'32': 'Issuance to Production',
 
 				'40': 'Adjustment',
 

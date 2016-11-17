@@ -763,7 +763,7 @@ class Allocation extends Base_model {
                 if ( $inventory )
                 {
                     $quantity = $allocation->get( 'allocated_quantity' ) * -1; // Item will be removed from inventory
-                    $inventory->transact( TRANSACTION_ALLOCATION, $quantity, $timestamp, $this->id );
+                    $inventory->transact( TRANSACTION_ALLOCATION, $quantity, $timestamp, $this->id, $allocation->get( 'id' ) );
 
                     $allocation->set( 'cashier_shift_id', $ci->session->current_shift_id );
                     $allocation->set( 'allocation_item_status', ALLOCATION_ITEM_ALLOCATED );
@@ -800,7 +800,7 @@ class Allocation extends Base_model {
                 if( $inventory )
                 {
                     $quantity = $remittance->get( 'allocated_quantity' );
-                    $inventory->transact( TRANSACTION_REMITTANCE, $quantity, $timestamp, $this->id );
+                    $inventory->transact( TRANSACTION_REMITTANCE, $quantity, $timestamp, $this->id, $remittance->get( 'id' ) );
 
                     $remittance->set( 'allocation_item_status', REMITTANCE_ITEM_REMITTED );
                     $remittance->db_save();
@@ -834,7 +834,7 @@ class Allocation extends Base_model {
                 if( $inventory )
                 {
                     $quantity = $v;
-                    $inventory->transact( TRANSACTION_ALLOCATION_VOID, $quantity, $timestamp, $this->id );
+                    $inventory->transact( TRANSACTION_ALLOCATION_VOID, $quantity, $timestamp, $this->id, $k );
                 }
             }
         }
@@ -849,7 +849,7 @@ class Allocation extends Base_model {
                 if( $inventory )
                 {
                     $quantity = $v * -1;
-                    $inventory->transact( TRANSACTION_REMITTANCE_VOID, $quantity, $timestamp, $this->id );
+                    $inventory->transact( TRANSACTION_REMITTANCE_VOID, $quantity, $timestamp, $this->id, $k );
                 }
             }
         }

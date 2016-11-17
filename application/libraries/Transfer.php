@@ -788,7 +788,7 @@ class Transfer extends Base_model {
 				{
 					$quantity = $item->get( 'quantity' ) * -1; // Item will be removed from inventory
 					$inventory->reserve( $quantity );
-					$inventory->transact( TRANSACTION_TRANSFER_OUT, $quantity, $this->transfer_datetime, $this->id );
+					$inventory->transact( TRANSACTION_TRANSFER_OUT, $quantity, $this->transfer_datetime, $this->id, $item->get( 'id' ) );
 
 					$item->set( 'transfer_item_status', TRANSFER_ITEM_APPROVED );
 					$item->db_save();
@@ -831,7 +831,7 @@ class Transfer extends Base_model {
 			$quantity = $item->get( 'quantity' ); // Item will be returned to the inventory
 			if( $item->get( 'transfer_item_status' ) == TRANSFER_ITEM_APPROVED )
 			{
-				$inventory->transact( TRANSACTION_TRANSFER_CANCEL, $quantity, $timestamp, $this->id );
+				$inventory->transact( TRANSACTION_TRANSFER_CANCEL, $quantity, $timestamp, $this->id, $item->get( 'id' ) );
 			}
 
 			if( in_array( $item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_SCHEDULED, TRANSFER_ITEM_APPROVED ) ) )
@@ -876,7 +876,7 @@ class Transfer extends Base_model {
 					$quantity = $item->get( 'quantity' );
 					$item->set( 'quantity_received', $quantity );
 				}
-				$inventory->transact( TRANSACTION_TRANSFER_IN, $quantity, $this->receipt_datetime, $this->id );
+				$inventory->transact( TRANSACTION_TRANSFER_IN, $quantity, $this->receipt_datetime, $this->id, $item->get( 'id' ) );
 
 				$item->set( 'transfer_item_status', TRANSFER_ITEM_RECEIVED );
 				$item->db_save();
@@ -906,7 +906,7 @@ class Transfer extends Base_model {
 				if( $inventory )
 				{
 					$quantity = $v;
-					$inventory->transact( TRANSACTION_TRANSFER_VOID, $quantity, $timestamp, $this->id );
+					$inventory->transact( TRANSACTION_TRANSFER_VOID, $quantity, $timestamp, $this->id, $k );
 				}
 			}
 		}

@@ -195,7 +195,7 @@ class Mopping_item extends Base_model {
         if( $inventory )
         {
             $quantity = $this->mopped_quantity * -1; // Quantity will be deducted from the inventory
-            $inventory->transact( TRANSACTION_MOPPING_VOID, $quantity, date( TIMESTAMP_FORMAT ), $this->id );
+            $inventory->transact( TRANSACTION_MOPPING_VOID, $quantity, date( TIMESTAMP_FORMAT ), $this->mopping_id, $this->id );
         }
         else
         {
