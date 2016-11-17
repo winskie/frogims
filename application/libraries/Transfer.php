@@ -739,8 +739,11 @@ class Transfer extends Base_model {
 					$this->set( 'receipt_user_id', $current_user->get( 'id' ) );
 
 					// Recipient name - if not specified should be currently logged in user's name
-					$recipient_name = isset( $this->recipient_name ) ? $this->recipient_name : $current_user->get( 'full_name' );
-					$this->set( 'recipient_name', $recipient_name );
+					if( empty( $this->recipient_name ) )
+					{
+						$this->set( 'recipient_id', $current_user->get( 'id' ) );
+						$this->set( 'recipient_name', $current_user->get( 'full_name' ) );
+					}
 
 					// Recipient Shift
 					$this->set( 'recipient_shift', $current_shift );
