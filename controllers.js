@@ -1509,12 +1509,12 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				transfer_category: null,
 				origin_id: [ 'transfer', 'externalTransfer' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentStore.id : null,
 				origin_name: [ 'transfer', 'externalTransfer' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentStore.store_name : null,
-				sender_id: [ 'transfer', 'externalTransfer' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentUser.id : null,
+				sender_id: null,
 				sender_name: null,
 				transfer_datetime: new Date(),
 				destination_id: [ 'receipt', 'externalReceipt' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentStore.id : null,
 				destination_name: [ 'receipt', 'externalReceipt' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentStore.store_name : null,
-				recipient_id: [ 'receipt', 'externalReceipt' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentUser.id : null,
+				recipient_id: null,
 				recipient_name: [ 'receipt', 'externalReceipt' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentUser.full_name : null,
 				receipt_datetime: [ 'receipt', 'externalReceipt' ].indexOf( $scope.data.editMode ) != -1 ? new Date() : null,
 				transfer_status: 1, // TRANSFER_PENDING
@@ -1966,8 +1966,9 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 				if( typeof data.sender_name === 'object' && data.sender_name )
 				{
-					if( data.sender_name.full_name )
+					if( data.sender_name.full_name && data.sender_name.id )
 					{
+						data.sender_id = data.sender_name.id;
 						data.sender_name = data.sender_name.full_name;
 					}
 					else
@@ -1979,8 +1980,9 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 				if( typeof data.recipient_name === 'object' && data.recipient_name )
 				{
-					if( data.recipient_name )
+					if( data.recipient_name && data.recipient_name.id )
 					{
+						data.recipient_id = data.recipient_name.id;
 						data.recipient_name = data.recipient_name.full_name;
 					}
 					else
