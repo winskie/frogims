@@ -37,7 +37,7 @@
                 </div>
             </div>
 
-            <!-- Cashier Shift -->
+            <!-- Pullout Shift -->
             <div class="form-group col-sm-4" ng-switch on="data.editMode">
                 <label class="control-label col-sm-5">Pullout Shift</label>
                 <div class="input-group col-sm-7" ng-switch-when="view">

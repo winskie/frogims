@@ -2922,6 +2922,17 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 		$scope.onChangePullOutShift = function()
 			{
 				$scope.moppingItem.cashier_shift_id = $scope.data.selectedPullOutShift.id;
+
+				var date = angular.copy( $scope.moppingItem.processing_datetime );
+				if( $scope.data.selectedPullOutShift.id == 8 )
+				{
+					$scope.moppingItem.business_date = date;
+					$scope.moppingItem.business_date.setDate( $scope.moppingItem.business_date.getDate() - 1 );
+				}
+				else
+				{
+					$scope.moppingItem.business_date = date;
+				}
 			};
 
 		$scope.addMoppingItem = function( event )
