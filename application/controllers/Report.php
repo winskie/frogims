@@ -26,93 +26,87 @@ class Report extends MY_Controller {
         $this->load->view( $report_path, $params );
     }
 
-	private function _generate_report( $report_path, $format = NULL, $params = array() )
+	private function _generate_jasper_report( $report_path, $format = NULL, $params = array() )
 	{
-        if( $this->config->item( 'report_mode' ) == 'JasperReports' )
+        // Get default format
+        if( is_null( $format ) )
         {
-            // Get default format
-            if( is_null( $format ) )
+            $format = 'pdf';
+        }
+
+        // Set format defaults
+        switch( $format )
+        {
+            case 'html':
+                $format_ext = 'html';
+                $content_type = 'text/html';
+                break;
+
+            case 'pdf':
+                $format_ext = 'pdf';
+                $content_type = 'application/pdf';
+                break;
+
+            default:
+                return FALSE;
+        }
+
+        // Set default report server user credentials
+        $params = array_merge( array(
+                'j_username' => $this->config->item( 'jasper_username' ),
+                'j_password' => $this->config->item( 'jasper_password' )
+            ), $params );
+
+        // temporary report file
+        $tempfile_prefix = isset( $params['tempfile_prefix'] ) ? $params['tempfile_prefix'] : '_report_';
+        $temp_file = tempnam( sys_get_temp_dir(), $tempfile_prefix ).'.'.$format_ext;
+
+        $report_url = ( $this->config->item( 'jasper_use_ssl' ) ? 'https' : 'http' ).'://'
+                .$this->config->item( 'jasper_server' )
+                .( $this->config->item( 'jasper_port' ) ? ':'.$this->config->item( 'jasper_port') : '' ).'/'
+                .$this->config->item( 'jasper_reports_path' ).'/';
+
+        $url = $report_url.$report_path.'.'.$format_ext.'?'.http_build_query( $params);
+
+        try
+        {
+            $fp = fopen( $temp_file, 'w+' );
+            $ch = curl_init( $url );
+            curl_setopt_array($ch, array(
+                    CURLOPT_URL => $url,
+                    CURLOPT_BINARYTRANSFER => 1,
+                    CURLOPT_RETURNTRANSFER => 1,
+                    CURLOPT_FILE => $fp,
+                    CURLOPT_TIMEOUT => 50,
+                    CURLOPT_USERAGENT => 'Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)'
+                ) );
+
+            $results = curl_exec( $ch );
+
+            if( curl_exec( $ch ) === false )
             {
-                $format = 'pdf';
-            }
-
-            // Set format defaults
-            switch( $format )
-            {
-                case 'html':
-                    $format_ext = 'html';
-                    $content_type = 'text/html';
-                    break;
-
-                case 'pdf':
-                    $format_ext = 'pdf';
-                    $content_type = 'application/pdf';
-                    break;
-
-                default:
-                    return FALSE;
-            }
-
-            // Set default report server user credentials
-            $params = array_merge( array(
-                    'j_username' => $this->config->item( 'jasper_username' ),
-                    'j_password' => $this->config->item( 'jasper_password' )
-                ), $params );
-
-            // temporary report file
-            $tempfile_prefix = isset( $params['tempfile_prefix'] ) ? $params['tempfile_prefix'] : '_report_';
-            $temp_file = tempnam( sys_get_temp_dir(), $tempfile_prefix ).'.'.$format_ext;
-
-            $report_url = ( $this->config->item( 'jasper_use_ssl' ) ? 'https' : 'http' ).'://'
-                    .$this->config->item( 'jasper_server' )
-                    .( $this->config->item( 'jasper_port' ) ? ':'.$this->config->item( 'jasper_port') : '' ).'/'
-                    .$this->config->item( 'jasper_reports_path' ).'/';
-
-            $url = $report_url.$report_path.'.'.$format_ext.'?'.http_build_query( $params);
-
-            try
-            {
-                $fp = fopen( $temp_file, 'w+' );
-                $ch = curl_init( $url );
-                curl_setopt_array($ch, array(
-                        CURLOPT_URL => $url,
-                        CURLOPT_BINARYTRANSFER => 1,
-                        CURLOPT_RETURNTRANSFER => 1,
-                        CURLOPT_FILE => $fp,
-                        CURLOPT_TIMEOUT => 50,
-                        CURLOPT_USERAGENT => 'Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)'
-                    ) );
-
-                $results = curl_exec( $ch );
-
-                if( curl_exec( $ch ) === false )
-                {
-                    echo 'error: '.curl_error( $ch );
-                    return FALSE;
-                }
-                else
-                {
-                    $output_filename = 'report.pdf';
-                    // Output the file
-                    header( 'Content-type: '.$content_type );
-                    //header( 'Content-Disposition: inline; filename="'.$output_filename.'"' );
-                    header( 'Content-Disposition: attachment; filename="'.$output_filename.'"' );
-                    header( 'Content-Transfer-Encoding: binary' );
-                    header( 'Accept-Ranges: bytes' );
-                    readfile( $temp_file );
-                }
-
-                fclose( $fp );
-            }
-            catch ( Exception $e )
-            {
-                echo 'exception: '.$e;
+                echo 'error: '.curl_error( $ch );
                 return FALSE;
             }
+            else
+            {
+                $output_filename = 'report.pdf';
+                // Output the file
+                header( 'Content-type: '.$content_type );
+                //header( 'Content-Disposition: inline; filename="'.$output_filename.'"' );
+                header( 'Content-Disposition: attachment; filename="'.$output_filename.'"' );
+                header( 'Content-Transfer-Encoding: binary' );
+                header( 'Accept-Ranges: bytes' );
+                readfile( $temp_file );
+            }
+
+            fclose( $fp );
+            return TRUE;
         }
-        else
+        catch ( Exception $e )
         {
-            $this->load->view( 'reports/'.$report_path );
+            echo 'exception: '.$e;
+            return FALSE;
         }
 	}
 
@@ -149,7 +143,26 @@ class Report extends MY_Controller {
                     unset( $params['format'] );
                 }
 
-                return $this->_generate_report( $report_path, $format, $params );
+                return $this->_generate_jasper_report( $report_path, $format, $params );
+
+            case 'TCPDF':
+                $this->load->library( 'pdf' );
+                $this->load->library( 'transfer' );
+                $Transfer = new Transfer();
+
+                $transfer_id = param( $params, 'TRANSFER_ID' );
+                $transfer = $Transfer->get_by_id( $transfer_id );
+                $params = array_merge( array(
+                        'transfer_item' => $transfer->get_transfer_array()
+                    ), $params );
+
+                unset( $params['TRANSFER_ID'] );
+                $html = $this->load->view( 'reports/delivery_receipt', $params, TRUE );
+                //$pdf = new Pdf( 'p', 'in', 'A4', TRUE, 'utf-8', false );
+                //$pdf->writeHTML( $html, TRUE, FALSE, TRUE, FALSE, '' );
+                //$pdf->Output();
+                var_dump( $html );
+                break;
 
             default:
                 $this->load->library( 'transfer' );
@@ -194,7 +207,7 @@ class Report extends MY_Controller {
                     unset( $params['format'] );
                 }
 
-                return $this->_generate_report( $report_path, $format, $params );
+                return $this->_generate_jasper_report( $report_path, $format, $params );
 
             default:
                 // do nothing for now
@@ -223,7 +236,7 @@ class Report extends MY_Controller {
                     unset( $params['format'] );
                 }
 
-                return $this->_generate_report( $report_path, $format, $params );
+                return $this->_generate_jasper_report( $report_path, $format, $params );
 
             default:
                 // do nothing for now

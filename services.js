@@ -2467,6 +2467,9 @@ appServices.service( 'notifications', [ '$rootScope',
 	function( $rootScope )
 	{
 		var me = this;
+
+		me.nextId = 1;
+
 		me.subscribe = function( scope, eventName, callback )
 			{
 				var eventRegister = $rootScope.$on( eventName, callback );
@@ -2481,6 +2484,7 @@ appServices.service( 'notifications', [ '$rootScope',
 		me.alert = function( message, type, duration )
 			{
 				var durationMultiplier = 1;
+				var currentId = me.nextId++;
 				if( ! duration )
 				{
 					duration = 2300;
@@ -2494,10 +2498,18 @@ appServices.service( 'notifications', [ '$rootScope',
 				duration = duration * durationMultiplier;
 
 				$rootScope.$emit( 'notificationSignal', {
+						id: currentId,
 						type: type,
 						message: message,
 						duration: duration
 					});
+
+				return currentId;
+			};
+
+		me.closeNotification = function( notificationId )
+			{
+				$rootScope.$emit( 'notificationCloseSignal', { id: notificationId } );
 			};
 
 		me.showMessages = function( messages )
@@ -2549,8 +2561,8 @@ appServices.service( 'utilities',
 			};
 	});
 
-appServices.service( 'ReportServices', [ '$http', '$httpParamSerializer', '$q', '$window', 'baseUrl',
-	function( $http, $httpParamSerializer, $q, $window, baseUrl )
+appServices.service( 'ReportServices', [ '$http', '$httpParamSerializer', '$q', '$window', 'baseUrl', 'notifications',
+	function( $http, $httpParamSerializer, $q, $window, baseUrl, notifications )
 	{
 		var me = this;
 		me.reportMode = undefined;
@@ -2565,7 +2577,7 @@ appServices.service( 'ReportServices', [ '$http', '$httpParamSerializer', '$q', 
 				else
 				{
 					$http({
-						metho: 'GET',
+						method: 'GET',
 						url: baseUrl + 'index.php/report/get_report_mode'
 					}).then(
 						function( response )
@@ -2577,6 +2589,7 @@ appServices.service( 'ReportServices', [ '$http', '$httpParamSerializer', '$q', 
 							}
 							else
 							{
+								console.error( 'Error retrieving report mode' );
 								deferred.reject( 'Error retrieving report mode' );
 							}
 						},
@@ -2593,6 +2606,7 @@ appServices.service( 'ReportServices', [ '$http', '$httpParamSerializer', '$q', 
 		me.generateReport = function( report, params )
 			{
 				var url = baseUrl + 'index.php/report/' + report;
+				var noteId = notifications.alert( 'Generating report, please wait...', 'info', -1 );
 
 				me.getReportMode().then(
 					function( response )
@@ -2609,6 +2623,9 @@ appServices.service( 'ReportServices', [ '$http', '$httpParamSerializer', '$q', 
 								}).then(
 									function( response )
 									{
+										// Close notification
+										notifications.closeNotification( noteId );
+
 										var headers = response.headers();
 										var file = new Blob( [response.data], { type: headers['content-type'] } );
 										var fileURL = URL.createObjectURL( file );

@@ -2,7 +2,7 @@ app.controller( 'NotificationController', [ '$scope', '$timeout', 'appData', 'no
 	function( $scope, $timeout, appData, notifications )
 	{
 		$scope.data = {
-				messages: []
+				messages: {}
 			};
 
 		$scope.visible = true;
@@ -18,27 +18,48 @@ app.controller( 'NotificationController', [ '$scope', '$timeout', 'appData', 'no
 						duration: data.duration
 					};
 
-				$scope.data.messages.unshift( newMessage );
+				$scope.data.messages[data.id] = newMessage;
+
+				if( newMessage.duration > 0 )
+				{
+					$timeout( function()
+						{
+							newMessage.visible = true;
+							$timeout( function()
+								{
+									newMessage.visible = false;
+									$timeout( function()
+									{
+										delete $scope.data.messages[data.id];
+									}, 500 );
+								}, ( data.duration ? data.duration : 2300 ) );
+
+						}, 10 );
+				}
+				else
+				{
+					$timeout( function()
+						{
+							newMessage.visible = true;
+						}, 10 );
+				}
+			};
+
+		$scope.closeNotification = function( event, data )
+			{
 				$timeout( function()
 					{
-						newMessage.visible = true;
+						console.log( 'Closing notification #' + data.id );
+						$scope.data.messages[data.id].visible = false;
 						$timeout( function()
 							{
-								newMessage.visible = false;
-								$timeout( function()
-								{
-									var index = $scope.data.messages.indexOf( newMessage );
-									if( index !== -1 )
-									{
-										$scope.data.messages.splice( index, 1 );
-									}
-								}, 500 );
-							}, ( data.duration ? data.duration : 2300 ) );
-
+								delete $scope.data.messages[data.id];
+							}, 500 );
 					}, 10 );
 			};
 
 		notifications.subscribe( $scope, 'notificationSignal',  $scope.showNotification );
+		notifications.subscribe( $scope, 'notificationCloseSignal', $scope.closeNotification );
 	}
 ]);
 
