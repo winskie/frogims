@@ -49,7 +49,6 @@ app.controller( 'NotificationController', [ '$scope', '$timeout', 'appData', 'no
 			{
 				$timeout( function()
 					{
-						console.log( 'Closing notification #' + data.id );
 						$scope.data.messages[data.id].visible = false;
 						$timeout( function()
 							{
@@ -2157,7 +2156,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 					case 'deliveryReceipt':
 						var params = {
-								TRANSFER_ID: $scope.transferItem.id
+								transfer_id: $scope.transferItem.id
 							};
 						report = 'delivery_receipt';
 						break;

@@ -65,7 +65,6 @@
                 <tr>
                     <th class="text-center">Row</th>
                     <th class="text-left">Delivered by</th>
-                    <th class="text-left">Processed by</th>
                     <th class="text-left">Processed Item</th>
                     <th class="text-left">Package into</th>
                     <th class="text-center">Group</th>
@@ -78,7 +77,6 @@
                 <tr ng-repeat="row in moppingItem.items" ng-class="{ danger:( !row.valid && row.group_id ) || row.moppedItemVoid, deleted: ( row.mopping_item_status == 2 ) }">
                     <td class="text-center">{{ $index + 1 }}</td>
                     <td class="text-left">{{ row.delivery_person }}</td>
-                    <td class="text-left">{{ row.processor_name }}</td>
                     <td class="text-left">{{ row.mopped_item_name }}</td>
                     <td class="text-left">{{ row.convert_to_name || '---' }}</td>
                     <td class="text-center">{{ row.group_id ? 'G' + row.group_id : '---' }}</td>

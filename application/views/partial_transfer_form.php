@@ -267,9 +267,9 @@
 	<!-- Form buttons -->
 	<div class="row">
 		<div class="col-sm-6 text-left">
-			<button type="button" class="btn btn-default" ng-click="printReport('deliveryReceipt')" ng-if="data.mode == 'transfer' && transferItem.transfer_category != 3">Print Delivery Receipt</button>
-			<button type="button" class="btn btn-default" ng-click="printReport('receivingReport')" ng-if="data.mode == 'receipt'">Print Receiving Report</button>
-			<button type="button" class="btn btn-default" ng-click="printReport('ticketTurnover')" ng-if="data.showAllocationItemEntry">Print Ticket Turnover</button>
+			<button type="button" class="btn btn-default" ng-click="printReport('deliveryReceipt')" ng-if="data.mode == 'transfer' && transferItem.transfer_category != 3 && transferItem.transfer_status != <?php echo TRANSFER_PENDING;?>">Print Delivery Receipt</button>
+			<button type="button" class="btn btn-default" ng-click="printReport('receivingReport')" ng-if="data.mode == 'receipt' && transferItem.transfer_status == <?php echo TRANSFER_RECEIVED;?>">Print Receiving Report</button>
+			<button type="button" class="btn btn-default" ng-click="printReport('ticketTurnover')" ng-if="data.showAllocationItemEntry && transferItem.transfer_category == 3 && transferItem.transfer_status != <?php echo TRANSFER_PENDING;?>">Print Ticket Turnover</button>
 		</div>
 
 		<div class="col-sm-6 text-right">

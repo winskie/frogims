@@ -66,11 +66,11 @@ $current_user = current_user();
 		</uib-tab>
 
 		<!-- Transactions -->
-		<uib-tab heading="Transactions Summary" index="1" select="onTabSelect('transactions')" ng-if="checkPermissions( 'transactions', 'view')">
+		<uib-tab heading="Transactions Log" index="1" select="onTabSelect('transactions')" ng-if="checkPermissions( 'transactions', 'view')">
 			<div class="panel panel-default">
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left">
-						Transactions Summary <span class="label label-default" ng-if="filters.transactions.filtered">Filtered</span>
+						Transactions Log <span class="label label-default" ng-if="filters.transactions.filtered">Filtered</span>
 					</h3>
 					<div class="pull-right">
 						<button class="btn btn-default btn-sm btn-filter" ng-click="toggleFilters( 'transactions' )">

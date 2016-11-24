@@ -116,17 +116,17 @@ class Report extends MY_Controller {
 		$params = $this->input->get();
 
         $params = array_merge( array(
-                'TRANSFER_ID' => NULL,
-                'PREPARED_BY' => NULL,
-                'PREPARED_BY_POSITION' => NULL,
-                'CHECKED_BY' => NULL,
-                'CHECKED_BY_POSITION' => NULL,
-                'BEARER' => NULL,
-                'BEARER_ID' => NULL,
-                'ISSUED_BY' => NULL,
-                'ISSUED_BY_POSITION' => NULL,
-                'APPROVED_BY' => NULL,
-                'APPROVED_BY_POSITION' => NULL
+                'transer_id' => NULL,
+                'prepared_by' => NULL,
+                'prepared_by_position' => NULL,
+                'checked_by' => NULL,
+                'checked_by_position' => NULL,
+                'bearer' => NULL,
+                'bearer_id' => NULL,
+                'issued_by' => NULL,
+                'issued_by_position' => NULL,
+                'approved_by' => NULL,
+                'approved_by_position' => NULL
             ), $params );
 
         $report_mode = $this->config->item( 'report_mode' );
@@ -150,13 +150,13 @@ class Report extends MY_Controller {
                 $this->load->library( 'transfer' );
                 $Transfer = new Transfer();
 
-                $transfer_id = param( $params, 'TRANSFER_ID' );
+                $transfer_id = param( $params, 'transfer_id' );
                 $transfer = $Transfer->get_by_id( $transfer_id );
                 $params = array_merge( array(
                         'transfer_item' => $transfer->get_transfer_array()
                     ), $params );
 
-                unset( $params['TRANSFER_ID'] );
+                unset( $params['transfer_id'] );
                 $html = $this->load->view( 'reports/delivery_receipt', $params, TRUE );
                 //$pdf = new Pdf( 'p', 'in', 'A4', TRUE, 'utf-8', false );
                 //$pdf->writeHTML( $html, TRUE, FALSE, TRUE, FALSE, '' );
@@ -168,13 +168,13 @@ class Report extends MY_Controller {
                 $this->load->library( 'transfer' );
                 $Transfer = new Transfer();
 
-                $transfer_id = param( $params, 'TRANSFER_ID' );
+                $transfer_id = param( $params, 'transfer_id' );
                 $transfer = $Transfer->get_by_id( $transfer_id );
                 $params = array_merge( array(
                         'transfer_item' => $transfer->get_transfer_array()
                     ), $params );
 
-                unset( $params['TRANSFER_ID'] );
+                unset( $params['transfer_id'] );
                 $this->load->view( 'reports/delivery_receipt', $params );
         }
 	}

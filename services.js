@@ -2614,7 +2614,6 @@ appServices.service( 'ReportServices', [ '$http', '$httpParamSerializer', '$q', 
 						switch( response )
 						{
 							case 'JasperReports':
-								console.log( 'Generating report...' );
 								$http({
 									method: 'GET',
 									url: url,
@@ -2632,7 +2631,6 @@ appServices.service( 'ReportServices', [ '$http', '$httpParamSerializer', '$q', 
 
 										// open in new window
 										$window.open( fileURL, '_blank', 'toolbar=no, menubar=no, location=no, titlebar=no' );
-										console.log( 'Report done.' );
 									},
 									function( reason )
 									{
@@ -2641,7 +2639,6 @@ appServices.service( 'ReportServices', [ '$http', '$httpParamSerializer', '$q', 
 								break;
 
 							default:
-								console.log( 'Opening in new window' );
 								$window.open( baseUrl + 'index.php/report/' + report + '?' + $.param( params ), '_blank' );
 								break;
 						}
