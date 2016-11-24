@@ -288,6 +288,20 @@ CREATE TABLE IF NOT EXISTS adjustments
 )
 ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS adjustment_status_log
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	adjlog_adjustment_id INTEGER NOT NULL,
+	adjlog_user_id INTEGER NOT NULL,
+	adjlog_status SMALLINT NOT NULL,
+	adjlog_timestamp TIMESTAMP,
+	PRIMARY KEY (id),
+	FOREIGN KEY adjlog_adjustment_fk (adjlog_adjustment_id) REFERENCES adjustments (id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
+)
+ENGINE=InnoDB;
+
 -- transfer_status: 1 - pending out, 2 - transfer approved, 3 - received, 4 - cancelled
 CREATE TABLE IF NOT EXISTS transfers
 (
@@ -355,6 +369,20 @@ CREATE TABLE IF NOT EXISTS transfer_items
 		ON DELETE CASCADE,
 	INDEX transfer_items_allocation_item_ndx ( transfer_item_allocation_item_id ),
 	INDEX transfer_items_transfer_item_ndx ( transfer_item_transfer_item_id )
+)
+ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS transfer_status_log
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	tslog_transfer_id INTEGER NOT NULL,
+	tslog_user_id INTEGER NOT NULL,
+	tslog_status SMALLINT NOT NULL,
+	tslog_timestamp TIMESTAMP,
+	PRIMARY KEY (id),
+	FOREIGN KEY tslog_transfer_fk (tslog_transfer_id) REFERENCES transfers (id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
 )
 ENGINE=InnoDB;
 
@@ -428,6 +456,20 @@ CREATE TABLE IF NOT EXISTS conversions
 )
 ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS conversion_status_log
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	convlog_conversion_id INTEGER NOT NULL,
+	convlog_user_id INTEGER NOT NULL,
+	convlog_status SMALLINT NOT NULL,
+	convlog_timestamp TIMESTAMP,
+	PRIMARY KEY (id),
+	FOREIGN KEY convlog_conversion_fk (convlog_conversion_id) REFERENCES conversions (id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
+)
+ENGINE=InnoDB;
+
 -- assignee_type: 1 - station teller, 2- TVM
 -- allocation_status: 1 - pending, 2 - allocated, 3 - remitted, 4 - cancelled
 CREATE TABLE IF NOT EXISTS allocations
@@ -474,6 +516,20 @@ CREATE TABLE IF NOT EXISTS allocation_items
 	FOREIGN KEY allocation_items_item_fk (allocated_item_id) REFERENCES items (id)
 		ON UPDATE CASCADE
 		ON DELETE RESTRICT
+)
+ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS allocation_status_log
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	alloclog_allocation_id INTEGER NOT NULL,
+	alloclog_user_id INTEGER NOT NULL,
+	alloclog_status SMALLINT NOT NULL,
+	alloclog_timestamp TIMESTAMP,
+	PRIMARY KEY (id),
+	FOREIGN KEY alloclog_allocation_fk (alloclog_allocation_id) REFERENCES allocations (id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
 )
 ENGINE=InnoDB;
 

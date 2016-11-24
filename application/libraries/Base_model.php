@@ -124,6 +124,8 @@ class Base_model
 			$ci->db->set( $this->db_changes );
 			$ci->db->where( 'id', $this->id );
 			$ci->db->update( $this->primary_table );
+
+			$this->_log_status();
 		}
 		//$this->_reset_db_changes();
 
@@ -142,6 +144,8 @@ class Base_model
 			$ci->db->insert( $this->primary_table );
 
 			$this->id = $ci->db->insert_id();
+
+			$this->_log_status();
 		}
 		//$this->_reset_db_changes();
 
@@ -371,5 +375,31 @@ class Base_model
 		}
 
 		return NULL;
+	}
+
+	public function _log_status()
+	{
+		if( isset( $this->status_log ) )
+		{
+			$prefix = $this->status_log['prefix'];
+			$fk = $this->status_log['foreign_key'];
+			$table = $this->status_log['table'];
+			$status_field = $this->status_log['status_field'];
+
+			if( isset( $this->db_changes[$status_field] ) )
+			{
+				$ci =& get_instance();
+
+				$ci->db->trans_start();
+
+				$ci->db->set( $prefix.$fk, $this->id );
+				$ci->db->set( $prefix.'user_id', current_user( TRUE ) );
+				$ci->db->set( $prefix.'status', $this->$status_field );
+				$ci->db->set( $prefix.'timestamp', date( TIMESTAMP_FORMAT ) );
+				$ci->db->insert( $table );
+
+				$ci->db->trans_complete();
+			}
+		}
 	}
 }

@@ -18,6 +18,13 @@ class Conversion extends Base_model {
 	protected $date_modified_field = 'date_modified';
 	protected $last_modified_field = 'last_modified';
 
+    protected $status_log = array(
+			'table' => 'conversion_status_log',
+			'status_field' => 'conversion_status',
+			'prefix' => 'convlog_',
+			'foreign_key' => 'conversion_id'
+		);
+
     protected $previous_status;
     protected $autoApproval = FALSE;
 

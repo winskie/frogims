@@ -25,6 +25,13 @@ class Allocation extends Base_model {
 	protected $date_modified_field = 'date_modified';
 	protected $last_modified_field = 'last_modified';
 
+    protected $status_log = array(
+			'table' => 'allocation_status_log',
+			'status_field' => 'allocation_status',
+			'prefix' => 'alloclog_',
+			'foreign_key' => 'allocation_id'
+		);
+
 	public function __construct()
 	{
 		parent::__construct();

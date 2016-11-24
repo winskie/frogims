@@ -21,6 +21,13 @@ class Adjustment extends Base_model {
 
 	protected $previousStatus;
 
+	protected $status_log = array(
+			'table' => 'adjustment_status_log',
+			'status_field' => 'adjustment_status',
+			'prefix' => 'adjlog_',
+			'foreign_key' => 'adjustment_id'
+		);
+
 	public function __construct()
 	{
 		parent::__construct();

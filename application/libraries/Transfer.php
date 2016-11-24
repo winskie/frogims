@@ -32,6 +32,13 @@ class Transfer extends Base_model {
 	protected $voided_items;
 	protected $transfer_validation;
 
+	protected $status_log = array(
+			'table' => 'transfer_status_log',
+			'status_field' => 'transfer_status',
+			'prefix' => 'tslog_',
+			'foreign_key' => 'transfer_id'
+		);
+
 	public function __construct()
 	{
 		parent::__construct();
