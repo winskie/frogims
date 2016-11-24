@@ -10,6 +10,7 @@ class Transaction extends Base_model
 	protected $transaction_quantity;
 	protected $current_quantity;
 	protected $transaction_id;
+	protected $transaction_item_id;
 	protected $transaction_timestamp;
     protected $transaction_shift;
 
@@ -24,11 +25,12 @@ class Transaction extends Base_model
 				'transaction_quantity' => array( 'type' => 'integer' ),
 				'current_quantity' => array( 'type' => 'integer' ),
 				'transaction_id' => array( 'type' => 'integer' ),
+				'transaction_item_id' => array( 'type' => 'integer' ),
 				'transaction_timestamp' => array( 'type' => 'datetime' ),
                 'transaction_shift' => array( 'type' => 'integer' )
 			);
 	}
-    
+
     public function db_save()
 	{
         die( 'You are not allowed to use this function. Use @link Inventory::transact instead.' );

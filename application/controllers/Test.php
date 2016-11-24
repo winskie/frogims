@@ -193,4 +193,17 @@ class Test extends CI_Controller
         }
     }
 
+    function tcpdf_test()
+    {
+
+        $this->load->library( 'pdf' );
+        $pdf = new Pdf( 'P', 'mm', 'A4', true, 'UTF-8', false );
+        $pdf->SetCreator( PDF_CREATOR );
+
+        // Add a page
+        $pdf->AddPage();
+        $html = '<h1>Hello World</h1><p>The quick brown fox jumps over the lazy dog.</p>';
+        $pdf->writeHTML( $html, true, false, true, false, '' );
+        $pdf->Output();
+    }
 }

@@ -9,9 +9,9 @@ class Report
         $end_time = param( $params, 'end_date', date( TIMESTAMP_FORMAT ) );
         $store_id = param( $params, 'store' );
         $items = param( $params, 'item' );
-         
+
         $ci =& get_instance();
-        
+
         $params = array();
         $sql = 'SELECT
                     i.id AS item_id,
@@ -29,29 +29,29 @@ class Report
                 LEFT JOIN items i
                     ON i.id = si.item_id
                 WHERE t0.id IS NULL';
-                
+
         if( $start_time )
         {
             $sql .= " AND t.transaction_timestamp >= ?";
             $params[] = $start_time;
         }
-        
+
         if( $start_time )
         {
             $sql .= " AND t.transaction_timestamp <= ?";
             $params[] = $end_time;
         }
-        
+
         if( $store_id )
         {
             $sql .= " AND si.store_id = ?";
             $params[] = $store_id;
         }
-        
+
         $sql .= ' ORDER BY t.id ASC';
-        
+
         $data = $ci->db->query( $sql, $params );
-        
+
         return $data->result_array();
     }
 }

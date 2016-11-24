@@ -248,6 +248,7 @@ CREATE TABLE IF NOT EXISTS transactions
 	transaction_quantity INTEGER NOT NULL DEFAULT 0,
 	current_quantity INTEGER NOT NULL,
 	transaction_id INTEGER NOT NULL,
+	transaction_item_id INTEGER NULL DEFAULT NULL,
 	transaction_timestamp DATETIME NOT NULL,
 	transaction_shift INTEGER NOT NULL,
 	PRIMARY KEY (id),
@@ -299,12 +300,14 @@ CREATE TABLE IF NOT EXISTS transfers
 	sender_name VARCHAR(100) NULL,
 	sender_shift INTEGER NULL,
 	transfer_datetime DATETIME NOT NULL,
+	transfer_user_id INTEGER NULL,
 	destination_id INTEGER NULL,
 	destination_name VARCHAR(100) NULL,
 	recipient_id INTEGER NULL,
 	recipient_name VARCHAR(100) NULL,
 	recipient_shift INTEGER NULL,
 	receipt_datetime DATETIME NULL,
+	receipt_user_id INTEGER NULL,
 	transfer_status SMALLINT NOT NULL DEFAULT 1,
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,
@@ -320,6 +323,12 @@ CREATE TABLE IF NOT EXISTS transfers
 		ON UPDATE CASCADE
 		ON DELETE SET NULL,
 	FOREIGN KEY transfers_destination_user_fk (recipient_id) REFERENCES users (id)
+		ON UPDATE CASCADE
+		ON DELETE SET NULL,
+	FOREIGN KEY transfers_transfer_user_fk (transfer_user_id) REFERENCES users (id)
+		ON UPDATE CASCADE
+		ON DELETE SET NULL,
+	FOREIGN KEY transfers_receipt_user_fk (receipt_user_id) REFERENCES users (id)
 		ON UPDATE CASCADE
 		ON DELETE SET NULL
 )

@@ -11,12 +11,14 @@ class Transfer extends Base_model {
 	protected $sender_name;
 	protected $sender_shift;
 	protected $transfer_datetime;
+	protected $transfer_user_id;
 	protected $destination_id;
 	protected $destination_name;
 	protected $recipient_id;
 	protected $recipient_name;
 	protected $recipient_shift;
 	protected $receipt_datetime;
+	protected $receipt_user_id;
 	protected $transfer_status;
 
 	protected $date_created_field = 'date_created';
@@ -43,12 +45,14 @@ class Transfer extends Base_model {
 				'sender_name' => array( 'type' => 'string' ),
 				'sender_shift' => array( 'type' => 'integer' ),
 				'transfer_datetime' => array( 'type' => 'datetime' ),
+				'transfer_user_id' => array( 'type' => 'integer' ),
 				'destination_id' => array( 'type' => 'integer' ),
 				'destination_name' => array( 'type' => 'string' ),
 				'recipient_id' => array( 'type' => 'integer' ),
 				'recipient_name' => array( 'type' => 'string' ),
 				'recipient_shift' => array( 'type' => 'integer' ),
 				'receipt_datetime' => array( 'type' => 'datetime' ),
+				'receipt_user_id' => array( 'type' => 'integer' ),
 				'transfer_status' => array( 'type' => 'integer' )
 			);
 		$this->children = array(
@@ -696,8 +700,8 @@ class Transfer extends Base_model {
 						$this->set( 'origin_name', $current_store->get( 'store_name' ) );
 					}
 
-					// Sender ID - should be the currently logged in user's ID
-					$this->set( 'sender_id', $current_user->get( 'id' ) );
+					// transfer user ID - should be the currently logged in user's ID
+					$this->set( 'transfer_user_id', $current_user->get( 'id' ) );
 
 					// Sender name - if not specified should be currently logged in user
 					//$sender_name = isset( $this->sender_name ) ? $this->sender_name : $current_user->get( 'full_name' );
@@ -731,12 +735,15 @@ class Transfer extends Base_model {
 						$this->set( 'destination_name', $current_store->get( 'store_name' ) );
 					}
 
-					// Recipient ID - should be the currently logged in user's ID
-					$this->set( 'recipient_id', $current_user->get( 'id' ) );
+					// Receipt user ID - should be the currently logged in user's ID
+					$this->set( 'receipt_user_id', $current_user->get( 'id' ) );
 
 					// Recipient name - if not specified should be currently logged in user's name
-					$recipient_name = isset( $this->recipient_name ) ? $this->recipient_name : $current_user->get( 'full_name' );
-					$this->set( 'recipient_name', $recipient_name );
+					if( empty( $this->recipient_name ) )
+					{
+						$this->set( 'recipient_id', $current_user->get( 'id' ) );
+						$this->set( 'recipient_name', $current_user->get( 'full_name' ) );
+					}
 
 					// Recipient Shift
 					$this->set( 'recipient_shift', $current_shift );
@@ -781,7 +788,7 @@ class Transfer extends Base_model {
 				{
 					$quantity = $item->get( 'quantity' ) * -1; // Item will be removed from inventory
 					$inventory->reserve( $quantity );
-					$inventory->transact( TRANSACTION_TRANSFER_OUT, $quantity, $this->transfer_datetime, $this->id );
+					$inventory->transact( TRANSACTION_TRANSFER_OUT, $quantity, $this->transfer_datetime, $this->id, $item->get( 'id' ) );
 
 					$item->set( 'transfer_item_status', TRANSFER_ITEM_APPROVED );
 					$item->db_save();
@@ -824,7 +831,7 @@ class Transfer extends Base_model {
 			$quantity = $item->get( 'quantity' ); // Item will be returned to the inventory
 			if( $item->get( 'transfer_item_status' ) == TRANSFER_ITEM_APPROVED )
 			{
-				$inventory->transact( TRANSACTION_TRANSFER_CANCEL, $quantity, $timestamp, $this->id );
+				$inventory->transact( TRANSACTION_TRANSFER_CANCEL, $quantity, $timestamp, $this->id, $item->get( 'id' ) );
 			}
 
 			if( in_array( $item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_SCHEDULED, TRANSFER_ITEM_APPROVED ) ) )
@@ -869,7 +876,7 @@ class Transfer extends Base_model {
 					$quantity = $item->get( 'quantity' );
 					$item->set( 'quantity_received', $quantity );
 				}
-				$inventory->transact( TRANSACTION_TRANSFER_IN, $quantity, $this->receipt_datetime, $this->id );
+				$inventory->transact( TRANSACTION_TRANSFER_IN, $quantity, $this->receipt_datetime, $this->id, $item->get( 'id' ) );
 
 				$item->set( 'transfer_item_status', TRANSFER_ITEM_RECEIVED );
 				$item->db_save();
@@ -899,7 +906,7 @@ class Transfer extends Base_model {
 				if( $inventory )
 				{
 					$quantity = $v;
-					$inventory->transact( TRANSACTION_TRANSFER_VOID, $quantity, $timestamp, $this->id );
+					$inventory->transact( TRANSACTION_TRANSFER_VOID, $quantity, $timestamp, $this->id, $k );
 				}
 			}
 		}

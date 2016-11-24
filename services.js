@@ -449,6 +449,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 						{ id: 23, typeName: 'Void Remittance', module: 'Allocations' },
 						{ id: 30, typeName: 'Collection', module: 'Collections' },
 						{ id: 31, typeName: 'Void Collection', module: 'Collections' },
+						{ id: 32, typeName: 'Issuance to Production', module: 'Collections' },
 						{ id: 40, typeName: 'Adjustment', module: 'Adjustments' },
 						{ id: 50, typeName: 'Conversion From', module: 'Conversions' },
 						{ id: 51, typeName: 'Conversion To', module: 'Conversions' }
@@ -2356,6 +2357,7 @@ appServices.service( 'lookup',
 
 				'30': 'Mopping Collection',
 				'31': 'Void Collection',
+				'32': 'Issuance to Production',
 
 				'40': 'Adjustment',
 
@@ -2465,6 +2467,9 @@ appServices.service( 'notifications', [ '$rootScope',
 	function( $rootScope )
 	{
 		var me = this;
+
+		me.nextId = 1;
+
 		me.subscribe = function( scope, eventName, callback )
 			{
 				var eventRegister = $rootScope.$on( eventName, callback );
@@ -2479,6 +2484,7 @@ appServices.service( 'notifications', [ '$rootScope',
 		me.alert = function( message, type, duration )
 			{
 				var durationMultiplier = 1;
+				var currentId = me.nextId++;
 				if( ! duration )
 				{
 					duration = 2300;
@@ -2492,10 +2498,18 @@ appServices.service( 'notifications', [ '$rootScope',
 				duration = duration * durationMultiplier;
 
 				$rootScope.$emit( 'notificationSignal', {
+						id: currentId,
 						type: type,
 						message: message,
 						duration: duration
 					});
+
+				return currentId;
+			};
+
+		me.closeNotification = function( notificationId )
+			{
+				$rootScope.$emit( 'notificationCloseSignal', { id: notificationId } );
 			};
 
 		me.showMessages = function( messages )
@@ -2546,6 +2560,93 @@ appServices.service( 'utilities',
 				return -1;
 			};
 	});
+
+appServices.service( 'ReportServices', [ '$http', '$httpParamSerializer', '$q', '$window', 'baseUrl', 'notifications',
+	function( $http, $httpParamSerializer, $q, $window, baseUrl, notifications )
+	{
+		var me = this;
+		me.reportMode = undefined;
+
+		me.getReportMode = function()
+			{
+				var deferred = $q.defer();
+				if( me.reportMode )
+				{
+					deferred.resolve( me.reportMode );
+				}
+				else
+				{
+					$http({
+						method: 'GET',
+						url: baseUrl + 'index.php/report/get_report_mode'
+					}).then(
+						function( response )
+						{
+							if( response.data.status == 'ok' )
+							{
+								me.reportMode = response.data.report_mode;
+								deferred.resolve( me.reportMode );
+							}
+							else
+							{
+								console.error( 'Error retrieving report mode' );
+								deferred.reject( 'Error retrieving report mode' );
+							}
+						},
+						function( reason )
+						{
+							console.error( reason );
+							deferred.reject( reason );
+						} );
+				}
+
+				return deferred.promise;
+			};
+
+		me.generateReport = function( report, params )
+			{
+				var url = baseUrl + 'index.php/report/' + report;
+				var noteId = notifications.alert( 'Generating report, please wait...', 'info', -1 );
+
+				me.getReportMode().then(
+					function( response )
+					{
+						switch( response )
+						{
+							case 'JasperReports':
+								$http({
+									method: 'GET',
+									url: url,
+									params: params,
+									responseType: 'arraybuffer'
+								}).then(
+									function( response )
+									{
+										// Close notification
+										notifications.closeNotification( noteId );
+
+										var headers = response.headers();
+										var file = new Blob( [response.data], { type: headers['content-type'] } );
+										var fileURL = URL.createObjectURL( file );
+
+										// open in new window
+										$window.open( fileURL, '_blank', 'toolbar=no, menubar=no, location=no, titlebar=no' );
+									},
+									function( reason )
+									{
+										console.error( reason );
+									} );
+								break;
+
+							default:
+								$window.open( baseUrl + 'index.php/report/' + report + '?' + $.param( params ), '_blank' );
+								break;
+						}
+					} );
+			};
+	}
+]);
+
 appServices.service( 'UserServices', [ '$http', '$q', 'baseUrl',
 	function( $http, $q, baseUrl )
 	{
