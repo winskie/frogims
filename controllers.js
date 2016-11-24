@@ -1534,7 +1534,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				transfer_datetime: new Date(),
 				destination_id: [ 'receipt', 'externalReceipt' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentStore.id : null,
 				destination_name: [ 'receipt', 'externalReceipt' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentStore.store_name : null,
-				recipient_id: null,
+				recipient_id: [ 'receipt', 'externalReceipt' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentUser.id : null,
 				recipient_name: [ 'receipt', 'externalReceipt' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentUser.full_name : null,
 				receipt_datetime: [ 'receipt', 'externalReceipt' ].indexOf( $scope.data.editMode ) != -1 ? new Date() : null,
 				transfer_status: 1, // TRANSFER_PENDING
@@ -1882,6 +1882,18 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			{
 				$scope.updateItemCategories();
 				$scope.getItemQuantities();
+			};
+
+		$scope.recipientChange = function()
+			{
+				if( typeof $scope.transferItem.recipient_name === 'object' && $scope.transferItem.recipient_name )
+				{
+					$scope.transferItem.recipient_id = $scope.transferItem.recipient_name.id;
+				}
+				else
+				{
+					$scope.transferItem.recipient_id = null;
+				}
 			};
 
 		$scope.updateItemCategories = function()
@@ -2366,6 +2378,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 						if( ! $scope.transferItem.recipient_name && $scope.data.editMode == 'receipt' )
 						{
+							$scope.transferItem.recipient_id = session.data.currentUser.id;
 							$scope.transferItem.recipient_name = session.data.currentUser.full_name;
 						}
 

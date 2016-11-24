@@ -113,12 +113,13 @@ class Report extends MY_Controller {
 
 	function delivery_receipt( $report_mode = 'JasperReports' )
 	{
+        $current_user = current_user();
 		$params = $this->input->get();
 
         $params = array_merge( array(
                 'transer_id' => NULL,
-                'prepared_by' => NULL,
-                'prepared_by_position' => NULL,
+                'prepared_by' => $current_user->get( 'full_name' ),
+                'prepared_by_position' => $current_user->get( 'position' ),
                 'checked_by' => NULL,
                 'checked_by_position' => NULL,
                 'bearer' => NULL,
@@ -216,10 +217,12 @@ class Report extends MY_Controller {
 
     function ticket_turnover()
     {
+        $current_user = current_user();
         $params = $this->input->get();
 
         $params = array_merge( $params, array(
-                'transfer_id' => NULL
+                'transfer_id' => NULL,
+                'turnover_by' => $current_user->get( 'full_name' )
             ), $params );
 
         $report_mode = $this->config->item( 'report_mode' );

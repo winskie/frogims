@@ -252,6 +252,7 @@
 						<div ng-if="[ 'receipt', 'externalReceipt' ].indexOf( data.editMode ) != -1">
 							<input type="text" class="form-control"
 									ng-model="transferItem.recipient_name"
+									ng-change="recipientChange()"
 									typeahead-editable="true"
 									uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
 						</div>
