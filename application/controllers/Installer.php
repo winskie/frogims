@@ -1241,6 +1241,10 @@ class Installer extends CI_Controller {
 		$this->db->query( "TRUNCATE TABLE allocation_items" );
 		$this->db->query( "TRUNCATE TABLE mopping" );
 		$this->db->query( "TRUNCATE TABLE mopping_items" );
+		$this->db->query( "TRUNCATE TABLE adjustment_status_log" );
+		$this->db->query( "TRUNCATE TABLE transfer_status_log" );
+		$this->db->query( "TRUNCATE TABLE conversion_status_log" );
+		$this->db->query( "TRUNCATE TABLE allocation_status_log" );
 
 
 		$this->db->query( "SET FOREIGN_KEY_CHECKS = OFF" );
