@@ -90,6 +90,12 @@
         <div id="content" ui-view></div>
     </div>
 
+    <nav class="nav navbar-default navbar-fixed-bottom">
+        <div class="container text-center">
+            <small class="text-muted">&copy;2016 Light Rail Transit Authority / Fare Revenue Operations Group / Version <?php echo $app_version ;?></small>
+        </div>
+    </nav>
+
     <!-- Debug -->
     <div ng-bind-html="debug"></div>
 </div>

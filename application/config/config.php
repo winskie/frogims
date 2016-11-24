@@ -520,3 +520,5 @@ function __autoload($class)
 		include( APPPATH.'models/'.strtolower($class).'.php' );
 	}
 }
+
+$config['app_version'] = '0.9.20161124-development';

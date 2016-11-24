@@ -31,16 +31,18 @@ class Main extends MY_Controller {
 
 	public function view( $view )
 	{
+		$data['app_version'] = $this->config->item( 'app_version' );
+
 		// check if valid session
 		if( is_logged_in() )
 		{
 			if( substr( $view, 0, strlen( 'modal_' ) ) === 'modal_' )
 			{
-				$this->load->view( 'modals/'.$view );
+				$this->load->view( 'modals/'.$view, $data );
 			}
 			else
 			{
-				$this->load->view( $view );
+				$this->load->view( $view, $data );
 			}
 		}
 		else

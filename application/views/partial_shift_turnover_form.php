@@ -6,7 +6,7 @@
 		<form class="form-inline">
 			<div class="col-sm-6">
 				<div class="form-group">
-					<label class="control-label">Current shift:</label>
+					<label class="control-label">Current shift</label>
 					<select class="form-control"
 							ng-model="data.currentShift"
 							ng-change="onChangeShift()"
@@ -27,11 +27,11 @@
 			</div>
 			<div class="col-sm-6">
 				<div class="form-group" style="margin-right: 20px;">
-					<label class="control-label">Status:</label>
+					<label class="control-label">Status</label>
 					<p class="form-control-static">{{ shiftTurnover.st_status ? lookup( 'shiftTurnoverStatus', shiftTurnover.st_status ) : 'Pending' }}</p>
 				</div>
 				<div class="form-group">
-					<label class="control-label">Turnover to:</label>
+					<label class="control-label">Turnover to</label>
 					<p class="form-control-static">{{ data.nextShift.description }} - {{ shiftTurnover.st_to_date | date: 'fullDate' }}</p>
 				</div>
 			</div>
@@ -42,7 +42,7 @@
 
 <div class="panel panel-default">
 	<div class="panel-heading">
-		<h3 class="panel-title pull-left">Inventory</h3>
+		<h3 class="panel-title pull-left">Inventory Balances</h3>
 		<div class="pull-right">
 			<button class="btn btn-default btn-sm" ng-click="onChangeShift()">
 				<i class="glyphicon glyphicon-refresh"></i>

@@ -9,7 +9,7 @@ $current_user = current_user();
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left"> Inventory</h3>
 					<div class="pull-right">
-						<button class="btn btn-default btn-sm" ng-click="switchInventoryView()" ng-if="sessionData.currentStore.store_type == 4 && checkPermissions( 'shiftTurnovers', 'edit')">
+						<button class="btn btn-default btn-sm" ng-click="switchInventoryView()" ng-if="( sessionData.currentStore.store_type == 4 || sessionData.currentStore.store_type == 2 )  && checkPermissions( 'shiftTurnovers', 'edit')">
 							{{ data.inventoryViewLabel }}
 						</button>
 						<button class="btn btn-default btn-sm" ng-click="updateInventory( sessionData.currentStore.id )">
