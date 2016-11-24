@@ -1322,7 +1322,7 @@ $current_user = current_user();
 		</uib-tab>
 
 		<!-- Shift Turnovers -->
-		<uib-tab index="9" select="onTabSelect('shiftTurnovers')" ng-if="sessionData.currentStore.store_type == 4 && checkPermissions( 'shiftTurnovers', 'view')"> <!-- Cashroom only -->
+		<uib-tab index="9" select="onTabSelect('shiftTurnovers')" ng-if="( sessionData.currentStore.store_type == 4 || sessionData.currentStore.store_type == 2 ) && checkPermissions( 'shiftTurnovers', 'view')"> <!-- Cashroom only -->
 			<uib-tab-heading>
 					Shift Turnovers <span ng-show="appData.pending.shiftTurnovers > 0" class="label label-danger label-as-badge">{{ appData.pending.shiftTurnovers }}</span>
 			</uib-tab-heading>

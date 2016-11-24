@@ -76,17 +76,17 @@
 				<td>{{ item.item_description }}</td>
 				<td class="text-center">{{ item.item_unit }}</td>
 				<td class="text-center">{{ item.previous_balance ? ( item.previous_balance | number ) : '---' }}</td>
-				<td class="text-right" ng-switch on="shiftTurnover.st_status == 2 || data.editMode == 'view'">
+				<td class="text-right" ng-switch on="shiftTurnover.st_status != 2 && data.editMode != 'view' && checkPermissions( 'shiftTurnovers', 'edit' )">
 					<input class="form-control input-sm text-right" type="number" tabindex="{{ $index + 1 }}"
-						ng-switch-when="false"
+						ng-switch-when="true"
 						ng-model="item.sti_beginning_balance">
 					<span ng-switch-default>{{ item.sti_beginning_balance }}</span>
 				</td>
 				<td class="text-center">{{ item.movement ? ( item.movement | number ) : '---' }}</td>
 				<td class="text-center">{{ ( item.sti_beginning_balance ? item.sti_beginning_balance : 0 ) + ( item.movement ? item.movement : 0 ) | number }}</td>
-				<td class="text-right" ng-switch on="shiftTurnover.st_status == 2 || data.editMode == 'view'">
+				<td class="text-right" ng-switch on="shiftTurnover.st_status == 1 && data.editMode != 'view' && checkPermissions( 'shiftTurnovers', 'edit' )">
 					<input class="form-control input-sm text-right" type="number" tabindex="{{  ( shiftTurnover.items.length ) + $index + 1 }}"
-						ng-switch-when="false"
+						ng-switch-when="true"
 						ng-model="item.sti_ending_balance"
 						ng-disabled="shiftTurnover.st_status == null">
 					<span ng-switch-default>{{ item.sti_ending_balance }}</span>
@@ -102,13 +102,13 @@
 <!-- Form buttons -->
 <div class="text-right">
 	<button type="button" class="btn"
-			ng-if="shiftTurnover.st_status != 2 && data.editMode != 'view'"
+			ng-if="shiftTurnover.st_status != 2 && data.editMode != 'view' && checkPermissions( 'shiftTurnovers', 'edit' )"
 			ng-class="{ 'btn-default': shiftTurnover.st_status == 1, 'btn-primary': shiftTurnover.st_status != 1 }"
 			ng-click="saveTurnover()"
 			<i class="glyphicon glyphicon-ok"></i> {{ shiftTurnover.st_status == null ? 'Start Shift' : 'Update Beginning Balances' }}
 	</button>
 	<button type="button" class="btn btn-primary"
-			ng-if="shiftTurnover.st_status == 1 && data.editMode != 'view'"
+			ng-if="shiftTurnover.st_status == 1 && data.editMode != 'view' && checkPermissions( 'shiftTurnovers', 'edit' )"
 			ng-click="saveTurnover( 'close' )"
 			<i class="glyphicon glyphicon-ok"></i> End Shift
 	</button>

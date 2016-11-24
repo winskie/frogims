@@ -69,7 +69,7 @@ app.controller( 'MainController', [ '$rootScope', '$scope', '$filter', '$state',
 
 		$scope.currentDate = new Date();
 		$scope.canChangeStore = allowStoreChange.indexOf( $state.current.name ) != -1;
-		$scope.canSetShiftBalances = session.data.currentStore.store_type == 4;
+		$scope.canSetShiftBalances = ( session.data.currentStore.store_type == 4 || session.data.currentStore.store_type == 2 );
 		$scope.sessionData = session.data;
 		$scope.checkPermissions = session.checkPermissions;
 		$scope.changeStore = function( newStore )
@@ -77,7 +77,7 @@ app.controller( 'MainController', [ '$rootScope', '$scope', '$filter', '$state',
 					session.changeStore( newStore ).then(
 						function( response )
 						{
-							$scope.canSetShiftBalances = session.data.currentStore.store_type == 4;
+							$scope.canSetShiftBalances = ( session.data.currentStore.store_type == 4 || session.data.currentStore.store_type == 2 );
 							$scope.shiftBalanceStatus = session.data.shiftBalance ? session.data.shiftBalance.st_status : 0;
 						});
 				};
