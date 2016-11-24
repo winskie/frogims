@@ -476,7 +476,8 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 						yAxis: {
 							title: {
 								text: 'Inventory Levels'
-							}
+							},
+							reversedStacks: false
 						},
 						tooltip: {
 							headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
@@ -489,7 +490,8 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 						plotOptions: {
 							column: {
 								pointPadding: 0.2,
-								borderWidth: 0
+								borderWidth: 0,
+								stacking: 'normal'
 							}
 						},
 						series: null
@@ -516,7 +518,11 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 								me.chart.addSeries({
 										name: series[j].item,
 										data: series[j].data,
-										color: itemColors[series[j].item] || undefined,
+										stack: series[j].stack,
+										color: series[j].in_transit === 1 ? 'white' : ( itemColors[series[j].stack] || undefined ),
+										borderColor: itemColors[series[j].stack] || undefined,
+										borderWidth: 2,
+										linkedTo: series[j].in_transit === 1 ? ':previous' : undefined,
 										visible: defaultItems.indexOf( series[j].item ) != -1
 									}, false );
 							}

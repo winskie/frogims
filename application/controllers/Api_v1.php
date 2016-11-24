@@ -743,11 +743,26 @@ class Api_v1 extends MY_Controller {
 				switch( $relation )
 					{
 						case 'system':
-							$this->db->select( 's.store_name, s.store_code, i.item_name, si.quantity' );
-							$this->db->join( 'stores s', 's.id = si.store_id', 'left' );
-							$this->db->join( 'items i', 'i.id = si.item_id', 'left' );
-							$this->db->order_by( 'si.store_id ASC, si.item_id ASC' );
-							$data = $this->db->get( 'store_inventory si');
+							// TODO: Add transfer_datetime in the WHERE clause of the subquery, probably limit to transfers within a month or week
+							$sql = "SELECT s.store_name, s.store_code, i.item_name, si.quantity, COALESCE( it.in_transit_quantity, 0 ) AS in_transit_quantity
+											FROM store_inventory si
+											LEFT JOIN stores s
+												ON s.id = si.store_id
+											LEFT JOIN items i
+												ON i.id = si.item_id
+											LEFT JOIN (
+												SELECT t.destination_id, ti.item_id, SUM( ti.quantity ) AS in_transit_quantity
+												FROM transfers t
+												LEFT JOIN transfer_items ti
+													ON ti.transfer_id = t.id
+												WHERE
+													t.transfer_status = 2
+												GROUP BY t.destination_id, ti.item_id
+											) AS it
+												ON it.destination_id = si.store_id AND it.item_id = si.item_id
+											ORDER BY si.store_id ASC, si.item_id ASC";
+
+							$data = $this->db->query( $sql );
 							$data = $data->result_array();
 
 							$stores = array();
@@ -756,17 +771,20 @@ class Api_v1 extends MY_Controller {
 							foreach( $data as $row )
 							{
 								$index = array_search( $row['store_code'], $stores );
-								if( $index !== FALSE )
-								{
-									$series[$row['item_name']]['item'] = $row['item_name'];
-									$series[$row['item_name']]['data'][] = (int) $row['quantity'];
-								}
-								else
+								if( $index === FALSE )
 								{
 									$stores[] = $row['store_code'];
-									$series[$row['item_name']]['item'] = $row['item_name'];
-									$series[$row['item_name']]['data'][] = (int) $row['quantity'];
 								}
+
+								$series[$row['item_name'].'_1']['item'] = $row['item_name'];
+								$series[$row['item_name'].'_1']['stack'] = $row['item_name'];
+								$series[$row['item_name'].'_1']['data'][] = (int) $row['quantity'];
+								$series[$row['item_name'].'_1']['in_transit'] = 0;
+
+								$series[$row['item_name'].'_2']['item'] = $row['item_name'].' (transit)';
+								$series[$row['item_name'].'_2']['stack'] = $row['item_name'];
+								$series[$row['item_name'].'_2']['data'][] = (int) $row['in_transit_quantity'];
+								$series[$row['item_name'].'_2']['in_transit'] = 1;
 							}
 
 							$data_array = array(

@@ -386,7 +386,8 @@ class Installer extends CI_Controller {
 						ON DELETE SET NULL,
 					FOREIGN KEY transfers_receipt_user_fk (receipt_user_id) REFERENCES users (id)
 						ON UPDATE CASCADE
-						ON DELETE SET NULL
+						ON DELETE SET NULL,
+					INDEX transfer_date_status_ndx ( transfer_datetime, transfer_status )
 				)
 				ENGINE=InnoDB" );
 

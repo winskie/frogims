@@ -32,6 +32,7 @@ class Main extends MY_Controller {
 	public function view( $view )
 	{
 		$data['app_version'] = $this->config->item( 'app_version' );
+		$data['copyright_year'] = $this->config->item( 'copyright_year' );
 
 		// check if valid session
 		if( is_logged_in() )
