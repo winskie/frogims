@@ -80,6 +80,7 @@ class Transfer extends Base_model {
 		$source = param( $params, 'src' );
 		$destination = param( $params, 'dst' );
 		$status = param( $params, 'status' );
+		$category = param( $params, 'category' );
 		$validation_status = param( $params, 'validation_status' );
 
 		$limit = param( $params, 'limit' );
@@ -137,6 +138,11 @@ class Transfer extends Base_model {
 		if( $status )
 		{
 			$ci->db->where( 'transfer_status', $status );
+		}
+
+		if( $category )
+		{
+			$ci->db->where( 'transfer_category', $category );
 		}
 
 		if( $validation_status )

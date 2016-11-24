@@ -210,7 +210,7 @@ $current_user = current_user();
 
 					<!-- Filter Panel -->
 					<div class="row filter_panel" ng-show="filterPanels.transferValidations">
-						<div class="col-sm-6 col-md-3 col-lg-2">
+						<div class="col-sm-6 col-md-3 col-lg-3">
 							<div class="form-group">
 								<label class="control-label">Date Sent</label>
 								<div class="input-group">
@@ -222,9 +222,6 @@ $current_user = current_user();
 									</span>
 								</div>
 							</div>
-						</div>
-
-						<div class="col-sm-6 col-md-3 col-lg-2">
 							<div class="form-group">
 								<label class="control-label">Date Received</label>
 								<div class="input-group">
@@ -238,7 +235,7 @@ $current_user = current_user();
 							</div>
 						</div>
 
-						<div class="col-sm-6 col-md-3 col-lg-2">
+						<div class="col-sm-6 col-md-3 col-lg-4">
 							<div class="form-group">
 								<label class="control-label">Source</label>
 								<select class="form-control"
@@ -246,9 +243,6 @@ $current_user = current_user();
 										ng-options="store as store.store_name for store in widgets.transferValidationsSources track by store.id">
 								</select>
 							</div>
-						</div>
-
-						<div class="col-sm-6 col-md-3 col-lg-2">
 							<div class="form-group">
 								<label class="control-label">Destination</label>
 								<select class="form-control"
@@ -258,7 +252,14 @@ $current_user = current_user();
 							</div>
 						</div>
 
-						<div class="col-sm-4 col-md-3 col-lg-2">
+						<div class="col-sm-4 col-md-3 col-lg-3">
+							<div class="form-group">
+								<label class="control-label">Category</label>
+								<select class="form-control"
+										ng-model="filters.transferValidations.category"
+										ng-options="category as category.categoryName for category in widgets.transferValidationsCategories track by category.id">
+								</select>
+							</div>
 							<div class="form-group">
 								<label class="control-label">Validation Status</label>
 								<select class="form-control"
@@ -284,6 +285,7 @@ $current_user = current_user();
 								<th>Source Validation</th>
 								<th>Destination</th>
 								<th>Destination Validation</th>
+								<th>Category</th>
 								<th>Status</th>
 								<th></th>
 							</tr>
@@ -322,6 +324,7 @@ $current_user = current_user();
 									</div>
 									<span class="text-muted" ng-switch-default>---</span>
 								</td>
+								<td>{{ lookup( 'transferCategories', transfer.transfer_category ) }}</td>
 								<td>
 									<i class="glyphicon glyphicon-transfer"> </i>
 									<span>

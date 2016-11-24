@@ -2027,6 +2027,7 @@ class Api_v1 extends MY_Controller {
 							'src' => param( $this->input->get(), 'src' ),
 							'dst' => param( $this->input->get(), 'dst' ),
 							'status' => param( $this->input->get(), 'status' ),
+							'category' => param( $this->input->get(), 'category' ),
 							'validation_status' => param( $this->input->get(), 'validation_status' ),
 							'page' => param( $this->input->get(), 'page' ),
 							'limit' => param( $this->input->get(), 'limit' ),

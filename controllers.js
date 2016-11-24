@@ -728,6 +728,7 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 				},
 				transferValidationsSources: angular.copy( appData.data.stores ),
 				transferValidationsDestinations: angular.copy( appData.data.stores ),
+				transferValidationsCategories: angular.copy( appData.data.transferCategories ),
 				transferValidationsStatus: angular.copy( appData.data.transferValidationStatus ),
 
 				transfersDate: {
@@ -782,6 +783,7 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 		$scope.widgets.transferValidationsSources.push({ id: '_ext_', store_name: 'External Sources' });
 		$scope.widgets.transferValidationsDestinations.unshift({ id: null, store_name: 'All' });
 		$scope.widgets.transferValidationsDestinations.push({ id: '_ext_', store_name: 'External Destinations' });
+		$scope.widgets.transferValidationsCategories.unshift({ id: null, categoryName: 'All' });
 		$scope.widgets.transferValidationsStatus.unshift({ id: '_null_', statusName: 'No validation' });
 		$scope.widgets.transferValidationsStatus.unshift({ id: null, statusName: 'All' });
 
