@@ -1308,7 +1308,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 					},
 					function( reason )
 					{
-						notifications.alert( reason );
+						console.error( reason );
 					});
 			};
 
@@ -1324,7 +1324,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 					},
 					function( reason )
 					{
-						notifications.alert( reason );
+						console.error( reason );
 					});
 			};
 
@@ -1340,7 +1340,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 					},
 					function( reason )
 					{
-						notifications.alert( reason );
+						console.error( reason );
 					});
 			};
 
@@ -1356,7 +1356,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 					},
 					function( reason )
 					{
-						notifications.alert( reason );
+						console.error( reason );
 					});
 			};
 
@@ -1372,7 +1372,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 					},
 					function( reason )
 					{
-						notifications.alert( reason );
+						console.error( reason );
 					});
 			};
 
@@ -1388,7 +1388,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 					},
 					function( reason )
 					{
-						notifications.alert( reason );
+						console.error( reason );
 					});
 			};
 
@@ -1404,7 +1404,7 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 					},
 					function( reason )
 					{
-						notifications.alert( reason );
+						console.error( reason );
 					});
 			};
 
