@@ -870,7 +870,7 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 		$scope.quicksearch = {};
 		$scope.loadRecord = function( event, type, mode )
 			{
-				if( ( event.type == 'keypress' ) && ( event.charCode == 13 ) )
+				if( ( event.type == 'keypress' ) && ( event.keyCode == 13 ) )
 				{
 					$scope.viewRecord( type, $scope.quicksearch[type], mode );
 					$scope.quicksearch[type] = null;
@@ -1625,7 +1625,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		$scope.addTransferItem = function( event )
 			{
-				if( ( event.type == 'keypress' ) && ( event.charCode == 13 )
+				if( ( event.type == 'keypress' ) && ( event.keyCode == 13 )
 						&& $scope.input.inventoryItem
 						&& $scope.input.category
 						&& $scope.input.quantity > 0 )
@@ -2113,7 +2113,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		$scope.addAllocationItems = function()
 			{
-				if( ( event.type == 'keypress' ) && ( event.charCode == 13 ) && $scope.input.allocation )
+				if( ( event.type == 'keypress' ) && ( event.keyCode == 13 ) && $scope.input.allocation )
 				{
 					appData.getAllocation( $scope.input.allocation ).then(
 						function( response )
@@ -2970,7 +2970,7 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 
 		$scope.addMoppingItem = function( event )
 			{
-				if( ( event.type == 'keypress' ) && ( event.charCode == 13 ) )
+				if( ( event.type == 'keypress' ) && ( event.keyCode == 13 ) )
 				{
 					if( ! $scope.input.deliveryPerson )
 					{
@@ -3507,7 +3507,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 
 		$scope.addAllocationItem = function()
 			{
-				if( ( event.type == 'keypress' ) && ( event.charCode == 13 )
+				if( ( event.type == 'keypress' ) && ( event.keyCode == 13 )
 						&& $scope.input.category
 						&& $scope.input.item
 						&& $scope.input.quantity > 0 )
