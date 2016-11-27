@@ -249,10 +249,12 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 				'L2 SJT - Damaged': 'pink',
 				'SVC - Defective': 'gray',
 				'SVC - Damaged': 'black',
-				'Senior SVC': 'brown',
-				'PWD SVC': 'lightbrown',
+				'Senior': 'brown',
+				'PWD': 'lightbrown',
 				'L1 SJT': 'cyan',
 				'L2 Ticket Coupon': 'magenta',
+				'MRT SJT': 'gray',
+				'Staff Card': 'violet',
 				'Others': 'teal'
 			};
 
@@ -504,7 +506,8 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 							var currentSeries = me.chart.series;
 							var series = data.series;
 
-							var defaultItems = [ 'L2 SJT - Rigid Box', 'L2 SJT - Ticket Magazine', 'SVC - Rigid Box' ];
+							var defaultItems = [ 'L2 SJT - Rigid Box', 'L2 SJT - Ticket Magazine', 'SVC - Rigid Box',
+									'L2 SJT - Rigid Box (transit)', 'L2 SJT - Ticket Magazine (transit)', 'SVC - Rigid Box (transit)' ];
 
 							// Remove old series first
 							for( var i = currentSeries.length - 1; i >= 0; i-- )
@@ -2866,20 +2869,10 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 							$scope.data.editMode = 'view';
 						}
 
-						if( $scope.data.editMode != 'view' && $scope.conversionItem.conversion_status == 2 ) // CONVERSION_APPROVED
-						{ // if we're only viewing the record and the conversion is already approved do not attempt to recompute output
-							$scope.onInputItemChange();
-						}
-						else
-						{
-							// TODO: hack for populating $scope.data.factor without requesting for it
-							$scope.data.factor = $scope.conversionItem.target_quantity / $scope.conversionItem.source_quantity;
-							$scope.checkConversion();
-						}
-
+						// Initiate conversion factor
+						$scope.onInputItemChange();
 					}
-				}
-			)
+				}	);
 		}
 		else
 		{

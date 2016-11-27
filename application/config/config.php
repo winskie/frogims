@@ -521,4 +521,5 @@ function __autoload($class)
 	}
 }
 
-$config['app_version'] = '0.9.20161124-development';
+$config['app_version'] = '0.8.20161124-develop';
+$config['copyright_year'] = date( 'Y' );

@@ -92,7 +92,7 @@
 
     <nav class="nav navbar-default navbar-fixed-bottom">
         <div class="container text-center">
-            <small class="text-muted">&copy;<?php echo $copyright_year;?> Light Rail Transit Authority / Fare Revenue Operations Group / Version <?php echo $app_version ;?></small>
+            <small class="text-muted">Copyright &copy;<?php echo $copyright_year;?> Light Rail Transit Authority / Fare Revenue Operations Group / Version <?php echo $app_version ;?></small>
         </div>
     </nav>
 
