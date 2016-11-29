@@ -1679,7 +1679,7 @@ class Api_v1 extends MY_Controller {
 
 										foreach( $receipts as $receipt )
 										{
-											$items = $receipt->get_items( FALSE );
+											$items = $receipt->get_items( TRUE );
 											$r = $receipt->as_array( $array_params );
 											foreach( $items as $item )
 											{
@@ -1697,6 +1697,7 @@ class Api_v1 extends MY_Controller {
 										) );
 									}
 									break;
+
 								case 'turnover_items':
 									// Check permissions
 									if( !$current_user->check_permissions( 'allocations', 'view' ) )
@@ -1779,7 +1780,7 @@ class Api_v1 extends MY_Controller {
 											{
 												$transfer_data = $transfer->as_array();
 
-												$transfer_items = $transfer->get_items();
+												$transfer_items = $transfer->get_items( TRUE );
 												$transfer_items_data = array();
 
 
@@ -1836,7 +1837,7 @@ class Api_v1 extends MY_Controller {
 
 											foreach( $transfers as $transfer )
 											{
-												$items = $transfer->get_items( FALSE );
+												$items = $transfer->get_items( TRUE );
 												$r = $transfer->as_array( $array_params );
 												foreach( $items as $item )
 												{
@@ -1998,7 +1999,7 @@ class Api_v1 extends MY_Controller {
 								{
 									case NULL:
 										$transfer_data = $transfer->as_array();
-										$items = $transfer->get_items();
+										$items = $transfer->get_items( TRUE );
 										$items_data = array();
 										foreach( $items as $item )
 										{
@@ -2147,11 +2148,15 @@ class Api_v1 extends MY_Controller {
 
 				if( $result )
 				{
-					$transfer_items = $transfer->get_items();
+					$transfer_items = $transfer->get_items( TRUE );
 					$transfer_data = $transfer->as_array();
 					foreach( $transfer_items as $item )
 					{
-						$transfer_data['items'][$item->get( 'id' )] = $item->as_array();
+						$transfer_data['items'][] = $item->as_array( array(
+								'item_name' => array( 'type' => 'string' ),
+								'item_description' => array( 'type' => 'string' ),
+								'category_name' => array( 'type' => 'string' ),
+								'is_transfer_category' => array( 'type' => 'boolean' ) ) );
 					}
 					$this->db->trans_complete();
 

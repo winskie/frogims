@@ -479,8 +479,8 @@ $current_user = current_user();
 							<tr ng-repeat="transfer in appData.transfers">
 								<td class="text-center vert-top">{{ transfer.id }}</td>
 								<td class="vert-top">
-									<span>{{ transfer.transfer_status == <?php echo TRANSFER_PENDING;?> ? ( transfer.transfer_datetime | parseDate | date : 'yyyy-MM-dd' ) : transfer.transfer_datetime }}</span><br/>
-									<span>{{ lookup( 'transferCategories', transfer.transfer_category ) }}</span>
+									<span>{{ transfer.get( 'transferDate' ) }}</span><br/>
+									<span>{{ transfer.get( 'transferCategoryName' ) }}</span>
 								</td>
 								<td class="vert-top">
 									<div>
@@ -514,22 +514,22 @@ $current_user = current_user();
 								</td>
 								<td class="text-center vert-top">
 									<i class="glyphicon glyphicon-ok text-success" ng-if="transfer.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_VALIDATED;?>"> </i>
-									{{ lookup( 'transferStatus', transfer.transfer_status ) }}
+									{{ transfer.get( 'transferStatusName' ) }}
 								</td>
 								<td class="text-right vert-top">
 									<div class="btn-group" uib-dropdown>
 										<button type="button" class="btn btn-default" ui-sref="main.transfer({ transferItem: transfer, editMode: 'view' })">View details...</button>
-										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'transfers', transfer )">
+										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="transfer.canApprove() || transfer.canCancel() || transfer.canEdit()">
 											<span class="caret"></span>
 										</button>
-										<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'transfers', transfer )">
-											<li role="menuitem" ng-if="transfer.transfer_status == <?php echo TRANSFER_PENDING;?> && checkPermissions( 'transfers', 'approve' )">
+										<ul uib-dropdown-menu role="menu" ng-if="transfer.canApprove() || transfer.canCancel() || transfer.canEdit()">
+											<li role="menuitem" ng-if="transfer.canApprove()">
 												<a href ng-click="approveTransfer( transfer )">Approve</a>
 											</li>
-											<li role="menuitem" ng-if="( transfer.transfer_status == <?php echo TRANSFER_PENDING;?> && checkPermissions( 'transfers', 'edit' ) ) || ( transfer.transfer_status == <?php echo TRANSFER_APPROVED;?> && checkPermissions( 'transfers', 'approve' ) ) ">
+											<li role="menuitem" ng-if="transfer.canCancel()">
 												<a href ng-click="cancelTransfer( transfer )">Cancel</a>
 											</li>
-											<li role="menuitem" ng-if="transfer.transfer_status == <?php echo TRANSFER_PENDING;?> && checkPermissions( 'transfers', 'edit' )">
+											<li role="menuitem" ng-if="transfer.canEdit()">
 												<a ui-sref="main.transfer({ transferItem: transfer, editMode: 'transfer' })">Edit...</a>
 											</li>
 										</ul>
@@ -650,12 +650,12 @@ $current_user = current_user();
 							<tr ng-repeat="receipt in appData.receipts">
 								<td class="text-center vert-top">{{ receipt.id }}</td>
 								<td class="vert-top">
-									<span>{{ receipt.transfer_status != <?php echo TRANSFER_RECEIVED;?> ? '---' : receipt.receipt_datetime }}</span><br/>
-									<span>{{ lookup( 'transferCategories', receipt.transfer_category ) }}</span>
+									<span>{{ receipt.get( 'receiptDate' ) }}</span><br/>
+									<span>{{ receipt.get( 'transferCategoryName' ) }}</span>
 								</td>
 								<td class="vert-top">
 									<div>
-										{{ receipt.origin_name }} <span class="text-muted">- sent last {{ receipt.transfer_datetime }}</span>{{ receipt.sender_name ? ' thru ' + receipt.sender_name : '' }}
+										{{ receipt.origin_name }} <span class="text-muted">- sent last {{ receipt.get( 'transferDate' ) }}</span>{{ receipt.sender_name ? ' thru ' + receipt.sender_name : '' }}
 									</div>
 									<div class="panel panel-default">
 										<table class="table table-condensed table-bordered table-details">
@@ -685,7 +685,7 @@ $current_user = current_user();
 								<td class="text-center vert-top">
 									<i class="glyphicon glyphicon-ok text-success" ng-if="receipt.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_VALIDATED;?>"> </i>
 									<i class="glyphicon glyphicon-remove text-danger" ng-if="receipt.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_DISPUTED;?>"> </i>
-									{{ lookup( 'receiptStatus', receipt.transfer_status ) }}
+									{{ receipt.get( 'receiptStatusName' ) }}
 								</td>
 								<td class="text-right vert-top">
 									<div class="btn-group" uib-dropdown>
@@ -693,11 +693,11 @@ $current_user = current_user();
 										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'receipts', receipt )">
 											<span class="caret"></span>
 										</button>
-										<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'receipts', receipt )">
-											<li role="menuitem" ng-if="receipt.transfer_status == <?php echo TRANSFER_APPROVED;?> && checkPermissions( 'transfers', 'edit' )">
+										<ul uib-dropdown-menu role="menu" ng-if="receipt.canReceive()">
+											<li role="menuitem" ng-if="receipt.canReceive()">
 												<a href ng-click="receiveTransfer( receipt )">Quick receipt</a>
 											</li>
-											<li role="menuitem" ng-if="receipt.transfer_status == <?php echo TRANSFER_APPROVED;?> && checkPermissions( 'transfers', 'edit' )">
+											<li role="menuitem" ng-if="receipt.canReceive()">
 												<a ui-sref="main.transfer({ transferItem: receipt, editMode: 'receipt' })">Edit receipt...</a>
 											</li>
 										</ul>

@@ -189,16 +189,7 @@
 	<!-- Transfer Items -->
 	<div class="panel panel-default" style="max-height: 300px; overflow-y: auto;">
 		<div class="panel-heading">
-			<h3 class="panel-title pull-left">Transfer Items</h3>
-			<div class="pull-right col-sm-12 col-md-3" ng-if="data.showAllocationItemEntry && ( transferItem.transfer_status == <?php echo TRANSFER_PENDING;?> )">
-				<div class="input-group">
-					<span class="input-group-addon">Allocation ID</span>
-					<input type="text" class="form-control text-right"
-						ng-model="input.allocation"
-						ng-keypress="addAllocationItems()">
-				</div>
-			</div>
-			<div class="clearfix"></div>
+			<h3 class="panel-title">Transfer Items</h3>
 		</div>
 		<table class="table table-condensed">
 			<thead>

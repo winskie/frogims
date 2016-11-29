@@ -347,11 +347,11 @@ class Transfer extends Base_model {
 	}
 
 
-	public function get_items( $attach = FALSE )
+	public function get_items( $force = FALSE )
 	{
 		$ci =& get_instance();
 
-		if( isset( $this->items ) )
+		if( isset( $this->items ) && !$force )
 		{
 			return $this->items;
 		}
@@ -363,15 +363,10 @@ class Transfer extends Base_model {
 			$ci->db->join( 'items i', 'i.id = ti.item_id', 'left' );
 			$ci->db->join( 'categories c', 'c.id = ti.transfer_item_category_id', 'left' );
 			$query = $ci->db->get( 'transfer_items ti' );
-			$items = $query->result( 'Transfer_item' );
-
-			if( $attach )
-			{
-				$this->items = $items;
-			}
+			$this->items = $query->result( 'Transfer_item' );
 		}
 
-		return $items;
+		return $this->items;
 	}
 
 

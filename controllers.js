@@ -988,7 +988,7 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 		// Transfers
 		$scope.approveTransfer = function( transfer )
 			{
-				appData.approveTransfer( transfer ).then(
+				transfer.save( 'approve' ).then(
 					function( response )
 					{
 						notifications.alert( 'Transfer approved', 'success' );
@@ -998,7 +998,7 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 
 		$scope.receiveTransfer = function( transfer )
 			{
-				appData.receiveTransfer( transfer ).then(
+				transfer.save( 'receive' ).then(
 					function( response )
 					{
 						notifications.alert( 'Transfer received', 'success' );
@@ -1008,7 +1008,7 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 
 		$scope.cancelTransfer = function( transfer )
 			{
-				appData.cancelTransfer( transfer ).then(
+				transfer.save( 'cancel' ).then(
 					function( response )
 					{
 						notifications.alert( 'Transfer cancelled', 'success' );
@@ -1453,8 +1453,8 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 	}
 ]);
 
-app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$stateParams', '$uibModal', '$window', 'baseUrl', 'session', 'appData', 'notifications', 'UserServices', 'ReportServices',
-	function( $scope, $filter, $state, $stateParams, $uibModal, $window, baseUrl, session, appData, notifications, UserServices, ReportServices )
+app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$stateParams', '$uibModal', '$window', 'baseUrl', 'session', 'appData', 'notifications', 'Transfer', 'TransferItem', 'UserServices', 'ReportServices',
+	function( $scope, $filter, $state, $stateParams, $uibModal, $window, baseUrl, session, appData, notifications, Transfer, TransferItem,  UserServices, ReportServices )
 	{
 		var users = [];
 
@@ -1500,7 +1500,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 			return filteredItems;
 		}
-
+		$scope.pendingAction = false;
 		$scope.data = {
 			mode: null, // transfer | receipt
 			editMode: $stateParams.editMode || 'auto', // view, externalReceipt, externalTransfer, receipt, transfer
@@ -1532,24 +1532,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				quantity: 1,
 				remarks: null,
 				allocation: null
-			};
-
-		$scope.transferItem = {
-				id: null,
-				transfer_reference_num: null,
-				transfer_category: null,
-				origin_id: [ 'transfer', 'externalTransfer' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentStore.id : null,
-				origin_name: [ 'transfer', 'externalTransfer' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentStore.store_name : null,
-				sender_id: null,
-				sender_name: null,
-				transfer_datetime: new Date(),
-				destination_id: [ 'receipt', 'externalReceipt' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentStore.id : null,
-				destination_name: [ 'receipt', 'externalReceipt' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentStore.store_name : null,
-				recipient_id: [ 'receipt', 'externalReceipt' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentUser.id : null,
-				recipient_name: [ 'receipt', 'externalReceipt' ].indexOf( $scope.data.editMode ) != -1 ? session.data.currentUser.full_name : null,
-				receipt_datetime: [ 'receipt', 'externalReceipt' ].indexOf( $scope.data.editMode ) != -1 ? new Date() : null,
-				transfer_status: 1, // TRANSFER_PENDING
-				items: []
 			};
 
 		$scope.toggle = function( field )
@@ -1604,8 +1586,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		$scope.changeSource = function()
 			{
-				$scope.transferItem.origin_id = $scope.data.selectedSource ? $scope.data.selectedSource.id : null;
-				$scope.transferItem.origin_name = $scope.data.selectedSource ? $scope.data.selectedSource.store_name : null;
+				$scope.transferItem.setOrigin( $scope.data.selectedSource );
 				if( $scope.data.autoCategory )
 				{
 					$scope.transferItem.transfer_category = suggestTransferCategory();
@@ -1614,8 +1595,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		$scope.changeDestination = function()
 			{
-				$scope.transferItem.destination_id = $scope.data.selectedDestination ? $scope.data.selectedDestination.id : null;
-				$scope.transferItem.destination_name = $scope.data.selectedDestination ? $scope.data.selectedDestination.store_name : null;
+				$scope.transferItem.setDestination( $scope.data.selectedDestination );
 				if( $scope.data.autoCategory )
 				{
 					$scope.transferItem.transfer_category = suggestTransferCategory();
@@ -1657,17 +1637,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						data.quantity_received = $scope.input.quantity;
 					}
 
-					var index = $scope.input.rowId;
-					if( index )
-					{
-						$scope.transferItem.items[index] = data;
-					}
-					else
-					{
-						$scope.transferItem.items.push( data );
-					}
-
-					//$scope.checkItems();
+					$scope.transferItem.addItem( new TransferItem( data ) );
 					$scope.getItemQuantities();
 				}
 			};
@@ -1701,16 +1671,17 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						transfer_item_transfer_item_id: items[i].transfer_item_id
 					}
 
-					$scope.transferItem.items.push( data );
+					$scope.transferItem.addItem( new TransferItem( data ) );
 				}
+				$scope.getItemQuantities();
 			};
+
 
 		$scope.removeTransferItem = function( itemRow )
 			{
 				if( itemRow.id == undefined ) // ALLOCATION_ITEM_SCHEDULED
-				{ // remove only items not yet in databaes
-					var index = $scope.transferItem.items.indexOf( itemRow );
-					$scope.transferItem.items.splice( index, 1 );
+				{ // remove only items not yet in database
+					$scope.transferItem.removeItem( itemRow );
 					$scope.getItemQuantities();
 				}
 			};
@@ -1897,14 +1868,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		$scope.recipientChange = function()
 			{
-				if( typeof $scope.transferItem.recipient_name === 'object' && $scope.transferItem.recipient_name )
-				{
-					$scope.transferItem.recipient_id = $scope.transferItem.recipient_name.id;
-				}
-				else
-				{
-					$scope.transferItem.recipient_id = null;
-				}
+				$scope.transferItem.setRecipient( $scope.transferItem.recipient_name );
 			};
 
 		$scope.updateItemCategories = function()
@@ -1913,194 +1877,65 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				$scope.data.categories.unshift( { id: null, category: '- None -' });
 			};
 
-		$scope.checkItems = function( action )
-			{
-				var transferItems = $scope.transferItem.items
-				var transferItemCount = transferItems.length;
-
-				// In case of transfer approval check if delivery person is specified
-				if( $scope.data.editMode == 'externalTransfer' && action == 'approve' && ! $scope.transferItem.recipient_name )
-				{
-					notifications.alert( 'Please enter name of person to deliver the items', 'warning' );
-					return false;
-				}
-
-				// In case of external receipt check if source is specified
-				if( $scope.data.editMode == 'externalReceipt' && ! $scope.transferItem.origin_name )
-				{
-					notifications.alert( 'Please specify source name', 'warning' );
-					return false;
-				}
-
-				// Check if transfer has items
-				if( transferItemCount == 0 )
-				{
-					notifications.alert( 'Transfer does not contain any items', 'warning' );
-					return false;
-				}
-
-				// Check if transfer has valid items
-				var hasValidTransferItem = false;
-				var validItemStatus = [ 1, 2, 3 ] // TRANSFER_ITEM_SCHEDULED, TRANSFER_ITEM_APPROVED, TRANSFER_ITEM_RECEIVED
-				for( var i = 0; i < transferItemCount; i++ )
-				{
-					if( validItemStatus.indexOf( transferItems[i].transfer_item_status ) != -1 && transferItems[i].quantity > 0 && !transferItems[i].transferItemVoid )
-					{
-						hasValidTransferItem = true;
-						break;
-					}
-				}
-				if( hasValidTransferItem == false )
-				{
-					notifications.alert( 'Transfer does not contain any valid items', 'warning' );
-					return false;
-				}
-
-				return true;
-			};
-
-		$scope.prepareTransfer = function()
-			{
-				// Make a deep copy to create a disconnected copy of the data from the scope model
-				var data = angular.copy( $scope.transferItem );
-
-				if( $scope.data.editMode == 'externalTransfer' )
-				{
-					data.destination_id = null;
-				}
-				else
-				{
-					data.destination_id = $scope.data.selectedDestination.id;
-					data.destination_name = $scope.data.selectedDestination.store_name;
-				}
-
-				if( $scope.data.editMode == 'externalReceipt' )
-				{
-					data.origin_id = null;
-				}
-				else
-				{
-					data.origin_id = $scope.data.selectedSource.id;
-					data.origin_name = $scope.data.selectedSource.store_name;
-				}
-
-				// Clean transfer items
-				var itemCount = data.items.length;
-				for( var i = 0; i < itemCount; i++ )
-				{
-					if( data.items[i].transferItemVoid )
-					{
-						data.items[i].transfer_item_status = 5; // TRANSFER_ITEM_VOIDED
-					}
-					delete data.items[i].item_name;
-					delete data.items[i].category_name;
-					delete data.items[i].transferItemVoid;
-				}
-
-				if( data.transfer_datetime )
-				{
-					data.transfer_datetime = $filter( 'date' )( $scope.transferItem.transfer_datetime, 'yyyy-MM-dd HH:mm:ss' );
-				}
-
-				if( data.receipt_datetime )
-				{
-					data.receipt_datetime = $filter( 'date' )( $scope.transferItem.receipt_datetime, 'yyyy-MM-dd HH:mm:ss' );
-				}
-
-				if( typeof data.sender_name === 'object' && data.sender_name )
-				{
-					if( data.sender_name.full_name && data.sender_name.id )
-					{
-						data.sender_id = data.sender_name.id;
-						data.sender_name = data.sender_name.full_name;
-					}
-					else
-					{
-						data.sender_name = 'Unknown';
-						console.error( 'Unable to find user record' );
-					}
-				}
-
-				if( typeof data.recipient_name === 'object' && data.recipient_name )
-				{
-					if( data.recipient_name && data.recipient_name.id )
-					{
-						data.recipient_id = data.recipient_name.id;
-						data.recipient_name = data.recipient_name.full_name;
-					}
-					else
-					{
-						data.recipient_name = 'Unknown';
-						console.error( 'Unable to find user record' );
-					}
-				}
-
-				if( $scope.data.editMode == 'externalReceipt' )
-				{
-					data.externalReceipt = true;
-				}
-
-				return data;
-			};
-
 		$scope.scheduleTransfer = function()
 			{
-				if( $scope.checkItems( 'schedule' ) )
+				if( !$scope.pendingAction )
 				{
-					// Prepare transfer
-					var data = $scope.prepareTransfer();
-
-					appData.saveTransfer( data ).then(
+					$scope.pendingAction = true;
+					$scope.transferItem.save().then(
 						function( response )
 						{
 							appData.refresh( session.data.currentStore.id, 'transfers' );
 							notifications.alert( 'Transfer record saved', 'success' );
 							$state.go( 'main.store', { activeTab: 'transfers' } );
+							$scope.pendingAction = false;
 						},
 						function( reason )
 						{
 							console.error( reason );
+							$scope.pendingAction = false;
 						});
 				}
 			};
 
 		$scope.approveTransfer = function()
 			{
-				if( $scope.checkItems( 'approve' ) )
+				if( !$scope.pendingAction )
 				{
-					var data = $scope.prepareTransfer();
-
-					appData.approveTransfer( data ).then(
+					$scope.pendingAction = true;
+					$scope.transferItem.save( 'approve' ).then(
 						function( response )
 						{
 							appData.refresh( session.data.currentStore.id, 'transfers' );
 							notifications.alert( 'Transfer approved', 'success' );
 							$state.go( 'main.store', { activeTab: 'transfers' } );
+							$scope.pendingAction = false;
 						},
 						function( reason )
 						{
 							console.error( reason );
+							$scope.pendingAction = false;
 						});
 				}
-
 			};
 
 		$scope.receiveTransfer = function()
 			{
-				if( $scope.checkItems( 'receive' ) )
+				if( !$scope.pendingAction )
 				{
-					var data = $scope.prepareTransfer();
-
-					appData.receiveTransfer( data ).then(
+					$scope.pendingAction = true;
+					$scope.transferItem.save( 'receive' ).then(
 						function( response )
 						{
 							appData.refresh( session.data.currentStore.id, 'receipts' );
 							notifications.alert( 'Transfer received', 'success' );
 							$state.go( 'main.store', { activeTab: 'receipts' } );
+							$scope.pendingAction = false;
 						},
 						function( reason )
 						{
 							console.error( reason );
+							$scope.pendingAction = false;
 						});
 				}
 			};
@@ -2122,49 +1957,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				}
 			};
 
-		$scope.addAllocationItems = function()
-			{
-				if( ( event.type == 'keypress' ) && ( event.keyCode == 13 ) && $scope.input.allocation )
-				{
-					appData.getAllocation( $scope.input.allocation ).then(
-						function( response )
-						{
-							var allocationItem = response.data;
-							var remittances = allocationItem.remittances;
 
-							if( allocationItem.allocation_status == 3 ) // ALLOCATION_REMITTED
-							{
-								for( var i = 0; i < remittances.length; i++ )
-								{
-									var data = {
-										item_name: remittances[i].item_name,
-										category_name: remittances[i].category_name,
-
-										item_id: remittances[i].allocated_item_id,
-										transfer_item_category_id: remittances[i].allocation_category_id,
-										quantity: remittances[i].allocated_quantity,
-										remarks: 'From allocation #' + allocationItem.id + ' - ' + ( allocationItem.assignee_type == 2 ? 'TVM #' : '' ) + allocationItem.assignee,
-										transfer_item_status: 1, // TRANSFER_ITEM_SCHEDULED
-										allocation_id: remittances[i].id
-									};
-
-									$scope.transferItem.items.push( data );
-								}
-								$scope.getItemQuantities();
-							}
-							else
-							{
-								notifications.alert( 'Allocation not yet marked as completed', 'warning' );
-							}
-						},
-						function( reason )
-						{
-							notifications.alert( reason, 'warning' );
-						}
-					)
-					$scope.input.allocation = null;
-				}
-			};
 
 		$scope.printReport = function( report )
 			{
@@ -2199,31 +1992,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			};
 
 		// Modals
-		$scope.showDeliveryReceipt = function()
-			{
-				var modalInstance = $uibModal.open({
-						templateUrl: baseUrl + 'index.php/main/view/modal_delivery_receipt',
-						controller: 'DeliveryReceiptModalController',
-						controllerAs: '$ctrl',
-						resolve: {
-								transferItem: function()
-									{
-										return $scope.transferItem;
-									}
-							}
-					});
-
-				modalInstance.result.then(
-					function( params )
-					{
-						ReportServices.generateReport( 'delivery_receipt', params );
-					},
-					function()
-					{
-						// do nothing
-					});
-			};
-
 		$scope.showTurnoverItems = function()
 			{
 				var modalInstance = $uibModal.open({
@@ -2258,26 +2026,24 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				{
 					if( response.status == 'ok' )
 					{
-						$scope.transferItem = response.data;
-
 						if( $scope.data.editMode == 'auto' || $scope.data.editMode == 'view' )
 						{
-							if( ! $scope.transferItem.origin_id && $scope.transferItem.origin_name )
+							if( ! $stateParams.transferItem.origin_id && $stateParams.transferItem.origin_name )
 							{
 								if( $scope.data.editMode == 'auto' ) $scope.data.editMode = 'externalReceipt';
 								$scope.data.mode = 'receipt';
 							}
-							else if( ! $scope.transferItem.destination_id && $scope.transferItem.destination_name )
+							else if( ! $stateParams.transferItem.destination_id && $stateParams.transferItem.destination_name )
 							{
 								if( $scope.data.editMode == 'auto' ) $scope.data.editMode = 'externalTransfer';
 								$scope.data.mode = 'transfer';
 							}
-							else if( $scope.transferItem.origin_id == session.data.currentStore.id )
+							else if( $stateParams.transferItem.origin_id == session.data.currentStore.id )
 							{
 								if( $scope.data.editMode == 'auto' ) $scope.data.editMode = 'transfer';
 								$scope.data.mode = 'transfer';
 							}
-							else if( $scope.transferItem.destination_id == session.data.currentStore.id )
+							else if( $stateParams.transferItem.destination_id == session.data.currentStore.id )
 							{
 								if( $scope.data.editMode == 'auto' ) $scope.data.editMode = 'receipt';
 								$scope.data.mode = 'receipt';
@@ -2287,7 +2053,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						if( $scope.data.editMode == 'externalReceipt' || $scope.data.editMode == 'receipt' )
 						{
 							$scope.data.mode = 'receipt';
-							switch( $scope.transferItem.transfer_status )
+							switch( $stateParams.transferItem.transfer_status )
 							{
 								case 1: // TRANSFER_SCHEDULED
 									$scope.data.editMode = 'view';
@@ -2320,7 +2086,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						else if( $scope.data.editMode == 'externalTransfer' || $scope.data.editMode == 'transfer' )
 						{
 							$scope.data.mode = 'transfer';
-							switch( $scope.transferItem.transfer_status )
+							switch( $stateParams.transferItem.transfer_status )
 							{
 								case 1: // TRANSFER_SCHEDULED
 									// do nothing
@@ -2353,20 +2119,10 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 							$scope.data.editMode = 'view';
 						}
 
-						if( $scope.transferItem.transfer_datetime )
-						{
-							$scope.transferItem.transfer_datetime = Date.parse( $stateParams.transferItem.transfer_datetime );
-						}
+						$scope.transferItem = Transfer.createFromData( response.data );
+						$scope.transferItem.setMode( $scope.data.editMode );
 
-						if( $scope.transferItem.receipt_datetime )
-						{
-							$scope.transferItem.receipt_datetime = Date.parse( $stateParams.transferItem.receipt_datetime );
-						}
-						else if( $scope.data.editMode == 'receipt' )
-						{
-							$scope.transferItem.receipt_datetime = new Date();
-						}
-
+						// Set origin input
 						if( $scope.transferItem.origin_id )
 						{
 							$scope.data.selectedSource = $filter( 'filter')( appData.data.stores, { id: $scope.transferItem.origin_id }, true )[0];
@@ -2377,6 +2133,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 							$scope.data.isExternalSource = true;
 						}
 
+						// Set destination input
 						if( $scope.transferItem.destination_id )
 						{
 							$scope.data.selectedDestination = $filter( 'filter')( appData.data.stores, { id: $scope.transferItem.destination_id }, true )[0];
@@ -2387,12 +2144,14 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 							$scope.data.isExternalDestination = true;
 						}
 
+						// Set recipient name
 						if( ! $scope.transferItem.recipient_name && $scope.data.editMode == 'receipt' )
 						{
 							$scope.transferItem.recipient_id = session.data.currentUser.id;
 							$scope.transferItem.recipient_name = session.data.currentUser.full_name;
 						}
 
+						// Set item quantity received values
 						if( $scope.data.editMode == 'receipt' )
 						{
 							var itemCount = $scope.transferItem.items.length;
@@ -2404,6 +2163,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 								}
 							}
 						}
+						// Set transfer category
 						$scope.data.selectedCategory = getCategoryById( $scope.transferItem.transfer_category );
 						$scope.changeEditMode();
 						$scope.data.autoCategory = true;
@@ -2421,6 +2181,8 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 		}
 		else
 		{
+			$scope.transferItem = new Transfer();
+			$scope.transferItem.setMode( $scope.data.editMode );
 			$scope.changeEditMode();
 			$scope.changeSource();
 			$scope.changeDestination();

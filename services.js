@@ -1,5 +1,3 @@
-var appServices = angular.module( 'appServices', [] );
-
 appServices.factory( 'sessionInterceptor' , [ '$window',
 	function( $window )
 	{
@@ -423,8 +421,8 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
 	}
 ]);
 
-appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications',
-	function( $http, $q, $filter, baseUrl, session, notifications )
+appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'Transfer',
+	function( $http, $q, $filter, baseUrl, session, notifications, Transfer )
 	{
 		var me = this;
 
@@ -918,7 +916,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 						{
 							var d = response.data;
 
-							me.data.transfers = d.data.transfers;
+							me.data.transfers = Transfer.createFromData( d.data.transfers );
 							me.data.totals.transfers = d.data.total;
 							me.data.pending.transfers = d.data.pending;
 							deferred.resolve( d );
@@ -964,7 +962,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 						{
 							var d = response.data;
 
-							me.data.receipts = d.data.receipts;
+							me.data.receipts = Transfer.createFromData( d.data.receipts );
 							me.data.totals.receipts = d.data.total;
 							me.data.pending.receipts = d.data.pending;
 							deferred.resolve( d );

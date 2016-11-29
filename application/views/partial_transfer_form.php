@@ -96,7 +96,7 @@
 						<!-- Transfer Status -->
 						<div class="form-group">
 							<label class="control-label col-sm-4">Status</label>
-							<p class="form-control-static col-sm-7">{{ transferItem.id ? lookup( ( data.mode == 'transfer' ? 'transferStatus' : 'receiptStatus' ), transferItem.transfer_status ) : 'New' }}</p>
+							<p class="form-control-static col-sm-7">{{ transferItem.id ? ( data.mode == 'transfer' ? transferItem.get( 'transferStatusName' ) : transferItem.get( 'receiptStatusName' ) ) : 'New' }}</p>
 						</div>
 
 						<!-- Date of Transfer -->
@@ -171,7 +171,7 @@
 						</a>
 						<input type="checkbox" value="{{ row.id }}"
 								ng-if="[ <?php echo implode( ', ', array( TRANSFER_ITEM_SCHEDULED, TRANSFER_ITEM_APPROVED ) );?> ].indexOf( row.transfer_item_status ) != -1 && row.id"
-								ng-model="row.transferItemVoid">
+								ng-model="row.markedVoid">
 					</td>
 				</tr>
 				<tr ng-if="!transferItem.items.length">
@@ -252,6 +252,7 @@
 						<div ng-if="[ 'receipt', 'externalReceipt' ].indexOf( data.editMode ) != -1">
 							<input type="text" class="form-control"
 									ng-model="transferItem.recipient_name"
+									ng-model-options="{ debounce: 500 }"
 									ng-change="recipientChange()"
 									typeahead-editable="true"
 									uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
@@ -272,11 +273,10 @@
 			<button type="button" class="btn btn-default" ng-click="printReport('receivingReport')" ng-if="data.mode == 'receipt' && transferItem.transfer_status == <?php echo TRANSFER_RECEIVED;?>">Print Receiving Report</button>
 			<button type="button" class="btn btn-default" ng-click="printReport('ticketTurnover')" ng-if="data.showAllocationItemEntry && transferItem.transfer_category == 3 && transferItem.transfer_status != <?php echo TRANSFER_PENDING;?>">Print Ticket Turnover</button>
 		</div>
-
 		<div class="col-sm-6 text-right">
 			<div ng-if="[ 'transfer', 'externalTransfer' ].indexOf( data.editMode ) != -1">
 				<button type="button" class="btn btn-primary" ng-click="scheduleTransfer()"
-						ng-disabled="transferItem.items.length == 0"
+						ng-disabled="transferItem.items.length == 0 || pendingAction"
 						ng-if="checkPermissions( 'transfers', 'edit' )">
 					<i class="glyphicon" ng-class="{ 'glyphicon-time': transferItem.id == null, 'glyphicon-floppy-disk': transferItem.id != null }"> </i>
 					{{ transferItem.id ? 'Update' : 'Schedule' }}
@@ -292,9 +292,8 @@
 			</div>
 			<div ng-if="['receipt', 'externalReceipt'].indexOf( data.editMode ) != -1">
 				<button type="button" class="btn btn-success" ng-click="receiveTransfer()"
-						ng-if="( data.editMode == 'externalReceipt' || transferItem.transfer_status == <?php echo TRANSFER_APPROVED;?> )
-								&& transferItem.destination_id == sessionData.currentStore.id
-								&& checkPermissions( 'transfers', 'edit' )">
+						ng-disabled="pendingAction"
+						ng-if="transferItem.canReceive()">
 						<i class="glyphicon glyphicon-ok"></i> Receive
 				</button>
 				<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: ( data.mode == 'transfer' ? 'transfers' : 'receipts' ) })">Close</button>
@@ -308,9 +307,8 @@
 						<i class="glyphicon glyphicon-ok"></i> Approve
 				</button>
 				<button type="button" class="btn btn-success" ng-click="receiveTransfer()"
-						ng-if="( data.editMode == 'externalReceipt' || ( transferItem.transfer_status == <?php echo TRANSFER_APPROVED;?> && !data.isExternalDestination ) )
-								&& transferItem.destination_id == sessionData.currentStore.id
-								&& checkPermissions( 'transfers', 'edit' )">
+						ng-disabled="pendingAction"
+						ng-if="transferItem.canReceive()">
 						<i class="glyphicon glyphicon-ok"></i> Receive
 				</button>
 				<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: ( data.mode == 'transfer' ? 'transfers' : 'receipts' ) })">Close</button>

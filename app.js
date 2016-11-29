@@ -1,4 +1,4 @@
-var app = angular.module( 'FROGIMS', [ 'ngAnimate', 'ui.router', 'ui.bootstrap', 'appServices' ], function( $httpProvider )
+var app = angular.module( 'FROGIMS', [ 'ngAnimate', 'ui.router', 'ui.bootstrap', 'appServices', 'coreModels' ], function( $httpProvider )
 {
 	// Use x-www-form-urlencoded Content-Type
   	$httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded;charset=utf-8';
@@ -51,6 +51,9 @@ var app = angular.module( 'FROGIMS', [ 'ngAnimate', 'ui.router', 'ui.bootstrap',
 		return angular.isObject(data) && String(data) !== '[object File]' ? param(data) : data;
 	}];
 });
+
+var appServices = angular.module( 'appServices', [] );
+var coreModels = angular.module( 'coreModels', [] );
 
 app.constant( 'baseUrl', baseUrl );
 
