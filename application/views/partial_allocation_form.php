@@ -70,7 +70,7 @@
                 <!-- Allocation Status -->
                 <div class="form-group">
                     <label class="control-label col-sm-5">Status</label>
-                    <p class="form-control-static">{{ lookup( 'allocationStatus', allocationItem.allocation_status ).status }}</p>
+                    <p class="form-control-static">{{ allocationItem.get( 'allocationStatus' ) }}</p>
                 </div>
             </div>
         </form>
@@ -97,7 +97,7 @@
                     <tbody>
                         <tr ng-repeat="row in allocationItem.allocations"
                                 ng-class="{
-                                        danger: row.allocationItemVoid || ( [<?php echo implode( ', ', array( ALLOCATION_ITEM_VOIDED, ALLOCATION_ITEM_CANCELLED ) );?>].indexOf( row.allocation_item_status ) != -1 ),
+                                        danger: row.markedVoid || ( [<?php echo implode( ', ', array( ALLOCATION_ITEM_VOIDED, ALLOCATION_ITEM_CANCELLED ) );?>].indexOf( row.allocation_item_status ) != -1 ),
                                         deleted: ( [<?php echo implode( ', ', array( ALLOCATION_ITEM_VOIDED, ALLOCATION_ITEM_CANCELLED ) );?>].indexOf( row.allocation_item_status ) != -1 )
                                     }">
                             <td class="text-center">{{ $index + 1 }}</td>
@@ -106,7 +106,7 @@
                             <td class="text-left">{{ row.category_name }}</td>
                             <td class="text-left">{{ row.item_name }}</td>
                             <td class="text-center">{{ row.allocated_quantity | number }}</td>
-                            <td class="text-center">{{ lookup( 'allocationItemStatus', row.allocation_item_status ) }}</td>
+                            <td class="text-center">{{ row.get( 'allocationItemStatus' ) }}</td>
                             <td class="text-center" ng-if="data.editMode != 'view'" ng-switch on="row.allocation_item_status">
                                 <a href
                                         ng-if="row.allocation_item_status == <?php echo ALLOCATION_ITEM_SCHEDULED;?> && row.id == undefined"
@@ -139,8 +139,8 @@
                             <th class="text-center">Row</th>
                             <th class="text-left">Time</th>
                             <th class="text-left">Cashier Shift</th>
-                            <th class="text-left">Item Description</th>
                             <th class="text-left">Category</th>
+                            <th class="text-left">Item Description</th>
                             <th class="text-center">Quantity</th>
                             <th class="text-center">Status</th>
                             <th class="text-center" ng-if="data.editMode != 'view'">Void</th>
@@ -155,10 +155,10 @@
                             <td class="text-center">{{ $index + 1 }}</td>
                             <td class="text-left">{{ row.allocation_datetime | date : 'HH:mm:ss' }}</td>
                             <td class="text-left">{{ row.cashier_shift_num }}</td>
-                            <td class="text-left">{{ row.item_name }}</td>
                             <td class="text-left">{{ row.category_name }}</td>
+                            <td class="text-left">{{ row.item_name }}</td>
                             <td class="text-center">{{ row.allocated_quantity | number }}</td>
-                            <td class="text-center">{{ lookup( 'allocationItemStatus', row.allocation_item_status ) }}</td>
+                            <td class="text-center">{{ row.get( 'allocationItemStatus' ) }}</td>
                             <td class="text-center" ng-if="data.editMode != 'view'" ng-switch on="row.allocation_item_status">
                                 <a href
                                         ng-if="row.allocation_item_status == <?php echo REMITTANCE_ITEM_PENDING;?> && row.id == undefined"
@@ -225,20 +225,18 @@
 <!-- Form buttons -->
 <div class="text-right">
     <button type="button" class="btn btn-primary" ng-click="saveAllocation()"
-        ng-if="data.editMode != 'view' && checkPermissions( 'allocations', 'edit' )
-                && ( allocationItem.allocation_status == <?php echo ALLOCATION_SCHEDULED;?> || allocationItem.allocation_status == <?php echo ALLOCATION_ALLOCATED;?> )">
+        ng-if="allocationItem.canEdit()">
         <i class="glyphicon" ng-class="{ 'glyphicon-time': data.saveButton.icon == 'time', 'glyphicon-floppy-disk': data.saveButton.icon == 'floppy-disk' }"> </i>
         {{ data.saveButton.label }}
     </button>
     <button type="button" class="btn btn-success"
-        ng-disabled="allocationItem.allocations.length == 0 || ! allocationItem.assignee"
-        ng-if="allocationItem.allocation_status == <?php echo ALLOCATION_SCHEDULED;?> && checkPermissions( 'allocations', 'allocate' )"
+        ng-disabled="!allocationItem.canAllocate()"
+        ng-if="allocationItem.canAllocate( true )"
         ng-click="allocateAllocation()">Mark as allocated
     </button>
     <button type="button" class="btn btn-success"
-        ng-disabled="( allocationItem.allocations.length == 0 && allocationItem.remittances.length == 0 ) || ! allocationItem.assignee"
-        ng-if="( ( allocationItem.allocation_status == <?php echo ALLOCATION_ALLOCATED;?> && allocationItem.assignee_type == <?php echo ALLOCATION_ASSIGNEE_TELLER;?> )
-                || allocationItem.assignee_type == <?php echo ALLOCATION_ASSIGNEE_MACHINE;?> ) && checkPermissions( 'allocations', 'complete' )"
+        ng-disabled="!allocationItem.canComplete()"
+        ng-if="allocationItem.canComplete( true )"
         ng-click="completeAllocation()">Mark as completed
     </button>
     <button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'allocations' })">Close</button>

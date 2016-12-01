@@ -321,7 +321,8 @@ coreModels.factory( 'Transfer', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 				var validItems = [];
 				for( var i = 0; i < n; i++ )
 				{
-					if( this.items[i].transfer_item_status && this.items[i].quantity > 0 && !this.items[i].markedVoid )
+					var validItemStatus = [1, 2, 3];
+					if( validItemStatus.indexOf( this.items[i].transfer_item_status ) != -1 && this.items[i].quantity > 0 && !this.items[i].markedVoid )
 					{
 						validItems.push( this.items[i] );
 					}
@@ -375,7 +376,7 @@ coreModels.factory( 'Transfer', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 				}
 				else
 				{
-					item.void();
+					item.void( !item.void() );
 				}
 			};
 

@@ -3017,8 +3017,8 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 	}
 ]);
 
-app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'assigneeShifts',
-	function( $scope, $filter, $state, $stateParams, session, appData, notifications, assigneeShifts )
+app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'assigneeShifts', 'Allocation', 'AllocationItem',
+	function( $scope, $filter, $state, $stateParams, session, appData, notifications, assigneeShifts, Allocation, AllocationItem )
 	{
 		function category_filter( value, index, array )
 		{
@@ -3224,7 +3224,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					$scope.data.activeTab = 0;
 				}
 				else if( $scope.data.selectedAssigneeType.id == 2 )
-				{
+				{ // TVM
 					$scope.data.assigneeShifts = $filter( 'filter' )( assigneeShifts, { store_type: 1 }, true );
 					$scope.data.assigneeLabel = 'TVM Number';
 					$scope.data.assigneeShiftLabel = 'TVM Shift';
@@ -3284,19 +3284,18 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 							allocated_item_id: $scope.input.item.item_id,
 							allocated_quantity: $scope.input.quantity,
 							allocation_category_id: $scope.input.category.id,
-							allocation_datetime: new Date(),
-							allocation_item_status: null
+							allocation_datetime: new Date()
 						};
 					switch( $scope.data.allocationPhase )
 					{
 						case 'allocation':
 							data.allocation_item_status = 10; // ALLOCATION_ITEM_SCHEDULED
-							$scope.allocationItem.allocations.push( data );
+							$scope.allocationItem.addAllocationItem( new AllocationItem( data ) );
 							break;
 
 						case 'remittance':
 							data.allocation_item_status = 20; // REMITTANCE_ITEM_PENDING
-							$scope.allocationItem.remittances.push( data );
+							$scope.allocationItem.addRemittanceItem( new AllocationItem( data ) );
 							break;
 
 						default:
@@ -3316,243 +3315,62 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					case 'allocation':
 						if( itemRow.allocation_item_status == 10 ) // ALLOCATION_ITEM_SCHEDULED
 						{ // remove only scheduled items
-							var index = $scope.allocationItem.allocations.indexOf( itemRow );
-							$scope.allocationItem.allocations.splice( index, 1 );
+							$scope.allocationItem.removeAllocationItem( itemRow );
 						}
 						break;
 					case 'remittance':
 						if( itemRow.allocation_item_status == 20 ) // REMITTANCE_ITEM_PENDING
 						{ // remove only scheduled items
-							var index = $scope.allocationItem.remittances.indexOf( itemRow );
-							$scope.allocationItem.remittances.splice( index, 1 );
+							$scope.allocationItem.removeRemittanceItem( itemRow );
 						}
 						break;
 				}
 				$scope.getItemQuantities();
 			};
 
-		$scope.checkItems = function( action )
-			{
-				var allocations = $scope.allocationItem.allocations;
-				var remittances = $scope.allocationItem.remittances;
-				var allocationCount = allocations.length;
-				var remittanceCount = remittances.length;
-
-				var preAllocationCategories = [ 'Initial Allocation', 'Magazine Load' ];
-				var postAllocationCategories = [ 'Additional Allocation', 'Magazine Load' ];
-
-
-				var hasValidAllocationItem = false;
-				for( var i = 0; i < allocationCount; i++ )
-				{
-					if( ( allocations[i].allocation_item_status == 10 // ALLOCATION_ITEM_SCHEDULED
-						|| allocations[i].allocation_item_status == 11 ) // ALLOCATION_ITEM_ALLOCATED
-						&& allocations[i].allocated_quantity > 0
-						&& !allocations[i].allocationItemVoid )
-					{
-						hasValidAllocationItem = true;
-						break;
-					}
-				}
-
-				var hasValidRemittanceItem = false;
-				for( var i = 0; i < remittanceCount; i++ )
-				{
-					if( ( remittances[i].allocation_item_status == 20 // REMITTANCE_ITEM_PENDING
-						|| remittances[i].allocation_item_status == 21 ) // REMITTANCE_ITEM_REMITTED
-						&& remittances[i].allocated_quantity > 0
-						&& ! remittances[i].allocationItemVoid )
-					{
-						hasValidRemittanceItem = true;
-						break;
-					}
-				}
-
-				switch( action )
-				{
-					case 'schedule':
-					case 'allocate':
-						if( $scope.allocationItem.assignee_type == 1 && allocationCount == 0 ) // ALLOCATION_ASSIGNEE_TELLER
-						{
-							notifications.alert( 'Allocation does not contain any items', 'warning' );
-							return false;
-						}
-
-						if( action == 'schedule' && ! hasValidAllocationItem && ! hasValidRemittanceItem  )
-						{
-							notifications.alert( 'Record does not contain any valid allocation or remittance items', 'warning' );
-							return false;
-						}
-
-						if( action == 'allocate' && ! hasValidAllocationItem )
-						{
-							notifications.alert( 'Allocation does not contain any valid items', 'warning' );
-							return false;
-						}
-
-						if( action == 'allocate' && ! $scope.allocationItem.assignee )
-						{
-							notifications.alert( 'Please enter ' + $scope.data.assigneeLabel, 'warning' );
-							return false;
-						}
-
-						if( action == 'schedule' && ! $scope.allocationItem.assignee
-							&& $scope.allocationItem.assignee_type == 2 // ALLOCATION_ASSIGNEE_MACHINE
-							&& hasValidRemittanceItem )
-						{
-							notifications.alert( 'Please enter ' + $scope.data.assigneeLabel, 'warning' );
-							return false;
-						}
-						break;
-
-					case 'complete':
-						if( ! hasValidAllocationItem && ! hasValidRemittanceItem )
-						{
-							notifications.alert( 'Record does not contain any valid allocation or remittance items', 'warning' );
-							return false;
-						}
-
-						if( ! $scope.allocationItem.assignee )
-						{
-							notifications.alert( 'Please enter ' + $scope.data.assigneeLabel, 'warning' );
-							return false;
-						}
-						break;
-
-					default:
-						// do nothing
-				}
-
-				if( $scope.allocationItem.assignee_type == 1 && ! hasValidAllocationItem ) // ALLOCATION_ASSIGNEE_TELLER
-				{ // Tellers must have a valid allocation
-					notifications.alert( 'Allocation does not contain any valid items', 'warning' );
-					return false;
-				}
-
-				switch( $scope.allocationItem.allocation_status )
-				{
-					case 1: // scheduled
-						break;
-
-					case 2: // allocated
-						break;
-
-					case 3: // remitted
-						break;
-
-					case 4: // cancelled
-						break;
-
-					default:
-						return false;
-				}
-
-				return true;
-			};
-
-		$scope.prepareAllocation = function()
-			{
-				// Make a deep copy to create a disconnected copy of the data from the scope model
-				var data = angular.copy( $scope.allocationItem );
-
-				var allocationCount = data.allocations.length;
-				var remittanceCount = data.remittances.length;
-
-				for( var i = 0; i < allocationCount; i++ )
-				{
-					if( data.allocations[i].allocationItemVoid )
-					{
-						if( data.allocations[i].allocation_item_status == 10 ) // ALLOCATION_ITEM_SCHEDULED
-						{
-							data.allocations[i].allocation_item_status = 12; // ALLOCATION_ITEM_CANCELLED
-						}
-						else if( data.allocations[i].allocation_item_status == 11 ) // ALLOCATION_ITEM_ALLOCATED
-						{
-							data.allocations[i].allocation_item_status = 13; // ALLOCATION_ITEM_VOID
-						}
-					}
-					delete data.allocations[i].cashier_shift_num;
-					delete data.allocations[i].category_name;
-					delete data.allocations[i].item_name;
-					delete data.allocations[i].allocationItemVoid;
-
-					data.allocations[i].allocation_datetime = $filter( 'date' )( data.allocations[i].allocation_datetime, 'yyyy-MM-dd HH:mm:ss' );
-				}
-
-				for( var i = 0; i < remittanceCount; i++ )
-				{
-					if( data.remittances[i].allocationItemVoid )
-					{
-						data.remittances[i].allocation_item_status = 22; // REMITTANCE_ITEM_VOID
-					}
-					delete data.remittances[i].cashier_shift_num;
-					delete data.remittances[i].category_name;
-					delete data.remittances[i].item_name;
-					delete data.remittances[i].allocationItemVoid;
-
-					data.remittances[i].allocation_datetime = $filter( 'date' )( data.remittances[i].allocation_datetime, 'yyyy-MM-dd HH:mm:ss' );
-				}
-
-				data.business_date = $filter( 'date' )( $scope.allocationItem.business_date, 'yyyy-MM-dd' );
-
-				return data;
-			};
-
 		$scope.saveAllocation = function()
 			{
-				if( $scope.checkItems( 'schedule' ) )
-				{
-					var data = $scope.prepareAllocation();
-					appData.saveAllocation( data ).then(
-						function( response )
-						{
-							appData.refresh( session.data.currentStore.id, 'allocations' );
-							notifications.alert( 'Allocation record saved', 'success' );
-							$state.go( 'main.store', { activeTab: 'allocations' } );
-						},
-						function( reason )
-						{
-							console.error( reason );
-						});
-				}
+				$scope.allocationItem.save( 'schedule' ).then(
+					function( response )
+					{
+						appData.refresh( session.data.currentStore.id, 'allocations' );
+						notifications.alert( 'Allocation record saved', 'success' );
+						$state.go( 'main.store', { activeTab: 'allocations' } );
+					},
+					function( reason )
+					{
+						console.error( reason );
+					});
 			};
 
 		$scope.allocateAllocation = function()
 			{
-				if( $scope.checkItems( 'allocate' ) )
-				{
-					var data = $scope.prepareAllocation();
-					appData.allocateAllocation( data ).then(
-						function( response )
-						{
-							appData.refresh( session.data.currentStore.id, 'allocations' );
-							notifications.alert( 'Marked as Allocated', 'success' );
-							$state.go( 'main.store', { activeTab: 'allocations' } );
-						},
-						function( reason )
-						{
-							console.error( reason );
-						});
-				}
-			}
+				$scope.allocationItem.save( 'allocate' ).then(
+					function( response )
+					{
+						appData.refresh( session.data.currentStore.id, 'allocations' );
+						notifications.alert( 'Marked as allocated', 'success' );
+						$state.go( 'main.store', { activeTab: 'allocations' } );
+					},
+					function( reason )
+					{
+						console.error( reason );
+					});
+			};
 
 		$scope.completeAllocation = function()
 			{
-				if( $scope.checkItems( 'complete' ) )
-				{
-					var data = $scope.prepareAllocation();
-					appData.completeAllocation( data ).then(
-						function( response )
-						{
-							appData.refresh( session.data.currentStore.id, 'allocations' );
-							notifications.alert( 'Marked as Remitted', 'success' );
-							$state.go( 'main.store', { activeTab: 'allocations' } );
-						},
-						function( reason )
-						{
-							console.error( reason );
-						});
-				}
+				$scope.allocationItem.save( 'complete' ).then(
+					function( response )
+					{
+						appData.refresh( session.data.currentStore.id, 'allocations' );
+						notifications.alert( 'Marked as remitted', 'success' );
+						$state.go( 'main.store', { activeTab: 'allocations' } );
+					},
+					function( reason )
+					{
+						console.error( reason );
+					});
 			};
 
 		$scope.getItemQuantities = function()
@@ -3591,25 +3409,13 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 				{
 					if( response.status == 'ok' )
 					{
-						$scope.allocationItem = response.data;
-						$scope.allocationItem.business_date = Date.parse( $stateParams.allocationItem.business_date );
-						var allocationsCount = $scope.allocationItem.allocations.length;
-						for( var i = 0; i < allocationsCount; i++ )
-						{
-							$scope.allocationItem.allocations[i].allocation_datetime =  Date.parse( $scope.allocationItem.allocations[i].allocation_datetime );
-						}
+						$scope.allocationItem = Allocation.createFromData( response.data );
 
-						var remittancesCount = $scope.allocationItem.remittances.length;
-						for( var i = 0; i < remittancesCount; i++ )
-						{
-							$scope.allocationItem.remittances[i].allocation_datetime =  Date.parse( $scope.allocationItem.remittances[i].allocation_datetime );
-						}
-
+						// Set selected assignee shift
 						$scope.data.selectedAssigneeShift = $filter( 'filter')( assigneeShifts, { id: $scope.allocationItem.shift_id }, true )[0];
-						$scope.data.selectedAssigneeType = $filter( 'filter')( $scope.data.assigneeTypes, { id: $scope.allocationItem.assignee_type }, true )[0];
 
-						$scope.onAssigneeTypeChange();
-						$scope.checkItems();
+						// Set selected assignee type
+						$scope.data.selectedAssigneeType = $filter( 'filter')( $scope.data.assigneeTypes, { id: $scope.allocationItem.assignee_type }, true )[0];
 
 						if( $scope.data.editMode == 'auto' )
 						{
@@ -3657,6 +3463,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 		}
 		else
 		{
+			$scope.allocationItem = new Allocation();
 			$scope.onAssigneeTypeChange();
 			$scope.onAssigneeShiftChange();
 			$scope.updateSaveButton();

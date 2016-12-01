@@ -1410,6 +1410,75 @@ class Api_v1 extends MY_Controller {
 									}
 									break;
 
+								case 'allocations': // allocations
+									// Check permissions
+									if( !$current_user->check_permissions( 'allocations', 'view' ) )
+									{
+										$this->_error( 403, 'You are not allowed to access this resource' );
+									}
+									else
+									{
+										$params = array(
+											'date' => param( $this->input->get(), 'date' ),
+											'assignee_type' => param( $this->input->get(), 'assignee_type' ),
+											'status' => param( $this->input->get(), 'status' ),
+											'page' => param( $this->input->get(), 'page' ),
+											'limit' => param( $this->input->get(), 'limit' ),
+										);
+										$allocations = $store->get_allocations( $params );
+										$total_allocations = $store->count_allocations( $params );
+										$pending_allocations = $store->count_pending_allocations( $params );
+
+										$allocations_data = array();
+										foreach( $allocations as $allocation )
+										{
+											$allocation_items = $allocation->get_allocations( TRUE );
+											$remittance_items = $allocation->get_remittances( TRUE );
+
+											$allocation_items_data = array();
+											$remittance_items_data = array();
+
+											foreach( $allocation_items as $item )
+											{
+												$allocation_items_data[] = $item->as_array( array(
+														'category_name' => array( 'type' => 'string' ),
+														'category_type' => array( 'type' => 'integer' ),
+														'item_name' => array( 'type' => 'string' ),
+														'item_description' => array( 'type' => 'string' ),
+														'teller_allocatable' => array( 'type' => 'boolean' ),
+														'machine_allocatable' => array( 'type' => 'boolean' ),
+														'cashier_shift_num' => array( 'type' => 'string' ) ) );
+											}
+
+											foreach( $remittance_items as $item )
+											{
+												$remittance_items_data[] = $item->as_array( array(
+														'category_name' => array( 'type' => 'string' ),
+														'category_type' => array( 'type' => 'integer' ),
+														'item_name' => array( 'type' => 'string' ),
+														'item_description' => array( 'type' => 'string' ),
+														'teller_remittable' => array( 'type' => 'boolean' ),
+														'machine_remittable' => array( 'type' => 'boolean' ),
+														'cashier_shift_num' => array( 'type' => 'string' ) ) );
+											}
+
+											$allocation_data = $allocation->as_array( array(
+													'shift_num' => array( 'type' => 'string' ),
+													'shift_description' => array( 'type' => 'string' ) ) );
+
+											$allocation_data['allocations'] = $allocation_items_data;
+											$allocation_data['remittances'] = $remittance_items_data;
+
+											$allocations_data[] = $allocation_data;
+										}
+
+										$this->_response( array(
+											'allocations' => array_values( $allocations_data ),
+											'total' => $total_allocations,
+											'pending' => $pending_allocations ) );
+									}
+									break;
+
 								case 'allocations_summary': // allocations
 									// Check permissions
 									if( !$current_user->check_permissions( 'allocations', 'view' ) )

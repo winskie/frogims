@@ -51,15 +51,11 @@ class Allocation extends Base_model {
             );
 	}
 
-    public function get_allocations( $attach = FALSE )
+    public function get_allocations( $force = FALSE )
     {
         $ci =& get_instance();
 
-        if( isset( $this->allocations ) )
-        {
-            return $this->allocations;
-        }
-        else
+        if( !isset( $this->allocations ) || $force )
         {
             $ci->load->library( 'allocation_item' );
             $ci->db->select( 'ai.*, c.category AS category_name, c.category_type,
@@ -71,26 +67,17 @@ class Allocation extends Base_model {
             $ci->db->join( 'categories c', 'c.id = ai.allocation_category_id', 'left' );
             $ci->db->join( 'shifts s', 's.id = ai.cashier_shift_id', 'left' );
             $query = $ci->db->get( 'allocation_items AS ai' );
-            $allocations = $query->result( 'Allocation_item' );
-
-            if( $attach )
-            {
-                $this->allocations = $allocations;
-            }
+            $this->allocations = $query->result( 'Allocation_item' );
         }
 
-        return $allocations;
+        return $this->allocations;
     }
 
-    public function get_remittances( $attach = FALSE )
+    public function get_remittances( $force = FALSE )
     {
         $ci =& get_instance();
 
-        if( isset( $this->remittances ) )
-        {
-            return $this->remittances;
-        }
-        else
+        if( !isset( $this->remittances ) || $force )
         {
             $ci->load->library( 'allocation_item' );
             $ci->db->select( 'ai.*, c.category AS category_name, c.category_type,
@@ -102,15 +89,10 @@ class Allocation extends Base_model {
             $ci->db->join( 'categories c', 'c.id = ai.allocation_category_id', 'left' );
             $ci->db->join( 'shifts s', 's.id = ai.cashier_shift_id', 'left' );
             $query = $ci->db->get( 'allocation_items AS ai' );
-            $remittances = $query->result( 'Allocation_item' );
-
-            if( $attach )
-            {
-                $this->remittances = $remittances;
-            }
+            $this->remittances = $query->result( 'Allocation_item' );
         }
 
-        return $remittances;
+        return $this->remittances;
     }
 
     public function set( $property, $value )
@@ -259,7 +241,10 @@ class Allocation extends Base_model {
             $this->_transact_allocation();
 
             // Transact remittance
-            $this->_transact_remittance();
+            if( $this->remittances )
+            {
+                $this->_transact_remittance();
+            }
 
             // Transact voided items
             $this->_transact_voided_items();
@@ -343,7 +328,8 @@ class Allocation extends Base_model {
                     $this->_transact_allocation();
                 }
 
-                if( in_array( $this->allocation_status, array( ALLOCATION_REMITTED ) ) )
+                // Transact remittances
+                if( $this->remittances )
                 {
                     $this->_transact_remittance();
                 }
@@ -799,8 +785,7 @@ class Allocation extends Base_model {
         $ci->db->trans_start();
         foreach( $remittances as $remittance )
         {
-            if( $remittance->get( 'allocation_item_status' ) == REMITTANCE_ITEM_PENDING
-                && in_array( $this->allocation_status, array( ALLOCATION_REMITTED ) ) )
+            if( $remittance->get( 'allocation_item_status' ) == REMITTANCE_ITEM_PENDING )
             {
                 $inventory = new Inventory();
                 $inventory = $inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ) );

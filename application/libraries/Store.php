@@ -765,7 +765,7 @@ class Store extends Base_model
 				$ci->db->order_by( $order );
 		}
 
-		$ci->db->select( 'a.*, s.shift_num, s.description' );
+		$ci->db->select( 'a.*, s.shift_num, s.description AS shift_description' );
 		$ci->db->where( 'a.store_id', $this->id );
 		$ci->db->join( 'shifts s', 's.id = a.shift_id', 'left' );
 		$query = $ci->db->get( 'allocations a' );

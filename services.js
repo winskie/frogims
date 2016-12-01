@@ -421,8 +421,8 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
 	}
 ]);
 
-appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'Transfer',
-	function( $http, $q, $filter, baseUrl, session, notifications, Transfer )
+appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'Transfer', 'Allocation',
+	function( $http, $q, $filter, baseUrl, session, notifications, Transfer, Allocation )
 	{
 		var me = this;
 
@@ -1078,7 +1078,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 				var deferred = $q.defer();
 				$http({
 					method: 'GET',
-					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/allocations_summary',
+					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/allocations',
 					params: {
 						date: me.filters.allocations.date ? $filter( 'date' )( me.filters.allocations.date, 'yyyy-MM-dd' ) : null,
 						assignee_type: me.filters.allocations.assigneeType ? me.filters.allocations.assigneeType.id : null,
@@ -1092,7 +1092,8 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 						if( response.data.status == 'ok' )
 						{
 							var d = response.data;
-							me.data.allocations = d.data.allocations;
+
+							me.data.allocations = Allocation.createFromData( d.data.allocations );
 							me.data.totals.allocations = d.data.total;
 							me.data.pending.allocations = d.data.pending;
 							deferred.resolve( d );
