@@ -1638,6 +1638,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 					}
 
 					$scope.transferItem.addItem( new TransferItem( data ) );
+					$scope.input.quantity = null;
 					$scope.getItemQuantities();
 				}
 			};
@@ -1953,6 +1954,11 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						&& !items[i].id ) // TRANSFER_ITEM_SCHEDULED
 					{
 						$scope.input.itemReservedQuantity += items[i].quantity;
+					}
+					else if( items[i].item_id == $scope.input.inventoryItem.item_id
+						&& items[i].markedVoid )
+					{
+						$scope.input.itemReservedQuantity -= items[i].quantity;
 					}
 				}
 			};
@@ -3077,6 +3083,8 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 			return true;
 		}
 
+		$scope.pendingAction = false;
+
 		$scope.data = {
 			editMode: $stateParams.editMode || 'auto',
 			businessDatepicker: { format: 'yyyy-MM-dd', opened: false },
@@ -3330,47 +3338,65 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 
 		$scope.saveAllocation = function()
 			{
-				$scope.allocationItem.save( 'schedule' ).then(
-					function( response )
-					{
-						appData.refresh( session.data.currentStore.id, 'allocations' );
-						notifications.alert( 'Allocation record saved', 'success' );
-						$state.go( 'main.store', { activeTab: 'allocations' } );
-					},
-					function( reason )
-					{
-						console.error( reason );
-					});
+				if( !$scope.pendingAction )
+				{
+					$scope.pendingAction = true;
+					$scope.allocationItem.save( 'schedule' ).then(
+						function( response )
+						{
+							appData.refresh( session.data.currentStore.id, 'allocations' );
+							notifications.alert( 'Allocation record saved', 'success' );
+							$state.go( 'main.store', { activeTab: 'allocations' } );
+							$scope.pendingAction = false;
+						},
+						function( reason )
+						{
+							console.error( reason );
+							$scope.pendingAction = false;
+						});
+				}
 			};
 
 		$scope.allocateAllocation = function()
 			{
-				$scope.allocationItem.save( 'allocate' ).then(
-					function( response )
-					{
-						appData.refresh( session.data.currentStore.id, 'allocations' );
-						notifications.alert( 'Marked as allocated', 'success' );
-						$state.go( 'main.store', { activeTab: 'allocations' } );
-					},
-					function( reason )
-					{
-						console.error( reason );
-					});
+				if( !$scope.pendingAction )
+				{
+					$scope.pendingAction = true;
+					$scope.allocationItem.save( 'allocate' ).then(
+						function( response )
+						{
+							appData.refresh( session.data.currentStore.id, 'allocations' );
+							notifications.alert( 'Marked as allocated', 'success' );
+							$state.go( 'main.store', { activeTab: 'allocations' } );
+							$scope.pendingAction = false;
+						},
+						function( reason )
+						{
+							console.error( reason );
+							$scope.pendingAction = false;
+						});
+				}
 			};
 
 		$scope.completeAllocation = function()
 			{
-				$scope.allocationItem.save( 'complete' ).then(
-					function( response )
-					{
-						appData.refresh( session.data.currentStore.id, 'allocations' );
-						notifications.alert( 'Marked as remitted', 'success' );
-						$state.go( 'main.store', { activeTab: 'allocations' } );
-					},
-					function( reason )
-					{
-						console.error( reason );
-					});
+				if( !$scope.pendingAction )
+				{
+					$scope.pendingAction = true;
+					$scope.allocationItem.save( 'complete' ).then(
+						function( response )
+						{
+							appData.refresh( session.data.currentStore.id, 'allocations' );
+							notifications.alert( 'Marked as remitted', 'success' );
+							$state.go( 'main.store', { activeTab: 'allocations' } );
+							$scope.pendingAction = false;
+						},
+						function( reason )
+						{
+							console.error( reason );
+							$scope.pendingAction = false;
+						});
+				}
 			};
 
 		$scope.getItemQuantities = function()
@@ -3384,9 +3410,15 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 						for( var i = 0; i < n; i++ )
 						{
 							if( items[i].allocated_item_id == $scope.input.item.item_id
-								&& items[i].allocation_item_status == 10 )// ALLOCATION_ITEM_SCHEDULED
+								&& items[i].allocation_item_status == 10 // ALLOCATION_ITEM_SCHEDULED
+								&& !items[i].id )
 							{
 								$scope.input.itemReservedQuantity += items[i].allocated_quantity;
+							}
+							else if( items[i].allocated_item_id == $scope.input.item.item_id
+								&& items[i].markedVoid )
+							{
+								$scope.input.itemReservedQuantity -= items[i].allocated_quantity;
 							}
 						}
 						break;
@@ -3395,7 +3427,6 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 						$scope.input.itemReservedQuantity = 0;
 						break;
 				}
-
 			};
 
 		// Initialize controller
@@ -3468,5 +3499,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 			$scope.onAssigneeShiftChange();
 			$scope.updateSaveButton();
 		}
+
+		$scope.getItemQuantities();
 	}
 ]);

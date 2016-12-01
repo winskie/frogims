@@ -293,9 +293,12 @@ coreModels.factory( 'Transfer', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 			};
 
 
-		Transfer.prototype.canApprove = function()
+		Transfer.prototype.canApprove = function( showAction )
 			{
-				return this.transfer_status == 1 && session.checkPermissions( 'transfers', 'approve' );
+				return this.transfer_status == 1 &&
+							 session.checkPermissions( 'transfers', 'approve' ) &&
+							 ( showAction || this.destination_id || this.destination_name ) &&
+							 ( showAction || this.items.length > 0 );
 			};
 
 
@@ -307,11 +310,12 @@ coreModels.factory( 'Transfer', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 			};
 
 
-		Transfer.prototype.canReceive = function()
+		Transfer.prototype.canReceive = function( showAction )
 			{
-				return ( ( this.origin_id == null || this.transfer_status == 2 ) && this.destination_id != null ) &&
+				return ( ( ( this.origin_id == null && this.transfer_status == 1 ) || this.transfer_status == 2 ) && this.destination_id != null ) &&
 							 session.checkPermissions( 'transfers', 'edit' ) &&
-							 this.destination_id == session.data.currentStore.id;
+							 this.destination_id == session.data.currentStore.id &&
+							 ( showAction || this.items.length > 0 );
 			};
 
 
@@ -347,7 +351,6 @@ coreModels.factory( 'Transfer', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
 		Transfer.prototype.setRecipient = function( recipient )
 			{
-				console.log( recipient.constructor );
 				if( recipient.constructor == Object )
 				{
 					this.recipient_id = ( recipient.id ? recipient.id : null );

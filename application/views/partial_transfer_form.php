@@ -146,7 +146,7 @@
 			<tbody>
 				<tr ng-repeat="row in transferItem.items"
 						ng-class="{
-							danger: row.transferItemVoid || ( [ <?php echo implode( ', ', array( TRANSFER_ITEM_VOIDED, TRANSFER_ITEM_CANCELLED ) );?> ].indexOf( row.transfer_item_status ) != -1 ),
+							danger: row.markedVoid || ( [ <?php echo implode( ', ', array( TRANSFER_ITEM_VOIDED, TRANSFER_ITEM_CANCELLED ) );?> ].indexOf( row.transfer_item_status ) != -1 ),
 							deleted: ( [ <?php echo implode( ', ', array( TRANSFER_ITEM_VOIDED, TRANSFER_ITEM_CANCELLED ) );?> ].indexOf( row.transfer_item_status ) != -1 )
 						}">
 					<td class="text-center">{{ $index + 1 }}</td>
@@ -171,6 +171,7 @@
 						</a>
 						<input type="checkbox" value="{{ row.id }}"
 								ng-if="[ <?php echo implode( ', ', array( TRANSFER_ITEM_SCHEDULED, TRANSFER_ITEM_APPROVED ) );?> ].indexOf( row.transfer_item_status ) != -1 && row.id"
+								ng-click="getItemQuantities()"
 								ng-model="row.markedVoid">
 					</td>
 				</tr>
@@ -277,38 +278,34 @@
 			<div ng-if="[ 'transfer', 'externalTransfer' ].indexOf( data.editMode ) != -1">
 				<button type="button" class="btn btn-primary" ng-click="scheduleTransfer()"
 						ng-disabled="transferItem.items.length == 0 || pendingAction"
-						ng-if="checkPermissions( 'transfers', 'edit' )">
+						ng-if="transferItem.canEdit()">
 					<i class="glyphicon" ng-class="{ 'glyphicon-time': transferItem.id == null, 'glyphicon-floppy-disk': transferItem.id != null }"> </i>
 					{{ transferItem.id ? 'Update' : 'Schedule' }}
 				</button>
 				<button type="button" class="btn btn-success" ng-click="approveTransfer()"
-						ng-disabled="transferItem.transfer_status != <?php echo TRANSFER_PENDING;?> || ( ! transferItem.destination_id && ! transferItem.recipient_name ) || transferItem.items.length == 0"
-						ng-if="transferItem.transfer_status == <?php echo TRANSFER_PENDING;?>
-								&& transferItem.origin_id == sessionData.currentStore.id
-								&& checkPermissions( 'transfers', 'approve' )">
+						ng-disabled="!transferItem.canApprove()"
+						ng-if="transferItem.canApprove( true )">
 					<i class="glyphicon glyphicon-ok"></i> Approve
 				</button>
 				<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: ( data.mode == 'transfer' ? 'transfers' : 'receipts' ) })">Close</button>
 			</div>
 			<div ng-if="['receipt', 'externalReceipt'].indexOf( data.editMode ) != -1">
 				<button type="button" class="btn btn-success" ng-click="receiveTransfer()"
-						ng-disabled="pendingAction"
-						ng-if="transferItem.canReceive()">
+						ng-disabled="pendingAction || !transferItem.canReceive()"
+						ng-if="transferItem.canReceive( true )">
 						<i class="glyphicon glyphicon-ok"></i> Receive
 				</button>
 				<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: ( data.mode == 'transfer' ? 'transfers' : 'receipts' ) })">Close</button>
 			</div>
 			<div ng-if="data.editMode == 'view'">
 				<button type="button" class="btn btn-success" ng-click="approveTransfer()"
-						ng-disabled="transferItem.transfer_status != <?php echo TRANSFER_PENDING;?> || ! transferItem.sender_name || transferItem.items.length == 0"
-						ng-if="transferItem.transfer_status == <?php echo TRANSFER_PENDING;?>
-								&& transferItem.origin_id == sessionData.currentStore.id
-								&& checkPermissions( 'transfers', 'approve' )">
+						ng-disabled="!transferItem.canApprove()"
+						ng-if="transferItem.canApprove( true )">
 						<i class="glyphicon glyphicon-ok"></i> Approve
 				</button>
 				<button type="button" class="btn btn-success" ng-click="receiveTransfer()"
-						ng-disabled="pendingAction"
-						ng-if="transferItem.canReceive()">
+						ng-disabled="pendingAction || !transferItem.canReceive()"
+						ng-if="transferItem.canReceive( true )">
 						<i class="glyphicon glyphicon-ok"></i> Receive
 				</button>
 				<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: ( data.mode == 'transfer' ? 'transfers' : 'receipts' ) })">Close</button>

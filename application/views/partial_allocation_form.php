@@ -115,7 +115,8 @@
                                 </a>
                                 <input type="checkbox" value="{{ row.id }}"
                                         ng-if="row.allocation_item_status == <?php echo ALLOCATION_ITEM_ALLOCATED;?> || row.allocation_item_status == <?php echo ALLOCATION_ITEM_SCHEDULED;?> && row.id"
-                                        ng-model="row.allocationItemVoid">
+                                        ng-click="getItemQuantities()"
+                                        ng-model="row.markedVoid">
                             </td>
                         </tr>
                         <tr ng-if="!allocationItem.allocations.length">
@@ -149,7 +150,7 @@
                     <tbody>
                         <tr ng-repeat="row in allocationItem.remittances"
                                 ng-class="{
-                                        danger: row.allocationItemVoid || row.allocation_item_status == <?php echo REMITTANCE_ITEM_VOIDED;?>,
+                                        danger: row.markedVoid || row.allocation_item_status == <?php echo REMITTANCE_ITEM_VOIDED;?>,
                                         deleted: row.allocation_item_status == <?php echo REMITTANCE_ITEM_VOIDED;?>
                                     }">
                             <td class="text-center">{{ $index + 1 }}</td>
@@ -167,7 +168,8 @@
                                 </a>
                                 <input type="checkbox" value="{{ row.id }}"
                                         ng-if="row.allocation_item_status == <?php echo REMITTANCE_ITEM_REMITTED;?> || row.allocation_item_status == <?php echo REMITTANCE_ITEM_PENDING;?> && row.id"
-                                        ng-model="row.allocationItemVoid">
+                                        ng-click="getItemQuantities()"
+                                        ng-model="row.markedVoid">
                             </td>
                         </tr>
                         <tr ng-if="!allocationItem.remittances.length">
@@ -225,17 +227,18 @@
 <!-- Form buttons -->
 <div class="text-right">
     <button type="button" class="btn btn-primary" ng-click="saveAllocation()"
+        ng-disabled="pendingAction"
         ng-if="allocationItem.canEdit()">
         <i class="glyphicon" ng-class="{ 'glyphicon-time': data.saveButton.icon == 'time', 'glyphicon-floppy-disk': data.saveButton.icon == 'floppy-disk' }"> </i>
         {{ data.saveButton.label }}
     </button>
     <button type="button" class="btn btn-success"
-        ng-disabled="!allocationItem.canAllocate()"
+        ng-disabled="pendingAction || !allocationItem.canAllocate()"
         ng-if="allocationItem.canAllocate( true )"
         ng-click="allocateAllocation()">Mark as allocated
     </button>
     <button type="button" class="btn btn-success"
-        ng-disabled="!allocationItem.canComplete()"
+        ng-disabled="pendingAction || !allocationItem.canComplete()"
         ng-if="allocationItem.canComplete( true )"
         ng-click="completeAllocation()">Mark as completed
     </button>
