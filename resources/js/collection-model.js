@@ -356,6 +356,7 @@ angular.module( 'coreModels' ).factory( 'Collection', [ '$http', '$q', '$filter'
 							}
 							else
 							{
+								notifications.showMessages( response.data.errorMsg );
 								deferred.reject( response.data.errorMsg );
 							}
 						},

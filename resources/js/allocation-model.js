@@ -606,6 +606,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 							}
 							else
 							{
+								notifications.showMessages( response.data.errorMsg );
 								deferred.reject( response.data.errorMsg );
 							}
 						},

@@ -37,7 +37,7 @@
 				<label for="quantity" class="control-label col-sm-2">Adjusted quantity</label>
 
 				<div class="col-sm-2" ng-switch-when="edit">
-					<input name="quantity" type="number" class="form-control text-right" ng-model="adjustmentItem.adjusted_quantity">
+					<input name="quantity" type="number" class="form-control" ng-model="adjustmentItem.adjusted_quantity">
 				</div>
 
 				<div class="col-sm-2" ng-switch-default>
@@ -86,7 +86,7 @@
 			<div class="form-group">
 				<label class="control-label col-sm-2">Status</label>
 				<div class="col-sm-8">
-					<p class="form-control-static">{{ lookup( 'adjustmentStatus', adjustmentItem.adjustment_status ) }}</p>
+					<p class="form-control-static">{{ adjustmentItem.get( 'adjustmentStatus' ) }}</p>
 				</div>
 			</div>
 
@@ -103,19 +103,34 @@
 		<div class="animate-switch-container" ng-switch on="data.editMode">
 
 			<div class="pull-right" ng-switch-when="edit">
-				<button class="btn btn-primary" ng-click="saveAdjustment()" ng-if="checkPermissions( 'adjustments', 'edit' )">Save</button>
-				<button class="btn btn-success" ng-click="approveAdjustment()"
-						ng-if="adjustmentItem.adjustment_status == <?php echo ADJUSTMENT_PENDING;?> && checkPermissions( 'adjustments', 'approve' )">
+				<button class="btn btn-primary"
+						ng-click="saveAdjustment()"
+						ng-if="adjustmentItem.canEdit()"
+						ng-disabled="pendingAction">{{ adjustmentItem.id ? 'Update' : 'Save' }}</button>
+				<button class="btn btn-success"
+						ng-click="approveAdjustment()"
+						ng-if="adjustmentItem.canApprove( TRUE )"
+						ng-disabled="pendingAction">
 					<i class="glyphicon glyphicon-ok"></i> Approve
 				</button>
+				<button class="btn btn-default"
+						ng-click="cancelAdjustment()"
+						ng-if="adjustmentItem.canCancel( TRUE )"
+						ng-disabled="pendingAction">Cancel</button>
 				<button class="btn btn-default" ui-sref="main.store({ activeTab: 'adjustments' })">Close</button>
 			</div>
 
 			<div class="pull-right" ng-switch-default>
-				<button class="btn btn-success" ng-click="approveAdjustment()"
-						ng-if="adjustmentItem.adjustment_status == <?php echo ADJUSTMENT_PENDING;?> && checkPermissions( 'adjustments', 'approve' )">
+				<button class="btn btn-success"
+						ng-click="approveAdjustment()"
+						ng-if="adjustmentItem.canApprove( TRUE )"
+						ng-disabled="pendingAction">
 					<i class="glyphicon glyphicon-ok"></i> Approve
 				</button>
+				<button class="btn btn-default"
+						ng-click="cancelAdjustment()"
+						ng-if="adjustmentItem.canCancel( TRUE )"
+						ng-disabled="pendingAction">Cancel</button>
 				<button class="btn btn-primary" ui-sref="main.store({ activeTab: 'adjustments' })">Close</button>
 			</div>
 		</div>

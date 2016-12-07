@@ -10,7 +10,7 @@ class Adjustment extends Base_model {
 	protected $previous_quantity;
 	protected $reason;
 	protected $adjustment_timestamp;
-	protected $adjustment_status;
+	protected $adjustment_status = ADJUSTMENT_PENDING;
 	protected $user_id;
 	protected $adj_transaction_type;
 	protected $adj_transaction_id;
@@ -247,7 +247,7 @@ class Adjustment extends Base_model {
 
 	public function cancel()
 	{
-		$ci &= get_instance();
+		$ci =& get_instance();
 
 		// Check for valid previous adjustment status
 		if( ! in_array( $this->adjustment_status, array( ADJUSTMENT_PENDING ) ) )
@@ -286,13 +286,11 @@ class Adjustment extends Base_model {
 			$this->set( 'user_id', current_user( TRUE ) );
 		}
 
-
 		// Check for valid new adjustment status
 		if( ! isset( $this->id ) )
 		{
 			$valid_new_status = array( ADJUSTMENT_PENDING, ADJUSTMENT_APPROVED );
-			if( ! ( array_key_exists( 'adjustment_status', $this->db_changes )
-					&& in_array( $this->db_changes['adjustment_status'], $valid_new_status ) ) )
+			if( !in_array( $this->adjustment_status, $valid_new_status ) )
 			{
 				set_message( 'Invalid adjustment status for new record', 'error' );
 				return FALSE;

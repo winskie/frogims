@@ -893,31 +893,6 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 				$scope.widgets[dp].opened = true;
 			};
 
-		$scope.showActionList = function( module, record )
-			{
-				switch( module )
-				{
-					case 'transferValidations':
-						// TRANSFER_VALIDATION_RECEIPT_VALIDATED, TRANSFER_VALIDATION_RECEIPT_RETURNED
-						// TRANSFER_VALIDATION_TRANSFER_VALIDATED, TRANSFER_VALIDATION_TRANSFER_DISPUTED
-						// TRANSFER_VALIDATION_ONGOING
-						if( !record )
-						{
-							return false;
-						}
-						return ( ( record.transval_receipt_status == 1 && record.transval_transfer_status == 1 )
-							|| record.transval_receipt_status == 2 )
-							&& $scope.checkPermissions( 'transferValidations', 'complete' );
-
-					case 'adjustments':
-						// ADJUSTMENT_PENDING, ADJUSTMENT_APPROVED
-						return ( ( record.adjustment_status == 1 && ( $scope.checkPermissions( 'adjustments', 'edit' ) || $scope.checkPermissions( 'adjustments', 'approve' ) ) ) );
-
-					default:
-						console.error( 'Invalid showActionList module:' + module );
-				}
-			};
-
 		// Refresh/update functions
 		$scope.updateInventory = appData.getInventory;
 		$scope.updateTransactions = appData.getTransactions;
@@ -930,7 +905,7 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 		$scope.updateConversions = appData.getConversions;
 		$scope.updateShiftTurnovers = appData.getShiftTurnovers;
 
-		// Transfer Validations
+		// Transfer validation actions
 		$scope.completeTransferValidation = function( validation )
 			{
 				appData.saveTransferValidation( { id: validation.transval_id }, 'complete' ).then(
@@ -965,7 +940,7 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 					});
 			};
 
-		// Transfers
+		// Transfers actions
 		$scope.approveTransfer = function( transfer )
 			{
 				transfer.save( 'approve' ).then(
@@ -996,10 +971,10 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 					});
 			};
 
-		// Adjustments
-		$scope.approveAdjustment = function( adjustmentData )
+		// Adjustment actions
+		$scope.approveAdjustment = function( adjustment )
 			{
-				appData.approveAdjustment( adjustmentData ).then(
+				adjustment.save( 'approve' ).then(
 					function( response )
 					{
 						notifications.alert( 'Adjustment approved', 'success' );
@@ -1007,7 +982,17 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 					});
 			};
 
-		// Allocations
+		$scope.cancelAdjustment = function( adjustment )
+			{
+				adjustment.save( 'cancel' ).then(
+					function( response )
+					{
+						notifications.alert( 'Adjustment cancelled', 'success' );
+						appData.refresh( session.data.currentStore.id, 'adjustments' );
+					});
+			};
+
+		// Allocation actions
 		$scope.allocateAllocation = function( allocation )
 			{
 				allocation.save( 'allocate' ).then(
@@ -1038,7 +1023,7 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 					});
 			};
 
-		// Conversions
+		// Conversion actions
 		$scope.cancelConversion = function( conversion )
 			{
 				conversion.save( 'cancel' ).then(
@@ -2203,9 +2188,11 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 	}
 ]);
 
-app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'transactionTypes',
-	function( $scope, $filter, $state, $stateParams, session, appData, notifications, transactionTypes )
+app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'transactionTypes', 'Adjustment',
+	function( $scope, $filter, $state, $stateParams, session, appData, notifications, transactionTypes, Adjustment )
 	{
+		$scope.pendingAction = false;
+
 		$scope.data = {
 				editMode: $stateParams.editMode || 'auto',
 				inventoryItems: angular.copy( appData.data.items ),
@@ -2216,16 +2203,7 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
 		$scope.data.transactionTypes.unshift( { id: null, typeName: 'None' }  );
 		$scope.data.selectedTransactionType = $scope.data.transactionTypes[0];
 
-		$scope.adjustmentItem = {
-				id: null,
-				store_inventory_id: $scope.data.selectedItem.id,
-				adjusted_quantity: null,
-				reason: null ,
-				adjustment_status: 1, // ADJUSTMENT_PENDING
-				adj_transaction_type: null,
-				adj_transaction_id: null
-			};
-
+		// Adjustment form events
 		$scope.changeItem = function()
 			{
 				$scope.adjustmentItem.store_inventory_id = $scope.data.selectedItem.id;
@@ -2236,60 +2214,64 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
 				$scope.adjustmentItem.adj_transaction_type = $scope.data.selectedTransactionType.id;
 			};
 
-		$scope.checkAdjustmentItem = function()
-			{
-				if( ! $scope.adjustmentItem.reason )
-				{
-					notifications.alert( 'Please specify reason for adjustment', 'warning' );
-					return false;
-				}
 
-				return true;
-			};
-
-		$scope.prepareAdjustment = function()
-			{
-				var data = angular.copy( $scope.adjustmentItem );
-
-				return data;
-			};
-
+		// Adjustment actions
 		$scope.saveAdjustment = function()
 			{
-				if( $scope.checkAdjustmentItem() )
+				if( ! $scope.pendingAction )
 				{
-					var data = $scope.prepareAdjustment();
-
-					appData.saveAdjustment( data ).then(
+					$scope.pendingAction = true;
+					$scope.adjustmentItem.save().then(
 						function( response )
 						{
 							appData.refresh( session.data.currentStore.id, 'adjustments' );
 							notifications.alert( 'Adjustment record saved', 'success' );
 							$state.go( 'main.store', { activeTab: 'adjustments' } );
+							$scope.pendingAction = false;
 						},
 						function( reason )
 						{
-							console.error( reason );
+							$scope.pendingAction = false;
 						});
 				}
 			};
 
 		$scope.approveAdjustment = function()
 			{
-				if( $scope.checkAdjustmentItem() )
+				if( ! $scope.pendingAction )
 				{
-					var data = $scope.prepareAdjustment();
-
-					appData.approveAdjustment( data ).then(
+					$scope.pendingAction = true;
+					$scope.adjustmentItem.save( 'approve' ).then(
 						function( response )
 						{
 							appData.refresh( session.data.currentStore.id, 'adjustments' );
 							notifications.alert( 'Adjustment approved', 'success' );
 							$state.go( 'main.store', { activeTab: 'adjustments' } );
+							$scope.pendingAction = false;
 						},
 						function( reason )
 						{
-							console.error( reason );
+							$scope.pendingAction = false;
+						});
+				}
+			};
+
+		$scope.cancelAdjustment = function()
+			{
+				if( ! $scope.pendingAction )
+				{
+					$scope.pendingAction = true;
+					$scope.adjustmentItem.save( 'cancel' ).then(
+						function( response )
+						{
+							appData.refresh( session.data.currentStore.id, 'adjustments' );
+							notifications.alert( 'Adjustment cancelled', 'success' );
+							$state.go( 'main.store', { activeTab: 'adjustments' } );
+							$scope.pendingAction = false;
+						},
+						function( reason )
+						{
+							$scope.pendingAction = false;
 						});
 				}
 			};
@@ -2303,11 +2285,12 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
 				{
 					if( response.status == 'ok' )
 					{
-						$scope.adjustmentItem = response.data;
-						$stateParams.adjustmentItem.previous_quantity = parseInt( $stateParams.adjustmentItem.previous_quantity );
-						$stateParams.adjustmentItem.adjusted_quantity = parseInt( $stateParams.adjustmentItem.adjusted_quantity );
+						$scope.adjustmentItem = Adjustment.createFromData( response.data );
+
+						// Set inventory item
 						$scope.data.selectedItem = $filter( 'filter' )( appData.data.items, { id: $stateParams.adjustmentItem.store_inventory_id }, true )[0];
 
+						// Set transaction type
 						$scope.data.selectedTransactionType = $filter( 'filter' )( $scope.data.transactionTypes, { id: $stateParams.adjustmentItem.adj_transaction_type }, true )[0];
 
 						if( $scope.data.editMode == 'auto' )
@@ -2341,6 +2324,12 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
 				{
 					console.error( reason );
 				});
+		}
+		else
+		{
+			$scope.adjustmentItem = new Adjustment();
+			$scope.changeItem();
+			$scope.changeTransactionType();
 		}
 	}
 ]);

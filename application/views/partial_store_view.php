@@ -810,8 +810,8 @@ $current_user = current_user();
 								<th class="text-center">ID</th>
 								<th class="text-left">Date / Time</th>
 								<th class="text-left">Item</th>
-								<th class="text-right">Adjusted Balance</th>
-								<th class="text-right">Previous Balance</th>
+								<th class="text-center">Adjusted Balance</th>
+								<th class="text-center">Previous Balance</th>
 								<th class="text-left">Reason</th>
 								<th class="text-center">Status</th>
 								<th></th>
@@ -820,23 +820,26 @@ $current_user = current_user();
 						<tbody>
 							<tr ng-repeat="adjustment in appData.adjustments">
 								<td class="text-center">{{ adjustment.id }}</td>
-								<td class="text_left">{{ adjustment.adjustment_timestamp }}</td>
+								<td class="text_left">{{ adjustment.adjustment_timestamp | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
 								<td class="text_left">{{ adjustment.item_name }}</td>
-								<td class="text-right">{{ adjustment.adjusted_quantity | number }}</td>
-								<td class="text-right">{{ adjustment.adjustment_status == 1 ? '---' : ( adjustment.previous_quantity | number ) }}</td>
+								<td class="text-center">{{ adjustment.adjusted_quantity | number }}</td>
+								<td class="text-center">{{ adjustment.adjustment_status == 1 ? '---' : ( adjustment.previous_quantity | number ) }}</td>
 								<td class="text-left">{{ adjustment.reason }}</td>
-								<td class="text-center">{{ lookup( 'adjustmentStatus', adjustment.adjustment_status ) }}</td>
-								<td>
+								<td class="text-center">{{ adjustment.get( 'adjustmentStatus' ) }}</td>
+								<td class="text-right">
 									<div class="btn-group" uib-dropdown>
 										<button type="button" class="btn btn-default" ui-sref="main.adjust({ adjustmentItem: adjustment })">View details...</button>
-										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'adjustments', adjustment)">
+										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="adjustment.canEdit() || adjustment.canApprove() || adjustment.canCancel()">
 											<span class="caret"></span>
 										</button>
-										<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'adjustments', adjustment)">
-											<li role="menuitem" ng-if="checkPermissions( 'adjustments', 'approve' )">
+										<ul uib-dropdown-menu role="menu" ng-if="adjustment.canEdit() || adjustment.canApprove() || adjustment.canCancel()">
+											<li role="menuitem" ng-if="adjustment.canApprove()">
 												<a href ng-click="approveAdjustment( adjustment )">Approve</a>
 											</li>
-											<li role="menuitem" ng-if="checkPermissions( 'adjustments', 'edit' )">
+											<li role="menuitem" ng-if="adjustment.canCancel()">
+												<a href ng-click="cancelAdjustment( adjustment )">Cancel</a>
+											</li>
+											<li role="menuitem" ng-if="adjustment.canEdit()">
 												<a ui-sref="main.adjust({ adjustmentItem: adjustment, editMode: 'edit' })">Edit...</a>
 											</li>
 										</ul>

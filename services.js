@@ -421,8 +421,8 @@ angular.module( 'appServices' ).service( 'session', [ '$http', '$q', '$filter', 
 	}
 ]);
 
-angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'Transfer', 'Conversion', 'Allocation', 'Collection',
-	function( $http, $q, $filter, baseUrl, session, notifications, Transfer, Conversion, Allocation, Collection )
+angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'Transfer', 'Conversion', 'Allocation', 'Collection', 'Adjustment',
+	function( $http, $q, $filter, baseUrl, session, notifications, Transfer, Conversion, Allocation, Collection, Adjustment )
 	{
 		var me = this;
 
@@ -1006,7 +1006,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 						if( response.data.status == 'ok' )
 						{
 							var d = response.data;
-							me.data.adjustments = d.data.adjustments;
+							me.data.adjustments = Adjustment.createFromData( d.data.adjustments );
 							me.data.totals.adjustments = d.data.total;
 							me.data.pending.adjustments = d.data.pending;
 							deferred.resolve( d );
@@ -2097,13 +2097,7 @@ angular.module( 'appServices' ).service( 'lookup',
 				'1': 'Validated',
 				'2': 'Disputed'
 			},
-			
-			adjustmentStatus: {
-				'1': 'Pending',
-				'2': 'Approved',
-				'3': 'Cancelled'
-			},
-			
+
 			storeTypes: {
 				'1': 'General',
 				'2': 'Production',
@@ -2353,20 +2347,6 @@ angular.module( 'appServices' ).service( 'UserServices', [ '$http', '$q', 'baseU
 						return reason;
 					}
 				);
-			};
-	}
-]);
-
-angular.module( 'appServices' ).service( 'ItemServices', [ '$http', '$q', 'baseUrl',
-	function( $http, $q, baseUrl )
-	{
-		var me = this;
-
-		me.packingData = {};
-
-		me.convert = function( input, output, quantity )
-			{
-				return packingData[input][output]
 			};
 	}
 ]);
