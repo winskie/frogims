@@ -658,6 +658,9 @@ class Store extends Base_model
 					$ci->db->order_by( $order );
 			}
 
+			$ci->db->select( 'm.*, s.shift_num AS shift_num, cs.shift_num AS cashier_shift_num' );
+			$ci->db->join( 'shifts s', 's.id = m.shift_id', 'left' );
+			$ci->db->join( 'shifts cs', 'cs.id = m.cashier_shift_id', 'left' );
 			$ci->db->where( 'm.store_id', $this->id );
 			$query = $ci->db->get( 'mopping m' );
 

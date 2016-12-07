@@ -1,4 +1,4 @@
-coreModels.factory( 'Transfer', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'TransferItem',
+angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'TransferItem',
 	function( $http, $q, $filter, baseUrl, session, notifications, TransferItem )
 	{
 		var id;
@@ -541,7 +541,7 @@ coreModels.factory( 'Transfer', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 	}
 ]);
 
-coreModels.factory( 'TransferItem', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications',
+angular.module( 'coreModels' ).factory( 'TransferItem', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications',
 	function( $http, $q, $filter, baseUrl, session, notifications )
 	{
 		var id;

@@ -1,4 +1,4 @@
-appServices.factory( 'sessionInterceptor' , [ '$window',
+angular.module( 'appServices' ).factory( 'sessionInterceptor' , [ '$window',
 	function( $window )
 	{
 		var sessionInterceptor = {
@@ -18,7 +18,7 @@ appServices.factory( 'sessionInterceptor' , [ '$window',
 	}
 ]);
 
-appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifications',
+angular.module( 'appServices' ).service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifications',
 	function( $http, $q, $filter, baseUrl, notifications )
 	{
 		var me = this;
@@ -421,8 +421,8 @@ appServices.service( 'session', [ '$http', '$q', '$filter', 'baseUrl', 'notifica
 	}
 ]);
 
-appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'Transfer', 'Allocation',
-	function( $http, $q, $filter, baseUrl, session, notifications, Transfer, Allocation )
+angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'Transfer', 'Conversion', 'Allocation', 'Collection',
+	function( $http, $q, $filter, baseUrl, session, notifications, Transfer, Conversion, Allocation, Collection )
 	{
 		var me = this;
 
@@ -1036,7 +1036,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 				var deferred = $q.defer();
 				$http({
 					method: 'GET',
-					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/collections_summary',
+					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/collections',
 					params: {
 						processing_date: me.filters.collections.processingDate ? $filter( 'date' )( me.filters.collections.processingDate, 'yyyy-MM-dd' ) : null,
 						business_date: me.filters.collections.businessDate ? $filter( 'date' )( me.filters.collections.businessDate, 'yyyy-MM-dd' ) : null,
@@ -1049,7 +1049,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 						if( response.data.status == 'ok' )
 						{
 							var d = response.data;
-							me.data.collections = d.data.collections;
+							me.data.collections = Collection.createFromData( d.data.collections );
 							me.data.totals.collections = d.data.total;
 							deferred.resolve( d );
 						}
@@ -1137,7 +1137,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 						if( response.data.status == 'ok' )
 						{
 							var d = response.data;
-							me.data.conversions = d.data.conversions;
+							me.data.conversions = Conversion.createFromData( d.data.conversions );
 							me.data.totals.conversions = d.data.total;
 							me.data.pending.conversions = d.data.pending;
 							deferred.resolve( d );
@@ -1362,121 +1362,6 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 				return deferred.promise;
 			};
 
-		me.saveTransfer = function( transfer )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/v1/transfers',
-					data: transfer,
-				}).then(
-					function( response )
-					{
-						if( response.data.status == 'ok' )
-						{
-							deferred.resolve( response.data );
-						}
-						else
-						{
-							notifications.showMessages( response.data.errorMsg );
-							deferred.reject( response.data.errorMsg );
-						}
-					},
-					function( reason )
-					{
-						console.error( reason.data.errorMsg );
-						deferred.reject( reason.data.errorMsg );
-					});
-
-				return deferred.promise;
-			};
-
-		me.approveTransfer = function( transfer )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/v1/transfers/approve',
-					data: transfer
-				}).then(
-					function( response )
-					{
-						if( response.data.status == 'ok' )
-						{
-							deferred.resolve( response.data );
-						}
-						else
-						{
-							notifications.showMessages( response.data.errorMsg );
-							deferred.reject( response.data.errorMsg );
-						}
-					},
-					function( reason )
-					{
-						console.error( reason.data.errorMsg );
-						deferred.reject( reason.data.errorMsg );
-					});
-
-				return deferred.promise;
-			};
-
-		me.receiveTransfer = function( transfer )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/v1/transfers/receive',
-					data: transfer
-				}).then(
-					function( response )
-					{
-						if( response.data.status == 'ok' )
-						{
-							deferred.resolve( response.data );
-						}
-						else
-						{
-							notifications.showMessages( response.data.errorMsg );
-							deferred.reject( response.data.errorMsg );
-						}
-					},
-					function( reason )
-					{
-						console.error( reason.data.errorMsg );
-						deferred.reject( reason.data.errorMsg );
-					});
-
-				return deferred.promise;
-			};
-
-		me.cancelTransfer = function( transfer )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/v1/transfers/cancel',
-					data: transfer
-				}).then(
-					function( response )
-					{
-						if( response.data.status == 'ok' )
-						{
-							deferred.resolve( response.data );
-						}
-						else
-						{
-							notifications.showMessages( response.data.errorMsg );
-							deferred.reject( response.data.errorMsg );
-						}
-					},
-					function( reason )
-					{
-						console.error( reason.data.errorMsg );
-						deferred.reject( reason.data.errorMsg );
-					});
-
-				return deferred.promise;
-			};
 
 		// Adjustments
 		me.getAdjustment = function( adjustmentId )
@@ -1506,6 +1391,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
 				return deferred.promise;
 			};
+
 
 		me.saveAdjustment = function( adjustmentData )
 			{
@@ -1564,6 +1450,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 
 				return deferred.promise;
 			};
+
 
 		// Mopping
 		me.getPullOutShifts = function() // Note: temporarily not is use as the pullout shifts are currently hardcoded
@@ -1777,121 +1664,6 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 				return deferred.promise;
 			};
 
-		me.saveAllocation = function( allocationData )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/v1/allocations',
-					data: allocationData
-				}).then(
-					function( response )
-					{
-						if( response.data.status == 'ok' )
-						{
-							deferred.resolve( response.data );
-						}
-						else
-						{
-							notifications.showMessages( response.data.errorMsg );
-							deferred.reject( response.data.errorMsg );
-						}
-					},
-					function( reason )
-					{
-						console.error( reason.data.errorMsg );
-						deferred.reject( reason.data.errorMsg );
-					});
-
-				return deferred.promise;
-			};
-
-		me.allocateAllocation = function( allocationData )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/v1/allocations/allocate',
-					data: allocationData
-				}).then(
-					function( response )
-					{
-						if( response.data.status == 'ok' )
-						{
-							deferred.resolve( response.data );
-						}
-						else
-						{
-							notifications.showMessages( response.data.errorMsg );
-							deferred.reject( response.data.errorMsg );
-						}
-					},
-					function( reason )
-					{
-						console.error( reason.data.errorMsg );
-						deferred.reject( reason.data.errorMsg );
-					});
-
-				return deferred.promise;
-			};
-
-		me.completeAllocation = function( allocationData )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/v1/allocations/remit',
-					data: allocationData
-				}).then(
-					function( response )
-					{
-						if( response.data.status == 'ok' )
-						{
-							deferred.resolve( response.data );
-						}
-						else
-						{
-							notifications.showMessages( response.data.errorMsg );
-							deferred.reject( response.data.errorMsg );
-						}
-					},
-					function( reason )
-					{
-						console.error( reason.data.errorMsg );
-						deferred.reject( reason.data.errorMsg );
-					});
-
-				return deferred.promise;
-			};
-
-		me.cancelAllocation = function( allocationData )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/v1/allocations/cancel',
-					data: allocationData
-				}).then(
-					function( response )
-					{
-						if( response.data.status == 'ok' )
-						{
-							deferred.resolve( response.data );
-						}
-						else
-						{
-							notifications.showMessages( response.data.errorMsg );
-							deferred.reject( response.data.errorMsg );
-						}
-					},
-					function( reason )
-					{
-						console.error( reason.data.errorMsg );
-						deferred.reject( reason.data.errorMsg );
-					});
-
-				return deferred.promise;
-			};
 
 		// Conversions
 		me.getConversion = function( conversionId )
@@ -1954,63 +1726,6 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 				return deferred.promise;
 			};
 
-		me.saveConversion = function( conversionData )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/v1/conversions/save',
-					data: conversionData
-				}).then(
-					function( response )
-					{
-						if( response.data.status == 'ok' )
-						{
-							deferred.resolve( response.data );
-						}
-						else
-						{
-							notifications.showMessages( response.data.errorMsg );
-							deferred.reject( response.data.errorMsg );
-						}
-					},
-					function( reason )
-					{
-						console.error( reason.data.errorMsg );
-						deferred.reject( reason.data.errorMsg );
-					});
-
-				return deferred.promise;
-			}
-
-		me.approveConversion = function( conversionData )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/v1/conversions/approve',
-					data: conversionData
-				}).then(
-					function( response )
-					{
-						if( response.data.status == 'ok' )
-						{
-							deferred.resolve( response.data );
-						}
-						else
-						{
-							notifications.showMessages( response.data.errorMsg );
-							deferred.reject( response.data.errorMsg );
-						}
-					},
-					function( reason )
-					{
-						console.error( reason.data.errorMsg );
-						deferred.reject( reason.data.errorMsg );
-					});
-
-				return deferred.promise;
-			};
 
 		// Refresh
 		me.refresh = function( currentStoreId, group )
@@ -2081,7 +1796,7 @@ appServices.service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session'
 	}
 ]);
 
-appServices.service( 'adminData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'appData', 'notifications',
+angular.module( 'appServices' ).service( 'adminData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'appData', 'notifications',
 	function( $http, $q, $filter, baseUrl, session, appData, notifications )
 	{
 		var me = this;
@@ -2339,7 +2054,7 @@ appServices.service( 'adminData', [ '$http', '$q', '$filter', 'baseUrl', 'sessio
 	}
 ]);
 
-appServices.service( 'lookup',
+angular.module( 'appServices' ).service( 'lookup',
 	function()
 	{
 		var me = this;
@@ -2382,53 +2097,13 @@ appServices.service( 'lookup',
 				'1': 'Validated',
 				'2': 'Disputed'
 			},
-			transferCategories: {
-				'1': 'External',
-				'2': 'Regular',
-				'3': 'Ticket Turnover',
-				'4': 'Stock Replenishment',
-				'5': 'Cashroom to Cashroom',
-				'6': 'Blackbox Receipt'
-			},
-			transferStatus: {
-				'1': 'Scheduled',
-				'2': 'Approved',
-				'3': 'Received',
-				'4': 'Cancelled',
-				'5': 'Cancelled'
-			},
-			receiptStatus: {
-				'1': 'Scheduled',
-				'2': 'Pending Receipt',
-				'3': 'Received',
-				'4': 'Cancelled',
-				'5': 'Cancelled'
-			},
+			
 			adjustmentStatus: {
 				'1': 'Pending',
 				'2': 'Approved',
 				'3': 'Cancelled'
 			},
-			conversionStatus: {
-				'1': 'Pending',
-				'2': 'Approved',
-				'3': 'Cancelled'
-			},
-			allocationStatus: {
-				'1': { status: 'Scheduled', className: 'allocation-scheduled' },
-				'2': { status: 'Allocated', className: 'allocation-allocated' },
-				'3': { status: 'Completed', className: 'allocation-completed' },
-				'4': { status: 'Cancelled', className: 'allocation-cancelled' }
-			},
-			allocationItemStatus: {
-				'10': 'Scheduled',
-				'11': 'Allocated',
-				'12': 'Cancelled',
-				'13': 'Voided',
-				'20': 'Pending',
-				'21': 'Remitted',
-				'22': 'Voided'
-			},
+			
 			storeTypes: {
 				'1': 'General',
 				'2': 'Production',
@@ -2464,7 +2139,7 @@ appServices.service( 'lookup',
 			};
 	});
 
-appServices.service( 'notifications', [ '$rootScope',
+angular.module( 'appServices' ).service( 'notifications', [ '$rootScope',
 	function( $rootScope )
 	{
 		var me = this;
@@ -2545,7 +2220,7 @@ appServices.service( 'notifications', [ '$rootScope',
 	}
 ]);
 
-appServices.service( 'utilities',
+angular.module( 'appServices' ).service( 'utilities',
 	function()
 	{
 		var me = this;
@@ -2562,7 +2237,7 @@ appServices.service( 'utilities',
 			};
 	});
 
-appServices.service( 'ReportServices', [ '$http', '$httpParamSerializer', '$q', '$window', 'baseUrl', 'notifications',
+angular.module( 'appServices' ).service( 'ReportServices', [ '$http', '$httpParamSerializer', '$q', '$window', 'baseUrl', 'notifications',
 	function( $http, $httpParamSerializer, $q, $window, baseUrl, notifications )
 	{
 		var me = this;
@@ -2648,7 +2323,7 @@ appServices.service( 'ReportServices', [ '$http', '$httpParamSerializer', '$q', 
 	}
 ]);
 
-appServices.service( 'UserServices', [ '$http', '$q', 'baseUrl',
+angular.module( 'appServices' ).service( 'UserServices', [ '$http', '$q', 'baseUrl',
 	function( $http, $q, baseUrl )
 	{
 		var me = this;
@@ -2678,6 +2353,20 @@ appServices.service( 'UserServices', [ '$http', '$q', 'baseUrl',
 						return reason;
 					}
 				);
+			};
+	}
+]);
+
+angular.module( 'appServices' ).service( 'ItemServices', [ '$http', '$q', 'baseUrl',
+	function( $http, $q, baseUrl )
+	{
+		var me = this;
+
+		me.packingData = {};
+
+		me.convert = function( input, output, quantity )
+			{
+				return packingData[input][output]
 			};
 	}
 ]);

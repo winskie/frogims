@@ -1,4 +1,4 @@
-coreModels.factory( 'Allocation', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'AllocationItem',
+angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'AllocationItem',
 	function( $http, $q, $filter, baseUrl, session, notifications, AllocationItem )
 	{
 		var id;
@@ -628,7 +628,7 @@ coreModels.factory( 'Allocation', [ '$http', '$q', '$filter', 'baseUrl', 'sessio
 ]);
 
 
-coreModels.factory( 'AllocationItem', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications',
+angular.module( 'coreModels' ).factory( 'AllocationItem', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications',
 	function( $http, $q, $filter, baseUrl, session, notifications )
 	{
 		var id;

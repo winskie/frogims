@@ -690,10 +690,10 @@ $current_user = current_user();
 								<td class="text-right vert-top">
 									<div class="btn-group" uib-dropdown>
 										<button type="button" class="btn btn-default" ui-sref="main.transfer({ transferItem: receipt, editMode: 'view' })">View details...</button>
-										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'receipts', receipt )">
+										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="receipt.canReceive()">
 											<span class="caret"></span>
 										</button>
-										<ul uib-dropdown-menu role="menu" ng-if="receipt.canReceive()">
+										<ul uib-dropdown-menu role="menu" ng-if="receipt.receipt.canReceive()">
 											<li role="menuitem" ng-if="receipt.canReceive()">
 												<a href ng-click="receiveTransfer( receipt )">Quick receipt</a>
 											</li>
@@ -947,8 +947,8 @@ $current_user = current_user();
 						<tbody>
 							<tr ng-repeat="collection in appData.collections">
 								<td class="text-center vert-top">{{ collection.id }}</td>
-								<td class="text-left vert-top">{{ collection.processing_datetime }}<br />{{ collection.shift_num }}</td>
-								<td class="text-center vert-top">{{ collection.business_date }}<br />{{ collection.cashier_shift_num }}</td>
+								<td class="text-left vert-top">{{ collection.processing_datetime | date: 'yyyy-MM-dd HH:mm:ss' }}<br />{{ collection.shift_num }}</td>
+								<td class="text-center vert-top">{{ collection.business_date | date: 'yyyy-MM-dd' }}<br />{{ collection.cashier_shift_num }}</td>
 								<td class="text-left">
 									<div class="panel panel-default">
 										<table class="table table-condensed table-bordered table-details">
@@ -959,9 +959,9 @@ $current_user = current_user();
 												</tr>
 											</thead>
 											<tbody>
-												<tr ng-repeat="item in collection.items" ng-class="{ deleted: item.status == <?php echo MOPPING_ITEM_VOIDED;?> }">
+												<tr ng-repeat="item in collection.collectionSummary" ng-class="{ deleted: item.status == <?php echo MOPPING_ITEM_VOIDED;?> }">
 													<td>{{ item.item_description }}</td>
-													<td class="text-right">{{ item.quantity | number }}</td>
+													<td class="text-center">{{ item.quantity | number }}</td>
 												</tr>
 											</tbody>
 										</table>
@@ -970,10 +970,10 @@ $current_user = current_user();
 								<td class="vert-top text-right">
 									<div class="btn-group" uib-dropdown>
 										<button id="split-button" type="button" class="btn btn-default" ui-sref="main.mopping({ moppingItem: collection, editMode: 'view' })">View details...</button>
-										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'collections', collection )">
+										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="collection.canEdit()">
 											<span class="caret"></span>
 										</button>
-										<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'collections', collection )">
+										<ul uib-dropdown-menu role="menu" ng-if="collection.canEdit()">
 											<li role="menuitem"><a ui-sref="main.mopping({ moppingItem: collection, editMode: 'edit' })">Edit Collection...</a></li>
 										</ul>
 									</div>
@@ -1279,24 +1279,27 @@ $current_user = current_user();
 						<tbody>
 							<tr ng-repeat="conversion in appData.conversions">
 								<td class="text-center">{{ conversion.id }}</td>
-								<td class="text-left">{{ conversion.conversion_datetime }}</td>
+								<td class="text-left">{{ conversion.conversion_datetime | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
 								<td class="text-left">{{ conversion.source_item_name }}</td>
 								<td class="text-center">{{ conversion.source_quantity | number }}</td>
 								<td class="text-left">{{ conversion.target_item_name }}</td>
 								<td class="text-center">{{ conversion.target_quantity | number }}</td>
 								<td class="text-left">{{ conversion.remarks }}</td>
-								<td class="text-center">{{ lookup( 'conversionStatus', conversion.conversion_status ) }}</td>
-								<td>
+								<td class="text-center">{{ conversion.get( 'conversionStatus' ) }}</td>
+								<td class="text-right">
 									<div class="btn-group" uib-dropdown>
 										<button type="button" class="btn btn-default" ui-sref="main.convert({ conversionItem: conversion, editMode: 'view' })">View details...</button>
-										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="showActionList( 'conversions', conversion )">
+										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="conversion.canEdit() || conversion.canCancel() || conversion.canApprove()">
 											<span class="caret"></span>
 										</button>
-										<ul uib-dropdown-menu role="menu" ng-if="showActionList( 'conversions', conversion )">
-											<li role="menuitem" ng-if="conversion.conversion_status == <?php echo CONVERSION_PENDING;?> && checkPermissions( 'conversions', 'approve' )">
+										<ul uib-dropdown-menu role="menu" ng-if="conversion.canEdit() || conversion.canCancel() || conversion.canApprove()">
+											<li role="menuitem" ng-if="conversion.canCancel()">
+												<a href ng-click="cancelConversion( conversion )">Cancel</a>
+											</li>
+											<li role="menuitem" ng-if="conversion.canApprove()">
 												<a href ng-click="approveConversion( conversion )">Approve</a>
 											</li>
-											<li role="menuitem" ng-if="conversion.conversion_status == <?php echo CONVERSION_PENDING;?> && checkPermissions( 'conversions', 'edit' )">
+											<li role="menuitem" ng-if="conversion.canEdit()">
 												<a ui-sref="main.convert({ conversionItem: conversion, editMode: 'edit' })">Edit...</a>
 											</li>
 										</ul>

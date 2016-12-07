@@ -33,38 +33,27 @@ class Mopping extends Base_model {
             );
 	}
 
-    public function get_items( $attach = FALSE )
+    public function get_items( $force = FALSE )
     {
         $ci =& get_instance();
 
-        if( isset( $this->items ) )
-        {
-            return $this->items;
-        }
-        else
+        if( !isset( $this->items ) || $force )
         {
             $ci->load->library( 'mopping_item' );
-            $ci->db->select( 'mi.*, IF( mi.mopped_station_id = 0, "Inventory",  s.station_name ) AS mopped_station_name, i.item_name AS mopped_item_name, i2.item_name AS convert_to_name, u.full_name AS processor_name' );
+            $ci->db->select( 'mi.*, IF( mi.mopped_station_id = 0, "Inventory",  s.station_name ) AS mopped_station_name,
+                    i.item_name AS mopped_item_name, i.item_description AS mopped_item_description,
+                    i2.item_name AS converted_to_name, i2.item_description AS converted_to_description,
+                    u.full_name AS processor_name' );
             $ci->db->where( 'mopping_id', $this->id );
             $ci->db->join( 'items i', 'i.id = mi.mopped_item_id', 'left' );
             $ci->db->join( 'items i2', 'i2.id = mi.converted_to', 'left' );
             $ci->db->join( 'stations s', 's.id = mi.mopped_station_id', 'left' );
             $ci->db->join( 'users u', 'u.id = mi.processor_id', 'left' );
             $query = $ci->db->get( 'mopping_items mi' );
-            $items = $query->result( 'Mopping_item' );
-
-            foreach( $items as $item )
-            {
-                $item->set( 'parentMopping', $this );
-            }
-
-            if( $attach )
-            {
-                $this->items = $items;
-            }
+            $this->items = $query->result( 'Mopping_item' );
         }
 
-        return $items;
+        return $this->items;
     }
 
     public function db_save()
@@ -155,9 +144,14 @@ class Mopping extends Base_model {
     {
         $ci =& get_instance();
 
+        if( ! isset( $this->shift_id ) )
+        {
+            $this->set( 'shift_id', current_shift( TRUE ) );
+        }
+
         if( ! isset( $this->store_id ) )
         {
-            $this->set( 'store_id', $ci->session->current_store_id );
+            $this->set( 'store_id', current_store( TRUE ) );
         }
 
         if( ! isset( $this->processing_datetime ) )

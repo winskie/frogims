@@ -180,7 +180,7 @@ class Mopping_item extends Base_model {
         }
         else
         {
-            die( 'Unable to retrieve item record' );
+            die( sprintf( 'Unable to retrieve item record of %s', $item_id ) );
         }
     }
 

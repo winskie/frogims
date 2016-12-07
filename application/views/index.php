@@ -24,7 +24,9 @@
 		<script type="text/javascript" src="<?php echo base_url( 'app.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'controllers.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'resources/js/transfer-model.js' );?>"></script>
+		<script type="text/javascript" src="<?php echo base_url( 'resources/js/conversion-model.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'resources/js/allocation-model.js' );?>"></script>
+		<script type="text/javascript" src="<?php echo base_url( 'resources/js/collection-model.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'resources/js/admin-controllers.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'resources/js/modal-controllers.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'services.js' );?>"></script>

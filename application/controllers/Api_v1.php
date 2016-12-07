@@ -381,7 +381,7 @@ class Api_v1 extends MY_Controller {
 									$collection_items_data[] = $item->as_array( array(
 										'station_name' => array( 'type' => 'string' ),
 										'mopped_item_name' => array( 'type' => 'string' ),
-										'convert_to_name' => array( 'type' => 'string' ),
+										'converted_to_name' => array( 'type' => 'string' ),
 										'mopped_station_name' => array( 'type' => 'string' ),
 										'processor_name' => array( 'type' => 'string' ) ) );
 								}
@@ -1541,6 +1541,53 @@ class Api_v1 extends MY_Controller {
 											'allocations' => array_values( $allocations_data ),
 											'total' => $total_allocations,
 											'pending' => $pending_allocations ) );
+									}
+									break;
+
+								case 'collections':
+									if( !$current_user->check_permissions( 'collections', 'view' ) )
+									{
+										$this->_error( 403, 'You are not allowed to access this resource' );
+									}
+									else
+									{
+										$params = array(
+												'processing_date' => param( $this->input->get(), 'processing_date' ),
+												'business_date' => param( $this->input->get(), 'business_date' ),
+												'page' => param( $this->input->get(), 'page' ),
+												'limit' => param( $this->input->get(), 'limit' ),
+											);
+										$collections = $store->get_collections( $params );
+										$total_collections = $store->count_collections( $params );
+										$collections_data = array();
+										foreach( $collections as $collection )
+										{
+											$collection_items = $collection->get_items( TRUE );
+
+											$collection_items_data = array();
+
+											foreach( $collection_items as $item )
+											{
+												$collection_items_data[] = $item->as_array( array(
+														'mopped_station_name' => array( 'type' => 'string' ),
+														'mopped_item_name' => array( 'type' => 'string' ),
+														'mopped_item_description' => array( 'type' => 'string' ),
+														'converted_to_name' => array( 'type' => 'string' ),
+														'converted_to_description' => array( 'type' => 'string' ),
+														'processor_name' => array( 'type' => 'string' ) ) );
+											}
+
+											$collection_data = $collection->as_array( array(
+													'shift_num' => array( 'type' => 'string' ),
+													'cashier_shift_num' => array( 'type' => 'string' ) ) );
+
+											$collection_data['items'] = $collection_items_data;
+
+											$collections_data[] = $collection_data;
+										}
+										$this->_response( array(
+											'collections' => array_values( $collections_data ),
+											'total' => $total_collections ) );
 									}
 									break;
 

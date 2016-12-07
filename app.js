@@ -52,8 +52,8 @@ var app = angular.module( 'FROGIMS', [ 'ngAnimate', 'ui.router', 'ui.bootstrap',
 	}];
 });
 
-var appServices = angular.module( 'appServices', [] );
-var coreModels = angular.module( 'coreModels', [] );
+angular.module( 'appServices', [] );
+angular.module( 'coreModels', [] );
 
 app.constant( 'baseUrl', baseUrl );
 
@@ -77,7 +77,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider
 			templateUrl: baseUrl + 'index.php/main/view/main_view',
 			controller: 'MainController',
 			resolve: {
-				sessionData: function( $q, session, appData )
+				sessionData: function( $q, session, appData, Conversion )
 					{
 						console.log( 'Initializing session data...' );
 						return session.getSessionData().then(
@@ -105,16 +105,22 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider
 								console.log( 'Loading adjustments...' );
 								var initAdjustments = appData.getAdjustments( currentStoreId );
 
-								console.log( 'Loading collections...' );
-								var initCollections = appData.getCollections( currentStoreId );
-
 								console.log( 'Loading allocations...' );
 								var initAllocations = appData.getAllocations( currentStoreId );
 
 								console.log( 'Loading conversions...' );
 								var initConversions = appData.getConversions( currentStoreId );
 
-								$q.all( [ initInventory, initTransactions, initTransferValidations, initTransfers, initReceipts, initAdjustments, initCollections, initAllocations, initConversions ] ).then(
+								console.log( 'Loading conversion data...' );
+								var initConversionData = Conversion.loadConversionData().then(
+									function( response )
+									{
+										console.log( 'Loading collections...' );
+										appData.getCollections( currentStoreId )
+									}
+								);
+
+								$q.all( [ initInventory, initTransactions, initTransferValidations, initTransfers, initReceipts, initAdjustments, initAllocations, initConversions, initConversionData ] ).then(
 									function( promises )
 									{
 										console.log( 'Finished loading session data' );

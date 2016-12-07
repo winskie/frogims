@@ -909,32 +909,12 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 							|| record.transval_receipt_status == 2 )
 							&& $scope.checkPermissions( 'transferValidations', 'complete' );
 
-					case 'transfers':
-						// TRANSFER_PENDING, TRANSFER_APPROVED
-						return ( ( record.transfer_status == 1 && ( $scope.checkPermissions( 'transfers', 'edit' ) || $scope.checkPermissions( 'transfers', 'approve' ) ) )
-							|| ( record.transfer_status == 2 && $scope.checkPermissions( 'transfers', 'approve' ) ) );
-
-					case 'receipts':
-						// TRANSFER_APPROVED
-						return record.transfer_status == 2 && $scope.checkPermissions( 'transfers', 'edit' );
-
 					case 'adjustments':
 						// ADJUSTMENT_PENDING, ADJUSTMENT_APPROVED
 						return ( ( record.adjustment_status == 1 && ( $scope.checkPermissions( 'adjustments', 'edit' ) || $scope.checkPermissions( 'adjustments', 'approve' ) ) ) );
 
-					case 'collections':
-						return ( $scope.checkPermissions( 'collections', 'edit' ) );
-
-					case 'allocations':
-						// ALLOCATION_SCHEDULED, ALLOCATION_REMITTED, ALLOCATION_CANCELLED
-						return ( ( record.allocation_status != 3 && record.allocation_status != 4 && $scope.checkPermissions( 'allocations', 'edit' ) )
-							|| ( record.allocation_status == 1 && $scope.checkPermissions( 'allocations', 'edit' ) ) );
-
-					case 'conversions':
-						return record.conversion_status == 1 && ( $scope.checkPermissions( 'conversions', 'edit' ) || $scope.checkPermissions( 'conversions', 'approve' ) );
-
 					default:
-						return false;
+						console.error( 'Invalid showActionList module:' + module );
 				}
 			};
 
@@ -1028,9 +1008,9 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 			};
 
 		// Allocations
-		$scope.allocateAllocation = function( allocationData )
+		$scope.allocateAllocation = function( allocation )
 			{
-				appData.allocateAllocation( allocationData ).then(
+				allocation.save( 'allocate' ).then(
 					function( response )
 					{
 						notifications.alert( 'Record marked as Allocated', 'success' );
@@ -1038,9 +1018,9 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 					});
 			};
 
-		$scope.completeAllocation = function( allocationData )
+		$scope.completeAllocation = function( allocation )
 			{
-				appData.completeAllocation( allocationData ).then(
+				allocation.save( 'complete' ).then(
 					function( response )
 					{
 						notifications.alert( 'Record marked as Completed', 'success' );
@@ -1048,10 +1028,20 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 					});
 			};
 
-		// Conversions
-		$scope.approveConversion = function( conversionData )
+		$scope.cancelAllocation = function( allocation )
 			{
-				appData.approveConversion( conversionData ).then(
+				allocation.save( 'cancel' ).then(
+					function( response )
+					{
+						notifications.alert( 'Allocation cancelled', 'success' );
+						appData.refresh( session.data.currentStore.id, 'allocations' );
+					});
+			};
+
+		// Conversions
+		$scope.cancelConversion = function( conversion )
+			{
+				conversion.save( 'cancel' ).then(
 					function( response )
 					{
 						notifications.alert( 'Conversion approved', 'success' );
@@ -1059,14 +1049,13 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 					});
 			};
 
-		// Cancel scheduled allocation
-		$scope.cancelAllocation = function( allocationData )
+		$scope.approveConversion = function( conversion )
 			{
-				appData.cancelAllocation( allocationData ).then(
+				conversion.save( 'approve' ).then(
 					function( response )
 					{
-						notifications.alert( 'Allocation cancelled', 'success' );
-						appData.refresh( session.data.currentStore.id, 'allocations' );
+						notifications.alert( 'Conversion approved', 'success' );
+						appData.refresh( session.data.currentStore.id, 'conversions' );
 					});
 			};
 
@@ -1534,158 +1523,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				allocation: null
 			};
 
-		$scope.toggle = function( field )
-			{
-				if( field == 'source' )
-				{
-					if( $scope.data.editMode == 'receipt' )
-					{
-						$scope.data.editMode = 'externalReceipt';
-					}
-					else
-					{
-						$scope.data.editMode = 'receipt';
-					}
-
-					if( $scope.data.editMode == 'externalReceipt' )
-					{
-						$scope.transferItem.origin_id = null;
-						$scope.transferItem.origin_name = null;
-					}
-				}
-				else if( field == 'destination' )
-				{
-					if( $scope.data.editMode == 'transfer' )
-					{
-						$scope.data.editMode = 'externalTransfer';
-					}
-					else
-					{
-						$scope.data.editMode = 'transfer';
-					}
-
-
-					if( $scope.data.editMode == 'externalTransfer' )
-					{
-						$scope.transferItem.destination_id = null;
-						$scope.transferItem.destination_name = null;
-					}
-					else
-					{
-						$scope.transferItem.destination_id = $scope.data.selectedDestination.id;
-						$scope.transferItem.destination_name = $scope.data.selectedDestination.destination_name;
-					}
-				}
-
-				$scope.changeEditMode();
-				if( $scope.data.autoCategory )
-				{
-					$scope.transferItem.transfer_category = suggestTransferCategory();
-				}
-			};
-
-		$scope.changeSource = function()
-			{
-				$scope.transferItem.setOrigin( $scope.data.selectedSource );
-				if( $scope.data.autoCategory )
-				{
-					$scope.transferItem.transfer_category = suggestTransferCategory();
-				}
-			};
-
-		$scope.changeDestination = function()
-			{
-				$scope.transferItem.setDestination( $scope.data.selectedDestination );
-				if( $scope.data.autoCategory )
-				{
-					$scope.transferItem.transfer_category = suggestTransferCategory();
-				}
-			}
-
-		$scope.showDatePicker = function( dp )
-			{
-				if( dp == 'transfer' )
-				{
-					$scope.data.transferDatepicker.opened = true;
-				}
-				else if( dp == 'receipt' )
-				{
-					$scope.data.receiptDatepicker.opened = true;
-				}
-			};
-
-		$scope.addTransferItem = function( event )
-			{
-				if( ( event.type == 'keypress' ) && ( event.keyCode == 13 )
-						&& $scope.input.inventoryItem
-						&& $scope.input.category
-						&& $scope.input.quantity > 0 )
-				{
-					var data = {
-							item_name: $scope.input.inventoryItem.item_name,
-							category_name: $scope.input.category.category,
-
-							item_id: $scope.input.inventoryItem.item_id,
-							transfer_item_category_id: $scope.input.category.id,
-							quantity: $scope.input.quantity,
-							remarks: $scope.input.remarks,
-							transfer_item_status: 1 // TRANSFER_ITEM_SCHEDULED
-						};
-
-					if( $scope.data.editMode == 'externalReceipt' )
-					{
-						data.quantity_received = $scope.input.quantity;
-					}
-
-					$scope.transferItem.addItem( new TransferItem( data ) );
-					$scope.input.quantity = null;
-					$scope.getItemQuantities();
-				}
-			};
-
-		$scope.addTurnoverItems = function( items )
-			{
-				for( var i = 0; i < items.length; i++ )
-				{
-					var itemRemarks;
-					switch( items[i].item_source )
-					{
-						case 'Blackbox':
-							itemRemarks = 'Transfer #' + items[i].source_id + ' - ' + items[i].assignee;
-							break;
-
-						case 'Remittance':
-							itemRemarks = 'Allocation #' + items[i].source_id + ' - ' + ( items[i].assignee_type == 2 ? 'TVM #' : '' ) + items[i].assignee;
-							break;
-					}
-
-					var data = {
-						item_name: items[i].item_name,
-						category_name: items[i].category,
-
-						item_id: items[i].item_id,
-						transfer_item_category_id: items[i].transfer_item_category_id,
-						quantity: items[i].quantity,
-						remarks: itemRemarks,
-						transfer_item_status: 1, // TRANSFER_ITEM_SCHEDULED
-						transfer_item_allocation_item_id: items[i].allocation_item_id,
-						transfer_item_transfer_item_id: items[i].transfer_item_id
-					}
-
-					$scope.transferItem.addItem( new TransferItem( data ) );
-				}
-				$scope.getItemQuantities();
-			};
-
-
-		$scope.removeTransferItem = function( itemRow )
-			{
-				if( itemRow.id == undefined ) // ALLOCATION_ITEM_SCHEDULED
-				{ // remove only items not yet in database
-					$scope.transferItem.removeItem( itemRow );
-					$scope.getItemQuantities();
-				}
-			};
+		$scope.findUser = UserServices.findUser;
 
 		$scope.changeEditMode = function()
 			{
@@ -1833,6 +1671,115 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				{
 					$scope.data.title = 'New ' + $scope.data.title;
 				}
+			};
+
+		$scope.showDatePicker = function( dp )
+			{
+				if( dp == 'transfer' )
+				{
+					$scope.data.transferDatepicker.opened = true;
+				}
+				else if( dp == 'receipt' )
+				{
+					$scope.data.receiptDatepicker.opened = true;
+				}
+			};
+
+		$scope.toggle = function( field )
+			{
+				if( field == 'source' )
+				{
+					if( $scope.data.editMode == 'receipt' )
+					{
+						$scope.data.editMode = 'externalReceipt';
+					}
+					else
+					{
+						$scope.data.editMode = 'receipt';
+					}
+
+					if( $scope.data.editMode == 'externalReceipt' )
+					{
+						$scope.transferItem.origin_id = null;
+						$scope.transferItem.origin_name = null;
+					}
+				}
+				else if( field == 'destination' )
+				{
+					if( $scope.data.editMode == 'transfer' )
+					{
+						$scope.data.editMode = 'externalTransfer';
+					}
+					else
+					{
+						$scope.data.editMode = 'transfer';
+					}
+
+
+					if( $scope.data.editMode == 'externalTransfer' )
+					{
+						$scope.transferItem.destination_id = null;
+						$scope.transferItem.destination_name = null;
+					}
+					else
+					{
+						$scope.transferItem.destination_id = $scope.data.selectedDestination.id;
+						$scope.transferItem.destination_name = $scope.data.selectedDestination.destination_name;
+					}
+				}
+
+				$scope.changeEditMode();
+				if( $scope.data.autoCategory )
+				{
+					$scope.transferItem.transfer_category = suggestTransferCategory();
+				}
+			};
+
+		$scope.updateItemCategories = function()
+			{
+				$scope.data.categories = $filter( 'filter' )( $scope.input.inventoryItem.categories, { is_transfer_category: true }, true );
+				$scope.data.categories.unshift( { id: null, category: '- None -' });
+			};
+
+		$scope.getItemQuantities = function()
+			{
+				var items = $scope.transferItem.items;
+				var n = items.length;
+				$scope.input.itemReservedQuantity = 0;
+				for( var i = 0; i < n; i++ )
+				{
+					if( items[i].item_id == $scope.input.inventoryItem.item_id
+						&& items[i].transfer_item_status == 1
+						&& !items[i].id ) // TRANSFER_ITEM_SCHEDULED
+					{
+						$scope.input.itemReservedQuantity += items[i].quantity;
+					}
+					else if( items[i].item_id == $scope.input.inventoryItem.item_id
+						&& items[i].markedVoid )
+					{
+						$scope.input.itemReservedQuantity -= items[i].quantity;
+					}
+				}
+			};
+
+
+		// Transfer form events
+		$scope.changeSource = function()
+			{
+				$scope.transferItem.setOrigin( $scope.data.selectedSource );
+				if( $scope.data.autoCategory )
+				{
+					$scope.transferItem.transfer_category = suggestTransferCategory();
+				}
+			};
+
+		$scope.changeDestination = function()
+			{
+				$scope.transferItem.setDestination( $scope.data.selectedDestination );
+				if( $scope.data.autoCategory )
+				{
+					$scope.transferItem.transfer_category = suggestTransferCategory();
+				}
 			}
 
 		$scope.changeTransferCategory = function( category )
@@ -1872,12 +1819,104 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				$scope.transferItem.setRecipient( $scope.transferItem.recipient_name );
 			};
 
-		$scope.updateItemCategories = function()
+
+		// Modals
+		$scope.showTurnoverItems = function()
 			{
-				$scope.data.categories = $filter( 'filter' )( $scope.input.inventoryItem.categories, { is_transfer_category: true }, true );
-				$scope.data.categories.unshift( { id: null, category: '- None -' });
+				var modalInstance = $uibModal.open({
+						templateUrl: baseUrl + 'index.php/main/view/modal_turnover_items',
+						controller: 'TurnoverItemModalController',
+						controllerAs: '$ctrl',
+						size: 'lg'
+					});
+
+				modalInstance.result.then(
+					function( items )
+					{
+						$scope.addTurnoverItems( items );
+					},
+					function()
+					{
+
+					});
 			};
 
+
+		// Transfer item actions
+		$scope.addTransferItem = function( event )
+			{
+				if( ( event.type == 'keypress' ) && ( event.keyCode == 13 )
+						&& $scope.input.inventoryItem
+						&& $scope.input.category
+						&& $scope.input.quantity > 0 )
+				{
+					var data = {
+							item_name: $scope.input.inventoryItem.item_name,
+							category_name: $scope.input.category.category,
+
+							item_id: $scope.input.inventoryItem.item_id,
+							transfer_item_category_id: $scope.input.category.id,
+							quantity: $scope.input.quantity,
+							remarks: $scope.input.remarks,
+							transfer_item_status: 1 // TRANSFER_ITEM_SCHEDULED
+						};
+
+					if( $scope.data.editMode == 'externalReceipt' )
+					{
+						data.quantity_received = $scope.input.quantity;
+					}
+
+					$scope.transferItem.addItem( new TransferItem( data ) );
+					$scope.input.quantity = null;
+					$scope.getItemQuantities();
+				}
+			};
+
+		$scope.addTurnoverItems = function( items )
+			{
+				for( var i = 0; i < items.length; i++ )
+				{
+					var itemRemarks;
+					switch( items[i].item_source )
+					{
+						case 'Blackbox':
+							itemRemarks = 'Transfer #' + items[i].source_id + ' - ' + items[i].assignee;
+							break;
+
+						case 'Remittance':
+							itemRemarks = 'Allocation #' + items[i].source_id + ' - ' + ( items[i].assignee_type == 2 ? 'TVM #' : '' ) + items[i].assignee;
+							break;
+					}
+
+					var data = {
+						item_name: items[i].item_name,
+						category_name: items[i].category,
+
+						item_id: items[i].item_id,
+						transfer_item_category_id: items[i].transfer_item_category_id,
+						quantity: items[i].quantity,
+						remarks: itemRemarks,
+						transfer_item_status: 1, // TRANSFER_ITEM_SCHEDULED
+						transfer_item_allocation_item_id: items[i].allocation_item_id,
+						transfer_item_transfer_item_id: items[i].transfer_item_id
+					}
+
+					$scope.transferItem.addItem( new TransferItem( data ) );
+				}
+				$scope.getItemQuantities();
+			};
+
+		$scope.removeTransferItem = function( itemRow )
+			{
+				if( itemRow.id == undefined ) // ALLOCATION_ITEM_SCHEDULED
+				{ // remove only items not yet in database
+					$scope.transferItem.removeItem( itemRow );
+					$scope.getItemQuantities();
+				}
+			};
+
+
+		// Transfer actions
 		$scope.scheduleTransfer = function()
 			{
 				if( !$scope.pendingAction )
@@ -1941,30 +1980,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				}
 			};
 
-		$scope.findUser = UserServices.findUser;
-		$scope.getItemQuantities = function()
-			{
-				var items = $scope.transferItem.items;
-				var n = items.length;
-				$scope.input.itemReservedQuantity = 0;
-				for( var i = 0; i < n; i++ )
-				{
-					if( items[i].item_id == $scope.input.inventoryItem.item_id
-						&& items[i].transfer_item_status == 1
-						&& !items[i].id ) // TRANSFER_ITEM_SCHEDULED
-					{
-						$scope.input.itemReservedQuantity += items[i].quantity;
-					}
-					else if( items[i].item_id == $scope.input.inventoryItem.item_id
-						&& items[i].markedVoid )
-					{
-						$scope.input.itemReservedQuantity -= items[i].quantity;
-					}
-				}
-			};
-
-
-
 		$scope.printReport = function( report )
 			{
 				switch( report )
@@ -1997,36 +2012,21 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				ReportServices.generateReport( report, params );
 			};
 
-		// Modals
-		$scope.showTurnoverItems = function()
-			{
-				var modalInstance = $uibModal.open({
-						templateUrl: baseUrl + 'index.php/main/view/modal_turnover_items',
-						controller: 'TurnoverItemModalController',
-						controllerAs: '$ctrl',
-						size: 'lg'
-					});
-
-				modalInstance.result.then(
-					function( items )
-					{
-						$scope.addTurnoverItems( items );
-					},
-					function()
-					{
-
-					});
-			};
 
 		// Initialize controller
+
+		// Select initial inventory input item
 		$scope.input.inventoryItem = $scope.data.inventoryItems[0];
+
+		// Select initial category
 		$scope.updateItemCategories();
 		$scope.input.category = $scope.data.categories[0];
 
 		if( $stateParams.transferItem )
-		{
+		{ // Load transfer record
 			$scope.data.autoCategory = false;
 			$scope.data.editMode = $stateParams.editMode || 'auto';
+
 			appData.getTransfer( $stateParams.transferItem.id ).then(
 				function( response )
 				{
@@ -2125,6 +2125,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 							$scope.data.editMode = 'view';
 						}
 
+						// Load transfer record
 						$scope.transferItem = Transfer.createFromData( response.data );
 						$scope.transferItem.setMode( $scope.data.editMode );
 
@@ -2169,8 +2170,10 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 								}
 							}
 						}
+
 						// Set transfer category
 						$scope.data.selectedCategory = getCategoryById( $scope.transferItem.transfer_category );
+
 						$scope.changeEditMode();
 						$scope.data.autoCategory = true;
 					}
@@ -2342,8 +2345,8 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
 	}
 ]);
 
-app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'conversionTable',
-	function( $scope, $filter, $state, $stateParams, session, appData, notifications, conversionTable )
+app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'conversionTable', 'Conversion',
+	function( $scope, $filter, $state, $stateParams, session, appData, notifications, conversionTable, Conversion )
 	{
 		function outputItemFilter( value, index, array )
 		{
@@ -2352,6 +2355,8 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 
 		var items = angular.copy( appData.data.items );
 		var convertibleItems = [];
+
+		$scope.pendingAction = false;
 
 		$scope.data = {
 				editMode: $stateParams.editMode || 'auto',
@@ -2369,16 +2374,6 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 				conversionFactors: []
 			};
 
-		$scope.conversionItem = {
-				store_id: session.data.currentStore.id,
-				conversion_datetime: new Date(),
-				source_inventory_id: $scope.data.sourceInventory.id || null,
-				target_inventory_id: $scope.data.targetInventory.id || null,
-				source_quantity: 1,
-				target_quantity: null,
-				remarks: null,
-				conversion_status: 1 // CONVERSION_PENDING
-			};
 
 		$scope.showDatePicker = function()
 			{
@@ -2429,6 +2424,50 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 				return $scope.data.valid_conversion;
 			};
 
+		$scope.calculateOutput = function()
+			{
+				var factor = $scope.data.factor;
+
+				if( $scope.data.mode == 'pack' )
+				{
+					$scope.conversionItem.target_quantity = $scope.conversionItem.source_quantity / factor;
+				}
+				else if( $scope.data.mode == 'unpack' )
+				{
+					$scope.conversionItem.target_quantity = $scope.conversionItem.source_quantity * factor;
+				}
+				else if( $scope.data.mode == 'convert' )
+				{
+					$scope.conversionItem.target_quantity = $scope.conversionItem.source_quantity;
+				}
+
+				$scope.checkConversion();
+			};
+
+		$scope.calculateInput = function()
+			{
+				var factor = $scope.data.factor;
+
+				switch( $scope.data.mode )
+				{
+					case 'pack':
+						$scope.conversionItem.source_quantity = $scope.conversionItem.target_quantity * factor;
+						break;
+
+					case 'unpack':
+						$scope.conversionItem.source_quantity = $scope.conversionItem.target_quantity / factor;
+						break;
+
+					case 'convert':
+						$scope.conversionItem.source_quantity = $scope.conversionItem.target_quantity;
+						break;
+				}
+
+				$scope.checkConversion();
+			};
+
+
+		// Conversion form events
 		$scope.onOutputItemChange = function()
 			{
 				var cf = [];
@@ -2523,79 +2562,52 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 				$scope.onOutputItemChange();
 			};
 
-		$scope.calculateOutput = function()
-			{
-				var factor = $scope.data.factor;
 
-				if( $scope.data.mode == 'pack' )
-				{
-					$scope.conversionItem.target_quantity = $scope.conversionItem.source_quantity / factor;
-				}
-				else if( $scope.data.mode == 'unpack' )
-				{
-					$scope.conversionItem.target_quantity = $scope.conversionItem.source_quantity * factor;
-				}
-				else if( $scope.data.mode == 'convert' )
-				{
-					$scope.conversionItem.target_quantity = $scope.conversionItem.source_quantity;
-				}
-
-				$scope.checkConversion();
-			};
-
-		$scope.calculateInput = function()
-			{
-				var factor = $scope.data.factor;
-
-				switch( $scope.data.mode )
-				{
-					case 'pack':
-						$scope.conversionItem.source_quantity = $scope.conversionItem.target_quantity * factor;
-						break;
-
-					case 'unpack':
-						$scope.conversionItem.source_quantity = $scope.conversionItem.target_quantity / factor;
-						break;
-
-					case 'convert':
-						$scope.conversionItem.source_quantity = $scope.conversionItem.target_quantity;
-						break;
-				}
-
-				$scope.checkConversion();
-			};
-
+		// Conversion actions
 		$scope.saveConversion = function()
 			{
-				appData.saveConversion( $scope.conversionItem ).then(
-					function( response )
-					{
-						appData.refresh( session.data.currentStore.id, 'conversions' );
-						notifications.alert( 'Conversion record saved', 'success' );
-						$state.go( 'main.store', { activeTab: 'conversions' } );
-					},
-					function( reason )
-					{
-						console.error( reason );
-					});
-			}
+				if( !$scope.pendingAction )
+				{
+					$scope.pendingAction = true;
+					$scope.conversionItem.save().then(
+						function( response )
+						{
+							appData.refresh( session.data.currentStore.id, 'conversions' );
+							notifications.alert( 'Conversion record saved', 'success' );
+							$state.go( 'main.store', { activeTab: 'conversions' } );
+							$scope.pendingAction = false;
+						},
+						function( reason )
+						{
+							console.error( reason );
+							$scope.pendingAction = false;
+						});
+				}
+			};
 
 		$scope.approveConversion = function()
 			{
-				appData.approveConversion( $scope.conversionItem ).then(
-					function( response )
-					{
-						appData.refresh( session.data.currentStore.id, 'conversions' );
-						notifications.alert( 'Item converted successfully', 'success' );
-						$state.go( 'main.store', { activeTab: 'conversions' } );
-					},
-					function( reason )
-					{
-						console.error( reason );
-					});
+				if( !$scope.pendingAction )
+				{
+					$scope.pendingAction = true;
+					$scope.conversionItem.save( 'approve' ).then(
+						function( response )
+						{
+							appData.refresh( session.data.currentStore.id, 'conversions' );
+							notifications.alert( 'Item converted successfully', 'success' );
+							$state.go( 'main.store', { activeTab: 'conversions' } );
+							$scope.pendingAction = false;
+						},
+						function( reason )
+						{
+							console.error( reason );
+							$scope.pendingAction = false;
+						});
+				}
 			};
 
-		// Initialize
+
+		// Initialize conversion form
 		if( $stateParams.conversionItem )
 		{
 			$scope.data.editMode = $stateParams.editMode || 'view';
@@ -2604,11 +2616,13 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 				{
 					if( response.status == 'ok' )
 					{
-						$scope.conversionItem = response.data;
-						$scope.conversionItem.conversion_datetime = Date.parse( $stateParams.conversionItem.conversion_datetime );
-						$scope.conversionItem.source_quantity = parseInt( $stateParams.conversionItem.source_quantity );
-						$scope.conversionItem.target_quantity = parseInt( $stateParams.conversionItem.target_quantity );
+						// Load conversion record
+						$scope.conversionItem = Conversion.createFromData( response.data );
+
+						// Set source inventory
 						$scope.data.sourceInventory = $filter( 'filter' )( appData.data.items, { id: $stateParams.conversionItem.source_inventory_id }, true )[0];
+
+						// Set target inventory
 						$scope.data.targetInventory = $filter( 'filter' )( appData.data.items, { id: $stateParams.conversionItem.target_inventory_id }, true )[0];
 
 						if( $scope.data.editMode == 'auto' )
@@ -2644,14 +2658,17 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 		}
 		else
 		{
+			$scope.conversionItem = new Conversion();
 			$scope.onInputItemChange();
 		}
 	}
 ]);
 
-app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'packingData', 'UserServices',
-	function( $scope, $filter, $state, $stateParams, session, appData, notifications, packingData, UserServices )
+app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'packingData', 'UserServices', 'Collection', 'CollectionItem',
+	function( $scope, $filter, $state, $stateParams, session, appData, notifications, packingData, UserServices, Collection, CollectionItem )
 	{
+		$scope.pendingAction = false;
+
 		$scope.data = {
 				processingDatepicker: { format: 'yyyy-MM-dd HH:mm:ss', opened: false },
 				businessDatepicker: { format: 'yyyy-MM-dd', opened: false },
@@ -2690,15 +2707,6 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 				station_short_name: 'INV'
 			});
 
-		$scope.moppingItem = {
-				store_id: session.data.currentStore.id,
-				processing_datetime: new Date(),
-				business_date: new Date(),
-				shift_id: session.data.currentShift.id,
-				cashier_shift_id: null,
-				items: []
-			};
-
 		$scope.input = {
 				rowId: null,
 				moppedSource: $scope.data.moppedSource[0] || null,
@@ -2708,6 +2716,8 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 				processor: null,
 				deliveryPerson: null
 			};
+
+		$scope.findUser = UserServices.findUser;
 
 		$scope.showDatePicker = function( dp )
 			{
@@ -2721,93 +2731,28 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 				}
 			};
 
+		// Collection form events
 		$scope.onChangePullOutShift = function()
 			{
 				$scope.moppingItem.cashier_shift_id = $scope.data.selectedPullOutShift.id;
 
 				var date = angular.copy( $scope.moppingItem.processing_datetime );
-				if( $scope.data.selectedPullOutShift.id == 8 )
-				{
-					$scope.moppingItem.business_date = date;
-					$scope.moppingItem.business_date.setDate( $scope.moppingItem.business_date.getDate() - 1 );
-				}
-				else
-				{
-					$scope.moppingItem.business_date = date;
-				}
-			};
 
-		$scope.addMoppingItem = function( event )
-			{
-				if( ( event.type == 'keypress' ) && ( event.keyCode == 13 ) )
+				// Only suggest if collection record is new
+				if( !$scope.moppingItem.id )
 				{
-					if( ! $scope.input.deliveryPerson )
+					if( $scope.data.selectedPullOutShift.id == 8 )
 					{
-						notifications.alert( 'Please specify delivery person', 'warning' );
+						$scope.moppingItem.business_date = date;
+						$scope.moppingItem.business_date.setDate( $scope.moppingItem.business_date.getDate() - 1 );
 					}
-					else if( $scope.input.moppedQuantity <= 0 )
+					else
 					{
-						notifications.alert( 'Quantity must have a value greater than 0', 'warning' );
-					}
-					else if( $scope.input.moppedSource
-						&& $scope.input.moppedItem && typeof $scope.input.moppedItem === 'object'
-						&& ( ! $scope.input.packAs || ( $scope.input.packAs != null && typeof $scope.input.packAs === 'object' ) ) )
-					{
-						var deliveryPerson;
-						if( typeof $scope.input.deliveryPerson == 'string' )
-						{
-							deliveryPerson = $scope.input.deliveryPerson;
-						}
-						else if( typeof $scope.input.deliveryPerson == 'object' && $scope.input.deliveryPerson.full_name )
-						{
-							deliveryPerson = $scope.input.deliveryPerson.full_name;
-						}
-						else
-						{
-							notifications.alert( 'Invalid value for delivery person', 'error' );
-							return false;
-						}
-
-						var data = {
-								mopped_station_name: $scope.input.moppedSource.station_name,
-								mopped_item_name: $scope.input.moppedItem.item_name,
-								convert_to_name: ( $scope.input.packAs && $scope.input.packAs.id ) ? $scope.input.packAs.item_name : null,
-								processor_name: $scope.input.processor ? $scope.input.processor.full_name : null,
-								valid: true,
-
-								mopped_station_id: parseInt( $scope.input.moppedSource.id ),
-								mopped_item_id: parseInt( $scope.input.moppedItem.item_id ),
-								mopped_quantity: parseInt( $scope.input.moppedQuantity ),
-								converted_to: ( $scope.input.packAs && $scope.input.packAs.id ) ? $scope.input.packAs.target_item_id : null,
-								group_id: null,
-								processor_id: $scope.input.processor ? $scope.input.processor.id : null,
-								delivery_person: deliveryPerson,
-								mopped_item_status: 1 // MOPPING_ITEM_COLLECTED
-							};
-
-						var index = $scope.input.rowId;
-						if( index )
-						{
-							$scope.moppingItem.items[index] = data;
-						}
-						else
-						{
-							$scope.moppingItem.items.push( data );
-						}
-
-						$scope.checkItems();
+						$scope.moppingItem.business_date = date;
 					}
 				}
 			};
 
-		$scope.removeMoppingItem = function( itemRow )
-			{
-				var index = $scope.moppingItem.items.indexOf( itemRow );
-				$scope.moppingItem.items.splice( index, 1 );
-				$scope.checkItems();
-			};
-
-		$scope.findUser = UserServices.findUser;
 
 		$scope.onItemChange = function()
 			{
@@ -2855,144 +2800,104 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 						}
 						if( items[i].group_id == item.group_id )
 						{
-							items[i].moppedItemVoid = item.moppedItemVoid;
+							items[i].markedVoid = item.markedVoid;
 							//items[i].mopping_item_status = item.mopping_item_status;
 						}
 					}
 				}
 			};
 
-		$scope.checkItems = function()
+
+		// Collection item actions
+		$scope.addMoppingItem = function( event )
 			{
-				var packedItems = {},
-					items = $scope.moppingItem.items,
-					itemCount = items.length,
-					validPacking = true;
-
-				var lastGroup = 1;
-
-				if( itemCount == 0 )
+				if( ( event.type == 'keypress' ) && ( event.keyCode == 13 ) )
 				{
-					notifications.alert( 'Collection does not contain any items', 'warning' );
-					return false;
-				}
-
-				for( var i = 0; i < itemCount; i++ )
-				{
-					if( items[i].converted_to )
-					{ // packed item
-						var conversionItem = $filter( 'filter' )( packingData, { source_item_id: items[i].mopped_item_id, target_item_id: items[i].converted_to }, true )[0] || null;
-						if( conversionItem )
-						{ // has valid conversion
-							var currentItem = packedItems[conversionItem.source_item_id + '_' + conversionItem.target_item_id + '_' + lastGroup];
-
-							if( currentItem )
-							{ // existing group, just update quantity and validity
-								currentItem['quantity'] += items[i].mopped_quantity;
-								currentItem['valid'] = ( currentItem.quantity == currentItem.conversion_factor );
-								currentItem['items'].push(i);
-							}
-							else
-							{ // new group
-								packedItems[conversionItem.source_item_id + '_' + conversionItem.target_item_id + '_' + lastGroup] = {
-									source_item_id: conversionItem.source_item_id,
-									target_item_id: conversionItem.target_item_id,
-									conversion_factor: conversionItem.conversion_factor,
-									quantity: items[i].mopped_quantity,
-									valid: items[i].mopped_quantity == conversionItem.conversion_factor,
-									group_id: lastGroup,
-									items: [ i ]
-								}
-
-								currentItem = packedItems[conversionItem.source_item_id + '_' + conversionItem.target_item_id + '_' + lastGroup];
-							}
-
-							items[i].group_id = lastGroup;
-							if( currentItem.valid )
-							{
-								lastGroup++;
-							}
-						}
-					}
-				}
-
-				for( var prop in packedItems )
-				{
-					if( packedItems.hasOwnProperty(prop) )
+					if( ! $scope.input.deliveryPerson )
 					{
-						for( var j = 0; j < packedItems[prop].items.length; j++ )
+						notifications.alert( 'Please specify delivery person', 'warning' );
+					}
+					else if( $scope.input.moppedQuantity <= 0 )
+					{
+						notifications.alert( 'Quantity must have a value greater than 0', 'warning' );
+					}
+					else if( $scope.input.moppedSource
+						&& $scope.input.moppedItem && typeof $scope.input.moppedItem === 'object'
+						&& ( ! $scope.input.packAs || ( $scope.input.packAs != null && typeof $scope.input.packAs === 'object' ) ) )
+					{
+						var deliveryPerson;
+						if( typeof $scope.input.deliveryPerson == 'string' )
 						{
-							items[packedItems[prop].items[j]].valid = packedItems[prop].valid;
+							deliveryPerson = $scope.input.deliveryPerson;
+						}
+						else if( typeof $scope.input.deliveryPerson == 'object' && $scope.input.deliveryPerson.full_name )
+						{
+							deliveryPerson = $scope.input.deliveryPerson.full_name;
+						}
+						else
+						{
+							notifications.alert( 'Invalid value for delivery person', 'error' );
+							return false;
 						}
 
-						if( ! packedItems[prop].valid )
-						{
-							validPacking = false;
-						}
+						var data = {
+								mopped_station_name: $scope.input.moppedSource.station_name,
+								mopped_item_name: $scope.input.moppedItem.item_name,
+								converted_to_name: ( $scope.input.packAs && $scope.input.packAs.id ) ? $scope.input.packAs.item_name : null,
+								processor_name: $scope.input.processor ? $scope.input.processor.full_name : null,
+								valid_item: false,
+
+								mopped_station_id: parseInt( $scope.input.moppedSource.id ),
+								mopped_item_id: parseInt( $scope.input.moppedItem.item_id ),
+								mopped_quantity: parseInt( $scope.input.moppedQuantity ),
+								converted_to: ( $scope.input.packAs && $scope.input.packAs.id ) ? $scope.input.packAs.target_item_id : null,
+								group_id: null,
+								processor_id: $scope.input.processor ? $scope.input.processor.id : null,
+								delivery_person: deliveryPerson,
+								mopped_item_status: 1 // MOPPING_ITEM_COLLECTED
+							};
+
+						$scope.moppingItem.addItem( new CollectionItem( data ) );
 					}
 				}
-
-				return validPacking;
 			};
 
-		$scope.prepareCollection = function()
+		$scope.removeMoppingItem = function( item )
 			{
-				// Make a deep copy to create a disconnected copy of the data from the scope model
-				var data = angular.copy( $scope.moppingItem );
-
-				var itemCount = data.items.length;
-				for( var i = 0; i < itemCount; i++ )
-				{
-					if( data.items[i].moppedItemVoid )
-					{
-						data.items[i].mopping_item_status = 2; // MOPPING_ITEM_VOIDED
-					}
-
-					delete data.items[i].mopped_station_name;
-					delete data.items[i].mopped_item_name;
-					delete data.items[i].convert_to_name;
-					delete data.items[i].processor_name;
-					delete data.items[i].valid;
-					delete data.items[i].moppedItemVoid;
-				}
-
-				data.processing_datetime = $filter( 'date' )( $scope.moppingItem.processing_datetime, 'yyyy-MM-dd HH:mm:ss' );
-				data.business_date = $filter( 'date' )( $scope.moppingItem.business_date, 'yyyy-MM-dd' );
-
-				return data;
+				$scope.moppingItem.removeItem( item )
 			};
 
+		// Collection actions
 		$scope.saveCollection = function()
 			{
-				if( $scope.checkItems() )
+				if( !$scope.pendingAction )
 				{
-					var data = $scope.prepareCollection();
-					appData.processCollection( data ).then(
+					$scope.pendingAction = true;
+					$scope.moppingItem.save().then(
 						function( response )
 						{
 							if( $scope.data.editMode == 'new' )
-							{
-								appData.refresh( session.data.currentStore.id, 'collections' );
-								notifications.alert( 'Collection record saved', 'success' );
-								$scope.moppingItem.items = [];
-							}
-							else
-							{
-								appData.refresh( session.data.currentStore.id, 'collections' );
-								notifications.alert( 'Collection record saved', 'success' );
-								$state.go( 'main.store', { activeTab: 'collections' } );
-							}
+								{
+									appData.refresh( session.data.currentStore.id, 'collections' );
+									notifications.alert( 'Collection record saved', 'success' );
+									$scope.moppingItem.items = [];
+								}
+								else
+								{
+									appData.refresh( session.data.currentStore.id, 'collections' );
+									notifications.alert( 'Collection record saved', 'success' );
+									$state.go( 'main.store', { activeTab: 'collections' } );
+								}
+							$scope.pendingAction = false;
 						},
 						function( reason )
 						{
-							console.error( reason );
+							$scope.pendingAction = false;
 						});
 				}
 			};
 
 		// Initialize controller
-		$scope.onItemChange();
-		$scope.onChangePullOutShift();
 
 		// Load moppingItem
 		if( $stateParams.moppingItem )
@@ -3003,22 +2908,33 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 				{
 					if( response.status == 'ok' )
 					{
-						$scope.moppingItem = response.data;
-						$scope.moppingItem.processing_datetime = Date.parse( $stateParams.moppingItem.processing_datetime );
-						$scope.moppingItem.business_date = Date.parse( $stateParams.moppingItem.business_date );
-						$scope.data.selectedPullOutShift = $filter( 'filter')( $scope.data.pullOutShifts, { id: $scope.moppingItem.cashier_shift_id }, true )[0];
-						$scope.checkItems();
+						$scope.moppingItem = Collection.createFromData( response.data );
 
 						if( $scope.data.editMode != 'view' && !$scope.checkPermissions( 'collections', 'edit' ) )
 						{
 							$scope.data.editMode = 'view';
 						}
+
+						// Set pullout shift
+						$scope.data.selectedPullOutShift = $filter( 'filter')( $scope.data.pullOutShifts, { id: $scope.moppingItem.cashier_shift_id }, true )[0];
+
+						$scope.onItemChange();
+					}
+					else
+					{
+						console.error( response.errorMsg );
 					}
 				},
 				function( reason )
 				{
 					console.error( reason );
 				});
+		}
+		else
+		{
+			$scope.moppingItem = new Collection();
+			$scope.onItemChange();
+			$scope.onChangePullOutShift();
 		}
 	}
 ]);
@@ -3086,44 +3002,32 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 		$scope.pendingAction = false;
 
 		$scope.data = {
-			editMode: $stateParams.editMode || 'auto',
-			businessDatepicker: { format: 'yyyy-MM-dd', opened: false },
-			assigneeShifts: angular.copy( assigneeShifts ),
-			selectedAssigneeShift: null,
-			assigneeTypes: angular.copy( appData.data.assigneeTypes ),
-			selectedAssigneeType: { id: 1, typeName: 'Station Teller' },
-			inventoryItems: angular.copy( appData.data.items ),
-			selectedItem: null,
-			categories: angular.copy( appData.data.categories ),
-			allocationPhase: 'allocation',
-			activeTab: 0,
-			saveButton: { icon: 'time', label: 'Schedule' },
+				editMode: $stateParams.editMode || 'auto',
+				businessDatepicker: { format: 'yyyy-MM-dd', opened: false },
+				assigneeShifts: angular.copy( assigneeShifts ),
+				selectedAssigneeShift: null,
+				assigneeTypes: angular.copy( appData.data.assigneeTypes ),
+				selectedAssigneeType: { id: 1, typeName: 'Station Teller' },
+				inventoryItems: angular.copy( appData.data.items ),
+				selectedItem: null,
+				categories: angular.copy( appData.data.categories ),
+				allocationPhase: 'allocation',
+				activeTab: 0,
+				saveButton: { icon: 'time', label: 'Schedule' },
 
-			assigneeLabel: 'Teller Name',
-			assigneeShiftLabel: 'Teller Shift',
-			remittancesTabLabel: 'Remittances',
-			remittancesEmptyText: 'No remittance items'
-		};
+				assigneeLabel: 'Teller Name',
+				assigneeShiftLabel: 'Teller Shift',
+				remittancesTabLabel: 'Remittances',
+				remittancesEmptyText: 'No remittance items'
+			};
 
 		$scope.input = {
-			category: null,
-			item: $scope.data.inventoryItems[0] || null,
-			itemReservedQuantity: 0,
-			quantity: null,
-		};
-
-		$scope.allocationItem = {
-				store_id: session.data.currentStore.id,
-				business_date: new Date(),
-				shift_id: null,
-				station_id: null,
-				assignee: null,
-				assignee_type: 1,
-				allocation_status: 1, // ALLOCATION_SCHEDULED
-				cashier_id: session.data.currentUser.id || null,
-				allocations: [],
-				remittances: []
+				category: null,
+				item: $scope.data.inventoryItems[0] || null,
+				itemReservedQuantity: 0,
+				quantity: null,
 			};
+
 
 		$scope.showDatePicker = function()
 			{
@@ -3220,6 +3124,37 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 				$scope.updateCategories();
 			};
 
+		$scope.getItemQuantities = function()
+			{
+				switch( $scope.data.allocationPhase )
+				{
+					case 'allocation':
+						var items = $scope.allocationItem.allocations;
+						var n = items.length;
+						$scope.input.itemReservedQuantity = 0;
+						for( var i = 0; i < n; i++ )
+						{
+							if( items[i].allocated_item_id == $scope.input.item.item_id
+								&& items[i].allocation_item_status == 10 // ALLOCATION_ITEM_SCHEDULED
+								&& !items[i].id )
+							{
+								$scope.input.itemReservedQuantity += items[i].allocated_quantity;
+							}
+							else if( items[i].allocated_item_id == $scope.input.item.item_id
+								&& items[i].markedVoid )
+							{
+								$scope.input.itemReservedQuantity -= items[i].allocated_quantity;
+							}
+						}
+						break;
+
+					case 'remittance':
+						$scope.input.itemReservedQuantity = 0;
+						break;
+				}
+			};
+
+		// Allocation form events
 		$scope.onAssigneeTypeChange = function()
 			{
 				if( $scope.data.selectedAssigneeType.id == 1 )
@@ -3276,6 +3211,8 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 				$scope.getItemQuantities();
 			};
 
+
+		// Allocation and remittance items actions
 		$scope.addAllocationItem = function()
 			{
 				if( ( event.type == 'keypress' ) && ( event.keyCode == 13 )
@@ -3336,6 +3273,8 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 				$scope.getItemQuantities();
 			};
 
+
+		// Allocation record actions
 		$scope.saveAllocation = function()
 			{
 				if( !$scope.pendingAction )
@@ -3399,35 +3338,6 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 				}
 			};
 
-		$scope.getItemQuantities = function()
-			{
-				switch( $scope.data.allocationPhase )
-				{
-					case 'allocation':
-						var items = $scope.allocationItem.allocations;
-						var n = items.length;
-						$scope.input.itemReservedQuantity = 0;
-						for( var i = 0; i < n; i++ )
-						{
-							if( items[i].allocated_item_id == $scope.input.item.item_id
-								&& items[i].allocation_item_status == 10 // ALLOCATION_ITEM_SCHEDULED
-								&& !items[i].id )
-							{
-								$scope.input.itemReservedQuantity += items[i].allocated_quantity;
-							}
-							else if( items[i].allocated_item_id == $scope.input.item.item_id
-								&& items[i].markedVoid )
-							{
-								$scope.input.itemReservedQuantity -= items[i].allocated_quantity;
-							}
-						}
-						break;
-
-					case 'remittance':
-						$scope.input.itemReservedQuantity = 0;
-						break;
-				}
-			};
 
 		// Initialize controller
 

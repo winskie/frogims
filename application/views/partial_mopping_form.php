@@ -74,11 +74,12 @@
                 </tr>
             </thead>
             <tbody>
-                <tr ng-repeat="row in moppingItem.items" ng-class="{ danger:( !row.valid && row.group_id ) || row.moppedItemVoid, deleted: ( row.mopping_item_status == 2 ) }">
+                <tr ng-repeat="row in moppingItem.items"
+                        ng-class="{ danger:( !row.valid_item && row.group_id ) || row.markedVoid, deleted: ( row.mopping_item_status == 2 ) }">
                     <td class="text-center">{{ $index + 1 }}</td>
                     <td class="text-left">{{ row.delivery_person }}</td>
                     <td class="text-left">{{ row.mopped_item_name }}</td>
-                    <td class="text-left">{{ row.convert_to_name || '---' }}</td>
+                    <td class="text-left">{{ row.converted_to_name || '---' }}</td>
                     <td class="text-center">{{ row.group_id ? 'G' + row.group_id : '---' }}</td>
                     <td class="text-left">{{ row.mopped_station_name }}</td>
                     <td class="text-center">{{ row.mopped_quantity | number }}</td>
@@ -90,7 +91,7 @@
                         </div>
                         <div ng-switch-when="edit" ng-if="row.mopping_item_status == 1">
                             <input type="checkbox" name="voidItem" value="{{ row.id }}"
-                                    ng-change="onVoidChange( row )" ng-model="row.moppedItemVoid">
+                                    ng-change="onVoidChange( row )" ng-model="row.markedVoid">
                         </div>
                     </td>
                 </tr>
@@ -184,6 +185,9 @@
 </div>
 
 <div class="text-right">
-    <button type="button" class="btn btn-primary" ng-click="saveCollection()" ng-if="data.editMode != 'view' && checkPermissions( 'collections', 'edit' )">Save</button>
+    <button type="button" class="btn btn-primary"
+            ng-click="saveCollection()"
+            ng-if="data.editMode != 'view' && moppingItem.canEdit()"
+            ng-disabled="pendingAction">Record collection</button>
     <button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'collections' })">Close</button>
 </div>
