@@ -2125,16 +2125,17 @@ class Api_v1 extends MY_Controller {
 												'category_name' => array( 'type', 'string' ) ) );
 										}
 										$transfer_data['items'] = $items_data;
+
 										if( in_array( 'validation', $includes ) )
 										{
-											$validation = $transfer->get_transfer_validation();
-											if( $validation )
+											$transfer_validation = $transfer->get_validation();
+											if( $transfer_validation )
 											{
-												$transfer_data['validation'] = $validation->as_array();
+												$transfer_data['transfer_validation'] = $transfer_validation->as_array();
 											}
 											else
 											{
-												$transfer_data['validation'] = NULL;
+												$transfer_data['transfer_validation'] = NULL;
 											}
 										}
 
@@ -2173,25 +2174,24 @@ class Api_v1 extends MY_Controller {
 						$transfers_data = array();
 						$array_params = array();
 
-						if( $params['includes'] && in_array( 'validation', $params['includes'] ) )
-						{
-							$array_params = array(
-								'transval_id' => array( 'type' => 'integer' ),
-								'transval_receipt_status' => array( 'type' => 'integer' ),
-								'transval_receipt_datetime' => array( 'type' => 'datetime' ),
-								'transval_receipt_sweeper' => array( 'type' => 'string' ),
-								'transval_receipt_user_id' => array( 'type' => 'integer' ),
-								'transval_receipt_shift_id' => array( 'type' => 'integer' ),
-								'transval_transfer_status' => array( 'type' => 'integer' ),
-								'transval_transfer_datetime' => array( 'type' => 'datetime' ),
-								'transval_transfer_sweeper' => array( 'type' => 'string' ),
-								'transval_transfer_user_id' => array( 'type' => 'integer' ),
-								'transval_transfer_shift_id' => array( 'type' => 'integer' ),
-								'transval_status' => array( 'type' => 'integer' ) );
-						}
 						foreach( $transfers as $transfer )
 						{
-							$transfers_data[] = $transfer->as_array( $array_params );
+							$transfer_data = $transfer->as_array( $array_params );
+
+							if( $params['includes'] && in_array( 'validation', $params['includes'] ) )
+							{
+								$transfer_validation = $transfer->get_validation();
+								if( $transfer_validation )
+								{
+									$transfer_data['transfer_validation'] = $transfer_validation->as_array();
+								}
+								else
+								{
+									$transfer_data['transfer_validation'] = NULL;
+								}
+							}
+
+							$transfers_data[] = $transfer_data;
 						}
 
 						$this->_response( array(

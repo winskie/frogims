@@ -870,7 +870,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 						{
 							var d = response.data;
 
-							me.data.transferValidations = d.data.transfers;
+							me.data.transferValidations = Transfer.createFromData( d.data.transfers );
 							me.data.totals.transferValidations = d.data.total;
 							me.data.pending.transferValidations = d.data.pending;
 							deferred.resolve( d );
@@ -2084,20 +2084,6 @@ angular.module( 'appServices' ).service( 'lookup',
 				'1': 'Open',
 				'2': 'Closed'
 			},
-			transferValidationStatus: {
-				'1': 'Ongoing',
-				'2': 'Completed',
-				'3': 'Not Required'
-			},
-			transferValidationReceiptStatus: {
-				'1': 'Validated',
-				'2': 'Returned'
-			},
-			transferValidationTransferStatus: {
-				'1': 'Validated',
-				'2': 'Disputed'
-			},
-
 			storeTypes: {
 				'1': 'General',
 				'2': 'Production',
@@ -2117,7 +2103,6 @@ angular.module( 'appServices' ).service( 'lookup',
 
 		me.getX = function( set, value )
 			{
-
 				if( value )
 				{
 					return me.data[set][value];

@@ -23,6 +23,7 @@
 		<script type="text/javascript" src="<?php echo base_url( 'directives-charts.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'app.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'controllers.js' );?>"></script>
+		<script type="text/javascript" src="<?php echo base_url( 'resources/js/transfer-validation-model.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'resources/js/transfer-model.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'resources/js/conversion-model.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'resources/js/allocation-model.js' );?>"></script>

@@ -127,6 +127,12 @@ class Transfer_validation extends Base_model {
 		// Check if transfer is approved
 		$ci->load->library( 'transfer' );
 		$transfer = $this->get_transfer();
+		if( ! $transfer )
+		{
+			set_message( 'Related transfer record not found' );
+			return FALSE;
+		}
+
 		if( ! in_array( $transfer->get( 'transfer_status'), array( TRANSFER_APPROVED, TRANSFER_RECEIVED ) ) )
 		{
 			set_message( 'Cannot validate receipt - Transfer must be approved or received' );
@@ -183,7 +189,7 @@ class Transfer_validation extends Base_model {
 		// Check if transfer is approved
 		$ci->load->library( 'transfer' );
 		$transfer = $this->get_transfer();
-		if( $transfer->get( 'transfer_status') != TRANSFER_APPROVED )
+		if( !in_array( $transfer->get( 'transfer_status'), array( TRANSFER_APPROVED, TRANSFER_RECEIVED ) ) )
 		{
 			set_message( 'Cannot return transfer of non-approved transfer or transfer that is already received' );
 			return FALSE;

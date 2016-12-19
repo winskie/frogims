@@ -37,20 +37,20 @@
 								<!-- Transfer Status -->
 								<div class="form-group">
 									<label class="control-label col-sm-5">Transfer Status</label>
-									<p class="form-control-static col-sm-7">{{ lookup( 'transferStatus', transferItem.transfer_status ) }}</p>
+									<p class="form-control-static col-sm-7">{{ transferItem.get( 'transferStatusName' ) }}</p>
 								</div>
 							</div>
 
 							<div class="col-sm-7">
 								<!-- Receipt Validation Status -->
 								<div class="form-group" ng-if="transferItem.transfer_status != <?php echo TRANSFER_PENDING;?>
-										&& transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
+										&& transferItem.transfer_validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
 									<label class="control-label col-sm-5">Receipt Validation Status</label>
-									<p class="form-control-static col-sm-7" ng-switch on="transferItem.validation.transval_receipt_status != null">
+									<p class="form-control-static col-sm-7" ng-switch on="transferItem.transfer_validation.transval_receipt_status != null">
 										<span ng-switch-when="true">
-											<i class="glyphicon glyphicon-ok text-success" ng-if="transferItem.validation.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_VALIDATED;?>"> </i>
-											<i class="glyphicon glyphicon-repeat text-danger" ng-if="transferItem.validation.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_RETURNED;?>"> </i>
-											{{ lookup( 'transferValidationReceiptStatus', transferItem.validation.transval_receipt_status ) }}, {{ transferItem.validation.transval_receipt_datetime }}
+											<i class="glyphicon glyphicon-ok text-success" ng-if="transferItem.transfer_validation.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_VALIDATED;?>"> </i>
+											<i class="glyphicon glyphicon-repeat text-danger" ng-if="transferItem.transfer_validation.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_RETURNED;?>"> </i>
+											{{ transferItem.transfer_validation.get( 'receiptStatus' ) }} on {{ transferItem.transfer_validation.transval_receipt_datetime | date: 'yyyy-MM-dd HH:mm:ss' }}
 										</span>
 										<span ng-switch-default>Pending</span>
 									</p>
@@ -58,28 +58,30 @@
 
 								<!-- Sweeper -->
 								<div class="form-group" ng-if="transferItem.transfer_status != <?php echo TRANSFER_PENDING;?>
-										&& transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
+										&& transferItem.transfer_validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
 									<label class="control-label col-sm-5">Validated by</label>
-									<div class="col-sm-7" ng-switch on="( transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?> )
-										&& ( transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_COMPLETED;?> )
+									<div class="col-sm-7" ng-switch on="( transferItem.transfer_validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?> )
+										&& ( transferItem.transfer_validation.transval_status != <?php echo TRANSFER_VALIDATION_COMPLETED;?> )
 										&& ( transferItem.transfer_status != <?php echo TRANSFER_PENDING;?> )
 										&& ( transferItem.transfer_status != <?php echo TRANSFER_PENDING_CANCELLED;?> )
 										&& ( transferItem.transfer_status != <?php echo TRANSFER_APPROVED_CANCELLED;?> )">
 										<input type="text" class="form-control"
 												ng-switch-when="true"
-												ng-model="transferItem.validation.transval_receipt_sweeper"
+												ng-model="transferItem.transfer_validation.transval_receipt_sweeper"
 												ng-model-options="{ debounce: 500 }"
+												ng-change="onRecipientChange()"
+												typeahead-on-select="onRecipientChange()"
 												typeahead-editable="true"
 												uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
-										<p ng-switch-default class="form-control-static">{{ transferItem.validation.transval_receipt_sweeper }}</p>
+										<p ng-switch-default class="form-control-static">{{ transferItem.transfer_validation.transval_receipt_sweeper }}</p>
 									</div>
 								</div>
 
 								<!-- Validation Status -->
 								<div class="form-group">
 									<label class="control-label col-sm-5">Validation Status</label>
-									<p class="form-control-static col-sm-7" ng-switch on="transferItem.validation.transval_status != null">
-										<span ng-switch-when="true">{{ lookup( 'transferValidationStatus', transferItem.validation.transval_status ) }}</span>
+									<p class="form-control-static col-sm-7" ng-switch on="transferItem.transfer_validation.transval_status != null">
+										<span ng-switch-when="true">{{ transferItem.transfer_validation.get( 'validationStatus' ) }}</span>
 										<span ng-switch-default>---</span>
 									</p>
 								</div>
@@ -89,21 +91,12 @@
 
 					<div class="col-sm-12 col-md-3 col-lg-2">
 						<button type="button" class="btn btn-block btn-success"
-								ng-if="( transferItem.validation.transval_receipt_status != <?php echo TRANSFER_VALIDATION_RECEIPT_VALIDATED;?> )
-										&& ( transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?> )
-										&& ( transferItem.transfer_status != <?php echo TRANSFER_PENDING;?> )
-										&& ( transferItem.transfer_status != <?php echo TRANSFER_PENDING_CANCELLED;?> )
-										&& ( transferItem.transfer_status != <?php echo TRANSFER_APPROVED_CANCELLED;?> )"
+								ng-if="transferItem.canValidateReceipt()"
 								ng-click="validateReceipt()">Validate Receipt
 						</button>
 						<button type="button" class="btn btn-block btn-default"
 								ng-disabled=""
-								ng-if="( transferItem.validation.transval_receipt_status != <?php echo TRANSFER_VALIDATION_RECEIPT_RETURNED;?> )
-										&& ( transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?> )
-										&& ( transferItem.transfer_status != <?php echo TRANSFER_PENDING;?> )
-										&& ( transferItem.transfer_status != <?php echo TRANSFER_RECEIVED; ?> )
-										&& ( transferItem.transfer_status != <?php echo TRANSFER_PENDING_CANCELLED;?> )
-										&& ( transferItem.transfer_status != <?php echo TRANSFER_APPROVED_CANCELLED;?> ) "
+								ng-if="transferItem.canReturn()"
 								ng-click="markReturned()">Mark as Returned
 						</button>
 					</div>
@@ -137,46 +130,48 @@
 								</div>
 							</div>
 
-							<div class="col-sm-7" ng-if="transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
+							<div class="col-sm-7" ng-if="transferItem.transfer_validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
 								<!-- Delivery Validation Status -->
-								<div class="form-group" ng-if="transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
+								<div class="form-group" ng-if="transferItem.transfer_validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
 									<label class="control-label col-sm-5">Delivery Validation Status</label>
-									<p class="form-control-static col-sm-7" ng-switch on="transferItem.validation.transval_transfer_status != null">
+									<p class="form-control-static col-sm-7" ng-switch on="transferItem.transfer_validation.transval_transfer_status != null">
 										<span ng-switch-when="true">
-											<i class="glyphicon glyphicon-ok text-success" ng-if="transferItem.validation.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_VALIDATED;?>"> </i>
-											<i class="glyphicon glyphicon-remove text-danger" ng-if="transferItem.validation.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_DISPUTED;?>"> </i>
-											{{ lookup( 'transferValidationTransferStatus', transferItem.validation.transval_transfer_status ) }}, {{ transferItem.validation.transval_transfer_datetime }}
+											<i class="glyphicon glyphicon-ok text-success" ng-if="transferItem.transfer_validation.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_VALIDATED;?>"> </i>
+											<i class="glyphicon glyphicon-remove text-danger" ng-if="transferItem.transfer_validation.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_DISPUTED;?>"> </i>
+											{{ transferItem.transfer_validation.get( 'transferStatus' ) }} on {{ transferItem.transfer_validation.transval_transfer_datetime | date: 'yyyy-MM-dd HH:mm:ss' }}
 										</span>
 										<span ng-switch-default>Pending</span>
 									</p>
 								</div>
 
 								<!-- Sweeper -->
-								<div class="form-group" ng-if="transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
+								<div class="form-group" ng-if="transferItem.transfer_validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
 									<label class="control-label col-sm-5">Validated by</label>
-									<div class="col-sm-7" ng-switch on="( transferItem.validation.transval_status == <?php echo TRANSFER_VALIDATION_COMPLETED; ?> )">
+									<div class="col-sm-7" ng-switch on="( transferItem.transfer_validation.transval_status == <?php echo TRANSFER_VALIDATION_COMPLETED; ?> )">
 										<input type="text" class="form-control"
 												ng-switch-when="false"
-												ng-model="transferItem.validation.transval_transfer_sweeper"
+												ng-model="transferItem.transfer_validation.transval_transfer_sweeper"
 												ng-model-options="{ debounce: 500 }"
+												ng-change="onTransfereeChange()"
+												typeahead-on-select="onTransfereeChange()"
 												typeahead-editable="true"
 												uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
-										<p class="form-control-static" ng-switch-default>{{ transferItem.validation.transval_transfer_sweeper }}</p>
+										<p class="form-control-static" ng-switch-default>{{ transferItem.transfer_validation.transval_transfer_sweeper }}</p>
 									</div>
 								</div>
 							</div>
 						</div>
 					</div>
 
-					<div class="col-sm-12 col-md-3 col-lg-2" ng-if="( transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?> )
-							&& ( transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_COMPLETED;?> )">
+					<div class="col-sm-12 col-md-3 col-lg-2" ng-if="( transferItem.transfer_validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?> )
+							&& ( transferItem.transfer_validation.transval_status != <?php echo TRANSFER_VALIDATION_COMPLETED;?> )">
 
 						<button type="button" class="btn btn-block btn-success"
-								ng-if="transferItem.validation.transval_transfer_status != <?php echo TRANSFER_VALIDATION_TRANSFER_VALIDATED; ?>"
+								ng-if="transferItem.canValidateTransfer()"
 								ng-click="validateTransfer()">Validate Transfer
 						</button>
 						<button type="button" class="btn btn-block btn-danger"
-								ng-if="transferItem.validation.transval_transfer_status != <?php echo TRANSFER_VALIDATION_TRANSFER_DISPUTED; ?>"
+								ng-if="transferItem.canDispute()"
 								ng-click="markDisputed()">Mark as Disputed
 						</button>
 					</div>
@@ -235,25 +230,16 @@
 	<div class="text-right">
 		<button type="button" class="btn btn-default"
 			ng-if="checkPermissions( 'transferValidations', 'complete' )
-					&& transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED; ?>"
+					&& transferItem.transfer_validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED; ?>"
 			ng-click="markNotRequired()">Validation Not Required
 		</button>
 		<button type="button" class="btn btn-success"
-			ng-if="checkPermissions( 'transferValidations', 'complete' )
-					&& transferItem.transfer_status != <?php echo TRANSFER_PENDING;?>
-					&& transferItem.transfer_status != <?php echo TRANSFER_PENDING_CANCELLED;?>
-					&& transferItem.transfer_status != <?php echo TRANSFER_APPROVED_CANCELLED;?>
-					&& transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>
-					&& transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_COMPLETED; ?>"
-			ng-disabled="( transferItem.validation.transval_receipt_status == <?php echo TRANSFER_VALIDATION_RECEIPT_VALIDATED;?>
-					&& transferItem.validation.transval_transfer_status == <?php echo TRANSFER_VALIDATION_TRANSFER_DISPUTED;?> )
-					|| transferItem.validation.transval_status == null"
+			ng-if="transferItem.canCompleteValidation( true )"
+			ng-disabled="!transferItem.canCompleteValidation()"
 			ng-click="markCompleted()">Mark as Completed
 		</button>
 		<button type="button" class="btn btn-default"
-			ng-if="checkPermissions( 'transferValidations', 'complete' )
-					&& transferItem.validation.transval_status != null
-					&& transferItem.validation.transval_status != <?php echo TRANSFER_VALIDATION_ONGOING; ?>"
+			ng-if="transfer.canOpenValidation()"
 			ng-click="markOngoing()">Mark as Ongoing
 		</button>
 		<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'transferValidations' })">Close</button>

@@ -1,5 +1,5 @@
-angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'TransferItem',
-	function( $http, $q, $filter, baseUrl, session, notifications, TransferItem )
+angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'TransferItem', 'TransferValidation',
+	function( $http, $q, $filter, baseUrl, session, notifications, TransferItem, TransferValidation )
 	{
 		var id;
 		var transfer_reference_num;
@@ -21,6 +21,8 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 		var transfer_status;
 
 		var items;
+
+		var transfer_validation;
 
 		var transferStatus = {
 				'1': 'Scheduled',
@@ -157,6 +159,7 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 				me.receipt_user_id = null;
 				me.transfer_status = 1;
 				me.items = [];
+				me.transfer_validation = null;
 
 				if( data )
 				{
@@ -165,6 +168,13 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 					{
 						angular.copy( data.items, transferItems );
 						delete data.items;
+					}
+
+					// Load transfer validation
+					if( data.transfer_validation )
+					{
+						me.transfer_validation = TransferValidation.createFromData( data.transfer_validation );
+						delete data.transfer_validation;
 					}
 
 					angular.merge( me, data );
@@ -316,6 +326,81 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 							 session.checkPermissions( 'transfers', 'edit' ) &&
 							 this.destination_id == session.data.currentStore.id &&
 							 ( showAction || this.items.length > 0 );
+			};
+
+		// Transfer validation actions
+		Transfer.prototype.canValidateReceipt = function( showAction )
+			{
+				return session.checkPermissions( 'transferValidations', 'edit' )
+							 && this.transfer_validation
+							 && this.transfer_validation.transval_receipt_status != 1 // TRANSFER_VALIDATION_RECEIPT_VALIDATED
+							 && this.transfer_validation.transval_status != 3 // TRANSFER_VALIDATION_NOT_REQUIRED
+							 && this.transfer_status != 1 // TRANSFER_PENDING
+							 && this.transfer_status != 4 // TRANSFER_PENDING_CANCELLED
+							 && this.transfer_status != 5; // TRANSFER_APPROVED_CANCELLED
+			};
+
+
+		Transfer.prototype.canReturn = function( showAction )
+			{
+				return session.checkPermissions( 'transferValidations', 'edit' )
+							 && this.transfer_validation
+							 && this.transfer_validation.transval_receipt_status != 2 // TRANSFER_VALIDATION_RECEIPT_RETURNED
+							 && this.transfer_validation.transval_transfer_status == null
+							 && this.transfer_validation.transval_status != 3 // TRANSFER_VALIDATION_NOT_REQUIRED
+							 && this.transfer_status != 1 // TRANSFER_PENDING
+							 //&& this.transfer_status != 3 // TRANSFER_RECEIVED
+							 && this.transfer_status != 4 // TRANSFER_PENDING_CANCELLED
+							 && this.transfer_status != 5; // TRANSFER_APPROVED_CANCELLED
+			};
+
+
+		Transfer.prototype.canValidateTransfer = function( showAction )
+			{
+				return session.checkPermissions( 'transferValidations', 'edit' )
+							 && this.transfer_validation
+							 && this.transfer_validation.transval_transfer_status != 1 // TRANSFER_VALIDATION_TRANSFER_VALIDATED
+							 && this.transfer_validation.transval_receipt_status == 1; // TRANSFER_VALIDATION_RECEIPT_VALIDATED
+			};
+
+
+		Transfer.prototype.canDispute = function( showAction )
+			{
+				return session.checkPermissions( 'transferValidations', 'edit' )
+							 && this.transfer_validation
+							 && this.transfer_validation.transval_transfer_status != 2 // TRANSFER_VALIDATION_TRANSFER_DISPUTED
+							 && this.transfer_validation.transval_receipt_status == 1; // TRANSFER_VALIDATION_RECEIPT_VALIDATED
+			};
+
+
+		Transfer.prototype.canCompleteValidation = function( showAction )
+			{
+				return session.checkPermissions( 'transferValidations', 'complete' )
+							 && this.transfer_validation
+							 && this.transfer_status != 1 // TRANSFER_PENDING
+							 && this.transfer_status != 4 // TRANSFER_PENDING_CANCELLED
+							 && this.transfer_status != 5 // TRANSFER_APPROVED_CANCELLED
+							 && this.transfer_validation.transval_status != 2 // TRANSFER_VALIDATION_COMPLETED
+							 && this.transfer_validation.transval_status != 3 // TRANSFER_VALIDATION_NOT_REQUIRED
+							 && ( showAction || ! ( this.transfer_validation.transval_receipt_status == 1 && this.transfer_validation.transval_transfer_status == 2 ) )
+							 && ( showAction || this.transfer_validation.transval_status != null );
+			};
+
+
+		Transfer.prototype.canMarkValidationNotRequired = function( showAction )
+			{
+				return session.checkPermissions( 'transferValidations', 'complete' )
+							 && this.transfer_validation
+							 && this.transfer_validation.transval_status != 3; // TRANSFER_VALIDATION_NOT_REQUIRED
+			};
+
+
+		Transfer.prototype.canOpenValidation = function( showAction )
+			{
+				return session.checkPermissions( 'transferValidations', 'complete' )
+							 && this.transfer_validation
+							 && this.transfer_validation.transval_status != null
+							 && this.transfer_validation.transval_status != 1; // TRANSFER_VALIDATION_NOT_ONGOING
 			};
 
 
@@ -478,16 +563,16 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 			};
 
 
-		Transfer.prototype.save = function( status )
+		Transfer.prototype.save = function( action )
 			{
 				var me = this;
 				var deferred = $q.defer();
-				if( this.checkTransfer( status ) )
+				if( this.checkTransfer( action ) )
 				{
 					var transferData = this.prepareTransferData();
 
 					var transferUrl = baseUrl + 'index.php/api/v1/transfers/';
-					switch( status )
+					switch( action )
 					{
 						case 'approve':
 							transferUrl += 'approve';

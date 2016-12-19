@@ -370,11 +370,11 @@ class Transfer extends Base_model {
 	}
 
 
-	public function get_transfer_validation()
+	public function get_validation( $force = FALSE )
 	{
 		$ci =& get_instance();
 
-		if( ! isset( $this->transfer_validation ) )
+		if( ! isset( $this->transfer_validation ) || $force )
 		{
 			$ci->load->library( 'transfer_validation' );
 			$ci->db->where( 'transval_transfer_id', $this->id );

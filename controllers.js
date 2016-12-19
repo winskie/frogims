@@ -1232,167 +1232,174 @@ app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$st
 	}
 ]);
 
-app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'UserServices',
-	function( $scope, $filter, $state, $stateParams, session, appData, notifications, UserServices )
+app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'UserServices', 'Transfer', 'TransferValidation',
+	function( $scope, $filter, $state, $stateParams, session, appData, notifications, UserServices, Transfer, TransferValidation )
 	{
+		$scope.pendingAction = false;
+
 		$scope.data = {
 				editMode: $stateParams.editMode || 'view'
 			};
 
 		$scope.input = {};
 
-		$scope.transferItem = {};
-
 		$scope.findUser = UserServices.findUser;
 
-		$scope.prepareData = function()
+		// Transfer validation form events
+		$scope.onRecipientChange = function()
 			{
-				var data = $scope.transferItem.validation ? angular.copy( $scope.transferItem.validation ) : null;
-
-				if( data )
-				{
-					if( typeof data.transval_receipt_sweeper === 'object' && data.transval_receipt_sweeper )
-					{
-						if( data.transval_receipt_sweeper.full_name )
-						{
-							data.transval_receipt_sweeper = data.transval_receipt_sweeper.full_name;
-						}
-						else
-						{
-							data.transval_receipt_sweeper = 'Unknown';
-							console.error( 'Unable to find user record' );
-						}
-					}
-
-					if( typeof data.transval_transfer_sweeper === 'object' && data.transval_transfer_sweeper )
-					{
-						if( data.transval_transfer_sweeper.full_name )
-						{
-							data.transval_transfer_sweeper = data.transval_transfer_sweeper.full_name;
-						}
-						else
-						{
-							data.transval_transfer_sweeper = 'Unknown';
-							console.error( 'Unable to find user record' );
-						}
-					}
-				}
-
-				return data;
+				$scope.transferItem.transfer_validation.set( 'transval_receipt_sweeper', $scope.transferItem.transfer_validation.transval_receipt_sweeper );
 			};
 
+		$scope.onTransfereeChange = function()
+			{
+				$scope.transferItem.transfer_validation.set( 'transval_transfer_sweeper', $scope.transferItem.transfer_validation.transval_transval_sweeper );
+			};
+
+
+		// Transfer validation actions
 		$scope.validateReceipt = function()
 			{
-				var validation = $scope.prepareData();
-				appData.saveTransferValidation( validation, 'validate_receipt' ).then(
-					function( response )
-					{
-						appData.refresh( null, 'transferValidations' );
-						notifications.alert( 'Receipt of items from source validated', 'success' );
-						$state.go( 'main.store', { activeTab: 'transferValidations' } );
-					},
-					function( reason )
-					{
-						console.error( reason );
-					});
+				if( ! $scope.pendingAction )
+				{
+					$scope.transferItem.transfer_validation.save( 'validate_receipt' ).then(
+						function( response )
+						{
+							appData.refresh( null, 'transferValidations' );
+							notifications.alert( 'Receipt of items from source validated', 'success' );
+							$state.go( 'main.store', { activeTab: 'transferValidations' } );
+							$scope.pendingAction = false;
+						},
+						function( reason )
+						{
+							$scope.pendingAction = false;
+							console.error( reason );
+						});
+				}
 			};
 
 		$scope.markReturned = function()
 			{
-				var validation = $scope.prepareData();
-				appData.saveTransferValidation( validation, 'returned' ).then(
-					function( response )
-					{
-						appData.refresh( null, 'transferValidations' );
-						notifications.alert( 'Transfer marked as returned', 'success' );
-						$state.go( 'main.store', { activeTab: 'transferValidations' } );
-					},
-					function( reason )
-					{
-						console.error( reason );
-					});
+				if( ! $scope.pendingAction )
+				{
+					$scope.transferItem.transfer_validation.save( 'returned' ).then(
+						function( response )
+						{
+							appData.refresh( null, 'transferValidations' );
+							notifications.alert( 'Transfer marked as returned', 'success' );
+							$state.go( 'main.store', { activeTab: 'transferValidations' } );
+							$scope.pendingAction = false;
+						},
+						function( reason )
+						{
+							$scope.pendingAction = false;
+							console.error( reason );
+						});
+				}
 			};
 
 		$scope.validateTransfer = function()
 			{
-				var validation = $scope.prepareData();
-				appData.saveTransferValidation( validation, 'validate_transfer' ).then(
-					function( response )
-					{
-						appData.refresh( null, 'transferValidations' );
-						notifications.alert( 'Receipt of items by recipient validated', 'success' );
-						$state.go( 'main.store', { activeTab: 'transferValidations' } );
-					},
-					function( reason )
-					{
-						console.error( reason );
-					});
+				if( ! $scope.pendingAction )
+				{
+					$scope.transferItem.transfer_validation.save( 'validate_transfer' ).then(
+						function( response )
+						{
+							appData.refresh( null, 'transferValidations' );
+							notifications.alert( 'Receipt of items by recipient validated', 'success' );
+							$state.go( 'main.store', { activeTab: 'transferValidations' } );
+							$scope.pendingAction = false;
+						},
+						function( reason )
+						{
+							$scope.pendingAction = false;
+							console.error( reason );
+						});
+				}
 			};
 
 		$scope.markDisputed = function()
 			{
-				var validation = $scope.prepareData();
-				appData.saveTransferValidation( validation, 'dispute' ).then(
-					function( response )
-					{
-						appData.refresh( null, 'transferValidations' );
-						notifications.alert( 'Receipt of items by recipient disputed', 'success' );
-						$state.go( 'main.store', { activeTab: 'transferValidations' } );
-					},
-					function( reason )
-					{
-						console.error( reason );
-					});
+				if( ! $scope.pendingAction )
+				{
+					$scope.transferItem.transfer_validation.save( 'dispute' ).then(
+						function( response )
+						{
+							appData.refresh( null, 'transferValidations' );
+							notifications.alert( 'Receipt of items by recipient disputed', 'success' );
+							$state.go( 'main.store', { activeTab: 'transferValidations' } );
+							$scope.pendingAction = false;
+						},
+						function( reason )
+						{
+							$scope.pendingAction = false;
+							console.error( reason );
+						});
+				}
 			};
 
 		$scope.markCompleted = function()
 			{
-				var validation = $scope.prepareData() || null;
-				appData.saveTransferValidation( validation, 'complete' ).then(
-					function( response )
-					{
-						appData.refresh( null, 'transferValidations' );
-						notifications.alert( 'Transfer validation completed', 'success' );
-						$state.go( 'main.store', { activeTab: 'transferValidations' } );
-					},
-					function( reason )
-					{
-						console.error( reason );
-					});
+				if( ! $scope.pendingAction )
+				{
+					$scope.transferItem.transfer_validation.save( 'complete' ).then(
+						function( response )
+						{
+							appData.refresh( null, 'transferValidations' );
+							notifications.alert( 'Transfer validation completed', 'success' );
+							$state.go( 'main.store', { activeTab: 'transferValidations' } );
+							$scope.pendingAction = false;
+						},
+						function( reason )
+						{
+							$scope.pendingAction = false;
+							console.error( reason );
+						});
+				}
 			};
 
 		$scope.markOngoing = function()
 			{
-				var validation = $scope.prepareData() || null;
-				appData.saveTransferValidation( validation, 'ongoing' ).then(
-					function( response )
-					{
-						appData.refresh( null, 'transferValidations' );
-						notifications.alert( 'Transfer validation marked as ongoing', 'success' );
-						$state.go( 'main.store', { activeTab: 'transferValidations' } );
-					},
-					function( reason )
-					{
-						console.error( reason );
-					});
+				if( ! $scope.pendingAction )
+				{
+					$scope.transferItem.transfer_validation.save( 'ongoing' ).then(
+						function( response )
+						{
+							appData.refresh( null, 'transferValidations' );
+							notifications.alert( 'Transfer validation marked as ongoing', 'success' );
+							$state.go( 'main.store', { activeTab: 'transferValidations' } );
+							$scope.pendingAction = false;
+						},
+						function( reason )
+						{
+							$scope.pendingAction = false;
+							console.error( reason );
+						});
+				}
 			};
 
 		$scope.markNotRequired = function()
 			{
-				var validation = $scope.prepareData() || null;
-				appData.saveTransferValidation( validation, 'not_required' ).then(
-					function( response )
-					{
-						appData.refresh( null, 'transferValidations' );
-						notifications.alert( 'Transfer marked as validation not required', 'success' );
-						$state.go( 'main.store', { activeTab: 'transferValidations' } );
-					},
-					function( reason )
-					{
-						console.error( reason );
-					});
+				if( ! $scope.pendingAction )
+				{
+					$scope.transferItem.transfer_validation.save( 'not_required' ).then(
+						function( response )
+						{
+							appData.refresh( null, 'transferValidations' );
+							notifications.alert( 'Transfer marked as validation not required', 'success' );
+							$state.go( 'main.store', { activeTab: 'transferValidations' } );
+							$scope.pendingAction = false;
+						},
+						function( reason )
+						{
+							$scope.pendingAction = false;
+							console.error( reason );
+						});
+				}
 			};
 
+
+		// Initialize form
 		if( $stateParams.transferItem )
 		{
 			$scope.data.editMode = $stateParams.editMode || 'view';
@@ -1401,16 +1408,11 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 				{
 					if( response.status == 'ok' )
 					{
-						$scope.transferItem = response.data;
-						if( $scope.transferItem.validation == null )
+						$scope.transferItem = Transfer.createFromData( response.data );
+						if( ! $scope.transferItem.transfer_validation )
 						{
-							$scope.transferItem.validation = {};
-							$scope.transferItem.validation.transval_transfer_id = $scope.transferItem.id;
-							$scope.transferItem.validation.transval_receipt_sweeper = session.data.currentUser.full_name;
-							if( ! $scope.transferItem.validation.transval_transfer_sweeper )
-							{
-								$scope.transferItem.validation.transval_transfer_sweeper = session.data.currentUser.full_name;
-							}
+							$scope.transferItem.transfer_validation = new TransferValidation();
+							$scope.transferItem.transfer_validation.transval_transfer_id = $scope.transferItem.id;
 						}
 
 						if( !$scope.checkPermissions( 'transferValidations', 'edit' ) || ( $scope.data.editMode != 'view' && $scope.transferItem.validation.transval_status != 1 ) )// TRANSFER_VALIDATION_ONGOING
@@ -1423,6 +1425,10 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 				{
 					notifications.alert( reason );
 				});
+		}
+		else
+		{
+			notifications.alert( 'Record not found', 'error' );
 		}
 	}
 ]);
