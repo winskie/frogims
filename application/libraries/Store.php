@@ -1616,7 +1616,7 @@ class Store extends Base_model
 					FROM dates AS d
 					CROSS JOIN shifts AS s
 					LEFT JOIN shift_turnovers AS st
-						ON st.st_from_date = d.dt AND st.st_from_shift_id = s.id
+						ON st.st_from_date = d.dt AND st.st_from_shift_id = s.id AND st.st_store_id = ?
 					LEFT JOIN shift_turnover_items AS sti
 						ON sti.sti_turnover_id = st.id
 					LEFT JOIN (
@@ -1650,7 +1650,7 @@ class Store extends Base_model
 				GROUP BY x.dt, x.shift_id, x.st_to_date, x.st_to_shift_id, x.st_status, x.st_start_user_id, x.st_end_user_id,  x.shift_order
 				ORDER BY x.dt DESC, x.shift_order DESC";
 
-		$sql_params = array( $this->id, $this->id, $start_date.' 00:00:00', $end_date.' 23:59:59', $start_date, $end_date, $store_shifts );
+		$sql_params = array( $this->id, $this->id, $this->id, $start_date.' 00:00:00', $end_date.' 23:59:59', $start_date, $end_date, $store_shifts );
 
 		if( $limit )
 		{
