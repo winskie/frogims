@@ -9,7 +9,7 @@
                 <div class="col-sm-4">
                     <div class="form-group">
                         <label class="control-label">Status</label>
-                        <p class="form-control-static">{{ lookup( 'conversionStatus', conversionItem.conversion_status ) }}</p>
+                        <p class="form-control-static">{{ conversionItem.get( 'conversionStatus' ) }}</p>
                     </div>
                 </div>
             </div>

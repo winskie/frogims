@@ -102,22 +102,17 @@
 <!-- Form buttons -->
 <div class="text-right">
 	<button type="button" class="btn"
-			ng-if="shiftTurnover.st_status != 2 && data.editMode != 'view' && checkPermissions( 'shiftTurnovers', 'edit' )"
+			ng-if="shiftTurnover.canOpen() && data.editMode != 'view'"
+			ng-disabled="pendingAction || !shiftTurnover.canOpen()"
 			ng-class="{ 'btn-default': shiftTurnover.st_status == 1, 'btn-primary': shiftTurnover.st_status != 1 }"
-			ng-click="saveTurnover()"
+			ng-click="saveTurnover( shiftTurnover.st_status == 1 ? 'update' : 'open' )"
 			<i class="glyphicon glyphicon-ok"></i> {{ shiftTurnover.st_status == null ? 'Start Shift' : 'Update Beginning Balances' }}
 	</button>
 	<button type="button" class="btn btn-primary"
-			ng-if="shiftTurnover.st_status == 1 && data.editMode != 'view' && checkPermissions( 'shiftTurnovers', 'edit' )"
+			ng-if="shiftTurnover.canClose() && data.editMode != 'view'"
+			ng-disabled="pendingAction || !shiftTurnover.canClose()"
 			ng-click="saveTurnover( 'close' )"
 			<i class="glyphicon glyphicon-ok"></i> End Shift
-	</button>
-	<button type="button" class="btn btn-success" ng-click="receiveTransfer()"
-			ng-if="( data.editMode == 'externalReceipt' || ( transferItem.transfer_status == <?php echo TRANSFER_APPROVED;?> && !data.isExternalDestination ) )
-					&& transferItem.destination_id == sessionData.currentStore.id
-					&& checkPermissions( 'transfers', 'edit' )
-					&& data.editMode != 'view'">
-			<i class="glyphicon glyphicon-ok"></i> Receive
 	</button>
 	<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'shiftTurnovers' })">Close</button>
 </div>

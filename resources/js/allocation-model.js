@@ -170,16 +170,18 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 				switch( this.assignee_type )
 				{
 					case 1: // Station Teller
-						return this.allocation_status == 2 &&
-									 session.checkPermissions( 'allocations', 'complete' ) &&
-									 ( showAction || this.getValidAllocations().length > 0 ) &&
-									 ( showAction || this.assignee );
+						return this.allocation_status == 2
+									 && session.checkPermissions( 'allocations', 'complete' )
+									 && ( showAction || !this.hasPendingAllocation() )
+									 && ( showAction || this.getValidAllocations().length > 0 )
+									 && ( showAction || this.assignee );
 
 					case 2: // TVM
-						return ( this.allocation_status == 1 || this.allocation_status == 2 ) &&
-									 session.checkPermissions( 'allocations', 'complete' ) &&
-									 ( showAction || ( this.getValidAllocations().length > 0 || this.getValidRemittances().length > 0 ) ) &&
-									 ( showAction || this.assignee );
+						return ( this.allocation_status == 1 || this.allocation_status == 2 )
+									 && session.checkPermissions( 'allocations', 'complete' )
+									 && ( showAction || !this.hasPendingAllocation() )
+									 && ( showAction || ( this.getValidAllocations().length > 0 || this.getValidRemittances().length > 0 ) )
+									 && ( showAction || this.assignee );
 				}
 			};
 
@@ -187,6 +189,21 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 		Allocation.prototype.canCancel = function()
 			{
 				return this.allocation_status == 1 && this.remittances.length == 0 && session.checkPermissions( 'allocations', 'edit' );
+			};
+
+
+		Allocation.prototype.hasPendingAllocation = function()
+			{
+				var n = this.allocations.length;
+				for( var i = 0; i < n; i++ )
+				{
+					if( this.allocations[i].allocation_item_status == 10 ) // ALLOCATION_ITEM_SCHEDULED
+					{
+						return true;
+					}
+				}
+
+				return false;
 			};
 
 
@@ -316,7 +333,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 										item_name: this.allocations[i].item_name,
 										item_description: this.allocations[i].item_description,
 										loaded: 0,
-										loose: 0,
+										unsold: 0,
 										rejected: 0
 									};
 							}
@@ -564,22 +581,23 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 			};
 
 
-		Allocation.prototype.save = function( status )
+		Allocation.prototype.save = function( action )
 			{
 				var me = this;
 				var deferred = $q.defer();
 
-				if( this.checkAllocation( status ) )
+				if( this.checkAllocation( action ) )
 				{
 					var allocationData = this.prepareAllocationData();
 
 					var allocationUrl = baseUrl + 'index.php/api/v1/allocations/';
-					switch( status )
+					switch( action )
 					{
 						case 'allocate':
 							allocationUrl += 'allocate';
 							break;
 
+						case 'complete':
 						case 'remit':
 							allocationUrl += 'remit';
 							break;
@@ -602,6 +620,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 							if( response.data.status == 'ok' )
 							{
 								me.loadData( response.data.data );
+								me.updateAllocationSummary();
 								deferred.resolve( me );
 							}
 							else

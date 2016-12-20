@@ -345,21 +345,19 @@ $current_user = current_user();
 								<td class="text-right vert-top">
 									<div class="btn-group" uib-dropdown>
 										<button type="button" class="btn btn-default" ui-sref="main.transferValidation({ transferItem: transfer, editMode: 'view' })">View details...</button>
-										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="checkPermissions( 'transferValidations', 'complete' )">
+										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="transfer.canCompleteValidation() || transfer.canOpenValidation() || transfer.canMarkValidationNotRequired()">
 											<span class="caret"></span>
 										</button>
 										<ul uib-dropdown-menu role="menu">
-											<li role="menuitem" ng-if="checkPermissions( 'transferValidations', 'complete' )">
-												<a href ng-click="completeTransferValidation( transfer )"
-														ng-if="transfer.transfer_validation.transval_status != null
-																&& transfer.transfer_validation.transval_status != <?php echo TRANSFER_VALIDATION_COMPLETED; ?>
-																&& transfer.transfer_validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED; ?>">Complete
+											<li role="menuitem" ng-if="transfer.canCompleteValidation() || transfer.canOpenValidation() || transfer.canMarkValidationNotRequired()">
+												<a href ng-click="completeTransferValidation( transfer.transfer_validation )"
+														ng-if="transfer.canCompleteValidation()">Complete
 												</a>
-												<a href ng-click="transferValidationOngoing( transfer )"
-														ng-if="transfer.transfer_validation.transval_status != null && transfer.transval_status != <?php echo TRANSFER_VALIDATION_ONGOING; ?>">Mark as Ongoing
+												<a href ng-click="transferValidationOngoing( transfer.transfer_validation )"
+														ng-if="transfer.canOpenValidation()">Mark as Ongoing
 												</a>
 												<a href ng-click="transferValidationNotRequired( transfer )"
-														ng-if="transfer.transfer_validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED; ?>">Validation not Required
+														ng-if="transfer.canMarkValidationNotRequired()">Validation not Required
 												</a>
 											</li>
 										</ul>
@@ -693,7 +691,7 @@ $current_user = current_user();
 										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="receipt.canReceive()">
 											<span class="caret"></span>
 										</button>
-										<ul uib-dropdown-menu role="menu" ng-if="receipt.receipt.canReceive()">
+										<ul uib-dropdown-menu role="menu" ng-if="receipt.canReceive()">
 											<li role="menuitem" ng-if="receipt.canReceive()">
 												<a href ng-click="receiveTransfer( receipt )">Quick receipt</a>
 											</li>
@@ -1096,7 +1094,7 @@ $current_user = current_user();
 						</thead>
 						<tbody>
 							<tr ng-repeat="row in appData.allocations">
-								<td class="row-flag" ng-class="lookup( 'allocationStatus', row.allocation_status).className"></td>
+								<td class="row-flag" ng-class="{ 'allocation-scheduled': row.allocation_status == 1, 'allocation-allocated': row.allocation_status == 2, 'allocation-completed': row.allocation_status == 3, 'allocation-cancelled': row.allocation_status == 4 }"></td>
 								<td class="text-center vert-top">{{ row.id }}</td>
 								<td class="text-left vert-top">{{ row.business_date | date: 'yyyy-MM-dd' }}<br />{{ row.shift_num }}</td>
 								<td class="text-left vert-top">{{ row.assignee ? ( row.assignee_type == 2 ? 'TVM# ' : '' ) + row.assignee : 'Not yet specified' }}<br />{{ row.assignee_type == 1 ? 'Station Teller' : 'Vending Machine' }}</td>
@@ -1126,7 +1124,7 @@ $current_user = current_user();
 											<thead>
 												<tr class="active">
 													<th>Item Description</th>
-													<th style="width: 70px;">Load</th>
+													<th style="width: 70px;">Loaded</th>
 													<th style="width: 70px;">Loose</th>
 													<th style="width: 70px;">Reject</th>
 												</tr>
@@ -1134,7 +1132,7 @@ $current_user = current_user();
 											<tbody>
 												<tr ng-repeat="item in row.allocationSummary">
 													<td>{{ item.item_description }}</td>
-													<td class="text-right">{{ item.loaded === 0 ? '---' : ( item.additional | number ) }}</td>
+													<td class="text-right">{{ item.loaded === 0 ? '---' : ( item.loaded | number ) }}</td>
 													<td class="text-right">{{ item.unsold === 0 ? '---' : ( item.unsold | number ) }}</td>
 													<td class="text-right">{{ item.rejected === 0 ? '---' : ( item.rejected | number ) }}</td>
 												</tr>
@@ -1414,13 +1412,13 @@ $current_user = current_user();
 							<tr ng-repeat="turnover in appData.shiftTurnovers">
 								<td>
 									{{ turnover.st_from_date | date: 'fullDate' }}
-									<span class="label label-info" ng-if="(turnover.st_from_date | date: 'yyyy-MM-dd' ) == ( currentDate | date: 'yyyy-MM-dd' ) && turnover.st_from_shift_id == sessionData.currentShift.id">current</span>
+									<span class="label label-info" ng-if="turnover.isCurrent()">current</span>
 								</td>
 								<td>{{ turnover.description }}</td>
 								<td>{{ turnover.start_user ? turnover.start_user : '---' }}</td>
 								<td>{{ turnover.end_user ? turnover.end_user : '---' }}</td>
 								<td class="text-center">
-									{{ turnover.st_status == null ? '---' : lookup( 'shiftTurnoverStatus', turnover.st_status ) }}
+									{{ turnover.get( 'shiftTurnoverStatus' ) }}
 									<span class="label label-danger label-as-badge" ng-if="turnover.st_status == <?php echo SHIFT_TURNOVER_CLOSED;?> && turnover.has_issues > 0">
 										{{ turnover.has_issues }}
 									</span>

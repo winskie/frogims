@@ -1866,12 +1866,12 @@ class Api_v1 extends MY_Controller {
 
 										$turnovers = $store->get_shift_turnovers( $params );
 										$total_turnovers = $store->count_shift_turnovers( $params );
+										// TODO: Add number of pending shift turnovers
 										$pending_turnovers = 0;
 										$this->_response( array(
 											'shift_turnovers' => $turnovers,
 											'total' => $total_turnovers,
-											'pending' => $pending_turnovers,
-											'query' => preg_replace( "/\s+/", " ", $this->db->last_query() )
+											'pending' => $pending_turnovers
 										) );
 									}
 									break;

@@ -83,7 +83,9 @@
 								<input type="text" class="form-control"
 										ng-model="transferItem[ data.mode == 'transfer' ? 'recipient_name' : 'sender_name']"
 										ng-model-options="{ debounce: 500 }"
+										ng-change="onDeliveryPersonChange()"
 										typeahead-editable="true"
+										typeahead-on-select="onDeliveryPersonChange()"
 										uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
 							</div>
 							<div class="col-sm-7" ng-if="data.editMode == 'view'">
@@ -254,8 +256,9 @@
 							<input type="text" class="form-control"
 									ng-model="transferItem.recipient_name"
 									ng-model-options="{ debounce: 500 }"
-									ng-change="recipientChange()"
+									ng-change="onRecipientChange()"
 									typeahead-editable="true"
+									typeahead-on-select="onRecipientChange()"
 									uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
 						</div>
 						<div ng-if="[ 'receipt', 'externalReceipt' ].indexOf( data.editMode ) == -1">

@@ -436,6 +436,16 @@ class Allocation extends Base_model {
             return FALSE;
         }
 
+        // All pending allocations must be allocated or cancelled
+        foreach( $this->allocations as $allocation )
+        {
+            if( $allocation->get( 'allocation_item_status' ) == ALLOCATION_ITEM_SCHEDULED )
+            {
+                set_message( 'Pending allocations must be allocated or cancelled' );
+                return FALSE;
+            }
+        }
+
         $ci->db->trans_start();
         $this->set( 'allocation_status', ALLOCATION_REMITTED );
         $result = $this->db_save();
@@ -794,6 +804,7 @@ class Allocation extends Base_model {
                     $quantity = $remittance->get( 'allocated_quantity' );
                     $inventory->transact( TRANSACTION_REMITTANCE, $quantity, $timestamp, $this->id, $remittance->get( 'id' ) );
 
+                    $remittance->set( 'cashier_shift_id', $ci->session->current_shift_id );
                     $remittance->set( 'allocation_item_status', REMITTANCE_ITEM_REMITTED );
                     $remittance->db_save();
                 }

@@ -290,6 +290,52 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 			};
 
 
+		Transfer.prototype.set = function( field, value )
+			{
+				switch( field )
+				{
+					case 'recipient_name':
+						if( value.constructor == Object )
+						{
+							this.recipient_id = ( value.id ? value.id : null );
+							this.recipient_name = ( value.full_name ? value.full_name : null );
+						}
+						else if( value.constructor == String )
+						{
+							this.recipient_id = null;
+							this.recipient_name = value;
+						}
+						break;
+
+					case 'sender_name':
+						if( value.constructor == Object )
+						{
+							this.sender_id = ( value.id ? value.id : null );
+							this.sender_name = ( value.full_name ? value.full_name : null );
+						}
+						else if( value.constructor == String )
+						{
+							this.sender_id = null;
+							this.sender_name = value;
+						}
+						break;
+
+					default:
+						if( this.hasOwnProperty( field ) )
+						{
+							this[field] = value;
+						}
+						else
+						{
+							console.error( 'The property [' + field + '] does not exist!' );
+							return false;
+						}
+				}
+
+				return true;
+			};
+
+
 		Transfer.prototype.isExternal = function()
 			{
 				return ( this.origin_id == null && this.origin_name != null ) || ( this.destination_id == null && this.destination_name != null );
@@ -298,34 +344,34 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 
 		Transfer.prototype.canEdit = function()
 			{
-				return this.transfer_status == 1 && session.checkPermissions( 'transfers', 'edit' ) &&
-							 this.origin_id == session.data.currentStore.id;
+				return this.transfer_status == 1 && session.checkPermissions( 'transfers', 'edit' )
+							 && this.origin_id == session.data.currentStore.id;
 			};
 
 
 		Transfer.prototype.canApprove = function( showAction )
 			{
-				return this.transfer_status == 1 &&
-							 session.checkPermissions( 'transfers', 'approve' ) &&
-							 ( showAction || this.destination_id || this.destination_name ) &&
-							 ( showAction || this.items.length > 0 );
+				return this.transfer_status == 1
+							 && session.checkPermissions( 'transfers', 'approve' )
+							 && ( showAction || this.destination_id || this.destination_name )
+							 && ( showAction || this.items.length > 0 );
 			};
 
 
 		Transfer.prototype.canCancel = function()
 			{
-				return ( ( this.transfer_status == 1 && session.checkPermissions( 'transfers', 'edit' ) ) ||
-						   ( this.transfer_status == 2 && session.checkPermissions( 'transfers', 'approve' ) ) ) &&
-							 this.origin_id == session.data.currentStore.id;
+				return ( ( this.transfer_status == 1 && session.checkPermissions( 'transfers', 'edit' ) )
+						   || ( this.transfer_status == 2 && session.checkPermissions( 'transfers', 'approve' ) ) )
+							 && this.origin_id == session.data.currentStore.id;
 			};
 
 
 		Transfer.prototype.canReceive = function( showAction )
 			{
-				return ( ( ( this.origin_id == null && this.transfer_status == 1 ) || this.transfer_status == 2 ) && this.destination_id != null ) &&
-							 session.checkPermissions( 'transfers', 'edit' ) &&
-							 this.destination_id == session.data.currentStore.id &&
-							 ( showAction || this.items.length > 0 );
+				return ( ( ( this.origin_id == null && this.transfer_status == 1 ) || this.transfer_status == 2 ) && this.destination_id != null )
+							 && session.checkPermissions( 'transfers', 'edit' )
+							 && this.destination_id == session.data.currentStore.id
+							 && ( showAction || this.items.length > 0 );
 			};
 
 		// Transfer validation actions
@@ -390,8 +436,8 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 		Transfer.prototype.canMarkValidationNotRequired = function( showAction )
 			{
 				return session.checkPermissions( 'transferValidations', 'complete' )
-							 && this.transfer_validation
-							 && this.transfer_validation.transval_status != 3; // TRANSFER_VALIDATION_NOT_REQUIRED
+							 && ( ( this.transfer_validation && this.transfer_validation.transval_status != 3 ) // TRANSFER_VALIDATION_NOT_REQUIRED
+							 || this.transfer_validation == null );
 			};
 
 
@@ -399,8 +445,7 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 			{
 				return session.checkPermissions( 'transferValidations', 'complete' )
 							 && this.transfer_validation
-							 && this.transfer_validation.transval_status != null
-							 && this.transfer_validation.transval_status != 1; // TRANSFER_VALIDATION_NOT_ONGOING
+							 && ( this.transfer_validation.transval_status != null && this.transfer_validation.transval_status != 1 );  // TRANSFER_VALIDATION_NOT_ONGOING
 			};
 
 
@@ -418,6 +463,19 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 				}
 
 				return validItems;
+			};
+
+
+		Transfer.prototype.getValidation = function()
+			{
+				if( ! this.transfer_validation )
+				{
+					this.transfer_validation = new TransferValidation({
+							transval_transfer_id: this.id
+						});
+				}
+
+				return this.transfer_validation;
 			};
 
 

@@ -908,7 +908,7 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 		// Transfer validation actions
 		$scope.completeTransferValidation = function( validation )
 			{
-				appData.saveTransferValidation( { id: validation.transval_id }, 'complete' ).then(
+				validation.save( 'complete' ).then(
 					function( response )
 					{
 						notifications.alert( 'Transfer validation completed', 'success' );
@@ -918,7 +918,7 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 
 		$scope.transferValidationOngoing = function( validation )
 			{
-				appData.saveTransferValidation( { id: validation.transval_id }, 'ongoing' ).then(
+				validation.save( 'ongoing' ).then(
 					function( response )
 					{
 						notifications.alert( 'Transfer validation marked as ongoing', 'success' );
@@ -926,13 +926,10 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 					});
 			};
 
-		$scope.transferValidationNotRequired = function( validation )
+		$scope.transferValidationNotRequired = function( transfer )
 			{
-				var data = {
-						id: validation.transval_id,
-						transval_transfer_id: validation.id
-					};
-				appData.saveTransferValidation( data, 'not_required' ).then(
+				var validation = transfer.getValidation();
+				validation.save( 'not_required' ).then(
 					function( response )
 					{
 						notifications.alert( 'Transfer marked as validation not required', 'success' );
@@ -1071,9 +1068,11 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 	}
 ]);
 
-app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications',
-	function( $scope, $filter, $state, $stateParams, session, appData, notifications )
+app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'ShiftTurnover',
+	function( $scope, $filter, $state, $stateParams, session, appData, notifications, ShiftTurnover )
 	{
+		$scope.pendingAction = false;
+
 		$scope.data = {
 				currentDate: new Date(),
 				editMode: $stateParams.editMode || 'view',
@@ -1083,17 +1082,6 @@ app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$st
 				nextShift: null,
 				turnoverFromDatepicker: { format: 'yyyy-MM-dd', opened: false },
 				turnoverToDatepicker: { format: 'yyyy-MM-dd', opened: false },
-			};
-
-		$scope.shiftTurnover = {
-				id: null,
-				st_store_id: session.data.currentStore.id,
-				st_from_date: new Date(),
-				st_from_shift_id: session.data.currentShift.id,
-				st_to_date: new Date(), // TODO: set to next day if shift is last in order
-				st_to_shift_id: session.data.currentShift.id,
-				st_remarks: null,
-				items: []
 			};
 
 		$scope.showDatePicker = function( dp )
@@ -1108,88 +1096,16 @@ app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$st
 				}
 			};
 
-
-		$scope.onChangeShift = function()
-			{
-				$scope.initializeTurnover( session.data.currentStore.id, $scope.shiftTurnover.st_from_date, $scope.data.currentShift.id );
-			};
-
-		$scope.checkItems = function()
-			{
-				return true;
-			};
-
-		$scope.prepareTurnover = function( action )
-			{
-				// Make a deep copy to create a disconnected copy of the data from the scope model
-				var data = angular.copy( $scope.shiftTurnover );
-
-				// Clean transfer items
-				var itemCount = data.items.length;
-				for( var i = 0; i < itemCount; i++ )
-				{
-					if( !data.items[i].st_beginning_balance )
-					{
-						data.items[i].st_beginning_balance = 0;
-					}
-					if( action != 'close' )
-					{
-						data.items[i].st_ending_balance = null;
-					}
-					delete data.items[i].item_name;
-					delete data.items[i].item_group;
-					delete data.items[i].item_description;
-					delete data.items[i].item_unit;
-					delete data.items[i].movement;
-					delete data.items[i].previous_balance;
-				}
-
-				if( data.st_from_date )
-				{
-					data.st_from_date = $filter( 'date' )( data.st_from_date, 'yyyy-MM-dd' );
-				}
-
-				if( data.st_to_date )
-				{
-					data.st_to_date = $filter( 'date' )( data.st_to_date, 'yyyy-MM-dd' );
-				}
-
-				return data;
-			};
-
-		$scope.saveTurnover = function( action )
-			{
-				if( $scope.checkItems() )
-				{
-					// Prepare transfer
-					var data = $scope.prepareTurnover( action );
-
-					appData.saveShiftTurnover( data, action ).then(
-						function( response )
-						{
-							appData.refresh( session.data.currentStore.id, 'turnover' );
-							notifications.alert( 'Turnover record saved', 'success' );
-							$state.go( 'main.store', { activeTab: 'shiftTurnovers' } );
-						},
-						function( reason )
-						{
-							console.error( reason );
-						});
-				}
-			};
-
-		$scope.initializeTurnover = function( storeId, date, shiftId )
+		$scope.loadTurnover = function( storeId, date, shiftId )
 			{
 				appData.getShiftTurnoverByStoreDateShift( storeId, date, shiftId ).then(
 					function( response )
 					{
 						if( response.status == 'ok' )
 						{
-							$scope.shiftTurnover = response.data;
+							$scope.shiftTurnover = ShiftTurnover.createFromData( response.data );
 							$scope.data.currentShift = $filter( 'filter' )( session.data.storeShifts, { id: $scope.shiftTurnover.st_from_shift_id }, true )[0];
 							$scope.data.nextShift = $filter( 'filter' )( session.data.storeShifts, { id: $scope.shiftTurnover.st_to_shift_id }, true )[0];
-							$scope.shiftTurnover.st_from_date = new Date( $scope.shiftTurnover.st_from_date );
-							$scope.shiftTurnover.st_to_date = new Date( $scope.shiftTurnover.st_to_date );
 
 							if( $scope.data.editMode == 'auto' )
 							{
@@ -1207,6 +1123,7 @@ app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$st
 										$scope.data.editMode = 'view';
 								}
 							}
+
 						}
 						else
 						{
@@ -1218,16 +1135,49 @@ app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$st
 
 			};
 
-		// Load allocation item
+
+		// Shift turnover form events
+		$scope.onChangeShift = function()
+			{
+				$scope.loadTurnover( session.data.currentStore.id, $scope.shiftTurnover.st_from_date, $scope.data.currentShift.id );
+			};
+
+		// Shift turnover actions
+		$scope.saveTurnover = function( action )
+			{
+				if( !$scope.pendingAction )
+				{
+					$scope.pendingAction = true;
+					$scope.shiftTurnover.save( action ).then(
+						function( response )
+						{
+							if( response.isCurrent() )
+							{
+								session.data.shiftBalance = response;
+							}
+							appData.refresh( session.data.currentStore.id, 'turnover' );
+							notifications.alert( 'Turnover record saved', 'success' );
+							$state.go( 'main.store', { activeTab: 'shiftTurnovers' } );
+							$scope.pendingAction = false;
+						},
+						function( reason )
+						{
+							console.error( reason );
+							$scope.pendingAction = false;
+						});
+				}
+			};
+
+		// Initialize controller
 		if( $stateParams.shiftTurnover )
 		{
 			var shiftTurnover = $stateParams.shiftTurnover;
-			$scope.initializeTurnover( shiftTurnover.st_store_id, shiftTurnover.st_from_date, shiftTurnover.st_from_shift_id );
+			$scope.loadTurnover( shiftTurnover.st_store_id, shiftTurnover.st_from_date, shiftTurnover.st_from_shift_id );
 		}
 		else
 		{
-			var shiftTurnover = $scope.shiftTurnover;
-			$scope.initializeTurnover( shiftTurnover.st_store_id, shiftTurnover.st_from_date, shiftTurnover.st_from_shift_id );
+			notifications.alert( 'No shift runover record requested', 'error' );
+			$state.go( 'main.store', { activeTab: 'shiftTurnovers' });
 		}
 	}
 ]);
@@ -1273,7 +1223,6 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 						function( reason )
 						{
 							$scope.pendingAction = false;
-							console.error( reason );
 						});
 				}
 			};
@@ -1293,7 +1242,6 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 						function( reason )
 						{
 							$scope.pendingAction = false;
-							console.error( reason );
 						});
 				}
 			};
@@ -1313,7 +1261,6 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 						function( reason )
 						{
 							$scope.pendingAction = false;
-							console.error( reason );
 						});
 				}
 			};
@@ -1333,7 +1280,6 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 						function( reason )
 						{
 							$scope.pendingAction = false;
-							console.error( reason );
 						});
 				}
 			};
@@ -1353,7 +1299,6 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 						function( reason )
 						{
 							$scope.pendingAction = false;
-							console.error( reason );
 						});
 				}
 			};
@@ -1373,7 +1318,6 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 						function( reason )
 						{
 							$scope.pendingAction = false;
-							console.error( reason );
 						});
 				}
 			};
@@ -1393,7 +1337,6 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 						function( reason )
 						{
 							$scope.pendingAction = false;
-							console.error( reason );
 						});
 				}
 			};
@@ -1418,6 +1361,21 @@ app.controller( 'TransferValidationController', [ '$scope', '$filter', '$state',
 						if( !$scope.checkPermissions( 'transferValidations', 'edit' ) || ( $scope.data.editMode != 'view' && $scope.transferItem.validation.transval_status != 1 ) )// TRANSFER_VALIDATION_ONGOING
 						{
 							$scope.data.editMode = 'view';
+						}
+
+						if( ( $scope.transferItem.transfer_validation.transval_status == null || $scope.transferItem.transfer_validation.transval_status == 1 )
+								&& $scope.transferItem.transfer_validation.transval_receipt_sweeper == null
+								&& $scope.transferItem.canValidateReceipt() )
+						{
+							$scope.transferItem.transfer_validation.set( 'transval_receipt_sweeper', session.data.currentUser );
+						}
+
+						if( $scope.transferItem.transfer_status == 3 // TRANSFER_RECEIVED
+								&& $scope.transferItem.transfer_validation.transval_status == 1
+								&& $scope.transferItem.transfer_validation.transval_transfer_sweeper == null
+								&& $scope.transferItem.canValidateTransfer() )
+						{
+							$scope.transferItem.transfer_validation.set( 'transval_transfer_sweeper', session.data.currentUser );
 						}
 					}
 				},
@@ -1805,9 +1763,21 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				$scope.getItemQuantities();
 			};
 
-		$scope.recipientChange = function()
+		$scope.onDeliveryPersonChange = function()
 			{
-				$scope.transferItem.setRecipient( $scope.transferItem.recipient_name );
+				if( $scope.data.mode == 'transfer' )
+				{
+					$scope.transferItem.set( 'recipient_name', $scope.transferItem.recipient_name );
+				}
+				else
+				{
+					$scope.transferItem.set( 'sender_name', $scope.transferItem.sender_name );
+				}
+			};
+
+		$scope.onRecipientChange = function()
+			{
+				$scope.transferItem.set( 'recipient_name', $scope.transferItem.recipient_name );
 			};
 
 
@@ -2942,7 +2912,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 			var result = true;
 			var assigneeType = $scope.data.selectedAssigneeType;
 			var phase = $scope.data.allocationPhase;
-			var status = $scope.allocationItem.allocation_status || 1; // ALLOCATION_SCHEDULED
+			var status = $scope.allocationItem ? $scope.allocationItem.allocation_status : 1; // ALLOCATION_SCHEDULED
 			var preAllocationCategories = [ 'Initial Allocation', 'Magazine Load' ];
 			var postAllocationCategories = [ 'Additional Allocation', 'Magazine Load' ];
 
@@ -3031,40 +3001,43 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 
 		$scope.updateSaveButton = function()
 			{
-				switch( $scope.allocationItem.allocation_status )
+				if( $scope.allocationItem )
 				{
-					case 1: // ALLOCATION_SCHEDULED
-						if( $scope.allocationItem.assignee_type == 1 ) // ALLOCATION_ASSIGNEE_TELLER
-						{
-							$scope.data.saveButton = { icon: 'time', label: 'Schedule' };
-						}
-						else if( $scope.allocationItem.assignee_type == 2 ) // ALLOCATION_ASSIGNEE_MACHINE
-						{
-							if( $scope.data.allocationPhase == 'remittance' )
-							{
-								$scope.data.saveButton = { icon: 'floppy-disk', label: 'Save' };
-							}
-							else
+					switch( $scope.allocationItem.allocation_status )
+					{
+						case 1: // ALLOCATION_SCHEDULED
+							if( $scope.allocationItem.assignee_type == 1 ) // ALLOCATION_ASSIGNEE_TELLER
 							{
 								$scope.data.saveButton = { icon: 'time', label: 'Schedule' };
 							}
-						}
-						break;
+							else if( $scope.allocationItem.assignee_type == 2 ) // ALLOCATION_ASSIGNEE_MACHINE
+							{
+								if( $scope.data.allocationPhase == 'remittance' )
+								{
+									$scope.data.saveButton = { icon: 'floppy-disk', label: 'Save' };
+								}
+								else
+								{
+									$scope.data.saveButton = { icon: 'time', label: 'Schedule' };
+								}
+							}
+							break;
 
-					case 2: // ALLOCATION_ALLOCATED
-						$scope.data.saveButton = { icon: 'floppy-disk', label: 'Update' };
-						break;
+						case 2: // ALLOCATION_ALLOCATED
+							$scope.data.saveButton = { icon: 'floppy-disk', label: 'Update' };
+							break;
 
-					case 3: // ALLOCATION_REMITTED
-						$scope.data.saveButton = { icon: 'floppy-disk', label: 'Update' };
-						break;
+						case 3: // ALLOCATION_REMITTED
+							$scope.data.saveButton = { icon: 'floppy-disk', label: 'Update' };
+							break;
 
-					case 4: // ALLOCATION_CANCELLED
-						$scope.data.saveButton = { icon: 'floppy-disk', label: 'Update' };
-						break;
+						case 4: // ALLOCATION_CANCELLED
+							$scope.data.saveButton = { icon: 'floppy-disk', label: 'Update' };
+							break;
 
-					default:
-						$scope.data.saveButton = { icon: 'time', label: 'Schedule' };
+						default:
+							$scope.data.saveButton = { icon: 'time', label: 'Schedule' };
+					}
 				}
 			}
 
@@ -3166,7 +3139,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					$scope.data.assigneeShifts = $filter( 'filter' )( assigneeShifts, { store_type: 1 }, true );
 					$scope.data.assigneeLabel = 'TVM Number';
 					$scope.data.assigneeShiftLabel = 'TVM Shift';
-					$scope.data.remittancesTabLabel = 'Returns/ Reject Bin';
+					$scope.data.remittancesTabLabel = 'Return Loose/ Reject Bin';
 					$scope.data.remittancesEmptyText = 'No reject or return items';
 				}
 				else
@@ -3285,7 +3258,6 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 						},
 						function( reason )
 						{
-							console.error( reason );
 							$scope.pendingAction = false;
 						});
 				}
@@ -3306,7 +3278,6 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 						},
 						function( reason )
 						{
-							console.error( reason );
 							$scope.pendingAction = false;
 						});
 				}
@@ -3327,7 +3298,6 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 						},
 						function( reason )
 						{
-							console.error( reason );
 							$scope.pendingAction = false;
 						});
 				}
@@ -3386,6 +3356,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 						$scope.onAssigneeTypeChange();
 						$scope.onAssigneeShiftChange();
 						$scope.updateSaveButton();
+						$scope.getItemQuantities();
 					}
 					else
 					{
@@ -3403,8 +3374,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 			$scope.onAssigneeTypeChange();
 			$scope.onAssigneeShiftChange();
 			$scope.updateSaveButton();
+			$scope.getItemQuantities();
 		}
-
-		$scope.getItemQuantities();
 	}
 ]);

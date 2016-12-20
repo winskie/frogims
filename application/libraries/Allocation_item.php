@@ -194,6 +194,11 @@ class Allocation_item extends Base_model {
 			}
         }
 
+		if( ! isset( $this->cashier_shift_id ) )
+		{
+			$this->set( 'cashier_shift_id', current_shift( TRUE ) );
+		}
+
         return TRUE;
     }
 }

@@ -421,8 +421,8 @@ angular.module( 'appServices' ).service( 'session', [ '$http', '$q', '$filter', 
 	}
 ]);
 
-angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'Transfer', 'Conversion', 'Allocation', 'Collection', 'Adjustment',
-	function( $http, $q, $filter, baseUrl, session, notifications, Transfer, Conversion, Allocation, Collection, Adjustment )
+angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'Transfer', 'Conversion', 'Allocation', 'Collection', 'Adjustment', 'ShiftTurnover',
+	function( $http, $q, $filter, baseUrl, session, notifications, Transfer, Conversion, Allocation, Collection, Adjustment, ShiftTurnover )
 	{
 		var me = this;
 
@@ -820,7 +820,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 							{
 								var d = response.data;
 
-								me.data.shiftTurnovers = d.data.shift_turnovers;
+								me.data.shiftTurnovers = ShiftTurnover.createFromData( d.data.shift_turnovers );
 								me.data.totals.shiftTurnovers = d.data.total;
 								me.data.pending.shiftTurnovers = d.data.pending;
 								deferred.resolve( d );
@@ -1194,7 +1194,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 					url: baseUrl + 'index.php/api/v1/shift_turnovers/date_shift',
 					params: {
 						store: store,
-						date: date,
+						date: $filter( 'date')( date, 'yyyy-MM-dd'),
 						shift: shiftId
 					}
 				}).then(
@@ -1219,42 +1219,6 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 				return deferred.promise;
 			};
 
-		me.saveShiftTurnover = function( turnover, action )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/v1/shift_turnovers/' + action,
-					data: turnover,
-				}).then(
-					function( response )
-					{
-						if( response.data.status == 'ok' )
-						{
-							var shiftTurnover = response.data.data;
-							if( shiftTurnover.st_store_id == session.data.currentStore.id
-								&& shiftTurnover.st_from_shift_id == session.data.currentShift.id
-								&& shiftTurnover.st_from_date == $filter( 'date' )( new Date(), 'yyyy-MM-dd' ) )
-							{
-								console.log( 'Setting current shift balance info...', shiftTurnover );
-								session.data.shiftBalance = shiftTurnover;
-							}
-							deferred.resolve( response.data );
-						}
-						else
-						{
-							notifications.showMessages( response.data.errorMsg );
-							deferred.reject( response.data.errorMsg );
-						}
-					},
-					function( reason )
-					{
-						console.error( reason.data.errorMsg );
-						deferred.reject( response.data.errorMsg );
-					});
-
-				return deferred.promise;
-			};
 
 		// Transfer Validations
 		me.suggestTransferCategory = function( transfer )
@@ -1292,34 +1256,6 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 				return category;
 			};
 
-		me.saveTransferValidation = function( validation, action )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/v1/transfer_validations/' + action,
-					data: validation
-				}).then(
-					function( response )
-					{
-						if( response.data.status == 'ok' )
-						{
-							deferred.resolve( response.data );
-						}
-						else
-						{
-							notifications.showMessages( response.data.errorMsg );
-							deferred.reject( response.data.errorMsg );
-						}
-					},
-					function( reason )
-					{
-						console.error( reason.data.errorMsg );
-						deferred.reject( reason.data.errorMsg );
-					});
-
-				return deferred.promise;
-			};
 
 		// Transfers
 		me.getTransfer = function( transferId, includes )
@@ -1370,65 +1306,6 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 				$http({
 					method: 'GET',
 					url: baseUrl + 'index.php/api/v1/adjustments/' + adjustmentId
-				}).then(
-					function( response )
-					{
-						if( response.data.status == 'ok' )
-						{
-							deferred.resolve( response.data );
-						}
-						else
-						{
-							notifications.showMessages( response.data.errorMsg );
-							deferred.reject( response.data.errorMsg );
-						}
-					},
-					function( reason )
-					{
-						console.error( reason.data.errorMsg );
-						deferred.reject( reason.data.errorMsg );
-					});
-
-				return deferred.promise;
-			};
-
-
-		me.saveAdjustment = function( adjustmentData )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/v1/adjustments',
-					data: adjustmentData
-				}).then(
-					function( response )
-					{
-						if( response.data.status == 'ok' )
-						{
-							deferred.resolve( response.data );
-						}
-						else
-						{
-							notifications.showMessages( response.data.errorMsg );
-							deferred.reject( response.data.errorMsg );
-						}
-					},
-					function( reason )
-					{
-						console.error( reason.data.errorMsg );
-						deferred.reject( reason.data.errorMsg );
-					});
-
-				return deferred.promise;
-			};
-
-		me.approveAdjustment = function( adjustmentData )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/v1/adjustments/approve',
-					data: adjustmentData
 				}).then(
 					function( response )
 					{
@@ -1540,34 +1417,6 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 				return deferred.promise;
 			};
 
-		me.processCollection = function( collectionData )
-			{
-				var deferred = $q.defer();
-				$http({
-					method: 'POST',
-					url: baseUrl + 'index.php/api/v1/collections',
-					data: collectionData
-				}).then(
-					function( response )
-					{
-						if( response.data.status == 'ok' )
-						{
-							deferred.resolve( response.data );
-						}
-						else
-						{
-							notifications.showMessages( response.data.errorMsg );
-							deferred.reject( response.data.errorMsg );
-						}
-					},
-					function( reason )
-					{
-						console.error( reason.data.errorMsg );
-						deferred.reject( reason.data.errorMsg );
-					});
-
-				return deferred.promise;
-			};
 
 		// Allocations
 		me.getAssigneeShifts = function()
@@ -2158,6 +2007,11 @@ angular.module( 'appServices' ).service( 'notifications', [ '$rootScope',
 						message: message,
 						duration: duration
 					});
+
+				if( type == 'error' )
+				{
+					console.error( message );
+				}
 
 				return currentId;
 			};

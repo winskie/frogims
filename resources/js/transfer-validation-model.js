@@ -129,7 +129,6 @@ angular.module( 'coreModels' ).factory( 'TransferValidation', [ '$http', '$q', '
 
 		TransferValidation.prototype.set = function( field, value )
 			{
-				console.log( field, value );
 				switch( field )
 				{
 					case 'transval_receipt_sweeper':
@@ -176,24 +175,32 @@ angular.module( 'coreModels' ).factory( 'TransferValidation', [ '$http', '$q', '
 			};
 
 
-		TransferValidation.prototype.prepareValidationData = function()
+		TransferValidation.prototype.prepareValidationData = function( action )
 			{
 				var me = this;
 				var data = {
 						id: me.id,
 						transval_transfer_id: me.transval_transfer_id,
-						transval_receipt_status: me.transval_receipt_status,
-						transval_receipt_datetime: me.transval_receipt_datetime ? $filter( 'date' )( me.transval_receipt_datetime, 'yyyy-MM-dd HH:mm:ss' ) : null,
-						transval_receipt_sweeper: me.transval_receipt_sweeper,
-						transval_receipt_user_id: me.transval_receipt_user_id,
-						transval_receipt_shift_id: me.transval_receipt_shift_id,
-						transval_transfer_status: me.transval_transfer_status,
-						transval_transfer_datetime: me.transval_transfer_datetime ? $filter( 'date' )( me.transval_transfer_datetime, 'yyyy-MM-dd HH:mm:ss' ) : null,
-						transval_transfer_sweeper: me.transval_transfer_sweeper,
-						transval_transfer_user_id: me.ransval_transfer_user_id,
-						transval_transfer_shift_id: me.transval_transfer_shift_id,
 						transval_status: me.transval_status
 					};
+
+				switch( action )
+				{
+					case 'validate_receipt':
+						data.transval_receipt_status = me.transval_receipt_status;
+						data.transval_receipt_datetime = me.transval_receipt_datetime ? $filter( 'date' )( me.transval_receipt_datetime, 'yyyy-MM-dd HH:mm:ss' ) : null;
+						data.transval_receipt_sweeper = me.transval_receipt_sweeper;
+						data.transval_receipt_user_id = me.transval_receipt_user_id;
+						data.transval_receipt_shift_id = me.transval_receipt_shift_id;
+						break;
+
+					case 'validate_transfer':
+						data.transval_transfer_status = me.transval_transfer_status;
+						data.transval_transfer_datetime = me.transval_transfer_datetime ? $filter( 'date' )( me.transval_transfer_datetime, 'yyyy-MM-dd HH:mm:ss' ) : null;
+						data.transval_transfer_sweeper = me.transval_transfer_sweeper;
+						data.transval_transfer_user_id = me.ransval_transfer_user_id;
+						data.transval_transfer_shift_id = me.transval_transfer_shift_id;
+				}
 
 				return data;
 			};
@@ -205,7 +212,7 @@ angular.module( 'coreModels' ).factory( 'TransferValidation', [ '$http', '$q', '
 				var deferred = $q.defer();
 				if( this.checkValidation( action ) )
 				{
-					var validationData = this.prepareValidationData();
+					var validationData = this.prepareValidationData( action );
 
 					var validationUrl = baseUrl + 'index.php/api/v1/transfer_validations/';
 					switch( action )

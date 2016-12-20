@@ -60,11 +60,7 @@
 								<div class="form-group" ng-if="transferItem.transfer_status != <?php echo TRANSFER_PENDING;?>
 										&& transferItem.transfer_validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
 									<label class="control-label col-sm-5">Validated by</label>
-									<div class="col-sm-7" ng-switch on="( transferItem.transfer_validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?> )
-										&& ( transferItem.transfer_validation.transval_status != <?php echo TRANSFER_VALIDATION_COMPLETED;?> )
-										&& ( transferItem.transfer_status != <?php echo TRANSFER_PENDING;?> )
-										&& ( transferItem.transfer_status != <?php echo TRANSFER_PENDING_CANCELLED;?> )
-										&& ( transferItem.transfer_status != <?php echo TRANSFER_APPROVED_CANCELLED;?> )">
+									<div class="col-sm-7" ng-switch on="transferItem.canValidateReceipt()">
 										<input type="text" class="form-control"
 												ng-switch-when="true"
 												ng-model="transferItem.transfer_validation.transval_receipt_sweeper"
@@ -147,9 +143,9 @@
 								<!-- Sweeper -->
 								<div class="form-group" ng-if="transferItem.transfer_validation.transval_status != <?php echo TRANSFER_VALIDATION_NOTREQUIRED;?>">
 									<label class="control-label col-sm-5">Validated by</label>
-									<div class="col-sm-7" ng-switch on="( transferItem.transfer_validation.transval_status == <?php echo TRANSFER_VALIDATION_COMPLETED; ?> )">
+									<div class="col-sm-7" ng-switch on="transferItem.canValidateTransfer()">
 										<input type="text" class="form-control"
-												ng-switch-when="false"
+												ng-switch-when="true"
 												ng-model="transferItem.transfer_validation.transval_transfer_sweeper"
 												ng-model-options="{ debounce: 500 }"
 												ng-change="onTransfereeChange()"
