@@ -753,7 +753,7 @@ class Allocation extends Base_model {
 
         $ci->load->library( 'inventory' );
         $allocations = $this->get_allocations();
-        $timestamp = date( TIMESTAMP_FORMAT );
+        $transaction_datetime = $this->business_date.' '.date( 'H:i:s' );
 
         $ci->db->trans_start();
         foreach( $allocations as $allocation )
@@ -766,7 +766,7 @@ class Allocation extends Base_model {
                 if ( $inventory )
                 {
                     $quantity = $allocation->get( 'allocated_quantity' ) * -1; // Item will be removed from inventory
-                    $inventory->transact( TRANSACTION_ALLOCATION, $quantity, $timestamp, $this->id, $allocation->get( 'id' ) );
+                    $inventory->transact( TRANSACTION_ALLOCATION, $quantity, $transaction_datetime, $this->id, $allocation->get( 'id' ) );
 
                     $allocation->set( 'cashier_shift_id', $ci->session->current_shift_id );
                     $allocation->set( 'allocation_item_status', ALLOCATION_ITEM_ALLOCATED );
@@ -790,7 +790,7 @@ class Allocation extends Base_model {
 
         $ci->load->library( 'inventory' );
         $remittances = $this->get_remittances();
-        $timestamp = date( TIMESTAMP_FORMAT );
+        $transaction_datetime = $this->business_date.' '.date( 'H:i:s' );
 
         $ci->db->trans_start();
         foreach( $remittances as $remittance )
@@ -802,7 +802,7 @@ class Allocation extends Base_model {
                 if( $inventory )
                 {
                     $quantity = $remittance->get( 'allocated_quantity' );
-                    $inventory->transact( TRANSACTION_REMITTANCE, $quantity, $timestamp, $this->id, $remittance->get( 'id' ) );
+                    $inventory->transact( TRANSACTION_REMITTANCE, $quantity, $transaction_datetime, $this->id, $remittance->get( 'id' ) );
 
                     $remittance->set( 'cashier_shift_id', $ci->session->current_shift_id );
                     $remittance->set( 'allocation_item_status', REMITTANCE_ITEM_REMITTED );
@@ -824,7 +824,7 @@ class Allocation extends Base_model {
         $ci =& get_instance();
 
         $ci->load->library( 'inventory' );
-        $timestamp = date( TIMESTAMP_FORMAT );
+        $transaction_datetime = $this->business_date.' '.date( 'H:i:s' );
 
         $ci->db->trans_start();
         if( isset( $this->voided_allocations ) && $this->voided_allocations )
@@ -837,7 +837,7 @@ class Allocation extends Base_model {
                 if( $inventory )
                 {
                     $quantity = $v;
-                    $inventory->transact( TRANSACTION_ALLOCATION_VOID, $quantity, $timestamp, $this->id, $k );
+                    $inventory->transact( TRANSACTION_ALLOCATION_VOID, $quantity, $transaction_datetime, $this->id, $k );
                 }
             }
         }
@@ -852,7 +852,7 @@ class Allocation extends Base_model {
                 if( $inventory )
                 {
                     $quantity = $v * -1;
-                    $inventory->transact( TRANSACTION_REMITTANCE_VOID, $quantity, $timestamp, $this->id, $k );
+                    $inventory->transact( TRANSACTION_REMITTANCE_VOID, $quantity, $transaction_datetime, $this->id, $k );
                 }
             }
         }

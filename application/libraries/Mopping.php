@@ -289,7 +289,6 @@ class Mopping extends Base_model {
         $ci->load->library( 'inventory' );
 
         $items = $this->get_items();
-        $timestamp = date( TIMESTAMP_FORMAT );
 
         $ci->db->trans_start();
         foreach( $items as $item )
@@ -302,9 +301,9 @@ class Mopping extends Base_model {
                 $quantity = $item->get( 'mopped_quantity' );
                 if( intval( $item->get( 'mopped_station_id' ) ) === 0 )
                 { // issuance from stock, deduct same quantity from inventory
-                    $inventory->transact( TRANSACTION_MOPPING_ISSUANCE, ( $quantity * -1 ), $timestamp, $this->id, $item->get( 'id' ) );
+                    $inventory->transact( TRANSACTION_MOPPING_ISSUANCE, ( $quantity * -1 ), $this->processing_datetime, $this->id, $item->get( 'id' ) );
                 }
-                $inventory->transact( TRANSACTION_MOPPING_COLLECTION, $quantity, $timestamp, $this->id, $item->get( 'id' ) );
+                $inventory->transact( TRANSACTION_MOPPING_COLLECTION, $quantity, $this->processing_datetime, $this->id, $item->get( 'id' ) );
             }
             else
             {
@@ -396,7 +395,7 @@ class Mopping extends Base_model {
                 if( $inventory )
                 {
                     $quantity = $v * -1;
-                    $inventory->transact( TRANSACTION_MOPPING_VOID, $quantity, $timestamp, $this->id, $k );
+                    $inventory->transact( TRANSACTION_MOPPING_VOID, $quantity, $this->processing_datetime, $this->id, $k );
                 }
             }
             $ci->db->trans_complete();
