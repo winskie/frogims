@@ -825,7 +825,6 @@ class Transfer extends Base_model {
 		$ci->load->library( 'inventory' );
 
 		$items = $this->get_items();
-		$timestamp = date( TIMESTAMP_FORMAT );
 		$ci->db->trans_start();
 		foreach( $items as $item )
 		{
@@ -844,7 +843,7 @@ class Transfer extends Base_model {
 			$quantity = $item->get( 'quantity' ); // Item will be returned to the inventory
 			if( $item->get( 'transfer_item_status' ) == TRANSFER_ITEM_APPROVED )
 			{
-				$inventory->transact( TRANSACTION_TRANSFER_CANCEL, $quantity, $timestamp, $this->id, $item->get( 'id' ) );
+				$inventory->transact( TRANSACTION_TRANSFER_CANCEL, $quantity, $this->transfer_datetime, $this->id, $item->get( 'id' ) );
 			}
 
 			if( in_array( $item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_SCHEDULED, TRANSFER_ITEM_APPROVED ) ) )
@@ -919,7 +918,7 @@ class Transfer extends Base_model {
 				if( $inventory )
 				{
 					$quantity = $v;
-					$inventory->transact( TRANSACTION_TRANSFER_VOID, $quantity, $timestamp, $this->id, $k );
+					$inventory->transact( TRANSACTION_TRANSFER_VOID, $quantity, $this->transfer_datetime, $this->id, $k );
 				}
 			}
 		}
