@@ -117,19 +117,6 @@
                         uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
             </div>
 
-            <?php
-            /* Temporarily hidden
-            <div class="form-group col-sm-2">
-                <label class="control-label">Processed by</label>
-                <input type="text" class="form-control"
-                        ng-model="input.processor"
-                        ng-model-options="{ debounce: 500 }"
-                        typeahead-editable="false"
-                        uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
-            </div>
-            */
-            ?>
-
             <div class="form-group col-sm-3">
                 <label class="control-label">Processed Item</label>
                 <select class="form-control"
@@ -137,13 +124,6 @@
                         ng-change="onItemChange()"
                         ng-options="item as item.item_name for item in data.moppedItems track by item.id">
                 </select>
-                <!--
-                <input type="text" class="form-control"
-                        ng-model="input.moppedItem"
-                        ng-keypress="addMoppingItem( $event )"
-                        typeahead-on-select="onItemChange()"
-                        uib-typeahead="item as item.item_name for item in data.moppedItems | filter: $viewValue">
-                -->
             </div>
 
             <div class="form-group col-sm-3">
@@ -153,23 +133,10 @@
                         ng-disabled="!data.packAsItems.length"
                         ng-options="item as item.item_name for item in data.packAsItems track by item.target_item_id">
                 </select>
-                <!--
-                <input type="text" class="form-control" placeholder="Leave blank if not packed"
-                        ng-model="input.packAs"
-                        ng-keypress="addMoppingItem( $event )"
-                        ng-enabled="data.packAsItems"
-                        uib-typeahead="item as item.item_name for item in data.packAsItems | filter: $viewValue">
-                -->
             </div>
 
             <div class="form-group col-sm-2">
                 <label class="control-label">Source</label>
-                <!--
-                <input type="text" class="form-control"
-                        ng-model="input.moppedSource"
-                        ng-keypress="addMoppingItem( $event )"
-                        uib-typeahead="station as station.station_name for station in data.moppedSource | filter: $viewValue">
-                -->
                 <select class="form-control"
                         ng-model="input.moppedSource"
                         ng-options="station.station_name for station in data.moppedSource track by station.id">

@@ -1694,6 +1694,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			{
 				var items = $scope.transferItem.items;
 				var n = items.length;
+				var reservedQuantity = 0;
 				$scope.input.itemReservedQuantity = 0;
 				for( var i = 0; i < n; i++ )
 				{
@@ -1701,14 +1702,15 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						&& items[i].transfer_item_status == 1
 						&& !items[i].id ) // TRANSFER_ITEM_SCHEDULED
 					{
-						$scope.input.itemReservedQuantity += items[i].quantity;
+						reservedQuantity += parseInt( items[i].quantity );
 					}
 					else if( items[i].item_id == $scope.input.inventoryItem.item_id
 						&& items[i].markedVoid )
 					{
-						$scope.input.itemReservedQuantity -= items[i].quantity;
+						reservedQuantity -= parseInt( items[i].quantity );
 					}
 				}
+				$scope.input.itemReservedQuantity = reservedQuantity;
 			};
 
 
@@ -3106,12 +3108,12 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 								&& items[i].allocation_item_status == 10 // ALLOCATION_ITEM_SCHEDULED
 								&& !items[i].id )
 							{
-								$scope.input.itemReservedQuantity += items[i].allocated_quantity;
+								$scope.input.itemReservedQuantity += parseInt( items[i].allocated_quantity );
 							}
 							else if( items[i].allocated_item_id == $scope.input.item.item_id
 								&& items[i].markedVoid )
 							{
-								$scope.input.itemReservedQuantity -= items[i].allocated_quantity;
+								$scope.input.itemReservedQuantity -= parseInt( items[i].allocated_quantity );
 							}
 						}
 						break;

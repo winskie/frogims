@@ -352,6 +352,7 @@ angular.module( 'coreModels' ).factory( 'Collection', [ '$http', '$q', '$filter'
 							if( response.data.status == 'ok' )
 							{
 								me.loadData( response.data.data );
+								me.updateCollectionSummary();
 								deferred.resolve( me );
 							}
 							else

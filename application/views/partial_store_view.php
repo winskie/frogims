@@ -1097,7 +1097,7 @@ $current_user = current_user();
 								<td class="row-flag" ng-class="{ 'allocation-scheduled': row.allocation_status == 1, 'allocation-allocated': row.allocation_status == 2, 'allocation-completed': row.allocation_status == 3, 'allocation-cancelled': row.allocation_status == 4 }"></td>
 								<td class="text-center vert-top">{{ row.id }}</td>
 								<td class="text-left vert-top">{{ row.business_date | date: 'yyyy-MM-dd' }}<br />{{ row.shift_num }}</td>
-								<td class="text-left vert-top">{{ row.assignee ? ( row.assignee_type == 2 ? 'TVM# ' : '' ) + row.assignee : 'Not yet specified' }}<br />{{ row.assignee_type == 1 ? 'Station Teller' : 'Vending Machine' }}</td>
+								<td class="text-left vert-top">{{ row.assignee ? ( row.assignee_type == 2 ? 'TVM #' : '' ) + row.assignee : 'Not yet specified' }}<br />{{ row.assignee_type == 1 ? 'Station Teller' : 'Vending Machine' }}</td>
 								<td class="text-left vert-top" ng-switch on="row.assignee_type">
 									<div class="panel panel-default" ng-switch-when=1>
 										<table class="table table-condensed table-bordered table-details">
@@ -1112,7 +1112,7 @@ $current_user = current_user();
 											<tbody>
 												<tr ng-repeat="item in row.allocationSummary">
 													<td>{{ item.item_description }}</td>
-													<td class="text-right">{{ item.initial === 0 ? '---' : ( item.initial | number ) }}</td>
+													<td class="text-right">{{ ( item.initial === 0 ? '---' : ( item.initial | number ) ) + ( item.scheduled !== 0 ? ' (' + item.scheduled + ')' : '' ) }}</td>
 													<td class="text-right">{{ item.additional === 0 ? '---' : ( item.additional | number ) }}</td>
 													<td class="text-right">{{ item.remitted === 0 ? '---' : ( item.remitted | number ) }}</td>
 												</tr>
@@ -1132,7 +1132,7 @@ $current_user = current_user();
 											<tbody>
 												<tr ng-repeat="item in row.allocationSummary">
 													<td>{{ item.item_description }}</td>
-													<td class="text-right">{{ item.loaded === 0 ? '---' : ( item.loaded | number ) }}</td>
+													<td class="text-right">{{ ( item.loaded === 0 ? '---' : ( item.loaded | number ) ) + ( item.scheduled !== 0 ? ' (' + item.scheduled + ')' : '' ) }}</td>
 													<td class="text-right">{{ item.unsold === 0 ? '---' : ( item.unsold | number ) }}</td>
 													<td class="text-right">{{ item.rejected === 0 ? '---' : ( item.rejected | number ) }}</td>
 												</tr>

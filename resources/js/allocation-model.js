@@ -281,13 +281,18 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 								tempObj[this.allocations[i].allocated_item_id] = {
 										item_name: this.allocations[i].item_name,
 										item_description: this.allocations[i].item_description,
+										scheduled: 0,
 										initial: 0,
 										additional: 0,
 										remitted: 0
 									};
 							}
 
-							if( this.allocations[i].category_name == 'Initial Allocation' )
+							if( this.allocations[i].allocation_item_status == 10 )
+							{
+								tempObj[this.allocations[i].allocated_item_id].scheduled += this.allocations[i].allocated_quantity;
+							}
+							else if( this.allocations[i].category_name == 'Initial Allocation' )
 							{
 								tempObj[this.allocations[i].allocated_item_id].initial += this.allocations[i].allocated_quantity;
 							}
@@ -309,6 +314,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 								tempObj[this.remittances[i].allocated_item_id] = {
 										item_name: this.remittances[i].item_name,
 										item_description: this.remittances[i].item_description,
+										scheduled: 0,
 										initial: 0,
 										additional: 0,
 										remitted: 0
@@ -332,13 +338,21 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 								tempObj[this.allocations[i].allocated_item_id] = {
 										item_name: this.allocations[i].item_name,
 										item_description: this.allocations[i].item_description,
+										scheduled: 0,
 										loaded: 0,
 										unsold: 0,
 										rejected: 0
 									};
 							}
 
-							tempObj[this.allocations[i].allocated_item_id].loaded += this.allocations[i].allocated_quantity;
+							if( this.allocations[i].allocation_item_status == 10 )
+							{
+								tempObj[this.allocations[i].allocated_item_id].scheduled += this.allocations[i].allocated_quantity;
+							}
+							else
+							{
+								tempObj[this.allocations[i].allocated_item_id].loaded += this.allocations[i].allocated_quantity;
+							}
 						}
 
 						for( var i = 0; i < m; i ++ )
@@ -353,6 +367,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 								tempObj[this.remittances[i].allocated_item_id] = {
 										item_name: this.remittances[i].item_name,
 										item_description: this.remittances[i].item_description,
+										scheduled: 0,
 										loaded: 0,
 										unsold: 0,
 										rejected: 0
