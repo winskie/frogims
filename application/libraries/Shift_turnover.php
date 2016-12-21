@@ -173,12 +173,18 @@ class Shift_turnover extends Base_model
 
 			$sql = 'SELECT
 								sti.*,
-								i.item_name, i.item_description, i.item_group, i.item_unit,
-								ts.movement
+								i.item_name, i.item_description, i.item_group, i.item_type, i.item_unit,
+								ts.movement,
+								IF( ct.conversion_factor IS NULL, sti.sti_beginning_balance, sti.sti_beginning_balance * ct.conversion_factor ) AS base_beginning_balance,
+								IF( ct.conversion_factor IS NULL, sti.sti_ending_balance, sti.sti_ending_balance * ct.conversion_factor ) AS base_ending_balance,
+								IF( ct.conversion_factor IS NULL, ts.movement, ts.movement * ct.conversion_factor ) AS base_movement
 							FROM shift_turnover_items AS sti
 							LEFT JOIN items AS i
 								ON i.id = sti.sti_item_id
-
+							LEFT JOIN items AS bi
+								ON bi.id = i.base_item_id
+							LEFT JOIN conversion_table AS ct
+								ON ct.source_item_id = i.base_item_id AND ct.target_item_id = i.id
 							LEFT JOIN (
 								SELECT
 									t.store_inventory_id,

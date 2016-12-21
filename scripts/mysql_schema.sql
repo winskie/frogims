@@ -155,6 +155,7 @@ CREATE TABLE IF NOT EXISTS items
 	item_name VARCHAR(100) NOT NULL,
 	item_description VARCHAR(255) NULL,
 	item_unit VARCHAR(20) NULL,
+	item_type VARCHAR(100) NULL,
 	item_group VARCHAR(100) NULL,
 	base_item_id INTEGER NULL DEFAULT NULL,
 	teller_allocatable BOOLEAN NOT NULL DEFAULT 0,

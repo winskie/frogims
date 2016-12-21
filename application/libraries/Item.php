@@ -6,6 +6,7 @@ class Item extends Base_model
 	protected $item_name;
 	protected $item_description;
     protected $item_unit;
+    protected $item_type;
     protected $item_group;
     protected $base_item_id;
     protected $teller_allocatable;
@@ -26,6 +27,7 @@ class Item extends Base_model
 			'item_name' => array( 'type' => 'string' ),
 			'item_description' => array( 'type' => 'string' ),
             'item_unit' => array( 'type' => 'string' ),
+            'item_type' => array( 'type' => 'string' ),
             'item_group' => array( 'type' => 'string' ),
             'base_item_id' => array( 'type' => 'integer' ),
             'teller_allocatable' => array( 'type' => 'boolean' ),

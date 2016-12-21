@@ -1716,7 +1716,7 @@ class Store extends Base_model
 
 		$ci =& get_instance();
 
-		$params = array();
+		$sql_params = array();
 		$sql = 'SELECT
 					i.id AS item_id,
 					i.item_name,
@@ -1738,7 +1738,7 @@ class Store extends Base_model
 		if( $date )
 		{
 			$sql .= ' AND t0.transaction_timestamp <= ?';
-			$params[] = $date;
+			$sql_params[] = $date;
 		}
 
 		$sql .= ' LEFT JOIN store_inventory si
@@ -1748,25 +1748,26 @@ class Store extends Base_model
 		if( $date )
 		{
 				$sql .= ' AND t.transaction_timestamp <= ?';
-				$params[] = $date;
+				$sql_params[] = $date;
 		}
 
 		$sql .= '	AND si.store_id = ?
 						) AS x
 							ON x.id = si.id
 						WHERE si.store_id = ?';
-		$params[] = $this->id;
-		$params[] = $this->id;
+		$sql_params[] = $this->id;
+		$sql_params[] = $this->id;
 
 		if( $items )
 		{
-				$sql .= ' AND i.id in ('.implode( ', ', $items ).')';
+				$sql_params .= ' AND i.id in ('.implode( ', ', $items ).')';
 		}
 
-		$data = $ci->db->query( $sql, $params );
+		$data = $ci->db->query( $sql, $sql_params );
 
 		return $data->result_array();
 	}
+
 
 	// Stock Replenishment Receipts
 	public function get_delivery_summary( $date = NULL, $shift = NULL )
@@ -1799,5 +1800,57 @@ class Store extends Base_model
 		$query = $ci->db->get( 'allocation_items ai' );
 
 		return $query->result_array();
+	}
+
+	public function get_ticket_breakdown( $date = NULL, $shift_id = NULL )
+	{
+		if( is_null( $date ) )
+		{
+			$date = date( DATE_FORMAT );
+		}
+
+		if( is_null( $shift_id ) )
+		{
+			return FALSE;
+		}
+
+		$ci =& get_instance();
+
+		$ci->load->library( 'shift_turnover' );
+		$ci->load->library( 'item' );
+
+		$Shift_turnover = new Shift_turnover();
+		$Item = new Item();
+
+		// Shift turnover record
+		$shift_turnover = $Shift_turnover->get_by_store_date_shift( $this->id, $date, $shift_id );
+		if( $shift_turnover )
+		{
+			$turnover_items = $shift_turnover->get_items( TRUE );
+
+			$data = array();
+			foreach( $turnover_items as $turnover_item )
+			{
+				if( intval( $turnover_item->get( 'sti_ending_balance' ) ) === 0 )
+				{
+					continue;
+				}
+
+				$item = $Item->get_by_id( $turnover_item->get( 'id' ) );
+				$data[] = array(
+					'name' => $turnover_item->get( 'item_name' ),
+					'description' => $turnover_item->get( 'item_description' ),
+					'group' => $turnover_item->get( 'item_group' ),
+					'type' => $turnover_item->get( 'item_type' ),
+					'quantity' => $turnover_item->get( 'sti_ending_balance' ),
+					'base_quantity' => $turnover_item->get( 'base_ending_balance' ) );
+			}
+
+			return $data;
+		}
+		else
+		{
+			return FALSE;
+		}
 	}
 }

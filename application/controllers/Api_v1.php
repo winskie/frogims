@@ -876,11 +876,15 @@ class Api_v1 extends MY_Controller {
 		$current_store = new Store();
 		$current_user = new User();
 		$current_shift = new Shift();
+		$shift_balance = NULL;
 
 		$current_store = $current_store->get_by_id( $this->session->current_store_id );
 		$current_user = $current_user->get_by_id( $this->session->current_user_id );
 		$current_shift = $current_shift->get_by_id( $this->session->current_shift_id );
-		$shift_balance = $current_store->get_shift_balance( date( DATE_FORMAT ), $current_shift->get( 'id' ) );
+		if( $current_store )
+		{
+			$shift_balance = $current_store->get_shift_balance( date( DATE_FORMAT ), $current_shift->get( 'id' ) );
+		}
 
 		$user_data = NULL;
 		$store_data = NULL;

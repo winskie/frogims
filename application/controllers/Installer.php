@@ -191,6 +191,7 @@ class Installer extends CI_Controller {
 					item_name VARCHAR(100) NOT NULL,
 					item_description VARCHAR(255) NULL,
 					item_unit VARCHAR(20) NULL,
+					item_type VARCHAR(100) NULL,
 					item_group VARCHAR(100) NULL,
 					base_item_id INTEGER NULL DEFAULT NULL,
 					teller_allocatable BOOLEAN NOT NULL DEFAULT 0,
@@ -911,28 +912,30 @@ class Installer extends CI_Controller {
 			flush();
 			$this->load->library( 'Item' );
 			$items = array(
-					array( 'L2 SJT', 'Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, 'SJT', 'piece', 1 ), // ID: 1
-					array( 'L2 SJT - Rigid Box', 'Line 2 Single Journey Ticket in Rigid Box', 1, 1, 1, 0, 0, 'SJT', 'box', 0 ),
-					array( 'L2 SJT - Ticket Magazine', 'Line 2 Single Journey Ticket in Ticket Magazine', 1, 0, 0, 1, 0, 'SJT', 'magazine', 0 ),
-					array( 'L2 SJT - Defective', 'Defective Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, NULL, 'piece', 1 ),
-					array( 'L2 SJT - Damaged', 'Damaged Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, NULL, 'piece', 1 ),
+					array( 'L2 SJT', 'Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, 'SJT', 'piece', 1, 'SJT' ), // ID: 1
+					array( 'L2 SJT - Rigid Box', 'Line 2 Single Journey Ticket in Rigid Box', 1, 1, 1, 0, 0, 'SJT', 'box', 0, 'SJT' ),
+					array( 'L2 SJT - Ticket Magazine', 'Line 2 Single Journey Ticket in Ticket Magazine', 1, 0, 0, 1, 0, 'SJT', 'magazine', 0, 'SJT' ),
+					array( 'L2 SJT - Defective', 'Defective Line 2 Single Journey Ticket', 1, 0, 1, 0, 1, NULL, 'piece', 1, 'SJT' ),
+					array( 'L2 SJT - Damaged', 'Damaged Line 2 Single Journey Ticket', 1, 0, 1, 0, 1, NULL, 'piece', 1, 'SJT' ),
 
-					array( 'SVC', 'Stored Value Card', NULL, 0, 1, 0, 1, 'SVC', 'piece', 1 ), // ID: 6
-					array( 'SVC - Rigid Box', 'Stored Value Ticket in Rigid Box', 6, 1, 1, 0, 0, 'SVC', 'box', 0 ),
-					array( 'SVC - 25', 'Stored Value Ticket in 25', 6, 1, 1, 0, 0, 'SVC', 'box', 0 ),
-					array( 'SVC - 150', 'Stored Value Ticket in 150', 6, 0, 0, 1, 0, 'SVC', 'box', 0 ),
-					array( 'SVC - Defective', 'Defective Stored Value Card', NULL, 0, 1, 0, 1, NULL, 'piece', 1 ),
-					array( 'SVC - Damaged', 'Damaged Stored Value Card', NULL, 0, 1, 0, 1, NULL, 'piece', 1 ),
+					array( 'SVC', 'Stored Value Card', NULL, 0, 1, 0, 1, 'SVC', 'piece', 1, 'SVC' ), // ID: 6
+					array( 'SVC - Rigid Box', 'Stored Value Ticket in Rigid Box', 6, 1, 1, 0, 0, 'SVC', 'box', 0, 'SVC' ),
+					array( 'SVC - 25', 'Stored Value Ticket in 25', 6, 1, 1, 0, 0, 'SVC', 'box', 0, 'SVC' ),
+					array( 'SVC - 150', 'Stored Value Ticket in 150', 6, 0, 0, 1, 0, 'SVC', 'box', 0, 'SVC' ),
+					array( 'SVC - Defective', 'Defective Stored Value Card', 6, 0, 1, 0, 1, NULL, 'piece', 1, 'SVC' ),
+					array( 'SVC - Damaged', 'Damaged Stored Value Card', 6, 0, 1, 0, 1, NULL, 'piece', 1, 'SVC' ),
 
-					array( 'Senior', 'Senior Citizen Stored Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece', 1 ),
-					array( 'PWD', 'Passenger with Disability Store Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece', 1 ),
+					array( 'Senior', 'Senior Citizen Stored Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece', 1, 'SVC Concessionary' ), // ID: 12
+					array( 'PWD', 'Passenger with Disability Store Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece', 1, 'SVC Concessionary' ), // ID: 13
+					array( 'Senior - Defective', 'Defective Senior Citizen Stored Value Card', 12, 0, 0, 0, 0, NULL, 'piece', 1, 'SVC Concessionary' ),
+					array( 'PWD - Defective', 'Defective - Passenger with Disability Store Value Card', 13, 0, 0, 0, 0, NULL, 'piece', 1, 'SVC Concessionary' ),
 
-					array( 'L2 Ticket Coupon', 'Line 2 Ticket Coupon', NULL, 1, 1, 0, 0, NULL, 'piece', 0 ),
+					array( 'L2 Ticket Coupon', 'Line 2 Ticket Coupon', NULL, 1, 1, 0, 0, NULL, 'piece', 0, 'Coupon' ),
 
-					array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0, NULL, 'piece', 1 ), // ID: 15
-					array( 'L1 SJT', 'Line 1 Single Journey Ticket', 15, 0, 1, 0, 0, NULL, 'piece', 1 ),
-					array( 'MRT SJT', 'Line 3 Single Journey Ticket', 15, 0, 1, 0, 0, NULL, 'piece', 1 ),
-					array( 'Staff Card', 'Staff Card', NULL, 0, 0, 0, 0, NULL, 'piece', 1 )
+					array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0, NULL, 'piece', 1, 'Others' ), // ID: 17
+					array( 'L1 SJT', 'Line 1 Single Journey Ticket', 17, 0, 1, 0, 0, NULL, 'piece', 1, 'Others' ),
+					array( 'MRT SJT', 'Line 3 Single Journey Ticket', 17, 0, 1, 0, 0, NULL, 'piece', 1, 'Others' ),
+					array( 'Staff Card', 'Staff Card', 17, 0, 0, 0, 0, NULL, 'piece', 1, 'Others' )
 				);
 
 			foreach( $items as $i )
@@ -948,6 +951,7 @@ class Installer extends CI_Controller {
 				$item->set( 'item_group', $i[7] );
 				$item->set( 'item_unit', $i[8] );
 				$item->set( 'turnover_item', $i[9] );
+				$item->set( 'item_type', $i[10] );
 				$item->db_save();
 				unset( $item );
 			}
@@ -1020,9 +1024,13 @@ class Installer extends CI_Controller {
 				array( 'SVC', 'SVC - 150', 150 ),
 				array( 'SVC - Defective', 'SVC - Damaged', 1 ),
 
+				array( 'Senior', 'Senior - Defective', 1 ),
+				array( 'PWD', 'PWD - Defective', 1 ),
+
 				// Other cards
 				array( 'L1 SJT', 'Others', 1 ),
-				array( 'MRT SJT', 'Others', 1 )
+				array( 'MRT SJT', 'Others', 1 ),
+				array( 'Staff Card', 'Others', 1 ),
 			);
 
 			$item = new Item();
@@ -1104,6 +1112,7 @@ class Installer extends CI_Controller {
 					array( 'SVC - Rigid Box', 'Initial Allocation' ),
 					array( 'SVC - Rigid Box', 'Additional Allocation' ),
 					array( 'SVC - Rigid Box', 'Unsold / Loose' ),
+					array( 'SVC - Rigid Box', 'Magazine Load' ),
 
 					array( 'SVC - 25', 'Initial Allocation' ),
 					array( 'SVC - 25', 'Additional Allocation' ),

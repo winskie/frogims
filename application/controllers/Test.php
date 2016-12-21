@@ -206,4 +206,28 @@ class Test extends CI_Controller
         $pdf->writeHTML( $html, true, false, true, false, '' );
         $pdf->Output();
     }
+
+    function shift_summary( $store_id, $date = NULL, $shift_id = NULL )
+    {
+        if( is_null( $date ) ) $date = date( DATE_FORMAT );
+
+        $this->load->library( 'store' );
+
+        $Store = new Store();
+        $store = $Store->get_by_id( $store_id );
+
+        $turnover_data = $store->get_ticket_breakdown( $date, $shift_id );
+
+        $response = array( 'data' =>  $turnover_data );
+        $this->output->set_content_type( 'application/json' );
+		$this->output->set_output( json_encode( $response ) );
+    }
+
+    function convert()
+    {
+        $this->load->library( 'conversion_table' );
+        $c = new Conversion_table();
+
+        echo $c->convert( 2, 9, 500 );
+    }
 }

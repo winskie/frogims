@@ -67,4 +67,37 @@ class Conversion_table extends Base_model {
 
         return $conversions;
     }
+
+    public function convert( $input_item_id, $output_item_id, $input_quantity )
+    {
+        $ci =& get_instance();
+
+        $ci->db->where( 'source_item_id', $input_item_id );
+        $ci->db->where( 'target_item_id', $output_item_id );
+        $ci->db->limit( 1 );
+        $result = $ci->db->get( 'conversion_table' );
+
+        if( $result->num_rows() )
+        {
+            $conversion_factor = $result->row()->conversion_factor;
+            return $input_quantity / $conversion_factor;
+        }
+        else
+        {
+            $ci->db->where( 'target_item_id', $input_item_id );
+            $ci->db->where( 'source_item_id', $output_item_id );
+            $ci->db->limit( 1 );
+            $result = $ci->db->get( 'conversion_table' );
+
+            if( $result->num_rows() )
+            {
+                $conversion_factor = $result->row()->conversion_factor;
+                return $input_quantity * $conversion_factor;
+            }
+            else
+            {
+                return FALSE;
+            }
+        }
+    }
 }
