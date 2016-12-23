@@ -3204,13 +3204,11 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					switch( $scope.data.allocationPhase )
 					{
 						case 'allocation':
-							data.allocation_item_status = 10; // ALLOCATION_ITEM_SCHEDULED
-							$scope.allocationItem.addAllocationItem( new AllocationItem( data ) );
+							$scope.allocationItem.addAllocationItem( new AllocationItem( data, 'allocation' ) );
 							break;
 
 						case 'remittance':
-							data.allocation_item_status = 20; // REMITTANCE_ITEM_PENDING
-							$scope.allocationItem.addRemittanceItem( new AllocationItem( data ) );
+							$scope.allocationItem.addRemittanceItem( new AllocationItem( data, 'remittance' ) );
 							break;
 
 						default:

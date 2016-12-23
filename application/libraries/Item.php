@@ -27,7 +27,7 @@ class Item extends Base_model
 			'item_name' => array( 'type' => 'string' ),
 			'item_description' => array( 'type' => 'string' ),
             'item_unit' => array( 'type' => 'string' ),
-            'item_type' => array( 'type' => 'string' ),
+            'item_type' => array( 'type' => 'integer' ),
             'item_group' => array( 'type' => 'string' ),
             'base_item_id' => array( 'type' => 'integer' ),
             'teller_allocatable' => array( 'type' => 'boolean' ),

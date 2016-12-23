@@ -187,7 +187,6 @@ defined('REMITTANCE_ITEM_REMITTED')     OR define('REMITTANCE_ITEM_REMITTED', 21
 defined('REMITTANCE_ITEM_VOIDED')         OR define('REMITTANCE_ITEM_VOIDED', 22);
 
 
-
 // Adjustment types
 defined('ADJUSTMENT_TYPE_ACTUAL')	OR define('ADJUSTMENT_TYPE_ACTUAL', 1);
 
@@ -198,6 +197,10 @@ defined('MOPPED_ITEM_VOID')     OR define('MOPPED_ITEM_VOID', 2);
 // Allocation assignee types
 defined('ALLOCATION_ASSIGNEE_TELLER')	OR define('ALLOCATION_ASSIGNEE_TELLER', 1);
 defined('ALLOCATION_ASSIGNEE_MACHINE')	OR define('ALLOCATION_ASSIGNEE_MACHINE', 2);
+
+// Allocation item types
+defined('ALLOCATION_ITEM_TYPE_ALLOCATION')	OR define('ALLOCATION_ITEM_TYPE_ALLOCATION', 1);
+defined('ALLOCATION_ITEM_TYPE_REMITTANCE')	OR define('ALLOCATION_ITEM_TYPE_REMITTANCE', 2);
 
 // Transfer categories
 defined('TRANSFER_CATEGORY_EXTERNAL')       OR define('TRANSFER_CATEGORY_EXTERNAL', 1);
@@ -210,3 +213,7 @@ defined('TRANSFER_CATEGORY_BLACKBOX')       OR define('MOPPED_ITEM_BLACKBOX', 6)
 // Shift turnover status
 defined('SHIFT_TURNOVER_OPEN')	OR define('SHIFT_TURNOVER_OPEN', 1);
 defined('SHIFT_TURNOVER_CLOSED') OR define('SHIFT_TURNOVER_CLOSED', 2);
+
+// Item types
+defined('ITEM_NON_REUSABLE') OR define('ITEM_NON_REUSABLE', 0);
+defined('ITEM_REUSABLE')	OR define('ITEM_REUSABLE', 1);

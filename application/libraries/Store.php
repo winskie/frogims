@@ -1769,34 +1769,65 @@ class Store extends Base_model
 	}
 
 
-	// Stock Replenishment Receipts
+	// Stock Replenishment Receipts and Transfer Ins
 	public function get_delivery_summary( $date = NULL, $shift = NULL )
 	{
 		$ci =& get_instance();
 
-		$ci->db->select( 'ti.item_id, i.item_name, i.item_description, i.item_group, i.base_item_id, ti.transfer_item_category_id AS category_id, ti.quantity_received' );
+		$ci->db->select( 'ti.item_id, i.item_name, i.item_description, i.item_group, i.item_type, i.item_unit, i.base_item_id,
+				ti.transfer_item_category_id AS category_id, ti.quantity_received, t.transfer_category,
+				IF( ct.conversion_factor IS NULL, ti.quantity_received, ti.quantity_received * ct.conversion_factor ) AS base_quantity' );
 		$ci->db->join( 'transfers t', 't.id = ti.transfer_id', 'left' );
 		$ci->db->join( 'items i', 'i.id = ti.item_id', 'left' );
-		$ci->db->where( 'DATE( t.receipt_datetime )', $date );
+		$ci->db->join( 'items bi', 'bi.id = i.base_item_id', 'left' );
+		$ci->db->join( 'conversion_table ct', 'ct.source_item_id = i.base_item_id AND ct.target_item_id = i.id', 'left' );
+		$ci->db->where( 't.destination_id', $this->id );
 		$ci->db->where( 't.recipient_shift', $shift );
-		$ci->db->where( 't.transfer_category', TRANSFER_CATEGORY_REPLENISHMENT );
+		$ci->db->where( 'DATE( t.receipt_datetime ) =', $date );
+		$ci->db->where( 'ti.transfer_item_status', TRANSFER_ITEM_RECEIVED );
 
 		$query = $ci->db->get( 'transfer_items ti' );
 
 		return $query->result_array();
 	}
 
-	// Remittances
+	// Transfer Outs and Ticket Turnovers
+	public function get_transfer_summary( $date = NULL, $shift = NULL )
+	{
+		$ci =& get_instance();
+
+		$ci->db->select( 'ti.item_id, i.item_name, i.item_description, i.item_group, i.item_type, i.item_unit, i.base_item_id,
+				ti.transfer_item_category_id AS category_id, ti.quantity_received, t.transfer_category,
+				IF( ct.conversion_factor IS NULL, ti.quantity_received, ti.quantity_received * ct.conversion_factor ) AS base_quantity' );
+		$ci->db->join( 'transfers t', 't.id = ti.transfer_id', 'left' );
+		$ci->db->join( 'items i', 'i.id = ti.item_id', 'left' );
+		$ci->db->join( 'items bi', 'bi.id = i.base_item_id', 'left' );
+		$ci->db->join( 'conversion_table ct', 'ct.source_item_id = i.base_item_id AND ct.target_item_id = i.id', 'left' );
+		$ci->db->where( 't.origin_id', $this->id );
+		$ci->db->where( 't.sender_shift', $shift );
+		$ci->db->where( 'DATE( t.transfer_datetime ) =', $date );
+		$ci->db->where_in( 'ti.transfer_item_status', array( TRANSFER_ITEM_APPROVED, TRANSFER_ITEM_RECEIVED ) );
+
+		$query = $ci->db->get( 'transfer_items ti' );
+
+		return $query->result_array();
+	}
+
+	// Allocations and Remittances
 	public function get_remittance_summary( $date = NULL, $shift = NULL )
 	{
 		$ci =& get_instance();
 
-		$ci->db->select( 'ai.allocated_item_id AS item_id, i.item_name, i.item_description, i.item_group, i.base_item_id, ai.allocation_category_id AS category_id, ai.allocated_quantity' );
+		$ci->db->select( 'ai.allocated_item_id AS item_id, i.item_name, i.item_description, i.item_type, i.item_group, i.item_unit, i.base_item_id,
+				ai.allocation_item_type, ai.cashier_shift_id, ai.allocation_category_id AS category_id, ai.allocated_quantity, a.assignee_type, a.shift_id,
+				IF( ct.conversion_factor IS NULL, ai.allocated_quantity, ai.allocated_quantity * ct.conversion_factor ) AS base_quantity' );
 		$ci->db->join( 'allocations a', 'a.id = ai.allocation_id', 'left' );
 		$ci->db->join( 'items i', 'i.id = ai.allocated_item_id', 'left' );
+		$ci->db->join( 'items bi', 'bi.id = i.base_item_id', 'left' );
+		$ci->db->join( 'conversion_table ct', 'ct.source_item_id = i.base_item_id AND ct.target_item_id = i.id', 'left' );
+		$ci->db->where( 'a.store_id', $this->id );
 		$ci->db->where( 'a.business_date', $date );
 		$ci->db->where( 'ai.cashier_shift_id', $shift );
-
 		$query = $ci->db->get( 'allocation_items ai' );
 
 		return $query->result_array();
@@ -1828,7 +1859,10 @@ class Store extends Base_model
 		{
 			$turnover_items = $shift_turnover->get_items( TRUE );
 
-			$data = array();
+			$data = array(
+					'beginning' => array(),
+					'ending' => array()
+				);
 			foreach( $turnover_items as $turnover_item )
 			{
 				if( intval( $turnover_item->get( 'sti_ending_balance' ) ) === 0 )
@@ -1837,7 +1871,15 @@ class Store extends Base_model
 				}
 
 				$item = $Item->get_by_id( $turnover_item->get( 'id' ) );
-				$data[] = array(
+				$data['beginning'][] = array(
+					'name' => $turnover_item->get( 'item_name' ),
+					'description' => $turnover_item->get( 'item_description' ),
+					'group' => $turnover_item->get( 'item_group' ),
+					'type' => $turnover_item->get( 'item_type' ),
+					'quantity' => $turnover_item->get( 'sti_beginning_balance' ),
+					'base_quantity' => $turnover_item->get( 'base_beginning_balance' ) );
+
+				$data['ending'][] = array(
 					'name' => $turnover_item->get( 'item_name' ),
 					'description' => $turnover_item->get( 'item_description' ),
 					'group' => $turnover_item->get( 'item_group' ),
@@ -1852,5 +1894,296 @@ class Store extends Base_model
 		{
 			return FALSE;
 		}
+	}
+
+	public function get_turnover_summary( $date = NULL, $shift_id = NULL )
+	{
+		$ci =& get_instance();
+
+		$store_id = $this->id;
+
+		// Beginning Balance
+		$sql = "SELECT *
+						FROM (
+							SELECT
+								CAST( 1 AS UNSIGNED ) AS row_num,
+								'Beginning Balance' AS trans_group,
+								'Beginning Balance' AS description,
+								SUM( IF( item_group = 'sjt' AND item_type = 1, base_quantity, 0 ) ) AS sjt,
+								SUM( IF( item_group = 'sjt' AND item_type = 0, base_quantity, 0 ) ) AS sjt_defect,
+								SUM( IF( item_group = 'svc' AND item_type = 1, base_quantity, 0 ) ) AS svc,
+								SUM( IF( item_group = 'svc' AND item_type = 0, base_quantity, 0 ) ) AS svc_defect,
+								SUM( IF( item_group = 'concessionary' AND item_type = 1, base_quantity, 0 ) ) AS concessionary,
+								SUM( IF( item_group = 'concessionary' AND item_type = 0, base_quantity, 0 ) ) AS concessionary_defect
+							FROM (
+								SELECT
+									i.item_group, i.item_type, i.item_unit,
+									IF( ct.conversion_factor IS NULL, sti.sti_beginning_balance, sti.sti_beginning_balance * ct.conversion_factor ) AS base_quantity
+								FROM shift_turnover_items AS sti
+								LEFT JOIN shift_turnovers AS st
+									ON st.id = sti.sti_turnover_id
+								LEFT JOIN items AS i
+									ON i.id = sti.sti_item_id
+								LEFT JOIN items AS bi
+									ON bi.id = i.base_item_id
+								LEFT JOIN conversion_table AS ct
+									ON ct.source_item_id = i.base_item_id AND ct.target_item_id = i.id
+								WHERE
+									st.st_store_id = ${store_id}
+									AND st.st_from_date = '${date}'
+									AND st.st_from_shift_id = ${shift_id}
+							) AS a
+
+							UNION ALL
+
+							SELECT
+								CAST( 100 AS UNSIGNED ),
+								'Ending Balance' AS trans_group,
+								'Balance per Book' AS description,
+								SUM( IF( item_group = 'sjt' AND item_type = 1, base_quantity, 0 ) ) AS sjt,
+								SUM( IF( item_group = 'sjt' AND item_type = 0, base_quantity, 0 ) ) AS sjt_defect,
+								SUM( IF( item_group = 'svc' AND item_type = 1, base_quantity, 0 ) ) AS svc,
+								SUM( IF( item_group = 'svc' AND item_type = 0, base_quantity, 0 ) ) AS svc_defect,
+								SUM( IF( item_group = 'concessionary' AND item_type = 1, base_quantity, 0 ) ) AS concessionary,
+								SUM( IF( item_group = 'concessionary' AND item_type = 0, base_quantity, 0 ) ) AS concessionary_defect
+							FROM (
+								SELECT
+									i.item_group, i.item_type, i.item_unit,
+									IF( ct.conversion_factor IS NULL, sti.sti_ending_balance, sti.sti_ending_balance * ct.conversion_factor ) AS base_quantity
+								FROM shift_turnover_items AS sti
+								LEFT JOIN shift_turnovers AS st
+									ON st.id = sti.sti_turnover_id
+								LEFT JOIN items AS i
+									ON i.id = sti.sti_item_id
+								LEFT JOIN items AS bi
+									ON bi.id = i.base_item_id
+								LEFT JOIN conversion_table AS ct
+									ON ct.source_item_id = i.base_item_id AND ct.target_item_id = i.id
+								WHERE
+									st.st_store_id = ${store_id}
+									AND st.st_from_date = '${date}'
+									AND st.st_from_shift_id = ${shift_id}
+							) AS a
+
+							UNION ALL
+
+							SELECT
+								CAST( row_num AS UNSIGNED ),
+								trans_group,
+								description,
+								SUM( IF( item_group = 'sjt' AND item_type = 1, base_quantity, 0 ) ) AS sjt,
+								SUM( IF( item_group = 'sjt' AND item_type = 0, base_quantity, 0 ) ) AS sjt_defect,
+								SUM( IF( item_group = 'svc' AND item_type = 1, base_quantity, 0 ) ) AS svc,
+								SUM( IF( item_group = 'svc' AND item_type = 0, base_quantity, 0 ) ) AS svc_defect,
+								SUM( IF( item_group = 'concessionary' AND item_type = 1, base_quantity, 0 ) ) AS concessionary,
+								SUM( IF( item_group = 'concessionary' AND item_type = 0, base_quantity, 0 ) ) AS concessionary_defect
+							FROM (
+								SELECT
+									CASE
+										WHEN i.item_unit IN ( 'magazine' ) THEN IF( t.transfer_category = 4, 10, 40 )
+										WHEN i.item_unit IN ( 'box' ) THEN IF( t.transfer_category = 4, 11, 41 )
+										ELSE IF( t.transfer_category = 4, 12, 42 )
+									END AS row_num,
+									IF( t.transfer_category = 4, 'Add: Delivery', 'Add: Ticket Transfer' ) AS trans_group,
+									CASE
+										WHEN i.item_unit IN ( 'magazine' ) THEN 'Magazine'
+										WHEN i.item_unit IN ( 'box' ) THEN 'Rigid Box'
+										ELSE 'Piece'
+									END AS description,
+									ti.item_id, i.item_name, i.item_group, i.item_type, i.item_unit,
+									t.transfer_category, ti.quantity_received,
+									IF( ct.conversion_factor IS NULL, ti.quantity_received, ti.quantity_received * ct.conversion_factor ) AS base_quantity
+								FROM transfer_items AS ti
+								LEFT JOIN transfers AS t
+									ON t.id = ti.transfer_id
+								LEFT JOIN items AS i
+									ON i.id = ti.item_id
+								LEFT JOIN conversion_table AS ct
+									ON ct.source_item_id = i.base_item_id AND ct.target_item_id = i.id
+								WHERE
+									t.destination_id = ${store_id}
+									AND t.recipient_shift = ${shift_id}
+									AND DATE( t.receipt_datetime) = '${date}'
+									AND ti.transfer_item_status = 3
+							) AS a
+							GROUP BY trans_group, description
+
+							UNION ALL
+
+							SELECT
+									CAST( row_num AS UNSIGNED ),
+									trans_group,
+									description,
+									SUM( IF( item_group = 'sjt' AND item_type = 1, base_quantity, 0 ) ) AS sjt,
+									SUM( IF( item_group = 'sjt' AND item_type = 0, base_quantity, 0 ) ) AS sjt_defect,
+									SUM( IF( item_group = 'svc' AND item_type = 1, base_quantity, 0 ) ) AS svc,
+									SUM( IF( item_group = 'svc' AND item_type = 0, base_quantity, 0 ) ) AS svc_defect,
+									SUM( IF( item_group = 'concessionary' AND item_type = 1, base_quantity, 0 ) ) AS concessionary,
+									SUM( IF( item_group = 'concessionary' AND item_type = 0, base_quantity, 0 ) ) AS concessionary_defect
+								FROM (
+									SELECT
+										CASE
+											WHEN t.transfer_category = 3 THEN 80
+											WHEN i.item_unit IN ( 'magazine' ) THEN 70
+											WHEN i.item_unit IN ( 'box' ) THEN 71
+											ELSE 72
+										END AS row_num,
+										IF( t.transfer_category = 3, 'Less: Returned to AFCS', 'Less: Ticket Transfer' ) AS trans_group,
+										CASE
+											WHEN t.transfer_category = 3 THEN 'Less: Returned to AFCS'
+											WHEN i.item_unit IN ( 'magazine' ) THEN 'Magazine'
+											WHEN i.item_unit IN ( 'box' ) THEN 'Rigid Box'
+											ELSE 'Loose'
+										END AS description,
+										ti.item_id, i.item_name, i.item_group, i.item_type, i.item_unit,
+										t.transfer_category, ti.quantity_received,
+										IF( ct.conversion_factor IS NULL, ti.quantity, ti.quantity * ct.conversion_factor ) AS base_quantity
+									FROM transfer_items AS ti
+									LEFT JOIN transfers AS t
+										ON t.id = ti.transfer_id
+									LEFT JOIN items AS i
+										ON i.id = ti.item_id
+									LEFT JOIN conversion_table AS ct
+										ON ct.source_item_id = i.base_item_id AND ct.target_item_id = i.id
+									WHERE
+										t.origin_id = ${store_id}
+										AND t.sender_shift = ${shift_id}
+										AND DATE( t.transfer_datetime) = '${date}'
+										AND ti.transfer_item_status IN ( 2, 3 )
+								) AS a
+								GROUP BY trans_group, description
+
+								UNION ALL
+
+								SELECT
+									CAST( row_num AS UNSIGNED ),
+									trans_group,
+									description,
+									SUM( IF( item_group = 'sjt' AND item_type = 1, base_quantity, 0 ) ) AS sjt,
+									SUM( IF( item_group = 'sjt' AND item_type = 0, base_quantity, 0 ) ) AS sjt_defect,
+									SUM( IF( item_group = 'svc' AND item_type = 1, base_quantity, 0 ) ) AS svc,
+									SUM( IF( item_group = 'svc' AND item_type = 0, base_quantity, 0 ) ) AS svc_defect,
+									SUM( IF( item_group = 'concessionary' AND item_type = 1, base_quantity, 0 ) ) AS concessionary,
+									SUM( IF( item_group = 'concessionary' AND item_type = 0, base_quantity, 0 ) ) AS concessionary_defect
+								FROM (
+									SELECT
+										CASE
+											WHEN a.assignee_type = 1 AND ai.allocation_item_type = 1 THEN 60
+											WHEN a.assignee_type = 1 AND ai.allocation_item_type = 2 THEN IF( i.item_unit = 'piece', 31, 30 )
+											WHEN a.assignee_type = 2 AND ai.allocation_item_type = 1 THEN 50
+											WHEN a.assignee_type = 2 AND ai.allocation_item_type = 2 THEN 32
+											ELSE 'Unknown'
+										END AS row_num,
+										CASE
+											WHEN a.assignee_type = 1 AND ai.allocation_item_type = 1 THEN 'Less: Teller Allocation'
+											WHEN a.assignee_type = 1 AND ai.allocation_item_type = 2 THEN 'Add: Teller Remittance'
+											WHEN a.assignee_type = 2 AND ai.allocation_item_type = 1 THEN 'Less: TVM Replenishment'
+											WHEN a.assignee_type = 2 AND ai.allocation_item_type = 2 THEN 'Add: Loose from TVM'
+											ELSE 'Unknown'
+										END AS trans_group,
+										CASE
+											WHEN a.assignee_type = 1 AND ai.allocation_item_type = 1 THEN ts.shift_num
+											WHEN a.assignee_type = 1 AND ai.allocation_item_type = 2 THEN IF( i.item_unit = 'piece', 'Loose', 'Sealed' )
+											WHEN a.assignee_type = 2 AND ai.allocation_item_type = 1 THEN cs.shift_num
+											WHEN a.assignee_type = 2 AND ai.allocation_item_type = 2 THEN 'Return Loose / Reject from TVM'
+											ELSE 'Unknown'
+										END AS description,
+										ai.allocated_item_id, i.item_name, i.item_group, i.item_type, i.item_unit,
+										a.assignee_type, a.shift_id,
+										ai.allocation_item_type, ai.cashier_shift_id, ai.allocated_quantity,
+										IF( ct.conversion_factor IS NULL, ai.allocated_quantity, ai.allocated_quantity * ct.conversion_factor ) AS base_quantity
+									FROM allocation_items AS ai
+									LEFT JOIN allocations AS a
+										ON a.id = ai.allocation_id
+									LEFT JOIN items AS i
+										ON i.id = ai.allocated_item_id
+									LEFT JOIN conversion_table AS ct
+										ON ct.source_item_id = i.base_item_id AND ct.target_item_id = i.id
+									LEFT JOIN shifts AS cs
+										ON cs.id = ai.cashier_shift_id
+									LEFT JOIN shifts AS ts
+										ON ts.id = a.shift_id
+									WHERE
+										a.store_id = ${store_id}
+										AND a.business_date = '${date}'
+										AND ai.cashier_shift_id = ${shift_id}
+										AND ai.allocation_item_status IN ( 11, 21 )
+								) AS a
+								GROUP BY trans_group, description
+
+								UNION ALL
+
+								SELECT
+									CAST( 90 AS UNSIGNED ),
+									trans_group,
+									description,
+									SUM( IF( item_group = 'SJT' AND item_type = 1, base_quantity, 0 ) ) AS sjt,
+									SUM( IF( item_group = 'SJT' AND item_type = 0, base_quantity, 0 ) ) AS sjt_defect,
+									SUM( IF( item_group = 'SVC' AND item_type = 1, base_quantity, 0 ) ) AS svc,
+									SUM( IF( item_group = 'SVC' AND item_type = 0, base_quantity, 0 ) ) AS svc_defect,
+									SUM( IF( item_group = 'Concessionary' AND item_type = 1, base_quantity, 0 ) ) AS concessionary,
+									SUM( IF( item_group = 'Concessionary' AND item_type = 0, base_quantity, 0 ) ) AS concessionary_defect
+								FROM (
+									SELECT
+										IF( adj.adjusted_quantity > adj.previous_quantity, 'Add: Adjustments', 'Less: Adjustments' ) AS trans_group,
+										reason AS description,
+										i.item_name, i.item_group, i.item_type, i.item_unit,
+										IF( ct.conversion_factor IS NULL, ABS( adj.adjusted_quantity - adj.previous_quantity ), ABS( adj.adjusted_quantity - adj.previous_quantity ) * ct.conversion_factor ) AS base_quantity
+									FROM adjustments AS adj
+									LEFT JOIN store_inventory AS si
+										ON si.id = adj.store_inventory_id
+									LEFT JOIN items AS i
+										ON i.id = si.item_id
+									LEFT JOIN conversion_table AS ct
+										ON ct.source_item_id = i.base_item_id AND ct.target_item_id = i.id
+									WHERE
+										si.store_id = ${store_id}
+										AND adj.adjustment_shift = ${shift_id}
+										AND DATE( adj.adjustment_timestamp ) = '${date}'
+										AND adj.adjustment_status = 2
+								) AS a
+								GROUP BY trans_group, description
+							) AS b
+							ORDER BY row_num ASC";
+
+			$balance_data = $ci->db->query( $sql );
+			$balance_data = $balance_data->result_array();
+
+			$sql = "SELECT
+								a.item_group,
+								a.item_name,
+								a.item_unit,
+								SUM( IF( item_type = 1, a.sti_ending_balance, 0 ) ) AS quantity,
+								SUM( IF( item_type = 0, a.sti_ending_balance, 0 ) ) AS defective_quantity,
+								a.conversion_factor,
+								SUM( IF( item_type = 1, a.base_quantity, 0 ) ) AS base_quantity,
+								SUM( IF( item_type = 0, a.base_quantity, 0 ) ) AS base_defective_quantity
+							FROM (
+								SELECT
+									i.id AS item_id, i.item_name, i.item_description, i.item_group, i.item_type, i.item_unit,
+									sti.sti_ending_balance, ct.conversion_factor,
+									IF( ct.conversion_factor IS NULL, sti.sti_ending_balance, sti.sti_ending_balance * ct.conversion_factor ) AS base_quantity
+								FROM shift_turnover_items AS sti
+								LEFT JOIN shift_turnovers AS st
+									ON st.id = sti.sti_turnover_id
+								LEFT JOIN items AS i
+									ON i.id = sti.sti_item_id
+								LEFT JOIN items AS bi
+									ON bi.id = i.base_item_id
+								LEFT JOIN conversion_table AS ct
+									ON ct.source_item_id = i.base_item_id AND ct.target_item_id = i.id
+								WHERE
+									st.st_store_id = ${store_id}
+									AND st.st_from_date = '${date}'
+									AND st.st_from_shift_id = ${shift_id}
+							) AS a
+							GROUP BY a.item_group, a.item_name, a.item_unit, a.conversion_factor
+							HAVING quantity > 0 OR defective_quantity > 0
+							ORDER BY a.item_id";
+
+			$breakdown_data = $ci->db->query( $sql );
+			$breakdown_data = $breakdown_data->result_array();
+
+			return array( 'balance' => $balance_data, 'breakdown' => $breakdown_data );
 	}
 }

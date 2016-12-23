@@ -46,7 +46,8 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 				'3': 'Ticket Turnover',
 				'4': 'Stock Replenishment',
 				'5': 'Cashroom to Cashroom',
-				'6': 'Blackbox Receipt'
+				'6': 'Blackbox Receipt',
+				'7': 'Passenger Issuance'
 			};
 
 		var transferValidationReceiptStatus = {

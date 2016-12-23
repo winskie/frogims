@@ -11,6 +11,7 @@ class Allocation_item extends Base_model {
     protected $allocation_category_id;
     protected $allocation_datetime;
     protected $allocation_item_status;
+	protected $allocation_item_type;
 
 	protected $category = NULL;
 	protected $item = NULL;
@@ -34,7 +35,8 @@ class Allocation_item extends Base_model {
                 'allocated_quantity' => array( 'type' => 'integer' ),
                 'allocation_category_id' => array( 'type' => 'integer' ),
                 'allocation_datetime' => array( 'type' => 'datetime' ),
-                'allocation_item_status' => array( 'type' => 'integer' )
+				'allocation_item_status' => array( 'type' => 'integer' ),
+				'allocation_item_type' => array( 'type' => 'integer' )
 			);
 	}
 

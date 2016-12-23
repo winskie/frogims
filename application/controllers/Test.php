@@ -216,11 +216,10 @@ class Test extends CI_Controller
         $Store = new Store();
         $store = $Store->get_by_id( $store_id );
 
-        $turnover_data = $store->get_ticket_breakdown( $date, $shift_id );
+        $data = $store->get_turnover_summary( $date, $shift_id );
 
-        $response = array( 'data' =>  $turnover_data );
         $this->output->set_content_type( 'application/json' );
-		$this->output->set_output( json_encode( $response ) );
+		$this->output->set_output( json_encode( $data ) );
     }
 
     function convert()

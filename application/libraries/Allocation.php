@@ -62,7 +62,7 @@ class Allocation extends Base_model {
                     i.item_name, i.item_description, i.teller_allocatable, i.machine_allocatable,
                     s.shift_num AS cashier_shift_num' );
             $ci->db->where( 'allocation_id', $this->id );
-            $ci->db->where( 'c.category_type', 1 );
+            $ci->db->where( 'ai.allocation_item_type', 1 );
             $ci->db->join( 'items i', 'i.id = ai.allocated_item_id', 'left' );
             $ci->db->join( 'categories c', 'c.id = ai.allocation_category_id', 'left' );
             $ci->db->join( 'shifts s', 's.id = ai.cashier_shift_id', 'left' );
@@ -84,7 +84,7 @@ class Allocation extends Base_model {
                     i.item_name, i.item_description, i.teller_remittable, i.machine_remittable,
                     s.shift_num AS cashier_shift_num' );
             $ci->db->where( 'allocation_id', $this->id );
-            $ci->db->where( 'c.category_type', 2 );
+            $ci->db->where( 'ai.allocation_item_type', 2 );
             $ci->db->join( 'items i', 'i.id = ai.allocated_item_id', 'left' );
             $ci->db->join( 'categories c', 'c.id = ai.allocation_category_id', 'left' );
             $ci->db->join( 'shifts s', 's.id = ai.cashier_shift_id', 'left' );

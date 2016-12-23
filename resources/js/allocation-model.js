@@ -558,7 +558,8 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 							allocated_quantity: allocations[i].allocated_quantity,
 							allocation_category_id: allocations[i].allocation_category_id,
 							allocation_datetime: allocations[i].allocation_datetime ? $filter( 'date' )( allocations[i].allocation_datetime, 'yyyy-MM-dd HH:mm:ss' ) : null,
-							allocation_item_status: allocations[i].allocation_item_status
+							allocation_item_status: allocations[i].allocation_item_status,
+							allocation_item_type: 1 // ALLOCATION_ITEM_TYPE_ALLOCATION
 						};
 
 					// Change item status of voided items
@@ -580,7 +581,8 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 							allocated_quantity: remittances[i].allocated_quantity,
 							allocation_category_id: remittances[i].allocation_category_id,
 							allocation_datetime: remittances[i].allocation_datetime ? $filter( 'date' )( remittances[i].allocation_datetime, 'yyyy-MM-dd HH:mm:ss' ) : null,
-							allocation_item_status: remittances[i].allocation_item_status
+							allocation_item_status: remittances[i].allocation_item_status,
+							allocation_item_type: 2 // ALLOCATION_ITEM_TYPE_REMITTANCE
 						};
 
 					// Change item status of voided items
@@ -674,6 +676,7 @@ angular.module( 'coreModels' ).factory( 'AllocationItem', [ '$http', '$q', '$fil
 		var allocation_category_id;
 		var allocation_datetime;
 		var allocation_item_status;
+		var allocation_item_type;
 
 		var allocationItemStatus = {
 				'10': 'Scheduled',
@@ -689,13 +692,13 @@ angular.module( 'coreModels' ).factory( 'AllocationItem', [ '$http', '$q', '$fil
 		/**
 		 * Constructor
 		 */
-		function AllocationItem( data )
+		function AllocationItem( data, type )
 		{
-			this.loadData( data );
+			this.loadData( data, type );
 		}
 
 
-		AllocationItem.prototype.loadData = function( data )
+		AllocationItem.prototype.loadData = function( data, type )
 			{
 				var me = this;
 
@@ -706,7 +709,19 @@ angular.module( 'coreModels' ).factory( 'AllocationItem', [ '$http', '$q', '$fil
     		me.allocated_quantity = null;
     		me.allocation_category_id = null;
     		me.allocation_datetime = new Date();
-    		me.allocation_item_status = 1;
+
+				switch( type )
+				{
+					case 'remittance':
+						me.allocation_item_type = 2;
+						me.allocation_item_status = 20;
+						break;
+
+					case 'allocation':
+					default:
+						me.allocation_item_type = 1;
+						me.allocation_item_status = 10;
+				}
 
 				if( data )
 				{

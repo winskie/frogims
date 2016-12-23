@@ -454,7 +454,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 					],
 				shiftTurnoverStatus: [
 						{ id: 1, statusName: 'Open' },
-						{ id: 2, statusName: 'Closed' }
+						{ id: 2, statusName: 'Closed' },
 					],
 				transferValidationStatus: [
 						{ id: 1, statusName: 'Ongoing' },
@@ -467,7 +467,8 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 						{ id: 3, categoryName: 'Ticket Turnover' },
 						{ id: 4, categoryName: 'Stock Replenishment' },
 						{ id: 5, categoryName: 'Cashroom to Cashroom' },
-						{ id: 6, categoryName: 'Blackbox Receipt' }
+						{ id: 6, categoryName: 'Blackbox Receipt' },
+						{ id: 7, categoryName: 'Passenger Issuance' },
 					],
 				transferStatus: [
 						{ id: 1, statusName: 'Scheduled' },
