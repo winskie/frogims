@@ -1,0 +1,466 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.3.0.final using JasperReports Library version 6.3.0  -->
+<!-- 2017-01-10T10:20:23 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Shift Turnover Transaction Summary" pageWidth="504" pageHeight="360" columnWidth="504" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="f3f4ca96-75b4-4cce-a0a5-a3118c88ef08">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="TMIS"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="inch"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="inch"/>
+	<parameter name="store_id" class="java.lang.String"/>
+	<parameter name="business_date" class="java.lang.String"/>
+	<parameter name="shift_id" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT *
+FROM (
+	SELECT
+		CAST( 1 AS UNSIGNED ) AS row_num,
+		'Beginning Balance' AS trans_group,
+		'Beginning Balance' AS description,
+		SUM( IF( item_group = 'sjt' AND item_type = 1, base_quantity, 0 ) ) AS sjt,
+		SUM( IF( item_group = 'sjt' AND item_type = 0, base_quantity, 0 ) ) AS sjt_defect,
+		SUM( IF( item_group = 'svc' AND item_type = 1, base_quantity, 0 ) ) AS svc,
+		SUM( IF( item_group = 'svc' AND item_type = 0, base_quantity, 0 ) ) AS svc_defect,
+		SUM( IF( item_group = 'concessionary' AND item_type = 1, base_quantity, 0 ) ) AS concessionary,
+		SUM( IF( item_group = 'concessionary' AND item_type = 0, base_quantity, 0 ) ) AS concessionary_defect
+	FROM (
+		SELECT
+			i.item_group, i.item_type, i.item_unit,
+			IF( ct.conversion_factor IS NULL, sti.sti_beginning_balance, sti.sti_beginning_balance * ct.conversion_factor ) AS base_quantity
+		FROM shift_turnover_items AS sti
+		LEFT JOIN shift_turnovers AS st
+			ON st.id = sti.sti_turnover_id
+		LEFT JOIN items AS i
+			ON i.id = sti.sti_item_id
+		LEFT JOIN items AS bi
+			ON bi.id = i.base_item_id
+		LEFT JOIN conversion_table AS ct
+			ON ct.source_item_id = i.base_item_id AND ct.target_item_id = i.id
+		WHERE
+			st.st_store_id = $P{store_id}
+			AND st.st_from_date = $P{business_date}
+			AND st.st_from_shift_id = $P{shift_id}
+	) AS a
+
+	UNION ALL
+
+	SELECT
+		CAST( 100 AS UNSIGNED ),
+		'Ending Balance' AS trans_group,
+		'Balance per Book' AS description,
+		SUM( IF( item_group = 'sjt' AND item_type = 1, base_quantity, 0 ) ) AS sjt,
+		SUM( IF( item_group = 'sjt' AND item_type = 0, base_quantity, 0 ) ) AS sjt_defect,
+		SUM( IF( item_group = 'svc' AND item_type = 1, base_quantity, 0 ) ) AS svc,
+		SUM( IF( item_group = 'svc' AND item_type = 0, base_quantity, 0 ) ) AS svc_defect,
+		SUM( IF( item_group = 'concessionary' AND item_type = 1, base_quantity, 0 ) ) AS concessionary,
+		SUM( IF( item_group = 'concessionary' AND item_type = 0, base_quantity, 0 ) ) AS concessionary_defect
+	FROM (
+		SELECT
+			i.item_group, i.item_type, i.item_unit,
+			IF( ct.conversion_factor IS NULL, sti.sti_ending_balance, sti.sti_ending_balance * ct.conversion_factor ) AS base_quantity
+		FROM shift_turnover_items AS sti
+		LEFT JOIN shift_turnovers AS st
+			ON st.id = sti.sti_turnover_id
+		LEFT JOIN items AS i
+			ON i.id = sti.sti_item_id
+		LEFT JOIN items AS bi
+			ON bi.id = i.base_item_id
+		LEFT JOIN conversion_table AS ct
+			ON ct.source_item_id = i.base_item_id AND ct.target_item_id = i.id
+		WHERE
+			st.st_store_id = $P{store_id}
+			AND st.st_from_date = $P{business_date}
+			AND st.st_from_shift_id = $P{shift_id}
+	) AS a
+
+	UNION ALL
+
+	SELECT
+		CAST( row_num AS UNSIGNED ),
+		trans_group,
+		description,
+		SUM( IF( item_group = 'sjt' AND item_type = 1, base_quantity, 0 ) ) AS sjt,
+		SUM( IF( item_group = 'sjt' AND item_type = 0, base_quantity, 0 ) ) AS sjt_defect,
+		SUM( IF( item_group = 'svc' AND item_type = 1, base_quantity, 0 ) ) AS svc,
+		SUM( IF( item_group = 'svc' AND item_type = 0, base_quantity, 0 ) ) AS svc_defect,
+		SUM( IF( item_group = 'concessionary' AND item_type = 1, base_quantity, 0 ) ) AS concessionary,
+		SUM( IF( item_group = 'concessionary' AND item_type = 0, base_quantity, 0 ) ) AS concessionary_defect
+	FROM (
+		SELECT
+			CASE
+				WHEN i.item_unit IN ( 'magazine' ) THEN IF( t.transfer_category = 4, 10, 40 )
+				WHEN i.item_unit IN ( 'box' ) THEN IF( t.transfer_category = 4, 11, 41 )
+				ELSE IF( t.transfer_category = 4, 12, 42 )
+			END AS row_num,
+			IF( t.transfer_category = 4, 'Add: Delivery', 'Add: Ticket Transfer' ) AS trans_group,
+			CASE
+				WHEN i.item_unit IN ( 'magazine' ) THEN 'Magazine'
+				WHEN i.item_unit IN ( 'box' ) THEN 'Rigid Box'
+				ELSE 'Piece'
+			END AS description,
+			ti.item_id, i.item_name, i.item_group, i.item_type, i.item_unit,
+			t.transfer_category, ti.quantity_received,
+			IF( ct.conversion_factor IS NULL, ti.quantity_received, ti.quantity_received * ct.conversion_factor ) AS base_quantity
+		FROM transfer_items AS ti
+		LEFT JOIN transfers AS t
+			ON t.id = ti.transfer_id
+		LEFT JOIN items AS i
+			ON i.id = ti.item_id
+		LEFT JOIN conversion_table AS ct
+			ON ct.source_item_id = i.base_item_id AND ct.target_item_id = i.id
+		WHERE
+			t.destination_id = $P{store_id}
+			AND t.recipient_shift = $P{shift_id}
+			AND DATE( t.receipt_datetime) = $P{business_date}
+			AND ti.transfer_item_status = 3
+	) AS a
+	GROUP BY trans_group, description
+
+	UNION ALL
+
+	SELECT
+			CAST( row_num AS UNSIGNED ),
+			trans_group,
+			description,
+			SUM( IF( item_group = 'sjt' AND item_type = 1, base_quantity, 0 ) ) AS sjt,
+			SUM( IF( item_group = 'sjt' AND item_type = 0, base_quantity, 0 ) ) AS sjt_defect,
+			SUM( IF( item_group = 'svc' AND item_type = 1, base_quantity, 0 ) ) AS svc,
+			SUM( IF( item_group = 'svc' AND item_type = 0, base_quantity, 0 ) ) AS svc_defect,
+			SUM( IF( item_group = 'concessionary' AND item_type = 1, base_quantity, 0 ) ) AS concessionary,
+			SUM( IF( item_group = 'concessionary' AND item_type = 0, base_quantity, 0 ) ) AS concessionary_defect
+		FROM (
+			SELECT
+				CASE
+					WHEN t.transfer_category = 3 THEN 80
+					WHEN i.item_unit IN ( 'magazine' ) THEN 70
+					WHEN i.item_unit IN ( 'box' ) THEN 71
+					ELSE 72
+				END AS row_num,
+				IF( t.transfer_category = 3, 'Less: Returned to AFCS', 'Less: Ticket Transfer' ) AS trans_group,
+				CASE
+					WHEN t.transfer_category = 3 THEN 'Less: Returned to AFCS'
+					WHEN i.item_unit IN ( 'magazine' ) THEN 'Magazine'
+					WHEN i.item_unit IN ( 'box' ) THEN 'Rigid Box'
+					ELSE 'Loose'
+				END AS description,
+				ti.item_id, i.item_name, i.item_group, i.item_type, i.item_unit,
+				t.transfer_category, ti.quantity_received,
+				IF( ct.conversion_factor IS NULL, ti.quantity, ti.quantity * ct.conversion_factor ) AS base_quantity
+			FROM transfer_items AS ti
+			LEFT JOIN transfers AS t
+				ON t.id = ti.transfer_id
+			LEFT JOIN items AS i
+				ON i.id = ti.item_id
+			LEFT JOIN conversion_table AS ct
+				ON ct.source_item_id = i.base_item_id AND ct.target_item_id = i.id
+			WHERE
+				t.origin_id = $P{store_id}
+				AND t.sender_shift = $P{shift_id}
+				AND DATE( t.transfer_datetime) = $P{business_date}
+				AND ti.transfer_item_status IN ( 2, 3 )
+		) AS a
+		GROUP BY trans_group, description
+
+		UNION ALL
+
+		SELECT
+			CAST( row_num AS UNSIGNED ),
+			trans_group,
+			description,
+			SUM( IF( item_group = 'sjt' AND item_type = 1, base_quantity, 0 ) ) AS sjt,
+			SUM( IF( item_group = 'sjt' AND item_type = 0, base_quantity, 0 ) ) AS sjt_defect,
+			SUM( IF( item_group = 'svc' AND item_type = 1, base_quantity, 0 ) ) AS svc,
+			SUM( IF( item_group = 'svc' AND item_type = 0, base_quantity, 0 ) ) AS svc_defect,
+			SUM( IF( item_group = 'concessionary' AND item_type = 1, base_quantity, 0 ) ) AS concessionary,
+			SUM( IF( item_group = 'concessionary' AND item_type = 0, base_quantity, 0 ) ) AS concessionary_defect
+		FROM (
+			SELECT
+				CASE
+					WHEN a.assignee_type = 1 AND ai.allocation_item_type = 1 THEN 60
+					WHEN a.assignee_type = 1 AND ai.allocation_item_type = 2 THEN IF( i.item_unit = 'piece', 31, 30 )
+					WHEN a.assignee_type = 2 AND ai.allocation_item_type = 1 THEN 50
+					WHEN a.assignee_type = 2 AND ai.allocation_item_type = 2 THEN 32
+					ELSE 'Unknown'
+				END AS row_num,
+				CASE
+					WHEN a.assignee_type = 1 AND ai.allocation_item_type = 1 THEN 'Less: Teller Allocation'
+					WHEN a.assignee_type = 1 AND ai.allocation_item_type = 2 THEN 'Add: Teller Remittance'
+					WHEN a.assignee_type = 2 AND ai.allocation_item_type = 1 THEN 'Less: TVM Replenishment'
+					WHEN a.assignee_type = 2 AND ai.allocation_item_type = 2 THEN 'Add: Loose from TVM'
+					ELSE 'Unknown'
+				END AS trans_group,
+				CASE
+					WHEN a.assignee_type = 1 AND ai.allocation_item_type = 1 THEN ts.shift_num
+					WHEN a.assignee_type = 1 AND ai.allocation_item_type = 2 THEN IF( i.item_unit = 'piece', 'Loose', 'Sealed' )
+					WHEN a.assignee_type = 2 AND ai.allocation_item_type = 1 THEN cs.shift_num
+					WHEN a.assignee_type = 2 AND ai.allocation_item_type = 2 THEN 'Return Loose / Reject from TVM'
+					ELSE 'Unknown'
+				END AS description,
+				ai.allocated_item_id, i.item_name, i.item_group, i.item_type, i.item_unit,
+				a.assignee_type, a.shift_id,
+				ai.allocation_item_type, ai.cashier_shift_id, ai.allocated_quantity,
+				IF( ct.conversion_factor IS NULL, ai.allocated_quantity, ai.allocated_quantity * ct.conversion_factor ) AS base_quantity
+			FROM allocation_items AS ai
+			LEFT JOIN allocations AS a
+				ON a.id = ai.allocation_id
+			LEFT JOIN items AS i
+				ON i.id = ai.allocated_item_id
+			LEFT JOIN conversion_table AS ct
+				ON ct.source_item_id = i.base_item_id AND ct.target_item_id = i.id
+			LEFT JOIN shifts AS cs
+				ON cs.id = ai.cashier_shift_id
+			LEFT JOIN shifts AS ts
+				ON ts.id = a.shift_id
+			WHERE
+				a.store_id = $P{store_id}
+				AND a.business_date = $P{business_date}
+				AND ai.cashier_shift_id = $P{shift_id}
+				AND ai.allocation_item_status IN ( 11, 21 )
+		) AS a
+		GROUP BY trans_group, description
+		
+		UNION ALL
+
+		SELECT
+			CAST( 90 AS UNSIGNED ),
+			trans_group,
+			description,
+			SUM( IF( item_group = 'SJT' AND item_type = 1, base_quantity, 0 ) ) AS sjt,
+			SUM( IF( item_group = 'SJT' AND item_type = 0, base_quantity, 0 ) ) AS sjt_defect,
+			SUM( IF( item_group = 'SVC' AND item_type = 1, base_quantity, 0 ) ) AS svc,
+			SUM( IF( item_group = 'SVC' AND item_type = 0, base_quantity, 0 ) ) AS svc_defect,
+			SUM( IF( item_group = 'Concessionary' AND item_type = 1, base_quantity, 0 ) ) AS concessionary,
+			SUM( IF( item_group = 'Concessionary' AND item_type = 0, base_quantity, 0 ) ) AS concessionary_defect
+		FROM (
+			SELECT
+				IF( adj.adjusted_quantity > adj.previous_quantity, 'Add: Adjustments', 'Less: Adjustments' ) AS trans_group,
+				reason AS description,
+				i.item_name, i.item_group, i.item_type, i.item_unit,
+				IF( ct.conversion_factor IS NULL, ABS( adj.adjusted_quantity - adj.previous_quantity ), ABS( adj.adjusted_quantity - adj.previous_quantity ) * ct.conversion_factor ) AS base_quantity
+			FROM adjustments AS adj
+			LEFT JOIN store_inventory AS si
+				ON si.id = adj.store_inventory_id
+			LEFT JOIN items AS i
+				ON i.id = si.item_id
+			LEFT JOIN conversion_table AS ct
+				ON ct.source_item_id = i.base_item_id AND ct.target_item_id = i.id
+			WHERE
+				si.store_id = $P{store_id}
+				AND adj.adjustment_shift = $P{shift_id}
+				AND DATE( adj.adjustment_timestamp ) = $P{business_date}
+				AND adj.adjustment_status = 2
+		) AS a
+		GROUP BY trans_group, description
+	) AS b
+	ORDER BY row_num ASC]]>
+	</queryString>
+	<field name="row_num" class="java.lang.String"/>
+	<field name="trans_group" class="java.lang.String"/>
+	<field name="description" class="java.lang.String"/>
+	<field name="sjt" class="java.math.BigDecimal"/>
+	<field name="sjt_defect" class="java.math.BigDecimal"/>
+	<field name="svc" class="java.math.BigDecimal"/>
+	<field name="svc_defect" class="java.math.BigDecimal"/>
+	<field name="concessionary" class="java.math.BigDecimal"/>
+	<field name="concessionary_defect" class="java.math.BigDecimal"/>
+	<group name="trans_group">
+		<groupExpression><![CDATA[$F{trans_group}]]></groupExpression>
+		<groupHeader>
+			<band height="18">
+				<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				<textField>
+					<reportElement x="0" y="6" width="204" height="12" uuid="eeb8d3e2-b9cd-4f53-994d-03d753181ab5"/>
+					<box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="5"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{trans_group}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="20">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<staticText>
+				<reportElement x="0" y="6" width="280" height="14" uuid="80e524d0-bd91-431b-a0a0-36562286d972">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement>
+					<font size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Balance per Book]]></text>
+			</staticText>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="24" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="204" height="24" uuid="73ef4280-51d3-4b1d-9eb9-4e67b7f54e86"/>
+				<box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="5">
+					<topPen lineWidth="1.0" lineStyle="Double"/>
+					<bottomPen lineWidth="1.0" lineStyle="Double"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Particulars]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="204" y="12" width="50" height="12" uuid="c53f79b0-7743-4ca3-8ce2-d16377bb5e8b"/>
+				<box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="5">
+					<bottomPen lineWidth="1.0" lineStyle="Double"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Regular]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="254" y="12" width="50" height="12" backcolor="#F0F0F0" uuid="52ad08d5-4194-40a9-923f-f31d9eb9d698"/>
+				<box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="5">
+					<bottomPen lineWidth="1.0" lineStyle="Double"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Defective]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="304" y="12" width="50" height="12" uuid="56651ab4-83ce-476c-8744-7c616235d31f"/>
+				<box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="5">
+					<bottomPen lineWidth="1.0" lineStyle="Double"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Regular]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="354" y="12" width="50" height="12" backcolor="#F0F0F0" uuid="7655b450-270e-4daa-aeaa-7e6a88d47f17"/>
+				<box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="5">
+					<bottomPen lineWidth="1.0" lineStyle="Double"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Defective]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="404" y="12" width="50" height="12" uuid="bafb4317-5eb5-4711-85e2-ddc5dfb016da"/>
+				<box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="5">
+					<bottomPen lineWidth="1.0" lineStyle="Double"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Regular]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="454" y="12" width="50" height="12" backcolor="#F0F0F0" uuid="bffbb0a1-79e5-4727-af29-57c1273e0840"/>
+				<box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="5">
+					<bottomPen lineWidth="1.0" lineStyle="Double"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Defective]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="204" y="0" width="100" height="12" uuid="42544127-8aad-4d86-8a4d-7107687c6750"/>
+				<box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="5">
+					<topPen lineWidth="1.0" lineStyle="Double"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Single Journey]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="304" y="0" width="100" height="12" uuid="d771eb94-7073-47ec-8334-8510363e04e9"/>
+				<box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="5">
+					<topPen lineWidth="1.0" lineStyle="Double"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Stored Value]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="404" y="0" width="100" height="12" uuid="3548c6d8-8778-4282-95b9-bebc4914acbf"/>
+				<box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="5">
+					<topPen lineWidth="1.0" lineStyle="Double"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Concessionary]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="12" splitType="Stretch">
+			<textField>
+				<reportElement x="18" y="0" width="186" height="12" uuid="9128b275-416b-4d60-86d7-5032ec6d5490"/>
+				<box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="5"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{description}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###">
+				<reportElement x="204" y="0" width="50" height="12" uuid="32b9ad35-d533-4b61-9e40-bde393b159d1">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sjt}.compareTo( BigDecimal.ZERO ) == 0 ? "-" : $F{sjt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###">
+				<reportElement mode="Transparent" x="254" y="0" width="50" height="12" backcolor="#F0F0F0" uuid="75cb2a7d-d037-42d5-8e6c-210e77327c18"/>
+				<box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sjt_defect}.compareTo( BigDecimal.ZERO ) == 0 ? "-" : $F{sjt_defect}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###">
+				<reportElement x="304" y="0" width="50" height="12" uuid="283bc6aa-933c-47c8-86bc-b93955bd187f"/>
+				<box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{svc}.compareTo( BigDecimal.ZERO ) == 0 ? "-" : $F{svc}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###">
+				<reportElement mode="Transparent" x="354" y="0" width="50" height="12" backcolor="#F0F0F0" uuid="ce90281a-4ea5-461c-91c7-2f05fdcea2f5"/>
+				<box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{svc_defect}.compareTo( BigDecimal.ZERO ) == 0 ? "-" : $F{svc_defect}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###">
+				<reportElement x="404" y="0" width="50" height="12" uuid="367f1aaa-8677-477a-98a2-bf49f9201f1d"/>
+				<box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{concessionary}.compareTo( BigDecimal.ZERO ) == 0 ? "-" : $F{concessionary}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###">
+				<reportElement mode="Transparent" x="454" y="0" width="50" height="12" backcolor="#F0F0F0" uuid="4b1405d8-7be7-4ee9-8e55-247c7559bcdb"/>
+				<box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{concessionary_defect}.compareTo( BigDecimal.ZERO ) == 0 ? "-" : $F{concessionary_defect}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

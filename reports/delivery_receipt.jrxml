@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.3.0.final using JasperReports Library version 6.3.0  -->
+<!-- 2016-11-25T12:43:32 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="delivery_receipt" pageWidth="612" pageHeight="792" columnWidth="540" leftMargin="36" rightMargin="36" topMargin="36" bottomMargin="36" uuid="449629db-fb09-4902-aa04-ef92f097fd27">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="ireport.jasperserver.url" value="http://192.168.100.100:8080/jasperserver/"/>
+	<property name="ireport.jasperserver.user" value="jasperadmin"/>
+	<property name="ireport.jasperserver.reportUnit" value="/reports/TMIS/delivery_receipt"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Line 2 FROGIMS"/>
+	<parameter name="transfer_id" class="java.lang.Integer">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+	</parameter>
+	<parameter name="prepared_by" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="prepared_by_position" class="java.lang.String" isForPrompting="false">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA["Name and Position"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="checked_by" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="checked_by_position" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Name and Position"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="issued_by" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="issued_by_position" class="java.lang.String" isForPrompting="false">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA["Name and Position"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="approved_by" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="approved_by_position" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Name and Position"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="bearer" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="bearer_id" class="java.lang.String" isForPrompting="false">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT *
+FROM transfers AS t
+WHERE t.id = $P{transfer_id}]]>
+	</queryString>
+	<field name="id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="origin_id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="origin_name" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="sender_id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="sender_name" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="sender_shift" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="transfer_datetime" class="java.sql.Timestamp">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="destination_id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="destination_name" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="recipient_id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="recipient_name" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="recipient_shift" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="receipt_datetime" class="java.sql.Timestamp">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="transfer_status" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="70" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="540" height="10" uuid="5394c775-3c19-4e00-903e-2a432773869d">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Light Rail Transit Authority]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="10" width="540" height="10" uuid="bb54a05c-15ad-4a93-90f1-f6a2408e9e41"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[FARE REVENUE OPERATIONS GROUP]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="20" width="540" height="10" uuid="e656700c-4685-4ae6-a6de-7babe69a320e"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Ticket Management and Sales Collection Unit]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="30" width="540" height="10" uuid="9ba10dab-2229-4306-9dc5-943fd9eec9eb"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Ticket Inventory Management Team]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="40" width="540" height="21" uuid="0c029ef1-8ca7-4934-bd42-73b908b72a2e"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="16" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DELIVERY RECEIPT]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="91" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement stretchType="ElementGroupHeight" x="80" y="8" width="254" height="15" uuid="4f60855a-c3bd-48da-8170-68e7739f38b6"/>
+				<textElement verticalAlignment="Top">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{recipient_name}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="8" width="80" height="15" uuid="ba435d06-200d-453c-b452-4192675d3da0"/>
+				<textElement verticalAlignment="Top"/>
+				<text><![CDATA[Delivered to:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="23" width="80" height="15" uuid="abc34c80-4a0b-46e1-99a4-db0aa515e608"/>
+				<textElement verticalAlignment="Top"/>
+				<text><![CDATA[Address:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="80" y="23" width="254" height="15" uuid="280db7d0-a1a5-4e7f-adfe-bc9a9e550186"/>
+				<textElement verticalAlignment="Top"/>
+				<textFieldExpression><![CDATA[$F{destination_name}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="365" y="8" width="50" height="15" uuid="a5981fa9-d132-4ed5-b1b5-fc66de03a27d"/>
+				<textElement verticalAlignment="Top"/>
+				<text><![CDATA[DR No.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="365" y="23" width="50" height="15" uuid="61118dec-4523-4771-988f-a661b214f040"/>
+				<textElement verticalAlignment="Top"/>
+				<text><![CDATA[Date:]]></text>
+			</staticText>
+			<textField pattern="MMMM d, yyyy">
+				<reportElement x="415" y="23" width="125" height="15" uuid="190c644d-8895-4ccf-b659-f0e64c51aa1c"/>
+				<textElement verticalAlignment="Top"/>
+				<textFieldExpression><![CDATA[$F{transfer_datetime}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="415" y="8" width="125" height="15" uuid="cbacae25-2fc4-402c-a213-561ea6e22360"/>
+				<textElement verticalAlignment="Top">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{id}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement x="0" y="43" width="539" height="39" uuid="ac63c8ad-d85a-4677-90cc-7c1ffb87a9d4"/>
+				<subreportParameter name="transfer_id">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["delivery_receipt_items.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<summary>
+		<band height="392" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="10" width="218" height="15" uuid="03e93ddf-2179-4092-87cc-eaa279095aba"/>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Prepared by:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="320" y="10" width="220" height="15" uuid="80af3762-c7cd-4f26-9514-19f342170c5f"/>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Received by:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="320" y="55" width="220" height="15" uuid="a5df77fc-59ca-4065-9583-38a328fe93fd">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[Name / Date / Time]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="160" width="540" height="30" uuid="d775657d-6cf5-4352-a692-f73072937890"/>
+				<box>
+					<topPen lineWidth="0.1" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font size="16" isBold="true"/>
+				</textElement>
+				<text><![CDATA[GATE PASS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="85" width="219" height="15" uuid="15a3000e-c6e1-4be0-b376-4a3b1346042b"/>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Checked by:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="248" width="219" height="15" uuid="6d2dc9a1-7720-49d4-95ce-9744ab18c01e"/>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Issued by:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="320" y="248" width="220" height="15" uuid="aea0bb54-bba4-4bfe-a7d8-29c2489f99a7"/>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Approved for release:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="368" width="220" height="15" uuid="33cccbac-df1a-47d1-a4f6-391a20a17452">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[Civil Security Officer]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="353" width="220" height="15" uuid="bd61c5f2-5766-431b-bade-0e450b226c39">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<bottomPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="323" width="219" height="15" uuid="26f3971d-3bf5-45e1-b8c5-77aace875600"/>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Noted by:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="320" y="323" width="218" height="15" uuid="312d3244-814e-4633-bca4-8e93de921673"/>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Guard on duty:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="320" y="353" width="220" height="15" uuid="3f102f71-33b0-4a46-a353-a8f259a592a1">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<bottomPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="320" y="368" width="220" height="15" uuid="a3a34eea-e00e-481c-bff4-edbc207d585b">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[Name / Date / Time]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="40" width="220" height="15" uuid="5b567e68-c5ea-4b06-be7f-8f305ab58c45"/>
+				<box>
+					<bottomPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{prepared_by}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="55" width="220" height="15" uuid="0a2c13b3-7cff-4274-86ed-c0a74d67d54f"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{prepared_by_position}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="115" width="220" height="15" uuid="23a2ba9e-f218-41d1-8f91-0d387233eb0f"/>
+				<box>
+					<bottomPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{checked_by}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="130" width="220" height="15" uuid="82e1ed55-8962-4395-8bfc-59a734d03054"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{checked_by_position}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="278" width="220" height="15" uuid="517e8bff-6f17-4da1-ae55-dcd2a89a0165"/>
+				<box>
+					<bottomPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{issued_by}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="293" width="220" height="15" uuid="e557b818-ceaa-4316-a268-2848ac60e461"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{issued_by_position}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="320" y="278" width="220" height="15" uuid="ce3a7646-2cb3-471a-81b9-e89e4ef75dea"/>
+				<box>
+					<bottomPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{approved_by}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="320" y="293" width="220" height="15" uuid="617ac07b-4131-4e36-b8fe-82be98415831"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{approved_by_position}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="320" y="200" width="220" height="40" uuid="190f15b6-2fb2-43bf-b67a-89a81b3374e6"/>
+				<textElement markup="html">
+					<font size="9" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[The bearer, whose name and ID number is indicated herein is authorized to bring out the above items.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="200" width="70" height="15" uuid="ac5aeb54-55ad-451a-8f4a-70a5233d1955"/>
+				<box padding="2">
+					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Bearer:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="215" width="70" height="15" uuid="6e5e3187-dff3-40aa-b349-1a4e31a7764c"/>
+				<box padding="2">
+					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[ID Number:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="70" y="200" width="200" height="15" uuid="75d90950-7061-4189-a7f2-c3f765a44a5d"/>
+				<box padding="2">
+					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isBold="true" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{bearer}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="70" y="215" width="200" height="15" uuid="0f1b771f-fc1f-4e41-9872-a10dbacda6ab"/>
+				<box padding="2">
+					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{bearer_id}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="320" y="40" width="220" height="15" uuid="d90eb2e3-5d1d-4fbe-9127-539100abdd08"/>
+				<box>
+					<bottomPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{recipient_name}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

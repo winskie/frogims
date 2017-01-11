@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.3.0.final using JasperReports Library version 6.3.0  -->
+<!-- 2016-11-25T12:43:32 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="receiving_report" pageWidth="595" pageHeight="842" columnWidth="523" leftMargin="36" rightMargin="36" topMargin="36" bottomMargin="36" uuid="ec011059-2e45-4e5b-b9fd-29b3ccb2141d">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="inch"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="inch"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="inch"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="inch"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<property name="ireport.jasperserver.url" value="http://192.168.100.100:8080/jasperserver/"/>
+	<property name="ireport.jasperserver.user" value="jasperadmin"/>
+	<property name="ireport.jasperserver.reportUnit" value="/reports/TMIS/receiving_report"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Line 2 FROGIMS"/>
+	<parameter name="transfer_id" class="java.lang.Integer">
+		<parameterDescription><![CDATA[Transfer ID]]></parameterDescription>
+	</parameter>
+	<parameter name="received_from" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="received_from_position" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Name and Position"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="received_by" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="received_by_position" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Name and Position"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="checked_by" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="checked_by_position" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Name and Position"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT t.*,
+	sender.full_name AS sender_full_name,
+	sender.position AS sender_position,
+	recipient.full_name AS recipient_full_name,
+	recipient.position AS recipient_position
+FROM transfers AS t
+LEFT JOIN users AS sender
+	ON sender.id = t.sender_id
+LEFT JOIN users AS recipient
+	ON recipient.id = t.recipient_id
+WHERE t.id = $P{transfer_id}]]>
+	</queryString>
+	<field name="id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="transfer_reference_num" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="transfer_category" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="origin_id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="origin_name" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="sender_id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="sender_name" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="sender_shift" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="transfer_datetime" class="java.sql.Timestamp">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="transfer_user_id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="destination_id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="destination_name" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="recipient_id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="recipient_name" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="recipient_shift" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="receipt_datetime" class="java.sql.Timestamp">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="receipt_user_id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="transfer_status" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="date_created" class="java.sql.Timestamp">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="date_modified" class="java.sql.Timestamp">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="last_modified" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="sender_full_name" class="java.lang.String"/>
+	<field name="sender_position" class="java.lang.String"/>
+	<field name="recipient_full_name" class="java.lang.String"/>
+	<field name="recipient_position" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="48" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="270" height="10" uuid="36b60d9d-2f22-4b2b-8874-d06cfb143d16">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Light Rail Transit Authority]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="10" width="270" height="10" uuid="064ff51f-b19f-4be8-bc8a-05740897df62"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[FARE REVENUE OPERATIONS GROUP]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="20" width="270" height="10" uuid="e7dd5d85-9c4a-4f00-aefd-cc4200dc107b"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Ticket Management and Sales Collection Unit]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="30" width="270" height="10" uuid="60f791b6-a9e3-4f76-800e-513744e7760f"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Ticket Inventory Management Team]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="270" y="0" width="253" height="21" uuid="380f0a3f-cef6-4b69-8041-e2edbb9d30b6"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="16" isBold="true"/>
+				</textElement>
+				<text><![CDATA[RECEIVING REPORT]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="65" splitType="Stretch">
+			<staticText>
+				<reportElement x="365" y="0" width="50" height="16" uuid="3136e083-c4aa-4279-9655-340201a0043a"/>
+				<box padding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[RR No.:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="0" width="50" height="16" uuid="45185833-2148-458f-a5af-6102b346cc93">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<box padding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Date:]]></text>
+			</staticText>
+			<textField pattern="EEEE - MMMM d, yyyy">
+				<reportElement x="50" y="0" width="220" height="16" uuid="8ceaea8c-c575-4d7c-8aaa-cc4e459d7a94"/>
+				<box padding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{receipt_datetime}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="415" y="0" width="108" height="16" uuid="1d481100-d2b8-409d-820c-2b72ccc2491f"/>
+				<box padding="2"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{id}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement x="0" y="20" width="523" height="39" uuid="d9a92a8d-31a1-4ce4-8fb3-a421c87744fb"/>
+				<subreportParameter name="transfer_id">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["receiving_report_items.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="17">
+			<staticText>
+				<reportElement x="0" y="0" width="170" height="8" uuid="d5cef75e-2557-4154-a493-5fbc48006f91">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement>
+					<font size="6" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Copy 1 - Releasing Office]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="8" width="170" height="8" uuid="f5e128dd-5aaa-4e79-b11a-0c0bbb436eff"/>
+				<textElement>
+					<font size="6" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Copy 2 - Ticket Inventory Management Team]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="170" y="0" width="170" height="8" uuid="ec3fbbea-16ec-486b-a0c9-69f5d508c927"/>
+				<textElement>
+					<font size="6" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Copy 3 - Revenue and Production Reconciliation]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="170" y="8" width="170" height="8" uuid="9cb2e125-355a-4d1f-8663-a4a2bd5f7e77">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement>
+					<font size="6" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Copy 4 - Audit]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="353" y="0" width="170" height="8" uuid="edc982f8-1ac8-4ec1-9c46-bfa21482a023"/>
+				<textElement textAlignment="Right">
+					<font size="6" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Report Date: " + DATEFORMAT(new Date(), "yyyy-MM-dd HH:mm:ss")]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="150" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="10" width="150" height="15" uuid="a96f9c90-c00b-491d-8591-34fb4ea08f6b">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font size="8" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Received from:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="85" width="150" height="15" uuid="2a26a374-b78a-48e5-9877-2d0b89570cd9"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Received by:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="40" width="150" height="15" uuid="c187ec10-38c1-42e3-a7a3-49186cdc2684">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<bottomPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sender_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="55" width="150" height="15" uuid="00703829-50e2-478a-8ed3-ed774007dcff"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sender_position} == null ? "Name and Position" : $F{sender_position}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="115" width="150" height="15" uuid="2448985b-25ed-4af6-a0d5-8ec18e7bacda"/>
+				<box>
+					<bottomPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{recipient_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="130" width="150" height="15" uuid="353e5b1a-0793-4274-8cc6-b76ff2c51c80"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{recipient_position} == null ? "Name and Position" : $F{recipient_position}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="195" y="10" width="150" height="15" uuid="c02c165e-f19b-414d-93ce-d90fb63c2eb9"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Checked by:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="195" y="40" width="150" height="15" uuid="7a639e12-8bf9-4ae5-a10c-df9e73ad3399"/>
+				<box>
+					<bottomPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{checked_by}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="195" y="55" width="150" height="15" uuid="828d4b21-3c75-4780-a659-dd4bd6586749"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{checked_by_position}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="373" y="10" width="150" height="15" uuid="a795e892-0807-48b0-9c3e-667bd636f185"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Witnessed by:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="373" y="85" width="150" height="15" uuid="ec879eb9-eeb7-46b8-a404-3764061133f6"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Posted by:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="373" y="40" width="150" height="15" uuid="96e0e134-9e2a-41f8-a12e-911b17aac6f1"/>
+				<box>
+					<bottomPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="373" y="115" width="150" height="15" uuid="a91e32b5-61b6-4abf-a848-ac42df4229eb"/>
+				<box>
+					<bottomPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</summary>
+</jasperReport>

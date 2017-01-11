@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.3.0.final using JasperReports Library version 6.3.0  -->
+<!-- 2016-11-25T12:43:32 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ticket_turnover" pageWidth="595" pageHeight="842" columnWidth="523" leftMargin="36" rightMargin="36" topMargin="36" bottomMargin="36" uuid="f1412248-9fed-4bc3-bc3c-afd6b61c69ac">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="ireport.jasperserver.url" value="http://192.168.100.100:8080/jasperserver/"/>
+	<property name="ireport.jasperserver.user" value="jasperadmin"/>
+	<property name="ireport.jasperserver.reportUnit" value="/reports/TMIS/ticket_turnover"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Line 2 FROGIMS"/>
+	<property name="ireport.jasperserver.report.resource" value="/reports/TMIS/ticket_turnover_files/main_jrxml"/>
+	<parameter name="transfer_id" class="java.lang.String"/>
+	<parameter name="turnover_by" class="java.lang.String" isForPrompting="false">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT t.*,
+	COALESCE( t.sender_name, us.full_name ) AS sender_full_name,
+	COALESCE( t.recipient_name, ur.full_name ) AS recipient_full_name,
+	tv.transval_transfer_sweeper AS mopping_personnel,
+	sh.shift_num, stn.station_name
+FROM transfers AS t
+LEFT JOIN shifts AS sh
+	ON sh.id = t.sender_shift
+LEFT JOIN users AS us
+	ON us.id = t.sender_id
+LEFT JOIN users AS ur
+	ON ur.id = t.recipient_id
+LEFT JOIN transfer_validations AS tv
+	ON tv.transval_transfer_id = t.id
+LEFT JOIN stores AS str
+	ON str.id = t.origin_id
+LEFT JOIN stations AS stn
+	ON stn.id = str.store_station_id
+WHERE t.id = $P{transfer_id}
+	AND t.transfer_category = 3]]>
+	</queryString>
+	<field name="id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="transfer_reference_num" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="transfer_category" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="origin_id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="origin_name" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="sender_id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="sender_name" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="sender_shift" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="transfer_datetime" class="java.sql.Timestamp">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="destination_id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="destination_name" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="recipient_id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="recipient_name" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="recipient_shift" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="receipt_datetime" class="java.sql.Timestamp">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="transfer_status" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="date_created" class="java.sql.Timestamp">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="date_modified" class="java.sql.Timestamp">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="last_modified" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="sender_full_name" class="java.lang.String"/>
+	<field name="recipient_full_name" class="java.lang.String"/>
+	<field name="mopping_personnel" class="java.lang.String"/>
+	<field name="shift_num" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="station_name" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="36" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="270" height="10" uuid="afc7ec94-eeb2-4e45-a82c-46ce5c300c12">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Light Rail Transit Authority]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="10" width="270" height="10" uuid="fc6a994c-3ad8-41fc-a2e5-9d45ff4479b7"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[FARE REVENUE OPERATIONS GROUP]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="270" y="0" width="253" height="21" uuid="501ac2e9-978b-47fb-98d2-7e529f360d83"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="16" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Ticket Turnover Report]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="99" splitType="Stretch">
+			<textField pattern="MMMM d, yyyy">
+				<reportElement x="47" y="0" width="124" height="16" uuid="55ddb620-e99f-432d-bab7-76d4f06abcc5">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{transfer_datetime}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="47" height="16" uuid="925d7761-e84f-433f-9a36-5b42c5756d59"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Date:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="16" width="47" height="16" uuid="688be927-9865-4cc7-823c-6cfa1d3a6616"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Day:]]></text>
+			</staticText>
+			<textField pattern="EEEE">
+				<reportElement x="47" y="16" width="124" height="16" uuid="c663c51b-af6a-409e-9e5d-1331d09cbd90">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{transfer_datetime}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="188" y="0" width="47" height="16" uuid="4dd116b2-c10b-4b5a-bf6a-2f2fa2dd1be0"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Station:]]></text>
+			</staticText>
+			<textField pattern="">
+				<reportElement x="235" y="0" width="117" height="16" uuid="0c38770c-01f9-4a35-9df2-72dd0cad61d2">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{station_name}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="372" y="0" width="70" height="16" uuid="0c2c1d59-1ed3-4810-9e20-eac69b083957"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Transfer ID:]]></text>
+			</staticText>
+			<textField pattern="">
+				<reportElement x="442" y="0" width="81" height="16" uuid="3163194a-384f-4ebf-bf51-d1c0d801985d">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{id}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="188" y="16" width="47" height="16" uuid="f84276ce-d083-43e6-8620-81d703b26d60"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Shift:]]></text>
+			</staticText>
+			<textField pattern="MMMM d, yyyy">
+				<reportElement x="235" y="16" width="117" height="16" uuid="1f1c3d1f-8d10-421d-935c-3daf1cd6a75f">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{shift_num}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement x="0" y="39" width="523" height="60" uuid="5f062885-2214-459f-b351-7ac1be5ec737"/>
+				<subreportParameter name="transfer_id">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["ticket_turnover_items.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<summary>
+		<band height="80" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="10" width="150" height="15" uuid="2f7b6f76-4271-46e8-9853-2cfbe5522561">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font size="8" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Turned over by:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="40" width="150" height="15" uuid="c9ce5e77-4fb0-474b-8f48-a6a87269c918">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<bottomPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sender_full_name} != null ? $F{sender_full_name} : $P{turnover_by}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="177" y="10" width="168" height="15" uuid="496a10fc-f062-4faf-b1a1-3ff464022228">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font size="8" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Received and delivered to production by:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="186" y="40" width="150" height="15" uuid="50f615f5-1810-43f6-b117-ec7f39f00722">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<bottomPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{mopping_personnel}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="373" y="10" width="150" height="15" uuid="aaaa59fa-6d4a-4f90-b8af-823ef869e0fe">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font size="8" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Received by:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="373" y="40" width="150" height="15" uuid="5f68846b-3532-4214-a30d-71ca47dbb0cf">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<bottomPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{recipient_full_name} != null ? $F{recipient_full_name} : ""]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="55" width="150" height="15" uuid="c3f6e477-e5b7-4f70-b0aa-38d38010df0c"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Station Cashier]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="186" y="55" width="150" height="15" uuid="e0453f45-2601-4197-885d-6c6c39eabd46"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Mopping Personnel]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="373" y="55" width="150" height="15" uuid="ec298c39-f775-40c0-b2a0-24a9175beb1a"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[FROG Representative]]></text>
+			</staticText>
+		</band>
+	</summary>
+</jasperReport>
