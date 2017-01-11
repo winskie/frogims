@@ -1068,8 +1068,8 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 	}
 ]);
 
-app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'ShiftTurnover',
-	function( $scope, $filter, $state, $stateParams, session, appData, notifications, ShiftTurnover )
+app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'ShiftTurnover', 'ReportServices',
+	function( $scope, $filter, $state, $stateParams, session, appData, notifications, ShiftTurnover, ReportServices )
 	{
 		$scope.pendingAction = false;
 
@@ -1166,6 +1166,26 @@ app.controller( 'ShiftTurnoverController', [ '$scope', '$filter', '$state', '$st
 							$scope.pendingAction = false;
 						});
 				}
+			};
+
+		$scope.printReport = function( report )
+			{
+				switch( report )
+				{
+					case 'shiftTurnoverSummary':
+						var params = {
+								store_id: $scope.shiftTurnover.st_store_id,
+								business_date: $filter( 'date' )( $scope.shiftTurnover.st_from_date, 'yyyy-MM-dd' ),
+								shift_id: $scope.shiftTurnover.st_from_shift_id
+							};
+						report = 'shift_turnover_summary';
+						break;
+
+					default:
+						return;
+				}
+
+				ReportServices.generateReport( report, params );
 			};
 
 		// Initialize controller

@@ -245,4 +245,36 @@ class Report extends MY_Controller {
                 // do nothing for now
         }
     }
+
+    function shift_turnover_summary()
+    {
+        $current_user = current_user();
+        $params = $this->input->get();
+
+        $params = array_merge( $params, array(
+                'transfer_id' => NULL,
+                'business_date' => date( DATE_FORMAT ),
+                'shift_id' => NULL
+            ), $params );
+
+        $report_mode = $this->config->item( 'report_mode' );
+        switch( $report_mode )
+        {
+            case 'JasperReports':
+                $report_path = 'TMIS/shift_turnover_summary';
+
+                // Get report format
+                $format = NULL;
+                if( isset( $params['format'] ) )
+                {
+                    $format = $params['format'];
+                    unset( $params['format'] );
+                }
+
+                return $this->_generate_jasper_report( $report_path, $format, $params );
+
+            default:
+                // do nothing for now
+        }
+    }
 }

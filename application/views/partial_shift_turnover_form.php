@@ -100,19 +100,24 @@
 </div>
 
 <!-- Form buttons -->
-<div class="text-right">
-	<button type="button" class="btn"
-			ng-if="shiftTurnover.canOpen() && data.editMode != 'view'"
-			ng-disabled="pendingAction || !shiftTurnover.canOpen()"
-			ng-class="{ 'btn-default': shiftTurnover.st_status == 1, 'btn-primary': shiftTurnover.st_status != 1 }"
-			ng-click="saveTurnover( shiftTurnover.st_status == 1 ? 'update' : 'open' )"
-			<i class="glyphicon glyphicon-ok"></i> {{ shiftTurnover.st_status == null ? 'Start Shift' : 'Update Beginning Balances' }}
-	</button>
-	<button type="button" class="btn btn-primary"
-			ng-if="shiftTurnover.canClose() && data.editMode != 'view'"
-			ng-disabled="pendingAction || !shiftTurnover.canClose()"
-			ng-click="saveTurnover( 'close' )"
-			<i class="glyphicon glyphicon-ok"></i> End Shift
-	</button>
-	<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'shiftTurnovers' })">Close</button>
+<div class="row">
+	<div class="col-sm-6 text-left">
+		<button type="button" class="btn btn-default" ng-click="printReport('shiftTurnoverSummary')" ng-if="shiftTurnover.st_status == <?php echo SHIFT_TURNOVER_CLOSED;?>">Print Shift Turnover Summary</button>
+	</div>
+	<div class="col-sm-6 text-right">
+		<button type="button" class="btn"
+				ng-if="shiftTurnover.canOpen() && data.editMode != 'view'"
+				ng-disabled="pendingAction || !shiftTurnover.canOpen()"
+				ng-class="{ 'btn-default': shiftTurnover.st_status == 1, 'btn-primary': shiftTurnover.st_status != 1 }"
+				ng-click="saveTurnover( shiftTurnover.st_status == 1 ? 'update' : 'open' )"
+				<i class="glyphicon glyphicon-ok"></i> {{ shiftTurnover.st_status == null ? 'Start Shift' : 'Update Beginning Balances' }}
+		</button>
+		<button type="button" class="btn btn-primary"
+				ng-if="shiftTurnover.canClose() && data.editMode != 'view'"
+				ng-disabled="pendingAction || !shiftTurnover.canClose()"
+				ng-click="saveTurnover( 'close' )"
+				<i class="glyphicon glyphicon-ok"></i> End Shift
+		</button>
+		<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: 'shiftTurnovers' })">Close</button>
+	</div>
 </div>
