@@ -191,11 +191,15 @@ class Mopping_item extends Base_model {
         $ci->load->library( 'inventory' );
         $inventory = new Inventory();
         $parent = $this->get_parent();
+
+        // $transaction_datetime = $parent->get( 'processing_datetime' );
+        $transaction_datetime = date( TIMESTAMP_FORMAT );
+
         $inventory = $inventory->get_by_store_item( $parent->get( 'store_id' ), $this->mopped_item_id );
         if( $inventory )
         {
             $quantity = $this->mopped_quantity * -1; // Quantity will be deducted from the inventory
-            $inventory->transact( TRANSACTION_MOPPING_VOID, $quantity, $parent->get( 'processing_datetime' ), $this->mopping_id, $this->id );
+            $inventory->transact( TRANSACTION_MOPPING_VOID, $quantity, $transaction_datetime, $this->mopping_id, $this->id );
         }
         else
         {

@@ -1992,7 +1992,7 @@ class Api_v1 extends MY_Controller {
 											'shift' => param( $this->input->get(), 'shift' ),
 											'page' => param( $this->input->get(), 'page' ),
 											'limit' => param( $this->input->get(), 'limit' ),
-											'order' => 'transaction_datetime DESC, id DESC'
+											'order' => 'id DESC, transaction_datetime DESC'
 										);
 										$transactions = $store->get_transactions( $params );
 										$total_transactions = $store->count_transactions( $params );

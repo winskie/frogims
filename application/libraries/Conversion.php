@@ -359,6 +359,9 @@ class Conversion extends Base_model {
             $source_item_id = $source_inventory->get( 'item_id' );
             $target_item_id = $target_inventory->get( 'item_id' );
 
+            //$transaction_datetime = $this->conversion_datetime;
+            $transaction_datetime = date( TIMESTAMP_FORMAT );
+
             $output = $this->convert( $source_item_id, $target_item_id, $this->source_quantity );
 
             if( is_array( $output ) )
@@ -376,8 +379,8 @@ class Conversion extends Base_model {
                 }
             }
 
-            $source_inventory->transact( TRANSACTION_CONVERSION_FROM, ( $this->source_quantity * -1 ), $this->conversion_datetime, $this->id );
-            $target_inventory->transact( TRANSACTION_CONVERSION_TO, $this->target_quantity, $this->conversion_datetime, $this->id );
+            $source_inventory->transact( TRANSACTION_CONVERSION_FROM, ( $this->source_quantity * -1 ), $transaction_datetime, $this->id );
+            $target_inventory->transact( TRANSACTION_CONVERSION_TO, $this->target_quantity, $transaction_datetime, $this->id );
             $ci->db->trans_complete();
         }
         else

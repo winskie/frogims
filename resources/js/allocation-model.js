@@ -3,16 +3,16 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 	{
 		var id;
 		var store_id;
-    var business_date;
+		var business_date;
 		var shift_id;
-    var station_id;
+		var station_id;
 		var assignee;
-    var assignee_type;
-    var cashier_id;
-    var allocation_status;
+		var assignee_type;
+		var cashier_id;
+		var allocation_status;
 
-    var allocations;
-    var remittances;
+		var allocations;
+		var remittances;
 
 		var allocationSummary;
 
@@ -705,10 +705,10 @@ angular.module( 'coreModels' ).factory( 'AllocationItem', [ '$http', '$q', '$fil
 				me.id = null;
 				me.allocation_id = null;
 				me.cashier_id = null;
-    		me.allocated_item_id = null;
-    		me.allocated_quantity = null;
-    		me.allocation_category_id = null;
-    		me.allocation_datetime = new Date();
+				me.allocated_item_id = null;
+				me.allocated_quantity = null;
+				me.allocation_category_id = null;
+				me.allocation_datetime = new Date();
 
 				switch( type )
 				{

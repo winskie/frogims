@@ -960,7 +960,7 @@ $current_user = current_user();
 												</tr>
 											</thead>
 											<tbody>
-												<tr ng-repeat="item in collection.collectionSummary" ng-class="{ deleted: item.status == <?php echo MOPPING_ITEM_VOIDED;?> }">
+												<tr ng-repeat="item in collection.collectionSummary" ng-class="{ deleted: item.item_status == <?php echo MOPPING_ITEM_VOIDED;?> }">
 													<td>{{ item.item_description }}</td>
 													<td class="text-center">{{ item.quantity | number }}</td>
 												</tr>

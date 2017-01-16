@@ -792,11 +792,15 @@ class Transfer extends Base_model {
 			{
 				$inventory = new Inventory();
 				$inventory = $inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
+
+				//$transaction_datetime = $this->transfer_datetime;
+				$transaction_datetime = date( TIMESTAMP_FORMAT );
+
 				if( $inventory )
 				{
 					$quantity = $item->get( 'quantity' ) * -1; // Item will be removed from inventory
 					$inventory->reserve( $quantity );
-					$inventory->transact( TRANSACTION_TRANSFER_OUT, $quantity, $this->transfer_datetime, $this->id, $item->get( 'id' ) );
+					$inventory->transact( TRANSACTION_TRANSFER_OUT, $quantity, $transaction_datetime, $this->id, $item->get( 'id' ) );
 
 					$item->set( 'transfer_item_status', TRANSFER_ITEM_APPROVED );
 					$item->db_save();
@@ -825,6 +829,10 @@ class Transfer extends Base_model {
 		{
 			$inventory = new Inventory();
 			$inventory = $inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
+
+			//$transaction_datetime = $this->transfer_datetime;
+			$transaction_datetime = date( TIMESTAMP_FORMAT );
+
 			if( ! $inventory )
 			{ // Somehow the inventory record was removed prior to cancellation of transfer, let's create a new inventory record
 				$current_store = current_store();
@@ -838,7 +846,7 @@ class Transfer extends Base_model {
 			$quantity = $item->get( 'quantity' ); // Item will be returned to the inventory
 			if( $item->get( 'transfer_item_status' ) == TRANSFER_ITEM_APPROVED )
 			{
-				$inventory->transact( TRANSACTION_TRANSFER_CANCEL, $quantity, $this->transfer_datetime, $this->id, $item->get( 'id' ) );
+				$inventory->transact( TRANSACTION_TRANSFER_CANCEL, $quantity, $transaction_datetime, $this->id, $item->get( 'id' ) );
 			}
 
 			if( in_array( $item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_SCHEDULED, TRANSFER_ITEM_APPROVED ) ) )
@@ -867,6 +875,10 @@ class Transfer extends Base_model {
 			{
 				$inventory = new Inventory();
 				$inventory = $inventory->get_by_store_item( $this->destination_id, $item->get( 'item_id' ) );
+
+				//$transaction_datetime = $this->receipt_datetime;
+				$transaction_datetime = date( TIMESTAMP_FORMAT );
+
 				if( ! $inventory )
 				{ // Current store does not carry item yet, let's create a new inventory record
 					$current_store = current_store();
@@ -883,7 +895,7 @@ class Transfer extends Base_model {
 					$quantity = $item->get( 'quantity' );
 					$item->set( 'quantity_received', $quantity );
 				}
-				$inventory->transact( TRANSACTION_TRANSFER_IN, $quantity, $this->receipt_datetime, $this->id, $item->get( 'id' ) );
+				$inventory->transact( TRANSACTION_TRANSFER_IN, $quantity, $transaction_datetime, $this->id, $item->get( 'id' ) );
 
 				$item->set( 'transfer_item_status', TRANSFER_ITEM_RECEIVED );
 				$item->db_save();
@@ -900,7 +912,8 @@ class Transfer extends Base_model {
 		$ci =& get_instance();
 
 		$ci->load->library( 'inventory' );
-		$timestamp = date( TIMESTAMP_FORMAT );
+		//$transaction_datetime = $this->transfer_datetime;
+		$transaction_datetime = date( TIMESTAMP_FORMAT );
 
 		$ci->db->trans_start();
 		if( isset( $this->voided_items ) && $this->voided_items )
@@ -913,7 +926,7 @@ class Transfer extends Base_model {
 				if( $inventory )
 				{
 					$quantity = $v;
-					$inventory->transact( TRANSACTION_TRANSFER_VOID, $quantity, $this->transfer_datetime, $this->id, $k );
+					$inventory->transact( TRANSACTION_TRANSFER_VOID, $quantity, $transaction_datetime, $this->id, $k );
 				}
 			}
 		}

@@ -369,7 +369,7 @@ class Store extends Base_model
 		$limit = param( $params, 'limit' );
 		$page = param( $params, 'page', 1 );
 		$format = param( $params, 'format', 'object' );
-		$order = param( $params, 'order', 'transaction_datetime DESC' );
+		$order = param( $params, 'order', 'transaction_datetime DESC, id DESC' );
 
 		if( $limit )
 		{

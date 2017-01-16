@@ -296,14 +296,17 @@ class Mopping extends Base_model {
             $inventory = new Inventory();
             $inventory = $inventory->get_by_store_item( $this->store_id, $item->get( 'mopped_item_id' ) );
 
+            //$transaction_datetime = $this->processing_datetime;
+            $transaction_datetime = date( TIMESTAMP_FORMAT );
+
             if( $inventory )
             {
                 $quantity = $item->get( 'mopped_quantity' );
                 if( intval( $item->get( 'mopped_station_id' ) ) === 0 )
                 { // issuance from stock, deduct same quantity from inventory
-                    $inventory->transact( TRANSACTION_MOPPING_ISSUANCE, ( $quantity * -1 ), $this->processing_datetime, $this->id, $item->get( 'id' ) );
+                    $inventory->transact( TRANSACTION_MOPPING_ISSUANCE, ( $quantity * -1 ), $transaction_datetime, $this->id, $item->get( 'id' ) );
                 }
-                $inventory->transact( TRANSACTION_MOPPING_COLLECTION, $quantity, $this->processing_datetime, $this->id, $item->get( 'id' ) );
+                $inventory->transact( TRANSACTION_MOPPING_COLLECTION, $quantity, $transaction_datetime, $this->id, $item->get( 'id' ) );
             }
             else
             {
@@ -382,7 +385,8 @@ class Mopping extends Base_model {
 
         $ci->load->library( 'inventory' );
 
-        $timestamp = date( TIMESTAMP_FORMAT );
+        //$transaction_datetime = $this->processing_datetime;
+        $transaction_datetime = date( TIMESTAMP_FORMAT );
 
         if( isset( $this->void_items ) && $this->void_items )
         {
@@ -395,7 +399,7 @@ class Mopping extends Base_model {
                 if( $inventory )
                 {
                     $quantity = $v * -1;
-                    $inventory->transact( TRANSACTION_MOPPING_VOID, $quantity, $this->processing_datetime, $this->id, $k );
+                    $inventory->transact( TRANSACTION_MOPPING_VOID, $quantity, $transaction_datetime, $this->id, $k );
                 }
             }
             $ci->db->trans_complete();

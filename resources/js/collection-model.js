@@ -153,27 +153,28 @@ angular.module( 'coreModels' ).factory( 'Collection', [ '$http', '$q', '$filter'
 
 				for( var i = 0; i < n; i++ )
 				{
-					if( ignoredStatus.indexOf( this.items[i].mopped_item_status) != -1 || this.items[i].markedVoid )
+					if( ignoredStatus.indexOf( this.items[i].mopping_item_status) != -1 || this.items[i].markedVoid )
 					{
-						continue;
+						// continue;
 					}
 
 					if( !this.items[i].converted_to )
 					{
-						if( tempObj[this.items[i].mopped_item_id] )
+						if( tempObj[this.items[i].mopped_item_id + '_' + this.items[i].mopping_item_status] )
 						{
 							tempObj[this.items[i].mopped_item_id].quantity += this.items[i].mopped_quantity;
 							tempObj[this.items[i].mopped_item_id].src_rows.push( this.items[i].id );
 						}
 						else
 						{
-							tempObj[this.items[i].mopped_item_id] = {
+							tempObj[this.items[i].mopped_item_id + '_' + this.items[i].mopping_item_status] = {
 									item_id: this.items[i].mopped_item_id,
 									item_name: this.items[i].mopped_item_name,
 									item_description: this.items[i].mopped_item_description,
 									quantity: this.items[i].mopped_quantity,
 									src_rows: [ this.items[i].id ],
-									valid_item: true
+									valid_item: true,
+									item_status: this.items[i].mopping_item_status
 								};
 						}
 
@@ -182,7 +183,7 @@ angular.module( 'coreModels' ).factory( 'Collection', [ '$http', '$q', '$filter'
 					else
 					{
 						var cFactor = Conversion.getConversionData( this.items[i].converted_to, this.items[i].mopped_item_id ).factor;
-						var currentItem = groupObj[lastGroup + '_' + this.items[i].mopped_item_id + '_' + this.items[i].converted_to];
+						var currentItem = groupObj[lastGroup + '_' + this.items[i].mopped_item_id + '_' + this.items[i].converted_to + '_' + this.items[i].mopping_item_status];
 
 						if( currentItem )
 						{
@@ -192,7 +193,7 @@ angular.module( 'coreModels' ).factory( 'Collection', [ '$http', '$q', '$filter'
 						}
 						else
 						{
-							groupObj[lastGroup + '_' + this.items[i].mopped_item_id + '_' + this.items[i].converted_to] = {
+							groupObj[lastGroup + '_' + this.items[i].mopped_item_id + '_' + this.items[i].converted_to + '_' + this.items[i].mopping_item_status] = {
 									group_id: lastGroup,
 									original_item_id: this.items[i].mopped_item_id,
 									item_id: this.items[i].converted_to,
@@ -200,10 +201,11 @@ angular.module( 'coreModels' ).factory( 'Collection', [ '$http', '$q', '$filter'
 									item_description: this.items[i].converted_to_description,
 									quantity: this.items[i].mopped_quantity,
 									src_rows: [ i ],
-									valid_item: this.items[i].mopped_quantity == cFactor
+									valid_item: this.items[i].mopped_quantity == cFactor,
+									item_status: this.items[i].mopping_item_status
 								};
 
-							currentItem = groupObj[lastGroup + '_' + this.items[i].mopped_item_id + '_' + this.items[i].converted_to];
+							currentItem = groupObj[lastGroup + '_' + this.items[i].mopped_item_id + '_' + this.items[i].converted_to + '_' + this.items[i].mopping_item_status];
 						}
 
 						this.items[i].group_id = lastGroup;
@@ -219,21 +221,22 @@ angular.module( 'coreModels' ).factory( 'Collection', [ '$http', '$q', '$filter'
 				{
 					cQuantity = Conversion.convert( groupObj[key].original_item_id, groupObj[key].item_id, groupObj[key].quantity );
 
-					if( tempObj[groupObj[key].item_id] )
+					if( tempObj[groupObj[key].item_id + '_' + groupObj[key].item_status] )
 					{
-						tempObj[groupObj[key].item_id].quantity += cQuantity;
-						tempObj[groupObj[key].item_id].src_rows = tempObj[groupObj[key].item_id].src_rows.concat( groupObj[key].src_rows );
-						tempObj[groupObj[key].item_id].valid_item = tempObj[groupObj[key].item_id].valid_item;
+						tempObj[groupObj[key].item_id + '_' + groupObj[key].item_status].quantity += cQuantity;
+						tempObj[groupObj[key].item_id + '_' + groupObj[key].item_status].src_rows = tempObj[groupObj[key].item_id + '_' + groupObj[key].item_status].src_rows.concat( groupObj[key].src_rows );
+						tempObj[groupObj[key].item_id + '_' + groupObj[key].item_status].valid_item = tempObj[groupObj[key].item_id + '_' + groupObj[key].item_status].valid_item;
 					}
 					else
 					{
-						tempObj[groupObj[key].item_id] = {
+						tempObj[groupObj[key].item_id + '_' + groupObj[key].item_status] = {
 								item_id: groupObj[key].item_id,
 								item_name: groupObj[key].item_name,
 								item_description: groupObj[key].item_description,
 								quantity: cQuantity,
 								src_rows: groupObj[key].src_rows,
-								valid_item: groupObj[key].valid_item
+								valid_item: groupObj[key].valid_item,
+								item_status: groupObj[key].item_status
 							};
 					}
 

@@ -123,7 +123,7 @@ class Inventory extends Base_model
 		$ci->db->set( 'transaction_id', $reference_id);
 		$ci->db->set( 'transaction_item_id', $reference_item_id );
 		$ci->db->set( 'transaction_timestamp', $timestamp );
-        $ci->db->set( 'transaction_shift', $current_shift );
+		$ci->db->set( 'transaction_shift', $current_shift );
 		$ci->db->insert( 'transactions' );
 
 		$ci->db->trans_complete();

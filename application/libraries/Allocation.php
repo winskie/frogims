@@ -753,7 +753,8 @@ class Allocation extends Base_model {
 
         $ci->load->library( 'inventory' );
         $allocations = $this->get_allocations();
-        $transaction_datetime = $this->business_date.' '.date( 'H:i:s' );
+        //$transaction_datetime = $this->business_date.' '.date( 'H:i:s' );
+        $transaction_datetime = date( TIMESTAMP_FORMAT );
 
         $ci->db->trans_start();
         foreach( $allocations as $allocation )
@@ -790,7 +791,8 @@ class Allocation extends Base_model {
 
         $ci->load->library( 'inventory' );
         $remittances = $this->get_remittances();
-        $transaction_datetime = $this->business_date.' '.date( 'H:i:s' );
+        //$transaction_datetime = $this->business_date.' '.date( 'H:i:s' );
+        $transaction_datetime = date( TIMESTAMP_FORMAT );
 
         $ci->db->trans_start();
         foreach( $remittances as $remittance )
@@ -824,7 +826,8 @@ class Allocation extends Base_model {
         $ci =& get_instance();
 
         $ci->load->library( 'inventory' );
-        $transaction_datetime = $this->business_date.' '.date( 'H:i:s' );
+        //$transaction_datetime = $this->business_date.' '.date( 'H:i:s' );
+        $transaction_datetime = date( TIMESTAMP_FORMAT );
 
         $ci->db->trans_start();
         if( isset( $this->voided_allocations ) && $this->voided_allocations )

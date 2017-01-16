@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.3.0.final using JasperReports Library version 6.3.0  -->
-<!-- 2017-01-11T08:58:55 -->
+<!-- 2017-01-11T09:50:16 -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Shift Turnover Summary" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="a143d9c5-4433-4605-beed-abb3a5525995">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="TMIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Development Server"/>
 	<property name="ireport.jasperserver.url" value="http://localhost:8080/jasperserver/"/>
 	<property name="ireport.jasperserver.user" value="jasperadmin"/>
-	<property name="ireport.jasperserver.report.resource" value="/reports/TMIS/shift_turnover_summary_files/main_jrxml"/>
 	<property name="ireport.jasperserver.reportUnit" value="/reports/TMIS/shift_turnover_summary"/>
 	<parameter name="store_id" class="java.lang.Integer"/>
 	<parameter name="business_date" class="java.lang.String"/>
@@ -176,7 +175,7 @@ WHERE
 					<subreportParameterExpression><![CDATA[$F{st_from_shift_id}]]></subreportParameterExpression>
 				</subreportParameter>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-				<subreportExpression><![CDATA["Shift Turnover Transaction Summary.jasper"]]></subreportExpression>
+				<subreportExpression><![CDATA["shift_turnover_transaction_summary.jasper"]]></subreportExpression>
 			</subreport>
 			<subreport>
 				<reportElement positionType="Float" x="25" y="121" width="504" height="59" uuid="7d15e8da-05b1-47da-bc31-39fbae22cd34"/>
