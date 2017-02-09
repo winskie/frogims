@@ -512,6 +512,11 @@ class Allocation extends Base_model {
             $this->set( 'business_date', date( DATE_FORMAT ) );
         }
 
+        if( ! isset( $this->cashier_id ) )
+        {
+            $this->set( 'cashier_id', $ci->session->current_user_id );
+        }
+
         if( ! isset( $this->allocation_status ) )
         {
             $this->set( 'allocation_status', ALLOCATION_SCHEDULED );
