@@ -149,11 +149,13 @@ CREATE TABLE IF NOT EXISTS store_users
 )
 ENGINE=InnoDB;
 
+-- item_type: 0 - defective, 1 - usable
 CREATE TABLE IF NOT EXISTS items
 (
 	id INTEGER AUTO_INCREMENT NOT NULL,
 	item_name VARCHAR(100) NOT NULL,
 	item_description VARCHAR(255) NULL,
+	item_class VARCHAR(20) NOT NULL DEFAULT 'ticket',
 	item_unit VARCHAR(20) NULL,
 	item_type SMALLINT NOT NULL DEFAULT 1,
 	item_group VARCHAR(100) NULL,
@@ -612,6 +614,23 @@ CREATE TABLE IF NOT EXISTS item_categories
 		ON UPDATE CASCADE
 		ON DELETE CASCADE,
 	FOREIGN KEY ic_category_fk (ic_category_id) REFERENCES categories (id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
+)
+ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS item_prices
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	iprice_item_id INTEGER NOT NULL,
+	iprice_currency VARCHAR(5) NOT NULL DEFAULT 'PHP',
+	iprice_unit_price DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+	date_created DATETIME NOT NULL,
+	date_modified TIMESTAMP NOT NULL,
+	last_modified INTEGER NOT NULL,
+	PRIMARY KEY (id),
+	UNIQUE iprice_currency_udx (iprice_item_id, iprice_currency),
+	FOREIGN KEY iprice_item_fk (iprice_item_id) REFERENCES items (id)
 		ON UPDATE CASCADE
 		ON DELETE CASCADE
 )

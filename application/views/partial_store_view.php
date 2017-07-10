@@ -1112,9 +1112,9 @@ $current_user = current_user();
 											<tbody>
 												<tr ng-repeat="item in row.allocationSummary">
 													<td>{{ item.item_description }}</td>
-													<td class="text-right">{{ ( item.initial === 0 ? '---' : ( item.initial | number ) ) + ( item.scheduled !== 0 ? ' (' + item.scheduled + ')' : '' ) }}</td>
-													<td class="text-right">{{ item.additional === 0 ? '---' : ( item.additional | number ) }}</td>
-													<td class="text-right">{{ item.remitted === 0 ? '---' : ( item.remitted | number ) }}</td>
+													<td class="text-right">{{ ( item.initial === 0 ? '---' : ( item.item_class == 'cash' ? ( item.initial | number: 2 ) : ( item.initial | number ) ) ) + ( item.scheduled !== 0 ? ' (' + item.scheduled + ')' : '' ) }}</td>
+													<td class="text-right">{{ item.additional === 0 ? '---' : ( item.item_class == 'cash' ? ( item.additional | number: 2 ) : ( item.additional | number ) ) }}</td>
+													<td class="text-right">{{ item.remitted === 0 ? '---' : ( item.item_class == 'cash' ? ( item.remitted | number : 2 ) : ( item.remitted | number ) ) }}</td>
 												</tr>
 											</tbody>
 										</table>

@@ -2935,8 +2935,8 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 			var assigneeType = $scope.data.selectedAssigneeType;
 			var phase = $scope.data.allocationPhase;
 			var status = $scope.allocationItem ? $scope.allocationItem.allocation_status : 1; // ALLOCATION_SCHEDULED
-			var preAllocationCategories = [ 'Initial Allocation', 'Magazine Load' ];
-			var postAllocationCategories = [ 'Additional Allocation', 'Magazine Load' ];
+			var preAllocationCategories = [ 'Initial Allocation', 'Magazine Load', 'Initial Change Fund', 'Coin Replenishment' ];
+			var postAllocationCategories = [ 'Additional Allocation', 'Magazine Load', 'Additional Change Fund', 'Coin Replenishment' ];
 
 			switch( assigneeType.id )
 			{
@@ -3005,7 +3005,8 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 				assigneeLabel: 'Teller Name',
 				assigneeShiftLabel: 'Teller Shift',
 				remittancesTabLabel: 'Remittances',
-				remittancesEmptyText: 'No remittance items'
+				remittancesEmptyText: 'No ticket remittance items',
+				cashRemittancesEmptyText: 'No cash remittance items'
 			};
 
 		$scope.input = {
@@ -3116,12 +3117,24 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 
 		$scope.getItemQuantities = function()
 			{
+
 				switch( $scope.data.allocationPhase )
 				{
 					case 'allocation':
-						var items = $scope.allocationItem.allocations;
-						var n = items.length;
+						var items, n;
+						switch( $scope.input.item.item_class )
+						{
+							case 'ticket':
+								items = $scope.allocationItem.allocations;
+								break;
+
+							case 'cash':
+								items = $scope.allocationItem.cash_allocations;
+								break;
+						}
+						n = items.length;
 						$scope.input.itemReservedQuantity = 0;
+
 						for( var i = 0; i < n; i++ )
 						{
 							if( items[i].allocated_item_id == $scope.input.item.item_id
@@ -3214,6 +3227,10 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 							cashier_shift_num: session.data.currentShift.shift_num,
 							category_name: $scope.input.category.category,
 							item_name: $scope.input.item.item_name,
+							item_class: $scope.input.item.item_class,
+
+							iprice_currency: $scope.input.item.iprice_currency,
+							iprice_unit_price: $scope.input.item.iprice_unit_price,
 
 							cashier_shift_id: session.data.currentShift.id,
 							allocated_item_id: $scope.input.item.item_id,
@@ -3246,12 +3263,15 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 				switch( phase )
 				{
 					case 'allocation':
+					case 'cash_allocation':
 						if( itemRow.allocation_item_status == 10 ) // ALLOCATION_ITEM_SCHEDULED
 						{ // remove only scheduled items
 							$scope.allocationItem.removeAllocationItem( itemRow );
 						}
 						break;
+
 					case 'remittance':
+					case 'cash_remittance':
 						if( itemRow.allocation_item_status == 20 ) // REMITTANCE_ITEM_PENDING
 						{ // remove only scheduled items
 							$scope.allocationItem.removeRemittanceItem( itemRow );

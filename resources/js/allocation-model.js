@@ -12,7 +12,9 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 		var allocation_status;
 
 		var allocations;
+		var cash_allocations;
 		var remittances;
+		var cash_remittances;
 
 		var allocationSummary;
 
@@ -69,23 +71,38 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 				me.allocation_status = 1;
 
 				me.allocations = [];
+				me.cash_allocations = [];
 				me.remittances = [];
+				me.cash_remittances = [];
 
 				me.allocationSummary = [];
 
 				if( data )
 				{
 					var allocationItems = [];
+					var allocationCashItems = [];
 					var remittanceItems = [];
+					var remittanceCashItems = [];
+
 					if( data.allocations )
 					{
 						angular.copy( data.allocations, allocationItems );
 						delete data.allocations;
 					}
+					if( data.cash_allocations )
+					{
+						angular.copy( data.cash_allocations, allocationCashItems );
+						delete data.cash_allocations;
+					}
 					if( data.remittances )
 					{
 						angular.copy( data.remittances, remittanceItems );
 						delete data.remittances;
+					}
+					if( data.cash_remittances )
+					{
+						angular.copy( data.cash_remittances, remittanceCashItems );
+						delete data.cash_remittances;
 					}
 
 					angular.merge( me, data );
@@ -105,6 +122,16 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 						}
 					}
 
+					// Cash Allocation items
+					if( allocationCashItems )
+					{
+						var n = allocationCashItems.length;
+						for( var i = 0; i < n; i++ )
+						{
+							me.cash_allocations.push( new AllocationItem( allocationCashItems[i] ) );
+						}
+					}
+
 					// Remittance items
 					if( remittanceItems )
 					{
@@ -112,6 +139,16 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 						for( var i = 0; i < n; i++ )
 						{
 							me.remittances.push( new AllocationItem( remittanceItems[i] ) );
+						}
+					}
+
+					// Remittance items
+					if( remittanceCashItems )
+					{
+						var n = remittanceCashItems.length;
+						for( var i = 0; i < n; i++ )
+						{
+							me.cash_remittances.push( new AllocationItem( remittanceCashItems[i] ) );
 						}
 					}
 
@@ -160,7 +197,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 			{
 				return this.allocation_status == 1 &&
 							 session.checkPermissions( 'allocations', 'edit' ) &&
-							 ( showAction || this.getValidAllocations().length > 0 ) &&
+							 ( showAction || this.getValidAllocations().length > 0 || this.getValidCashAllocations().length > 0 ) &&
 							 ( showAction || this.assignee );
 			};
 
@@ -173,14 +210,15 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 						return this.allocation_status == 2
 									 && session.checkPermissions( 'allocations', 'complete' )
 									 && ( showAction || !this.hasPendingAllocation() )
-									 && ( showAction || this.getValidAllocations().length > 0 )
+									 && ( showAction || this.getValidAllocations().length > 0 || this.getValidCashAllocations().length > 0 )
 									 && ( showAction || this.assignee );
 
 					case 2: // TVM
 						return ( this.allocation_status == 1 || this.allocation_status == 2 )
 									 && session.checkPermissions( 'allocations', 'complete' )
 									 && ( showAction || !this.hasPendingAllocation() )
-									 && ( showAction || ( this.getValidAllocations().length > 0 || this.getValidRemittances().length > 0 ) )
+									 && ( showAction || ( this.getValidAllocations().length > 0 || this.getValidCashAllocations().length > 0
+									 		|| this.getValidRemittances().length > 0 || this.getValidCashRemittances().length > 0) )
 									 && ( showAction || this.assignee );
 				}
 			};
@@ -188,7 +226,8 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 
 		Allocation.prototype.canCancel = function()
 			{
-				return this.allocation_status == 1 && this.remittances.length == 0 && session.checkPermissions( 'allocations', 'edit' );
+				return this.allocation_status == 1 && ( this.remittances.length == 0 && this.cash_remittances.length == 0 )
+						&& session.checkPermissions( 'allocations', 'edit' );
 			};
 
 
@@ -198,6 +237,15 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 				for( var i = 0; i < n; i++ )
 				{
 					if( this.allocations[i].allocation_item_status == 10 ) // ALLOCATION_ITEM_SCHEDULED
+					{
+						return true;
+					}
+				}
+
+				n = this.cash_allocations.length;
+				for( var i = 0; i < n; i++ )
+				{
+					if( this.cash_allocations[i].allocation_item_status == 10 ) // ALLOCATION_ITEM_SCHEDULED
 					{
 						return true;
 					}
@@ -225,6 +273,24 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 			};
 
 
+		Allocation.prototype.getValidCashAllocations = function()
+			{
+				var n = this.cash_allocations.length;
+				var validCashAllocations = [];
+				for( var i = 0; i < n; i++ )
+				{
+					if( ( this.cash_allocations[i].allocation_item_status == 10 || this.cash_allocations[i].allocation_item_status == 11 ) &&
+							this.cash_allocations[i].allocated_quantity > 0 &&
+							!this.cash_allocations[i].markedVoid )
+					{
+						validCashAllocations.push( this.cash_allocations[i] );
+					}
+				}
+
+				return validCashAllocations;
+			};
+
+
 		Allocation.prototype.getValidRemittances = function()
 			{
 				var n = this.remittances.length;
@@ -243,16 +309,54 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 			};
 
 
+		Allocation.prototype.getValidCashRemittances = function()
+			{
+				var n = this.cash_remittances.length;
+				var validCashRemittances = [];
+				for( var i = 0; i < n; i++ )
+				{
+					if( ( this.cash_remittances[i].allocation_item_status == 20 || this.cash_remittances[i].allocation_item_status == 21 ) &&
+							this.cash_remittances[i].allocated_quantity > 0 &&
+							!this.cash_remittances[i].markedVoid )
+					{
+						validCashRemittances.push( this.cash_remittances[i] );
+					}
+				}
+
+				return validCashRemittances;
+			};
+
+
 		Allocation.prototype.addAllocationItem = function( item )
 			{
-				this.allocations.push( item );
+				switch( item.item_class )
+				{
+					case 'ticket':
+						this.allocations.push( item );
+						break;
+
+					case 'cash':
+						this.cash_allocations.push( item );
+						break;
+				}
+
 				this.updateAllocationSummary();
 			};
 
 
 		Allocation.prototype.addRemittanceItem = function( item )
 			{
-				this.remittances.push( item );
+				switch( item.item_class )
+				{
+					case 'ticket':
+						this.remittances.push( item );
+						break;
+
+					case 'cash':
+						this.cash_remittances.push( item );
+						break;
+				}
+
 				this.updateAllocationSummary();
 			};
 
@@ -264,11 +368,14 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 				var ignoredStatus = [ 12, 13, 22 ]; // ALLOCATION_ITEM_CANCELLED, ALLOCATION_ITEM_VOIDED, REMITTANCE_ITEM_VOIDED
 
 				var n = this.allocations.length;
+				var cn = this.cash_allocations.length;
 				var m = this.remittances.length;
+				var cm = this.cash_remittances.length;
 
 				switch( this.assignee_type )
 				{
 					case 1: // Station Teller
+						// Ticket allocations
 						for( var i = 0; i < n; i++ )
 						{
 							if( ignoredStatus.indexOf( this.allocations[i].allocation_item_status ) != -1 || this.allocations[i].markedVoid )
@@ -281,6 +388,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 								tempObj[this.allocations[i].allocated_item_id] = {
 										item_name: this.allocations[i].item_name,
 										item_description: this.allocations[i].item_description,
+										item_class: this.allocations[i].item_class,
 										scheduled: 0,
 										initial: 0,
 										additional: 0,
@@ -301,6 +409,43 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 								tempObj[this.allocations[i].allocated_item_id].additional += this.allocations[i].allocated_quantity;
 							}
 						}
+
+
+						// Cash allocations
+						for( var i = 0; i < cn; i++ )
+						{
+							if( ignoredStatus.indexOf( this.cash_allocations[i].allocation_item_status ) != -1 || this.cash_allocations[i].markedVoid )
+							{
+								continue;
+							}
+
+							if( !tempObj[this.cash_allocations[i].allocated_item_id] )
+							{
+								tempObj[this.cash_allocations[i].allocated_item_id] = {
+										item_name: this.cash_allocations[i].item_name,
+										item_description: this.cash_allocations[i].item_description,
+										item_class: this.cash_allocations[i].item_class,
+										scheduled: 0,
+										initial: 0,
+										additional: 0,
+										remitted: 0
+									};
+							}
+
+							if( this.cash_allocations[i].allocation_item_status == 10 )
+							{
+								tempObj[this.cash_allocations[i].allocated_item_id].scheduled += this.cash_allocations[i].allocated_quantity;
+							}
+							else if( this.cash_allocations[i].category_name == 'Initial Change Fund' )
+							{
+								tempObj[this.cash_allocations[i].allocated_item_id].initial += this.cash_allocations[i].allocated_quantity * this.cash_allocations[i].iprice_unit_price;
+							}
+							else if( this.cash_allocations[i].category_name == 'Additional Change Fund' )
+							{
+								tempObj[this.cash_allocations[i].allocated_item_id].additional += this.cash_allocations[i].allocated_quantity;
+							}
+						}
+
 
 						for( var i = 0; i < m; i ++ )
 						{
@@ -323,9 +468,32 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 
 							tempObj[this.remittances[i].allocated_item_id].remitted += this.remittances[i].allocated_quantity;
 						}
+
+						for( var i = 0; i < cm; i ++ )
+						{
+							if( ignoredStatus.indexOf( this.cash_remittances[i].allocation_item_status ) != -1 )
+							{
+								continue;
+							}
+
+							if( !tempObj[this.cash_remittances[i].allocated_item_id] )
+							{
+								tempObj[this.cash_remittances[i].allocated_item_id] = {
+										item_name: this.cash_remittances[i].item_name,
+										item_description: this.cash_remittances[i].item_description,
+										scheduled: 0,
+										initial: 0,
+										additional: 0,
+										remitted: 0
+									};
+							}
+
+							tempObj[this.cash_remittances[i].allocated_item_id].remitted += this.cash_remittances[i].allocated_quantity * this.cash_remittances[i].iprice_unit_price;
+						}
 						break;
 
-					case 2: // TVM
+					case 2: //
+						// Ticket remittances
 						for( var i = 0; i < n; i++ )
 						{
 							if( ignoredStatus.indexOf( this.allocations[i].allocation_item_status ) != -1 )
@@ -401,10 +569,22 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 
 		Allocation.prototype.removeAllocationItem = function( item )
 			{
+				console.log( item );
 				if( item.id == undefined )
 				{
-					var index = this.allocations.indexOf( item );
-					this.allocations.splice( index, 1 );
+					var index;
+					switch( item.item_class )
+					{
+						case 'ticket':
+							index = this.allocations.indexOf( item );
+							this.allocations.splice( index, 1 );
+							break;
+
+						case 'cash':
+							index = this.cash_allocations.indexOf( item );
+							this.cash_allocations.splice( index, 1 );
+							break;
+					}
 				}
 				else
 				{
@@ -419,8 +599,19 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 			{
 				if( item.id == undefined )
 				{
-					var index = this.remittances.indexOf( item );
-					this.remittances.splice( index, 1 );
+					var index;
+					switch( item.item_class )
+					{
+						case 'ticket':
+							index = this.remittances.indexOf( item );
+							this.remittances.splice( index, 1 );
+							break;
+
+						case 'cash':
+							index = this.cash_remittances.indexOf( item );
+							this.cash_remittances.splice( index, 1 );
+							break;
+					}
 				}
 				else
 				{
@@ -434,19 +625,21 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 		Allocation.prototype.checkAllocation = function( action )
 			{
 				var allocationCount = this.allocations.length;
+				var cashAllocationCount = this.cash_allocations.length;
 				var remittanceCount = this.remittances.length;
+				var cashRemittanceCount = this.cash_remittances.length;
 
-				var preAllocationCategories = [ 'Initial Allocation', 'Magazine Load' ];
-				var postAllocationCategories = [ 'Additional Allocation', 'Magazine Load' ];
+				var preAllocationCategories = [ 'Initial Allocation', 'Magazine Load', 'Change Fund' ];
+				var postAllocationCategories = [ 'Additional Allocation', 'Magazine Load', 'Change Fund' ];
 
-				var hasValidAllocationItem = this.getValidAllocations().length > 0;
-				var hasValidRemittanceItem = this.getValidRemittances().length > 0;
+				var hasValidAllocationItem = this.getValidAllocations().length > 0 || this.getValidCashAllocations().length > 0;
+				var hasValidRemittanceItem = this.getValidRemittances().length > 0 || this.getValidCashRemittances().length > 0;
 
 				switch( action )
 				{
 					case 'schedule':
 					case 'allocate':
-						if( this.assignee_type == 1 && allocationCount == 0 ) // ALLOCATION_ASSIGNEE_TELLER
+						if( this.assignee_type == 1 && allocationCount == 0 && cashAllocationCount == 0 ) // ALLOCATION_ASSIGNEE_TELLER
 						{
 							notifications.alert( 'Allocation does not contain any items', 'warning' );
 							return false;
@@ -540,13 +733,19 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 						allocation_status: this.allocation_status,
 
 						allocations: [],
-						remittances: []
+						cash_allocations: [],
+						remittances: [],
+						cash_remittances: []
 					};
 
 				var allocations = this.allocations;
 				var remittances = this.remittances;
+				var cash_allocations = this.cash_allocations;
+				var cash_remittances = this.cash_remittances;
 				var m = allocations.length;
 				var n = remittances.length;
+				var cm = cash_allocations.length;
+				var cn = cash_remittances.length;
 
 				for( var i = 0; i < m; i++ )
 				{
@@ -571,6 +770,29 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 					data.allocations.push( allocationData );
 				}
 
+				for( var i = 0; i < cm; i++ )
+				{
+					var allocationData = {
+							id: cash_allocations[i].id,
+							allocation_id: cash_allocations[i].allocation_id,
+							cashier_id: cash_allocations[i].cashier_id,
+							allocated_item_id: cash_allocations[i].allocated_item_id,
+							allocated_quantity: cash_allocations[i].allocated_quantity,
+							allocation_category_id: cash_allocations[i].allocation_category_id,
+							allocation_datetime: cash_allocations[i].allocation_datetime ? $filter( 'date' )( cash_allocations[i].allocation_datetime, 'yyyy-MM-dd HH:mm:ss' ) : null,
+							allocation_item_status: cash_allocations[i].allocation_item_status,
+							allocation_item_type: 1 // ALLOCATION_ITEM_TYPE_ALLOCATION
+						};
+
+					// Change item status of voided items
+					if( cash_allocations[i].markedVoid )
+					{
+						allocationData.allocation_item_status = 13 // ALLOCATION_ITEM_VOIDED
+					}
+
+					data.cash_allocations.push( allocationData );
+				}
+
 				for( var i = 0; i < n; i++ )
 				{
 					var remittanceData = {
@@ -592,6 +814,29 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 					}
 
 					data.remittances.push( remittanceData );
+				}
+
+				for( var i = 0; i < cn; i++ )
+				{
+					var remittanceData = {
+							id: cash_remittances[i].id,
+							allocation_id: cash_remittances[i].allocation_id,
+							cashier_id: cash_remittances[i].cashier_id,
+							allocated_item_id: cash_remittances[i].allocated_item_id,
+							allocated_quantity: cash_remittances[i].allocated_quantity,
+							allocation_category_id: cash_remittances[i].allocation_category_id,
+							allocation_datetime: cash_remittances[i].allocation_datetime ? $filter( 'date' )( cash_remittances[i].allocation_datetime, 'yyyy-MM-dd HH:mm:ss' ) : null,
+							allocation_item_status: cash_remittances[i].allocation_item_status,
+							allocation_item_type: 2 // ALLOCATION_ITEM_TYPE_REMITTANCE
+						};
+
+					// Change item status of voided items
+					if( cash_remittances[i].markedVoid )
+					{
+						remittanceData.allocation_item_status = 22 // REMITTANCE_ITEM_VOIDED
+					}
+
+					data.cash_remittances.push( remittanceData );
 				}
 
 				return data;
@@ -626,7 +871,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 						default:
 							// do nothing
 					}
-
+					console.log( allocationData );
 					$http({
 						method: 'POST',
 						url: allocationUrl,
@@ -678,6 +923,8 @@ angular.module( 'coreModels' ).factory( 'AllocationItem', [ '$http', '$q', '$fil
 		var allocation_item_status;
 		var allocation_item_type;
 
+		var item_class;
+
 		var allocationItemStatus = {
 				'10': 'Scheduled',
 				'11': 'Allocated',
@@ -710,14 +957,20 @@ angular.module( 'coreModels' ).factory( 'AllocationItem', [ '$http', '$q', '$fil
 				me.allocation_category_id = null;
 				me.allocation_datetime = new Date();
 
+				me.iprice_currency = null;
+				me.iprice_unit_price = null;
+				me.item_class = null;
+
 				switch( type )
 				{
 					case 'remittance':
+					case 'cash_remittance':
 						me.allocation_item_type = 2;
 						me.allocation_item_status = 20;
 						break;
 
 					case 'allocation':
+					case 'cash_allocation':
 					default:
 						me.allocation_item_type = 1;
 						me.allocation_item_status = 10;

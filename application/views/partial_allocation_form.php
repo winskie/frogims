@@ -85,27 +85,30 @@
                     <thead>
                         <tr>
                             <th class="text-center">Row</th>
-                            <th class="text-left">Time</th>
                             <th class="text-left">Cashier Shift</th>
                             <th class="text-left">Category</th>
                             <th class="text-left">Item Description</th>
                             <th class="text-center">Quantity</th>
+                            <th class="text-center">Total Amount</th>
                             <th class="text-center">Status</th>
                             <th class="text-center" ng-if="data.editMode != 'view'">Void</th>
                         </tr>
                     </thead>
                     <tbody>
+                        <tr>
+                            <td colspan="8"><h5>Ticket Items</h5></td>
+                        </tr>
                         <tr ng-repeat="row in allocationItem.allocations"
                                 ng-class="{
                                         danger: row.markedVoid || ( [<?php echo implode( ', ', array( ALLOCATION_ITEM_VOIDED, ALLOCATION_ITEM_CANCELLED ) );?>].indexOf( row.allocation_item_status ) != -1 ),
                                         deleted: ( [<?php echo implode( ', ', array( ALLOCATION_ITEM_VOIDED, ALLOCATION_ITEM_CANCELLED ) );?>].indexOf( row.allocation_item_status ) != -1 )
                                     }">
                             <td class="text-center">{{ $index + 1 }}</td>
-                            <td class="text-left">{{ row.allocation_datetime | date : 'HH:mm:ss' }}</td>
                             <td class="text-left">{{ row.cashier_shift_num }}</td>
                             <td class="text-left">{{ row.category_name }}</td>
                             <td class="text-left">{{ row.item_name }}</td>
                             <td class="text-center">{{ row.allocated_quantity | number }}</td>
+                            <td class="text-right"></td>
                             <td class="text-center">{{ row.get( 'allocationItemStatus' ) }}</td>
                             <td class="text-center" ng-if="data.editMode != 'view'" ng-switch on="row.allocation_item_status">
                                 <a href
@@ -121,8 +124,42 @@
                         </tr>
                         <tr ng-if="!allocationItem.allocations.length">
                             <td colspan="8" class="text-center bg-warning">
-                                No allocation items
-                            </td>"
+                                No allocated ticket items
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tbody>
+                        <tr>
+                            <td colspan="7"><h5>Cash Items</h5></td>
+                        </tr>
+                        <tr ng-repeat="row in allocationItem.cash_allocations"
+                                ng-class="{
+                                        danger: row.markedVoid || ( [<?php echo implode( ', ', array( ALLOCATION_ITEM_VOIDED, ALLOCATION_ITEM_CANCELLED ) );?>].indexOf( row.allocation_item_status ) != -1 ),
+                                        deleted: ( [<?php echo implode( ', ', array( ALLOCATION_ITEM_VOIDED, ALLOCATION_ITEM_CANCELLED ) );?>].indexOf( row.allocation_item_status ) != -1 )
+                                    }">
+                            <td class="text-center">{{ $index + 1 }}</td>
+                            <td class="text-left">{{ row.cashier_shift_num }}</td>
+                            <td class="text-left">{{ row.category_name }}</td>
+                            <td class="text-left">{{ row.item_name }}</td>
+                            <td class="text-center">{{ row.allocated_quantity | number }}</td>
+                            <td class="text-right">{{ ( row.iprice_unit_price * row.allocated_quantity ) | number: 2 }}</td>
+                            <td class="text-center">{{ row.get( 'allocationItemStatus' ) }}</td>
+                            <td class="text-center" ng-if="data.editMode != 'view'" ng-switch on="row.allocation_item_status">
+                                <a href
+                                        ng-if="row.allocation_item_status == <?php echo ALLOCATION_ITEM_SCHEDULED;?> && row.id == undefined"
+                                        ng-click="removeAllocationItem( 'cash_allocation', row )">
+                                    <i class="glyphicon glyphicon-remove-circle"></i>
+                                </a>
+                                <input type="checkbox" value="{{ row.id }}"
+                                        ng-if="row.allocation_item_status == <?php echo ALLOCATION_ITEM_ALLOCATED;?> || row.allocation_item_status == <?php echo ALLOCATION_ITEM_SCHEDULED;?> && row.id"
+                                        ng-click="getItemQuantities()"
+                                        ng-model="row.markedVoid">
+                            </td>
+                        </tr>
+                        <tr ng-if="!allocationItem.cash_allocations.length">
+                            <td colspan="8" class="text-center bg-warning">
+                                No allocated cash items
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -138,27 +175,30 @@
                     <thead>
                         <tr>
                             <th class="text-center">Row</th>
-                            <th class="text-left">Time</th>
                             <th class="text-left">Cashier Shift</th>
                             <th class="text-left">Category</th>
                             <th class="text-left">Item Description</th>
                             <th class="text-center">Quantity</th>
+                            <th class="text-center">Total Amount</th>
                             <th class="text-center">Status</th>
                             <th class="text-center" ng-if="data.editMode != 'view'">Void</th>
                         </tr>
                     </thead>
                     <tbody>
+                        <tr>
+                            <td colspan="8"><h5>Ticket Items</td>
+                        </tr>
                         <tr ng-repeat="row in allocationItem.remittances"
                                 ng-class="{
                                         danger: row.markedVoid || row.allocation_item_status == <?php echo REMITTANCE_ITEM_VOIDED;?>,
                                         deleted: row.allocation_item_status == <?php echo REMITTANCE_ITEM_VOIDED;?>
                                     }">
                             <td class="text-center">{{ $index + 1 }}</td>
-                            <td class="text-left">{{ row.allocation_datetime | date : 'HH:mm:ss' }}</td>
                             <td class="text-left">{{ row.cashier_shift_num }}</td>
                             <td class="text-left">{{ row.category_name }}</td>
                             <td class="text-left">{{ row.item_name }}</td>
                             <td class="text-center">{{ row.allocated_quantity | number }}</td>
+                            <td class="text-right"></td>
                             <td class="text-center">{{ row.get( 'allocationItemStatus' ) }}</td>
                             <td class="text-center" ng-if="data.editMode != 'view'" ng-switch on="row.allocation_item_status">
                                 <a href
@@ -175,7 +215,41 @@
                         <tr ng-if="!allocationItem.remittances.length">
                             <td colspan="8" class="text-center bg-warning">
                                 {{ data.remittancesEmptyText }}
-                            </td>"
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tbody>
+                        <tr>
+                            <td colspan="8"><h5>Cash Items</td>
+                        </tr>
+                        <tr ng-repeat="row in allocationItem.cash_remittances"
+                                ng-class="{
+                                        danger: row.markedVoid || row.allocation_item_status == <?php echo REMITTANCE_ITEM_VOIDED;?>,
+                                        deleted: row.allocation_item_status == <?php echo REMITTANCE_ITEM_VOIDED;?>
+                                    }">
+                            <td class="text-center">{{ $index + 1 }}</td>
+                            <td class="text-left">{{ row.cashier_shift_num }}</td>
+                            <td class="text-left">{{ row.category_name }}</td>
+                            <td class="text-left">{{ row.item_name }}</td>
+                            <td class="text-center">{{ row.allocated_quantity | number }}</td>
+                            <td class="text-right">{{ ( row.iprice_unit_price * row.allocated_quantity ) | number: 2  }}</td>
+                            <td class="text-center">{{ row.get( 'allocationItemStatus' ) }}</td>
+                            <td class="text-center" ng-if="data.editMode != 'view'" ng-switch on="row.allocation_item_status">
+                                <a href
+                                        ng-if="row.allocation_item_status == <?php echo REMITTANCE_ITEM_PENDING;?> && row.id == undefined"
+                                        ng-click="removeAllocationItem( 'remittance', row )">
+                                    <i class="glyphicon glyphicon-remove-circle"></i>
+                                </a>
+                                <input type="checkbox" value="{{ row.id }}"
+                                        ng-if="row.allocation_item_status == <?php echo REMITTANCE_ITEM_REMITTED;?> || row.allocation_item_status == <?php echo REMITTANCE_ITEM_PENDING;?> && row.id"
+                                        ng-click="getItemQuantities()"
+                                        ng-model="row.markedVoid">
+                            </td>
+                        </tr>
+                        <tr ng-if="!allocationItem.cash_remittances.length">
+                            <td colspan="8" class="text-center bg-warning">
+                                {{ data.cashRemittancesEmptyText }}
+                            </td>
                         </tr>
                     </tbody>
                 </table>

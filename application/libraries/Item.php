@@ -5,6 +5,7 @@ class Item extends Base_model
 {
 	protected $item_name;
 	protected $item_description;
+    protected $item_class;
     protected $item_unit;
     protected $item_type;
     protected $item_group;
@@ -26,6 +27,7 @@ class Item extends Base_model
 		$this->db_fields = array(
 			'item_name' => array( 'type' => 'string' ),
 			'item_description' => array( 'type' => 'string' ),
+            'item_class' => array( 'type' => 'string' ),
             'item_unit' => array( 'type' => 'string' ),
             'item_type' => array( 'type' => 'integer' ),
             'item_group' => array( 'type' => 'string' ),

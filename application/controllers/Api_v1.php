@@ -190,9 +190,13 @@ class Api_v1 extends MY_Controller {
 							{
 								$allocation_data = $allocation->as_array();
 								$allocation_items = $allocation->get_allocations();
+								$cash_allocation_items = $allocation->get_cash_allocations();
 								$remittance_items = $allocation->get_remittances();
+								$cash_remittance_items = $allocation->get_cash_remittances();
 								$allocation_items_data = array();
+								$cash_allocation_items_data = array();
 								$remittance_items_data = array();
+								$cash_remittance_items_data = array();
 
 								foreach( $allocation_items as $item )
 								{
@@ -201,11 +205,28 @@ class Api_v1 extends MY_Controller {
 										'category_type' => array( 'type' => 'integer' ),
 										'item_name' => array( 'type' => 'string' ),
 										'item_description' => array( 'type' => 'string' ),
+										'item_class' => array( 'type' => 'string' ),
 										'teller_allocatable' => array( 'type' => 'boolean' ),
 										'machine_allocatable' => array( 'type' => 'boolean' ),
 										'cashier_shift_num' => array( 'type' => 'string' ) ) );
 								}
 								$allocation_data['allocations'] = $allocation_items_data;
+
+								foreach( $cash_allocation_items as $item )
+								{
+									$cash_allocation_items_data[] = $item->as_array( array(
+										'category_name' => array( 'type' => 'string' ),
+										'category_type' => array( 'type' => 'integer' ),
+										'item_name' => array( 'type' => 'string' ),
+										'item_description' => array( 'type' => 'string' ),
+										'item_class' => array( 'type' => 'string' ),
+										'iprice_currency' => array( 'type' => 'string' ),
+										'iprice_unit_price' => array( 'type' => 'decimal' ),
+										'teller_allocatable' => array( 'type' => 'boolean' ),
+										'machine_allocatable' => array( 'type' => 'boolean' ),
+										'cashier_shift_num' => array( 'type' => 'string' ) ) );
+								}
+								$allocation_data['cash_allocations'] = $cash_allocation_items_data;
 
 								foreach( $remittance_items as $item )
 								{
@@ -214,11 +235,28 @@ class Api_v1 extends MY_Controller {
 										'category_type' => array( 'type' => 'integer' ),
 										'item_name' => array( 'type' => 'string' ),
 										'item_description' => array( 'type' => 'string' ),
+										'item_class' => array( 'type' => 'string' ),
 										'teller_remittable' => array( 'type' => 'boolean' ),
 										'machine_remittable' => array( 'type' => 'boolean' ),
 										'cashier_shift_num' => array( 'type' => 'string' ) ) );
 								}
 								$allocation_data['remittances'] = $remittance_items_data;
+
+								foreach( $cash_remittance_items as $item )
+								{
+									$cash_remittance_items_data[] = $item->as_array( array(
+										'category_name' => array( 'type' => 'string' ),
+										'category_type' => array( 'type' => 'integer' ),
+										'item_name' => array( 'type' => 'string' ),
+										'item_description' => array( 'type' => 'string' ),
+										'item_class' => array( 'type' => 'string' ),
+										'iprice_currency' => array( 'type' => 'string' ),
+										'iprice_unit_price' => array( 'type' => 'decimal' ),
+										'teller_remittable' => array( 'type' => 'boolean' ),
+										'machine_remittable' => array( 'type' => 'boolean' ),
+										'cashier_shift_num' => array( 'type' => 'string' ) ) );
+								}
+								$allocation_data['cash_remittances'] = $cash_remittance_items_data;
 
 								$this->_response( $allocation_data );
 							}
@@ -1437,10 +1475,14 @@ class Api_v1 extends MY_Controller {
 										foreach( $allocations as $allocation )
 										{
 											$allocation_items = $allocation->get_allocations( TRUE );
+											$allocation_cash_items = $allocation->get_cash_allocations( TRUE );
 											$remittance_items = $allocation->get_remittances( TRUE );
+											$remittance_cash_items = $allocation->get_cash_remittances( TRUE );
 
 											$allocation_items_data = array();
+											$allocation_cash_items_data = array();
 											$remittance_items_data = array();
+											$remittance_cash_items_data = array();
 
 											foreach( $allocation_items as $item )
 											{
@@ -1449,6 +1491,22 @@ class Api_v1 extends MY_Controller {
 														'category_type' => array( 'type' => 'integer' ),
 														'item_name' => array( 'type' => 'string' ),
 														'item_description' => array( 'type' => 'string' ),
+														'item_class' => array( 'type' => 'string' ),
+														'teller_allocatable' => array( 'type' => 'boolean' ),
+														'machine_allocatable' => array( 'type' => 'boolean' ),
+														'cashier_shift_num' => array( 'type' => 'string' ) ) );
+											}
+
+											foreach( $allocation_cash_items as $item )
+											{
+												$allocation_cash_items_data[] = $item->as_array( array(
+														'category_name' => array( 'type' => 'string' ),
+														'category_type' => array( 'type' => 'integer' ),
+														'item_name' => array( 'type' => 'string' ),
+														'item_description' => array( 'type' => 'string' ),
+														'item_class' => array( 'type' => 'string' ),
+														'iprice_currency' => array( 'type' => 'string' ),
+														'iprice_unit_price' => array( 'type' => 'decimal' ),
 														'teller_allocatable' => array( 'type' => 'boolean' ),
 														'machine_allocatable' => array( 'type' => 'boolean' ),
 														'cashier_shift_num' => array( 'type' => 'string' ) ) );
@@ -1461,6 +1519,22 @@ class Api_v1 extends MY_Controller {
 														'category_type' => array( 'type' => 'integer' ),
 														'item_name' => array( 'type' => 'string' ),
 														'item_description' => array( 'type' => 'string' ),
+														'item_class' => array( 'type' => 'string' ),
+														'teller_remittable' => array( 'type' => 'boolean' ),
+														'machine_remittable' => array( 'type' => 'boolean' ),
+														'cashier_shift_num' => array( 'type' => 'string' ) ) );
+											}
+
+											foreach( $remittance_cash_items as $item )
+											{
+												$remittance_cash_items_data[] = $item->as_array( array(
+														'category_name' => array( 'type' => 'string' ),
+														'category_type' => array( 'type' => 'integer' ),
+														'item_name' => array( 'type' => 'string' ),
+														'item_description' => array( 'type' => 'string' ),
+														'item_class' => array( 'type' => 'string' ),
+														'iprice_currency' => array( 'type' => 'string' ),
+														'iprice_unit_price' => array( 'type' => 'decimal' ),
 														'teller_remittable' => array( 'type' => 'boolean' ),
 														'machine_remittable' => array( 'type' => 'boolean' ),
 														'cashier_shift_num' => array( 'type' => 'string' ) ) );
@@ -1472,6 +1546,8 @@ class Api_v1 extends MY_Controller {
 
 											$allocation_data['allocations'] = $allocation_items_data;
 											$allocation_data['remittances'] = $remittance_items_data;
+											$allocation_data['cash_allocations'] = $allocation_cash_items_data;
+											$allocation_data['cash_remittances'] = $remittance_cash_items_data;
 
 											$allocations_data[] = $allocation_data;
 										}
@@ -1730,9 +1806,12 @@ class Api_v1 extends MY_Controller {
 									$items_data = array();
 									$additional_fields = array(
 										'item_name' => array( 'type' => 'string' ),
+										'item_class' => array( 'type' => 'string' ),
 										'item_unit' => array( 'type' => 'string' ),
 										'item_group' => array( 'type' => 'string' ),
 										'item_description' => array( 'type' => 'string' ),
+										'iprice_currency' => array( 'type' => 'string' ),
+										'iprice_unit_price' => array( 'type' => 'decimal' ),
 										'teller_allocatable' => array( 'type' => 'boolean' ),
 										'teller_remittable' => array( 'type' => 'boolean' ),
 										'machine_allocatable' => array( 'type' => 'boolean' ),

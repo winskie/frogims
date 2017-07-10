@@ -228,12 +228,15 @@ class Store extends Base_model
 		$query_params = array();
 		$sql = 'SELECT
 					si.*,
-					i.item_name, i.item_description, i.item_group, i.item_unit,
+					i.item_name, i.item_description, i.item_class, i.item_group, i.item_unit,
 					i.teller_allocatable, i.teller_remittable, i.machine_allocatable, i.machine_remittable,
+					ip.iprice_currency, ip.iprice_unit_price,
 					ts.movement, sts.sti_beginning_balance, sts.sti_ending_balance
 				FROM store_inventory AS si
 				LEFT JOIN items AS i
 					ON i.id = si.item_id
+				LEFT JOIN item_prices AS ip
+					ON ip.iprice_item_id = i.id
 				LEFT JOIN (';
 
 		if( $shift )
@@ -799,13 +802,14 @@ class Store extends Base_model
 		$sql = 'SELECT
 					a.id, a.store_id, a.business_date, a.shift_id, a.station_id, a.assignee, a.assignee_type,	a.allocation_status, a.cashier_id,
 					s.shift_num,
-					x.allocated_item_id, x.item_name, x.item_description, x.allocation, x.additional, x.remitted, x.unsold, x.rejected, x.valid_allocation, x.valid_remittance
+					x.allocated_item_id, x.item_name, x.item_description, x.item_class, x.allocation, x.additional, x.remitted, x.unsold, x.rejected, x.valid_allocation, x.valid_remittance
 				FROM (
 					SELECT
 						allocation_id,
 						allocated_item_id,
 						item_name,
 						item_description,
+						item_class,
 						SUM( IF( c.is_allocation_category = TRUE AND category = "Initial Allocation" AND NOT allocation_item_status IN ('.implode( ', ', array( ALLOCATION_ITEM_CANCELLED, ALLOCATION_ITEM_VOIDED ) ).'), allocated_quantity, 0 ) ) AS allocation,
 						SUM( IF( c.is_allocation_category = TRUE AND category IN ( "Additional Allocation", "Magazine Load" ) AND NOT allocation_item_status = '.ALLOCATION_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS additional,
 						SUM( IF( c.is_remittance_category = TRUE AND NOT allocation_item_status = '.REMITTANCE_ITEM_VOIDED.', allocated_quantity, 0 ) ) AS remitted,

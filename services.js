@@ -469,6 +469,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 						{ id: 5, categoryName: 'Cashroom to Cashroom' },
 						{ id: 6, categoryName: 'Blackbox Receipt' },
 						{ id: 7, categoryName: 'Passenger Issuance' },
+						{ id: 8, categoryName: 'Cash Exchange' },
 					],
 				transferStatus: [
 						{ id: 1, statusName: 'Scheduled' },
