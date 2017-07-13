@@ -183,6 +183,21 @@ class Installer extends CI_Controller {
 				)
 				ENGINE=InnoDB" );
 
+		echo 'Creating sales items table...<br />';
+		$this->db->query( "
+				CREATE TABLE IF NOT EXISTS sales_items
+				(
+					id INTEGER AUTO_INCREMENT NOT NULL,
+					slitem_name VARCHAR(100) NOT NULL,
+					slitem_group VARCHAR(100) NOT NULL,
+					slitem_mode SMALLINT NOT NULL DEFAULT 1,
+					PRIMARY KEY (id),
+					date_created DATETIME NOT NULL,
+					date_modified DATETIME NOT NULL,
+					last_modified INTEGER NOT NULL
+				)
+				ENGINE=InnoDB" );
+
 		echo 'Creating items table...<br />';
 		$this->db->query( "
 				CREATE TABLE IF NOT EXISTS items
@@ -932,6 +947,49 @@ class Installer extends CI_Controller {
 			echo 'OK<br />';
 			flush();
 
+			// Create default sales items
+			echo 'Creating default sales items...';
+			flush();
+			$this->load->library( 'Sales_item' );
+			$sales_items = array(
+					array(
+						'slitem_name' => 'Gross Sales',
+						'slitem_group' => '',
+						'slitem_mode' => 1 ),
+					array(
+						'slitem_name' => 'Excess Time',
+						'slitem_group' => 'Penalties',
+						'slitem_mode' => 1 ),
+					array(
+						'slitem_name' => 'Mismatch',
+						'slitem_group' => 'Penalties',
+						'slitem_mode' => 1 ),
+					array(
+						'slitem_name' => 'Payment for Lost Ticket',
+						'slitem_group' => 'Penalties',
+						'slitem_mode' => 1 ),
+					array(
+						'slitem_name' => 'Other Penalties',
+						'slitem_group' => 'Penalties',
+						'slitem_mode' => 1 ),
+					array(
+						'slitem_name' => 'TCERF',
+						'slitem_group' => 'Deductions',
+						'slitem_mode' => 0 ),
+					array(
+						'slitem_name' => 'Change Fund',
+						'slitem_group' => 'Allocation',
+						'slitem_mode' => 1 ),
+				);
+
+			foreach( $sales_items as $si )
+			{
+				$item = new Sales_item();
+				$item->load_from_data( $si, TRUE );
+				$item->db_save();
+				unset( $item );
+			}
+
 			// Create default items
 			echo 'Creating default items...';
 			flush();
@@ -1387,6 +1445,7 @@ class Installer extends CI_Controller {
 			$this->db->query( "TRUNCATE TABLE users" );
 			$this->db->query( "TRUNCATE TABLE stores" );
 			$this->db->query( "TRUNCATE TABLE store_users" );
+			$this->db->query( "TRUNCATE TABLE sales_items" );
 			$this->db->query( "TRUNCATE TABLE items" );
 			$this->db->query( "TRUNCATE TABLE categories" );
 			$this->db->query( "TRUNCATE TABLE item_categories" );

@@ -149,6 +149,19 @@ CREATE TABLE IF NOT EXISTS store_users
 )
 ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS sales_items
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	slitem_name VARCHAR(100) NOT NULL,
+	slitem_group VARCHAR(100) NOT NULL,
+	slitem_mode SMALLINT NOT NULL DEFAULT 1,
+	PRIMARY KEY (id),
+	date_created DATETIME NOT NULL,
+	date_modified DATETIME NOT NULL,
+	last_modified INTEGER NOT NULL
+)
+ENGINE=InnoDB;
+
 -- item_type: 0 - defective, 1 - usable
 CREATE TABLE IF NOT EXISTS items
 (
