@@ -229,7 +229,8 @@ class Store extends Base_model
 		$sql = 'SELECT
 					si.*,
 					i.item_name, i.item_description, i.item_class, i.item_group, i.item_unit,
-					i.teller_allocatable, i.teller_remittable, i.machine_allocatable, i.machine_remittable,
+					i.teller_allocatable, i.teller_remittable, i.teller_saleable,
+					i.machine_allocatable, i.machine_remittable, i.machine_saleable,
 					ip.iprice_currency, ip.iprice_unit_price,
 					ts.movement, sts.sti_beginning_balance, sts.sti_ending_balance
 				FROM store_inventory AS si
@@ -823,11 +824,12 @@ class Store extends Base_model
 					LEFT JOIN items AS i
 						ON i.id = ai.allocated_item_id
 					LEFT JOIN categories AS c
-						ON c.id = ai.allocation_category_id';
+						ON c.id = ai.allocation_category_id
+					WHERE ai.allocation_item_type IN (1, 2)';
 
 		if( $allocation_date || $assignee_type || $status )
 		{
-			$sql .= ' WHERE a.id IS NOT NULL';
+			$sql .= ' AND a.id IS NOT NULL';
 		}
 
 		if( $allocation_date )
@@ -2112,6 +2114,7 @@ class Store extends Base_model
 										AND a.business_date = '${date}'
 										AND ai.cashier_shift_id = ${shift_id}
 										AND ai.allocation_item_status IN ( 11, 21 )
+										AND ai.allocation_item_type IN ( 1, 2 )
 								) AS a
 								GROUP BY trans_group, description
 

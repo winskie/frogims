@@ -189,15 +189,20 @@ class Api_v1 extends MY_Controller {
 							else
 							{
 								$allocation_data = $allocation->as_array();
+
 								$allocation_items = $allocation->get_allocations();
 								$cash_allocation_items = $allocation->get_cash_allocations();
 								$remittance_items = $allocation->get_remittances();
 								$cash_remittance_items = $allocation->get_cash_remittances();
+								$sale_items = $allocation->get_sales();
+
 								$allocation_items_data = array();
 								$cash_allocation_items_data = array();
 								$remittance_items_data = array();
 								$cash_remittance_items_data = array();
+								$sale_items_data = array();
 
+								// Allocation items
 								foreach( $allocation_items as $item )
 								{
 									$allocation_items_data[] = $item->as_array( array(
@@ -212,6 +217,7 @@ class Api_v1 extends MY_Controller {
 								}
 								$allocation_data['allocations'] = $allocation_items_data;
 
+								// Cash allocation items
 								foreach( $cash_allocation_items as $item )
 								{
 									$cash_allocation_items_data[] = $item->as_array( array(
@@ -228,6 +234,7 @@ class Api_v1 extends MY_Controller {
 								}
 								$allocation_data['cash_allocations'] = $cash_allocation_items_data;
 
+								// Remittance items
 								foreach( $remittance_items as $item )
 								{
 									$remittance_items_data[] = $item->as_array( array(
@@ -242,6 +249,7 @@ class Api_v1 extends MY_Controller {
 								}
 								$allocation_data['remittances'] = $remittance_items_data;
 
+								// Cash remittance items
 								foreach( $cash_remittance_items as $item )
 								{
 									$cash_remittance_items_data[] = $item->as_array( array(
@@ -257,6 +265,21 @@ class Api_v1 extends MY_Controller {
 										'cashier_shift_num' => array( 'type' => 'string' ) ) );
 								}
 								$allocation_data['cash_remittances'] = $cash_remittance_items_data;
+
+								// Sale items
+								foreach( $sale_items as $item )
+								{
+									$sale_items_data[] = $item->as_array( array(
+										'category_name' => array( 'type' => 'string' ),
+										'category_type' => array( 'type' => 'integer' ),
+										'item_name' => array( 'type' => 'string' ),
+										'item_description' => array( 'type' => 'string' ),
+										'item_class' => array( 'type' => 'string' ),
+										'teller_saleable' => array( 'type' => 'boolean' ),
+										'machine_saleable' => array( 'type' => 'boolean' ),
+										'cashier_shift_num' => array( 'type' => 'string' ) ) );
+								}
+								$allocation_data['sales'] = $sale_items_data;
 
 								$this->_response( $allocation_data );
 							}
@@ -1478,11 +1501,13 @@ class Api_v1 extends MY_Controller {
 											$allocation_cash_items = $allocation->get_cash_allocations( TRUE );
 											$remittance_items = $allocation->get_remittances( TRUE );
 											$remittance_cash_items = $allocation->get_cash_remittances( TRUE );
+											$sale_items = $allocation->get_sales( TRUE );
 
 											$allocation_items_data = array();
 											$allocation_cash_items_data = array();
 											$remittance_items_data = array();
 											$remittance_cash_items_data = array();
+											$sale_items_data = array();
 
 											foreach( $allocation_items as $item )
 											{
@@ -1540,6 +1565,19 @@ class Api_v1 extends MY_Controller {
 														'cashier_shift_num' => array( 'type' => 'string' ) ) );
 											}
 
+											foreach( $sale_items as $item )
+											{
+												$sale_items_data[] = $item->as_array( array(
+														'category_name' => array( 'type' => 'string' ),
+														'category_type' => array( 'type' => 'integer' ),
+														'item_name' => array( 'type' => 'string' ),
+														'item_description' => array( 'type' => 'string' ),
+														'item_class' => array( 'type' => 'string' ),
+														'teller_saleable' => array( 'type' => 'boolean' ),
+														'machine_saleable' => array( 'type' => 'boolean' ),
+														'cashier_shift_num' => array( 'type' => 'string' ) ) );
+											}
+
 											$allocation_data = $allocation->as_array( array(
 													'shift_num' => array( 'type' => 'string' ),
 													'shift_description' => array( 'type' => 'string' ) ) );
@@ -1548,6 +1586,7 @@ class Api_v1 extends MY_Controller {
 											$allocation_data['remittances'] = $remittance_items_data;
 											$allocation_data['cash_allocations'] = $allocation_cash_items_data;
 											$allocation_data['cash_remittances'] = $remittance_cash_items_data;
+											$allocation_data['sales'] = $sale_items_data;
 
 											$allocations_data[] = $allocation_data;
 										}
@@ -1814,8 +1853,11 @@ class Api_v1 extends MY_Controller {
 										'iprice_unit_price' => array( 'type' => 'decimal' ),
 										'teller_allocatable' => array( 'type' => 'boolean' ),
 										'teller_remittable' => array( 'type' => 'boolean' ),
+										'teller_saleable' => array( 'type' => 'boolean' ),
 										'machine_allocatable' => array( 'type' => 'boolean' ),
 										'machine_remittable' => array( 'type' => 'boolean' ),
+										'machine_saleable' => array( 'type' => 'boolean' ),
+										'turnover_item' => array( 'type' => 'boolean' ),
 										'movement' => array( 'type' => 'integer' ),
 										'sti_beginning_balance' => array( 'type' => 'integer' ),
 										'sti_ending_balance' => array( 'type' => 'integer' ),

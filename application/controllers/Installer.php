@@ -197,8 +197,10 @@ class Installer extends CI_Controller {
 					base_item_id INTEGER NULL DEFAULT NULL,
 					teller_allocatable BOOLEAN NOT NULL DEFAULT 0,
 					teller_remittable BOOLEAN NOT NULL DEFAULT 0,
+					teller_saleable BOOLEAN NOT NULL DEFAULT 0,
 					machine_allocatable BOOLEAN NOT NULL DEFAULT 0,
 					machine_remittable BOOLEAN NOT NULL DEFAULT 0,
+					machine_saleable BOOLEAN NOT NULL DEFAULT 0,
 					turnover_item BOOLEAN NOT NULL DEFAULT 0,
 					date_created DATETIME NOT NULL,
 					date_modified DATETIME NOT NULL,
@@ -574,7 +576,8 @@ class Installer extends CI_Controller {
 						ON DELETE CASCADE,
 					FOREIGN KEY allocation_items_item_fk (allocated_item_id) REFERENCES items (id)
 						ON UPDATE CASCADE
-						ON DELETE RESTRICT
+						ON DELETE RESTRICT,
+					INDEX allocation_items_type_ndx (allocation_id, allocation_item_type)
 				)
 				ENGINE=InnoDB" );
 
@@ -652,6 +655,7 @@ class Installer extends CI_Controller {
 					category_type SMALLINT NOT NULL,
 					is_allocation_category BOOLEAN NOT NULL DEFAULT 0,
 					is_remittance_category BOOLEAN NOT NULL DEFAULT 0,
+					is_sales_category BOOLEAN NOT NULL DEFAULT 0,
 					is_transfer_category BOOLEAN NOT NULL DEFAULT 0,
 					is_teller BOOLEAN NOT NULL,
 					is_machine BOOLEAN NOT NULL,
@@ -933,46 +937,46 @@ class Installer extends CI_Controller {
 			flush();
 			$this->load->library( 'Item' );
 			$items = array(
-					array( 'L2 SJT', 'Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, 'SJT', 'piece', 1, 1, 'ticket' ), // ID: 1
-					array( 'L2 SJT - Rigid Box', 'Line 2 Single Journey Ticket in Rigid Box in 50s', 1, 1, 1, 0, 0, 'SJT', 'box', 0, 1, 'ticket' ),
-					array( 'L2 SJT - Ticket Magazine', 'Line 2 Single Journey Ticket in Ticket Magazine in 800s', 1, 0, 0, 1, 0, 'SJT', 'magazine', 0, 1, 'ticket' ),
-					array( 'L2 SJT - Defective', 'Defective Line 2 Single Journey Ticket', 1, 0, 1, 0, 1, 'SJT', 'piece', 1, 0, 'ticket' ),
-					array( 'L2 SJT - Damaged', 'Damaged Line 2 Single Journey Ticket', 1, 0, 1, 0, 1, 'SJT', 'piece', 1, 0, 'ticket' ),
+					array( 'L2 SJT', 'Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, 'SJT', 'piece', 1, 1, 'ticket', TRUE, TRUE ), // ID: 1
+					array( 'L2 SJT - Rigid Box', 'Line 2 Single Journey Ticket in Rigid Box in 50s', 1, 1, 1, 0, 0, 'SJT', 'box', 0, 1, 'ticket', FALSE, FALSE ),
+					array( 'L2 SJT - Ticket Magazine', 'Line 2 Single Journey Ticket in Ticket Magazine in 800s', 1, 0, 0, 1, 0, 'SJT', 'magazine', 0, 1, 'ticket', FALSE, FALSE ),
+					array( 'L2 SJT - Defective', 'Defective Line 2 Single Journey Ticket', 1, 0, 1, 0, 1, 'SJT', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
+					array( 'L2 SJT - Damaged', 'Damaged Line 2 Single Journey Ticket', 1, 0, 1, 0, 1, 'SJT', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
 
-					array( 'SVC', 'Stored Value Card', NULL, 0, 1, 0, 1, 'SVC', 'piece', 1, 1, 'ticket' ), // ID: 6
-					array( 'SVC - Rigid Box', 'Stored Value Ticket in Rigid Box in 10s', 6, 1, 1, 0, 0, 'SVC', 'box', 0, 1, 'ticket' ),
-					array( 'SVC - 25', 'Stored Value Ticket in 25s', 6, 1, 1, 0, 0, 'SVC', 'box', 0, 1, 'ticket' ),
-					array( 'SVC - 150', 'Stored Value Ticket in 150s', 6, 0, 0, 1, 0, 'SVC', 'box', 0, 1, 'ticket' ),
-					array( 'SVC - Defective', 'Defective Stored Value Card', 6, 0, 1, 0, 1, 'SVC', 'piece', 1, 0, 'ticket' ),
-					array( 'SVC - Damaged', 'Damaged Stored Value Card', 6, 0, 1, 0, 1, 'SVC', 'piece', 1, 0, 'ticket' ),
+					array( 'SVC', 'Stored Value Card', NULL, 0, 1, 0, 1, 'SVC', 'piece', 1, 1, 'ticket', TRUE, TRUE ), // ID: 6
+					array( 'SVC - Rigid Box', 'Stored Value Ticket in Rigid Box in 10s', 6, 1, 1, 0, 0, 'SVC', 'box', 0, 1, 'ticket', FALSE, FALSE ),
+					array( 'SVC - 25', 'Stored Value Ticket in 25s', 6, 1, 1, 0, 0, 'SVC', 'box', 0, 1, 'ticket', FALSE, FALSE ),
+					array( 'SVC - 150', 'Stored Value Ticket in 150s', 6, 0, 0, 1, 0, 'SVC', 'box', 0, 1, 'ticket', FALSE, FALSE ),
+					array( 'SVC - Defective', 'Defective Stored Value Card', 6, 0, 1, 0, 1, 'SVC', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
+					array( 'SVC - Damaged', 'Damaged Stored Value Card', 6, 0, 1, 0, 1, 'SVC', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
 
-					array( 'Senior', 'Senior Citizen Stored Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece', 1, 1, 'ticket' ), // ID: 12
-					array( 'PWD', 'Passenger with Disability Store Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece', 1, 1, 'ticket' ), // ID: 13
-					array( 'Senior - Defective', 'Defective Senior Citizen Stored Value Card', 12, 0, 0, 0, 0, 'Concessionary', 'piece', 1, 0, 'ticket' ),
-					array( 'PWD - Defective', 'Defective - Passenger with Disability Store Value Card', 13, 0, 0, 0, 0, 'Concessionary', 'piece', 1, 0, 'ticket' ),
+					array( 'Senior', 'Senior Citizen Stored Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece', 1, 1, 'ticket', TRUE, FALSE ), // ID: 12
+					array( 'PWD', 'Passenger with Disability Store Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece', 1, 1, 'ticket', TRUE, FALSE ), // ID: 13
+					array( 'Senior - Defective', 'Defective Senior Citizen Stored Value Card', 12, 0, 0, 0, 0, 'Concessionary', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
+					array( 'PWD - Defective', 'Defective - Passenger with Disability Store Value Card', 13, 0, 0, 0, 0, 'Concessionary', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
 
-					array( 'L2 Ticket Coupon', 'Line 2 Ticket Coupon', NULL, 1, 1, 0, 0, 'Coupon', 'piece', 0, 0, 'ticket' ),
+					array( 'L2 Ticket Coupon', 'Line 2 Ticket Coupon', NULL, 1, 1, 0, 0, 'Coupon', 'piece', 0, 0, 'ticket', TRUE, FALSE ),
 
-					array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0, 'Others', 'piece', 1, 0, 'ticket' ), // ID: 17
-					array( 'L1 SJT', 'Line 1 Single Journey Ticket', 17, 0, 1, 0, 0, 'Others', 'piece', 1, 0, 'ticket' ),
-					array( 'MRT SJT', 'Line 3 Single Journey Ticket', 17, 0, 1, 0, 0, 'Others', 'piece', 1, 0, 'ticket' ),
-					array( 'Staff Card', 'Staff Card', 17, 0, 0, 0, 0, 'Others', 'piece', 1, 0, 'ticket' ),
+					array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0, 'Others', 'piece', 1, 0, 'ticket', FALSE, FALSE ), // ID: 17
+					array( 'L1 SJT', 'Line 1 Single Journey Ticket', 17, 0, 1, 0, 0, 'Others', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
+					array( 'MRT SJT', 'Line 3 Single Journey Ticket', 17, 0, 1, 0, 0, 'Others', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
+					array( 'Staff Card', 'Staff Card', 17, 0, 0, 0, 0, 'Others', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
 
-					array( 'Php1 Coin', '1 peso coin', NULL, 1, 1, 1, 1, 'coin', 'piece', 0, 1, 'cash' ), // ID: 21
-					array( 'Php0.25 Coin', '25 centavos coin', 21, 1, 1, 1, 1, 'coin', 'piece', 0, 1, 'cash' ),
-					array( 'Php5 Coin', '5 pesos coin', 21, 1, 1, 1, 1, 'coin', 'piece', 0, 1, 'cash' ), // ID: 23
-					array( 'Php10 Coin', '10 pesos coin', 21, 1, 1, 1, 1, 'coin', 'piece', 0, 1, 'cash' ),
+					array( 'Php1 Coin', '1 peso coin', NULL, 1, 1, 1, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ), // ID: 21
+					array( 'Php0.25 Coin', '25 centavos coin', 21, 1, 1, 1, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php5 Coin', '5 pesos coin', 21, 1, 1, 1, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ), // ID: 23
+					array( 'Php10 Coin', '10 pesos coin', 21, 1, 1, 1, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ),
 
-					array( 'Php20 Bill', '20 pesos bill', 21, 1, 1, 1, 1, 'bill', 'piece', 0, 1, 'cash' ),
-					array( 'Php50 Bill', '50 pesos bill', 21, 1, 1, 1, 1, 'bill', 'piece', 0, 1, 'cash' ),
-					array( 'Php100 Bill', '100 pesos bill', 21, 1, 1, 1, 1, 'bill', 'piece', 0, 1, 'cash' ),
-					array( 'Php200 Bill', '200 pesos bill', 21, 1, 1, 1, 1, 'bill', 'piece', 0, 1, 'cash' ),
-					array( 'Php500 Bill', '500 pesos bill', 21, 1, 1, 1, 1, 'bill', 'piece', 0, 1, 'cash' ),
-					array( 'Php1000 Bill', '1000 pesos bill', 21, 1, 1, 1, 1, 'bill', 'piece', 0, 1, 'cash' ),
+					array( 'Php20 Bill', '20 pesos bill', 21, 1, 1, 1, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php50 Bill', '50 pesos bill', 21, 1, 1, 1, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php100 Bill', '100 pesos bill', 21, 1, 1, 1, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php200 Bill', '200 pesos bill', 21, 1, 1, 1, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php500 Bill', '500 pesos bill', 21, 1, 1, 1, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php1000 Bill', '1000 pesos bill', 21, 1, 1, 1, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
 
-					array( 'Php5@500', 'Bag of Php5 coins worth Php500', 23, 1, 1, 1, 1, 'coin', 'bag', 0, 1, 'cash' ),
-					array( 'Php5@100', 'Bag of Php5 coins worth Php100', 23, 1, 1, 1, 1, 'coin', 'bag', 0, 1, 'cash' ),
-					array( 'Php1@500', 'Bag of Php1 coins worth Php500', 21, 1, 1, 1, 1, 'coin', 'bag', 0, 1, 'cash' ),
+					array( 'Php5@500', 'Bag of Php5 coins worth Php500', 23, 1, 1, 1, 1, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php5@100', 'Bag of Php5 coins worth Php100', 23, 1, 1, 1, 1, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php1@500', 'Bag of Php1 coins worth Php500', 21, 1, 1, 1, 1, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
 				);
 
 			foreach( $items as $i )
@@ -990,6 +994,8 @@ class Installer extends CI_Controller {
 				$item->set( 'turnover_item', $i[9] );
 				$item->set( 'item_type', $i[10] );
 				$item->set( 'item_class', $i[11] );
+				$item->set( 'teller_saleable', $i[12] );
+				$item->set( 'machine_saleable', $i[13] );
 				$item->db_save();
 				unset( $item );
 			}
@@ -1105,25 +1111,28 @@ class Installer extends CI_Controller {
 			flush();
 
 			$values = array(
-					array( 'Initial Allocation', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1 ),
-					array( 'Additional Allocation', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1 ),
-					array( 'Magazine Load', 1, TRUE, FALSE, FALSE, FALSE, TRUE, 1 ),
-					array( 'Unsold / Loose', 2, FALSE, TRUE, TRUE, TRUE, TRUE, 1 ),
-					array( 'Free Exit', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
-					array( 'Expired', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
-					array( 'Code Red', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
-					array( 'Unconfirmed', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
-					array( 'TCERF', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
-					array( 'TIR', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
-					array( 'Reject Bin', 2, FALSE, TRUE, TRUE, FALSE, TRUE, 1 ),
-					array( 'Blackbox', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1 ),
+					array( 'Initial Allocation', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1, FALSE ),
+					array( 'Additional Allocation', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1, FALSE ),
+					array( 'Magazine Load', 1, TRUE, FALSE, FALSE, FALSE, TRUE, 1, FALSE ),
+					array( 'Unsold / Loose', 2, FALSE, TRUE, TRUE, TRUE, TRUE, 1, FALSE ),
+					array( 'Free Exit', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1, TRUE ),
+					array( 'Expired', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1, FALSE ),
+					array( 'Code Red', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1, FALSE ),
+					array( 'Unconfirmed', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1, TRUE ),
+					array( 'TCERF', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1, FALSE ),
+					array( 'TIR', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1, FALSE ),
+					array( 'Reject Bin', 2, FALSE, TRUE, TRUE, FALSE, TRUE, 1, FALSE ),
+					array( 'Blackbox', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1, FALSE ),
 
-					array( 'Initial Change Fund', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1 ),
-					array( 'Additional Change Fund', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1 ),
-					array( 'Coin Replenishment', 1, TRUE, FALSE, FALSE, FALSE, TRUE, 1 ),
+					array( 'Initial Change Fund', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1, FALSE ),
+					array( 'Additional Change Fund', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1, FALSE ),
+					array( 'Coin Replenishment', 1, TRUE, FALSE, FALSE, FALSE, TRUE, 1, FALSE ),
 
-					array( 'Ticket Sales', 2, FALSE, TRUE, FALSE, TRUE, FALSE, 1 ),
-					array( 'TVM Cash Collection', 2, FALSE, TRUE, FALSE, FALSE, TRUE, 1 ),
+					array( 'Cash Collection', 2, FALSE, TRUE, FALSE, TRUE, TRUE, 1, TRUE ),
+
+					array( 'Regular Sale', 3, FALSE, FALSE, FALSE, TRUE, TRUE, 1, TRUE ),
+					array( 'Application', 3, FALSE, FALSE, FALSE, TRUE, TRUE, 1, TRUE ),
+					array( 'Paid Exit', 3, FALSE, FALSE, FALSE, TRUE, TRUE, 1, TRUE ),
 				);
 
 			foreach( $values as $value )
@@ -1136,6 +1145,7 @@ class Installer extends CI_Controller {
 				$this->db->set( 'is_teller', $value[5] );
 				$this->db->set( 'is_machine', $value[6] );
 				$this->db->set( 'category_status', $value[7] );
+				$this->db->set( 'is_sales_category', $value[8] );
 				$this->db->insert( 'categories' );
 			}
 			echo 'OK<br />';
@@ -1151,6 +1161,8 @@ class Installer extends CI_Controller {
 					array( 'L2 SJT', 'Expired' ),
 					array( 'L2 SJT', 'Unconfirmed' ),
 					array( 'L2 SJT', 'Code Red' ),
+					array( 'L2 SJT', 'Regular Sale' ),
+					array( 'L2 SJT', 'Paid Exit' ),
 
 					array( 'L2 SJT - Rigid Box', 'Initial Allocation' ),
 					array( 'L2 SJT - Rigid Box', 'Additional Allocation' ),
@@ -1168,6 +1180,7 @@ class Installer extends CI_Controller {
 
 					array( 'SVC', 'Unsold / Loose' ),
 					array( 'SVC', 'Expired' ),
+					array( 'SVC', 'Regular Sale' ),
 
 					array( 'SVC - Rigid Box', 'Initial Allocation' ),
 					array( 'SVC - Rigid Box', 'Additional Allocation' ),
@@ -1189,13 +1202,16 @@ class Installer extends CI_Controller {
 
 					array( 'Senior', 'TIR' ),
 					array( 'Senior', 'Blackbox' ),
+					array( 'Senior', 'Application' ),
 
 					array( 'PWD', 'TIR' ),
 					array( 'PWD', 'Blackbox' ),
+					array( 'PWD', 'Application' ),
 
 					array( 'L2 Ticket Coupon', 'Initial Allocation' ),
 					array( 'L2 Ticket Coupon', 'Additional Allocation' ),
 					array( 'L2 Ticket Coupon', 'Unsold / Loose' ),
+					array( 'L2 Ticket Coupon', 'Regular Sale' ),
 
 					array( 'Others', 'Blackbox' ),
 
@@ -1208,54 +1224,45 @@ class Installer extends CI_Controller {
 					array( 'Php1 Coin', 'Initial Change Fund' ),
 					array( 'Php1 Coin', 'Additional Change Fund' ),
 					array( 'Php1 Coin', 'Coin Replenishment' ),
-					array( 'Php1 Coin', 'Ticket Sales' ),
-					array( 'Php1 Coin', 'TVM Cash Collection' ),
+					array( 'Php1 Coin', 'Cash Collection' ),
 
 					array( 'Php0.25 Coin', 'Initial Change Fund' ),
 					array( 'Php0.25 Coin', 'Additional Change Fund' ),
-					array( 'Php0.25 Coin', 'Ticket Sales' ),
+					array( 'Php0.25 Coin', 'Cash Collection' ),
 
 					array( 'Php5 Coin', 'Initial Change Fund' ),
 					array( 'Php5 Coin', 'Additional Change Fund' ),
 					array( 'Php5 Coin', 'Coin Replenishment' ),
-					array( 'Php5 Coin', 'Ticket Sales' ),
-					array( 'Php5 Coin', 'TVM Cash Collection' ),
+					array( 'Php5 Coin', 'Cash Collection' ),
 
 					array( 'Php10 Coin', 'Initial Change Fund' ),
 					array( 'Php10 Coin', 'Additional Change Fund' ),
 					array( 'Php10 Coin', 'Coin Replenishment' ),
-					array( 'Php10 Coin', 'Ticket Sales' ),
-					array( 'Php10 Coin', 'TVM Cash Collection' ),
+					array( 'Php10 Coin', 'Cash Collection' ),
 
 					array( 'Php20 Bill', 'Initial Change Fund' ),
 					array( 'Php20 Bill', 'Additional Change Fund' ),
-					array( 'Php20 Bill', 'Ticket Sales' ),
-					array( 'Php20 Bill', 'TVM Cash Collection' ),
+					array( 'Php20 Bill', 'Cash Collection' ),
 
 					array( 'Php50 Bill', 'Initial Change Fund' ),
 					array( 'Php50 Bill', 'Additional Change Fund' ),
-					array( 'Php50 Bill', 'Ticket Sales' ),
-					array( 'Php50 Bill', 'TVM Cash Collection' ),
+					array( 'Php50 Bill', 'Cash Collection' ),
 
 					array( 'Php100 Bill', 'Initial Change Fund' ),
 					array( 'Php100 Bill', 'Additional Change Fund' ),
-					array( 'Php100 Bill', 'Ticket Sales' ),
-					array( 'Php100 Bill', 'TVM Cash Collection' ),
+					array( 'Php100 Bill', 'Cash Collection' ),
 
 					array( 'Php200 Bill', 'Initial Change Fund' ),
 					array( 'Php200 Bill', 'Additional Change Fund' ),
-					array( 'Php200 Bill', 'Ticket Sales' ),
-					array( 'Php200 Bill', 'TVM Cash Collection' ),
+					array( 'Php200 Bill', 'Cash Collection' ),
 
 					array( 'Php500 Bill', 'Initial Change Fund' ),
 					array( 'Php500 Bill', 'Additional Change Fund' ),
-					array( 'Php500 Bill', 'Ticket Sales' ),
-					array( 'Php500 Bill', 'TVM Cash Collection' ),
+					array( 'Php500 Bill', 'Cash Collection' ),
 
 					array( 'Php1000 Bill', 'Initial Change Fund' ),
 					array( 'Php1000 Bill', 'Additional Change Fund' ),
-					array( 'Php1000 Bill', 'Ticket Sales' ),
-					array( 'Php1000 Bill', 'TVM Cash Collection' ),
+					array( 'Php1000 Bill', 'Cash Collection' ),
 				);
 
 			$this->load->library( 'item' );

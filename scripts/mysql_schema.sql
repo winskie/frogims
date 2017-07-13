@@ -162,8 +162,10 @@ CREATE TABLE IF NOT EXISTS items
 	base_item_id INTEGER NULL DEFAULT NULL,
 	teller_allocatable BOOLEAN NOT NULL DEFAULT 0,
 	teller_remittable BOOLEAN NOT NULL DEFAULT 0,
+	teller_saleable BOOLEAN NOT NULL DEFAUL 0,
 	machine_allocatable BOOLEAN NOT NULL DEFAULT 0,
 	machine_remittable BOOLEAN NOT NULL DEFAULT 0,
+	machine_saleable BOOLEAN NOT NULL DEFAULT 0,
 	turnover_item BOOLEAN NOT NULL DEFAULT 0,
 	date_created DATETIME NOT NULL,
 	date_modified DATETIME NOT NULL,
@@ -498,7 +500,8 @@ CREATE TABLE IF NOT EXISTS allocations
 )
 ENGINE=InnoDB;
 
--- allocation_item_status: 1 - scheduled, 2 - allocated, 3 - remitted, 4 - voided
+-- allocation_item_status: 1 - scheduled, 2 - allocated, 3 - remitted, 4 -
+-- allocation_item_type: 1 - allocation, 2 - remittance, 3 - sales
 CREATE TABLE IF NOT EXISTS allocation_items
 (
 	id INTEGER AUTO_INCREMENT NOT NULL,
@@ -520,7 +523,8 @@ CREATE TABLE IF NOT EXISTS allocation_items
 		ON DELETE CASCADE,
 	FOREIGN KEY allocation_items_item_fk (allocated_item_id) REFERENCES items (id)
 		ON UPDATE CASCADE
-		ON DELETE RESTRICT
+		ON DELETE RESTRICT,
+	INDEX allocation_items_type_ndx (allocation_id, allocation_item_type)
 )
 ENGINE=InnoDB;
 
@@ -595,6 +599,7 @@ CREATE TABLE IF NOT EXISTS categories
 	category_type SMALLINT NOT NULL,
 	is_allocation_category BOOLEAN NOT NULL DEFAULT 0,
 	is_remittance_category BOOLEAN NOT NULL DEFAULT 0,
+	is_sales_category BOOLEAN NOT NULL DEFAULT 0,
 	is_transfer_category BOOLEAN NOT NULL DEFAULT 0,
 	is_teller BOOLEAN NOT NULL,
 	is_machine BOOLEAN NOT NULL,

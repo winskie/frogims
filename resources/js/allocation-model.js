@@ -15,6 +15,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 		var cash_allocations;
 		var remittances;
 		var cash_remittances;
+		var sales;
 
 		var allocationSummary;
 
@@ -74,6 +75,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 				me.cash_allocations = [];
 				me.remittances = [];
 				me.cash_remittances = [];
+				me.sales = [];
 
 				me.allocationSummary = [];
 
@@ -83,6 +85,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 					var allocationCashItems = [];
 					var remittanceItems = [];
 					var remittanceCashItems = [];
+					var saleItems = [];
 
 					if( data.allocations )
 					{
@@ -103,6 +106,12 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 					{
 						angular.copy( data.cash_remittances, remittanceCashItems );
 						delete data.cash_remittances;
+					}
+
+					if( data.sales )
+					{
+						angular.copy( data.sales, saleItems );
+						delete data.sales;
 					}
 
 					angular.merge( me, data );
@@ -149,6 +158,16 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 						for( var i = 0; i < n; i++ )
 						{
 							me.cash_remittances.push( new AllocationItem( remittanceCashItems[i] ) );
+						}
+					}
+
+					// Sale Items
+					if( saleItems )
+					{
+						var n = saleItems.length;
+						for( var i = 0; i < n; i++ )
+						{
+							me.sales.push( new AllocationItem( saleItems[i]) );
 						}
 					}
 
@@ -327,6 +346,24 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 			};
 
 
+		Allocation.prototype.getValidSales = function()
+			{
+				var n = this.sales.length;
+				var validSales = [];
+				for( var i = 0; i < n; i++ )
+				{
+					if( ( this.sales[i].allocation_item_status == 30 || this.sales[i].allocation_item_status == 31 ) &&
+							this.sales[i].allocated_quantity > 0 &&
+							!this.sales[i].markedVoid )
+					{
+						validSales.push( this.sales[i] );
+					}
+				}
+
+				return validSales;
+			};
+
+
 		Allocation.prototype.addAllocationItem = function( item )
 			{
 				switch( item.item_class )
@@ -358,6 +395,12 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 				}
 
 				this.updateAllocationSummary();
+			};
+
+
+		Allocation.prototype.addSaleItem = function( item )
+			{
+				this.sales.push( item );
 			};
 
 
@@ -622,18 +665,34 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 			};
 
 
+		Allocation.prototype.removeSaleItem = function( item )
+			{
+				if( item.id == undefined )
+				{
+					var index = this.sales.indexOf( item );
+					this.sales.splice( index, 1 );
+				}
+				else
+				{
+					item.void( !item.void() );
+				}
+			};
+
+
 		Allocation.prototype.checkAllocation = function( action )
 			{
 				var allocationCount = this.allocations.length;
 				var cashAllocationCount = this.cash_allocations.length;
 				var remittanceCount = this.remittances.length;
 				var cashRemittanceCount = this.cash_remittances.length;
+				var salesCount = this.sales.length;
 
 				var preAllocationCategories = [ 'Initial Allocation', 'Magazine Load', 'Change Fund' ];
 				var postAllocationCategories = [ 'Additional Allocation', 'Magazine Load', 'Change Fund' ];
 
 				var hasValidAllocationItem = this.getValidAllocations().length > 0 || this.getValidCashAllocations().length > 0;
 				var hasValidRemittanceItem = this.getValidRemittances().length > 0 || this.getValidCashRemittances().length > 0;
+				var hasValidSaleItem = this.getValidSales().length > 0;
 
 				switch( action )
 				{
@@ -673,9 +732,10 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 						break;
 
 					case 'complete':
-						if( !hasValidAllocationItem && !hasValidRemittanceItem )
+						// TODO: Do we need to check if allocated item count - sold item count == remitted item count?
+						if( !hasValidAllocationItem && !hasValidRemittanceItem && !hasValidSaleItem )
 						{
-							notifications.alert( 'Record does not contain any valid allocation or remittance items', 'warning' );
+							notifications.alert( 'Record does not contain any valid allocation, remittance or sale items', 'warning' );
 							return false;
 						}
 
@@ -735,17 +795,20 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 						allocations: [],
 						cash_allocations: [],
 						remittances: [],
-						cash_remittances: []
+						cash_remittances: [],
+						sales: []
 					};
 
 				var allocations = this.allocations;
 				var remittances = this.remittances;
 				var cash_allocations = this.cash_allocations;
 				var cash_remittances = this.cash_remittances;
+				var sales = this.sales;
 				var m = allocations.length;
 				var n = remittances.length;
 				var cm = cash_allocations.length;
 				var cn = cash_remittances.length;
+				var s = sales.length;
 
 				for( var i = 0; i < m; i++ )
 				{
@@ -837,6 +900,29 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 					}
 
 					data.cash_remittances.push( remittanceData );
+				}
+
+				for( var i = 0; i < s; i++ )
+				{
+					var saleData = {
+							id: sales[i].id,
+							allocation_id: sales[i].allocation_id,
+							cashier_id: sales[i].cashier_id,
+							allocated_item_id: sales[i].allocated_item_id,
+							allocated_quantity: sales[i].allocated_quantity,
+							allocation_category_id: sales[i].allocation_category_id,
+							allocation_datetime: sales[i].allocation_datetime ? $filter( 'date' )( sales[i].allocation_datetime, 'yyyy-MM-dd HH:mm:ss' ) : null,
+							allocation_item_status: sales[i].allocation_item_status,
+							allocation_item_type: 3 // ALLOCATION_ITEM_TYPE_SALES
+						};
+
+					// Change item status of voided items
+					if( sales[i].markedVoid )
+					{
+						saleData.allocation_item_status = 32 // SALE_ITEM_VOIDED
+					}
+
+					data.sales.push( saleData );
 				}
 
 				return data;
@@ -932,7 +1018,10 @@ angular.module( 'coreModels' ).factory( 'AllocationItem', [ '$http', '$q', '$fil
 				'13': 'Voided',
 				'20': 'Pending',
 				'21': 'Remitted',
-				'22': 'Voided'
+				'22': 'Voided',
+				'30': 'Pending',
+				'31': 'Recorded',
+				'32': 'Voided',
 			};
 
 
@@ -963,6 +1052,11 @@ angular.module( 'coreModels' ).factory( 'AllocationItem', [ '$http', '$q', '$fil
 
 				switch( type )
 				{
+					case 'sale':
+						me.allocation_item_type = 3;
+						me.allocation_item_status = 30;
+						break;
+
 					case 'remittance':
 					case 'cash_remittance':
 						me.allocation_item_type = 2;

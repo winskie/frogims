@@ -2979,6 +2979,11 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 						return false;
 					break;
 
+				case 'sale':
+					if( ! value.is_sales_category )
+						return false;
+					break;
+
 				default:
 					return false;
 			}
@@ -3094,6 +3099,10 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					{
 						filter['teller_remittable'] = true;
 					}
+					else if( $scope.data.allocationPhase == 'sale' )
+					{
+						filter['teller_saleable'] = true;
+					}
 				}
 				else if( $scope.data.selectedAssigneeType.id == 2 )
 				{ // Ticket Vending Machine
@@ -3104,6 +3113,10 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					else if( $scope.data.allocationPhase == 'remittance' )
 					{
 						filter['machine_remittable'] = true;
+					}
+					else if( $scope.data.allocationPhase == 'sale' )
+					{
+						filter['machine_saleable'] = true;
 					}
 				}
 
@@ -3248,6 +3261,10 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 							$scope.allocationItem.addRemittanceItem( new AllocationItem( data, 'remittance' ) );
 							break;
 
+						case 'sale':
+							$scope.allocationItem.addSaleItem( new AllocationItem( data, 'sale' ) );
+							break;
+
 						default:
 							// do nothing
 					}
@@ -3273,8 +3290,15 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					case 'remittance':
 					case 'cash_remittance':
 						if( itemRow.allocation_item_status == 20 ) // REMITTANCE_ITEM_PENDING
-						{ // remove only scheduled items
+						{ // remove only pending items
 							$scope.allocationItem.removeRemittanceItem( itemRow );
+						}
+						break;
+
+					case 'sale':
+						if( itemRow.allocation_item_status == 30 ) // SALE_ITEM_PENDING
+						{ // remove only pending items
+							$scope.allocationItem.removeSaleItem( itemRow );
 						}
 						break;
 				}
