@@ -599,7 +599,7 @@ CREATE TABLE IF NOT EXISTS categories
 	category_type SMALLINT NOT NULL,
 	is_allocation_category BOOLEAN NOT NULL DEFAULT 0,
 	is_remittance_category BOOLEAN NOT NULL DEFAULT 0,
-	is_sales_category BOOLEAN NOT NULL DEFAULT 0,
+	is_ticket_sales_category BOOLEAN NOT NULL DEFAULT 0,
 	is_transfer_category BOOLEAN NOT NULL DEFAULT 0,
 	is_teller BOOLEAN NOT NULL,
 	is_machine BOOLEAN NOT NULL,

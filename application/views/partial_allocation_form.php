@@ -256,8 +256,8 @@
 				</table>
 			</div>
 		</uib-tab>
-		<!-- Sales -->
-		<uib-tab heading="Sales" select="updatePhase( 'sale' )" index="2" disable="allocationItem.allocation_status == 1 && allocationItem.assignee_type == 1">
+		<!-- Ticket Sales -->
+		<uib-tab heading="Ticket Sales" select="updatePhase( 'ticket_sales' )" index="2" disable="allocationItem.allocation_status == 1 && allocationItem.assignee_type == 1">
 			<div class="panel panel-default" style="margin: 20px 0; height: 300px; overflow-y: auto;">
 				<table class="table table-condensed">
 					<thead>
@@ -275,10 +275,10 @@
 						<tr>
 							<td colspan="8"><h5>Ticket Items</h5></td>
 						</tr>
-						<tr ng-repeat="row in allocationItem.sales"
+						<tr ng-repeat="row in allocationItem.ticket_sales"
 								ng-class="{
-										danger: row.markedVoid || row.allocation_item_status == <?php echo SALE_ITEM_VOIDED; ?>,
-										deleted: row.allocation_item_status == <?php echo SALE_ITEM_VOIDED; ?>
+										danger: row.markedVoid || row.allocation_item_status == <?php echo TICKET_SALE_ITEM_VOIDED; ?>,
+										deleted: row.allocation_item_status == <?php echo TICKET_SALE_ITEM_VOIDED; ?>
 									}">
 							<td class="text-center">{{ $index + 1 }}</td>
 							<td class="text-left">{{ row.cashier_shift_num }}</td>
@@ -288,25 +288,29 @@
 							<td class="text-center">{{ row.get( 'allocationItemStatus' ) }}</td>
 							<td class="text-center" ng-if="data.editMode != 'view'" ng-switch on="row.allocation_item_status">
 								<a href
-										ng-if="row.allocation_item_status == <?php echo SALE_ITEM_PENDING;?> && row.id == undefined"
-										ng-click="removeSaleItem( 'sale', row )">
+										ng-if="row.allocation_item_status == <?php echo TICKET_SALE_ITEM_PENDING;?> && row.id == undefined"
+										ng-click="removeAllocationItem( 'ticket_sale', row )">
 									<i class="glyphicon glyphicon-remove-circle"></i>
 								</a>
 								<input type="checkbox" value="{{ row.id }}"
-										ng-if="row.allocation_item_status == <?php echo SALE_ITEM_RECORDED;?> || row.allocation_item_status == <?php echo SALE_ITEM_PENDING;?> && row.id"
+										ng-if="row.allocation_item_status == <?php echo TICKET_SALE_ITEM_RECORDED;?> || row.allocation_item_status == <?php echo TICKET_SALE_ITEM_PENDING;?> && row.id"
 										ng-click="getItemQuantities()"
 										ng-model="row.markedVoid">
 							</td>
 						</tr>
-						<tr ng-if="!allocationItem.sales.length">
+						<tr ng-if="!allocationItem.ticket_sales.length">
 							<td colspan="7" class="text-center bg-warning">
-								No sales items
+								No ticket sales items
 							</td>
 						</tr>
 					</tbody>
 				</table>
 			</div>
-		</uib>
+		</uib-tab>
+		<!-- Sale Items -->
+		<uib-tab heading="Sales" select="updatePhase( 'sale' )" index="2" disable="allocationItem.allocation_status == 1 && allocationItem.assignee_type == 1">
+
+		</uib-tab>
 	</uib-tabset>
 </div>
 

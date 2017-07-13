@@ -16,18 +16,18 @@ class Allocation extends Base_model {
 	protected $cash_allocations;
 	protected $remittances;
 	protected $cash_remittances;
-	protected $sales;
+	protected $ticket_sales;
 
 	protected $previousStatus;
 	protected $voided_allocations;
 	protected $voided_remittances;
 	protected $voided_cash_allocations;
 	protected $voided_cash_remittances;
-	protected $voided_sales;
+	protected $voided_ticket_sales;
 
 	protected $has_valid_allocation_item;
 	protected $has_valid_remittance_item;
-	protected $has_valid_sales_item;
+	protected $has_valid_ticket_sale_item;
 
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
@@ -155,11 +155,11 @@ class Allocation extends Base_model {
 		return $this->cash_remittances;
 	}
 
-	public function get_sales( $force = FALSE )
+	public function get_ticket_sales( $force = FALSE )
 	{
 		$ci =& get_instance();
 
-		if( !isset( $this->sales ) || $force )
+		if( !isset( $this->ticket_sales ) || $force )
 		{
 			$ci->load->library( 'allocation_item' );
 			$ci->db->select( 'ai.*, c.category AS category_name, c.category_type,
@@ -172,10 +172,10 @@ class Allocation extends Base_model {
 			$ci->db->join( 'categories c', 'c.id = ai.allocation_category_id', 'left' );
 			$ci->db->join( 'shifts s', 's.id = ai.cashier_shift_id', 'left' );
 			$query = $ci->db->get( 'allocation_items AS ai' );
-			$this->sales = $query->result( 'Allocation_item' );
+			$this->ticket_sales = $query->result( 'Allocation_item' );
 		}
 
-		return $this->sales;
+		return $this->ticket_sales;
 	}
 
 	public function set( $property, $value )
@@ -375,13 +375,13 @@ class Allocation extends Base_model {
 				$remittance->db_save();
 			}
 
-			foreach( $this->sales as $sales )
+			foreach( $this->ticket_sales as $ticket_sale )
 			{
-				if( ! $sales->get( 'id' ) )
+				if( ! $ticket_sale->get( 'id' ) )
 				{
-					$sales->set( 'allocation_id', $this->id );
+					$ticket_sale->set( 'allocation_id', $this->id );
 				}
-				$sales->db_save();
+				$ticket_sale->db_save();
 			}
 
 			// check for required default values
@@ -405,9 +405,9 @@ class Allocation extends Base_model {
 				$this->_transact_remittance();
 			}
 
-			if( $this->sales )
+			if( $this->ticket_sales )
 			{
-				$this->_transact_sales();
+				$this->_transact_ticket_sales();
 			}
 
 			// Transact voided items
@@ -521,13 +521,13 @@ class Allocation extends Base_model {
 					}
 				}
 
-				// Save sales
-				if( isset( $this->sales ) )
+				// Save ticket sales
+				if( isset( $this->ticket_sales ) )
 				{
-					foreach( $this->sales as $sales )
+					foreach( $this->ticket_sales as $ticket_sale )
 					{
-						$sales->set( 'allocation_id', $this->id );
-						$sales->db_save();
+						$ticket_sale->set( 'allocation_id', $this->id );
+						$ticket_sale->db_save();
 					}
 				}
 
@@ -543,10 +543,10 @@ class Allocation extends Base_model {
 					$this->_transact_remittance();
 				}
 
-				// Transact sales
-				if( $this->sales )
+				// Transact ticket sales
+				if( $this->ticket_sales )
 				{
-					$this->_transact_sales();
+					$this->_transact_ticket_sales();
 				}
 			}
 			else
@@ -566,7 +566,7 @@ class Allocation extends Base_model {
 			$this->voided_remittances = NULL;
 			$this->voided_cash_allocations = NULL;
 			$this->voided_cash_remittances = NULL;
-			$this->voided_sales = NULL;
+			$this->voided_ticket_sales = NULL;
 
 			return $result;
 		}
@@ -759,7 +759,7 @@ class Allocation extends Base_model {
 		$cash_allocations = $this->get_cash_allocations();
 		$remittances = $this->get_remittances();
 		$cash_remittances = $this->get_cash_remittances();
-		$sales = $this->get_sales();
+		$ticket_sales = $this->get_ticket_sales();
 		$categories_cache = array();
 
 		$ci->load->library( 'category' );
@@ -775,7 +775,7 @@ class Allocation extends Base_model {
 		$voided_remittances = array();
 		$voided_cash_allocations = array();
 		$voided_cash_remittances = array();
-		$voided_sales = array();
+		$voided_ticket_sales = array();
 
 		foreach( $allocations as $allocation )
 		{
@@ -1181,20 +1181,20 @@ class Allocation extends Base_model {
 			}
 		}
 
-		foreach( $sales as $sale )
+		foreach( $ticket_sales as $ticket_sale )
 		{
-			// Check for voided sales
-			if( array_key_exists( 'allocation_item_status', $sale->db_changes )
-				&& $sale->db_changes['allocation_item_status'] == SALE_ITEM_VOIDED )
+			// Check for voided ticket sales
+			if( array_key_exists( 'allocation_item_status', $ticket_sale->db_changes )
+				&& $ticket_sale->db_changes['allocation_item_status'] == TICKET_SALE_ITEM_VOIDED )
 			{
-				$item_id = $sale->get( 'allocated_item_id' );
-				if( isset( $voided_sales[$item_id] ) )
+				$item_id = $ticket_sale->get( 'allocated_item_id' );
+				if( isset( $voided_ticket_sales[$item_id] ) )
 				{
-					$voided_sales[$item_id] += $sale->get( 'allocated_quantity' );
+					$voided_ticket_sales[$item_id] += $ticket_sale->get( 'allocated_quantity' );
 				}
 				else
 				{
-					$voided_sales[$item_id] = $sale->get( 'allocated_quantity' );
+					$voided_ticket_sales[$item_id] = $ticket_sale->get( 'allocated_quantity' );
 				}
 			}
 		}
@@ -1203,7 +1203,7 @@ class Allocation extends Base_model {
 		$this->voided_remittances = $voided_remittances;
 		$this->voided_cash_allocations = $voided_cash_allocations;
 		$this->voided_cash_remittances = $voided_cash_remittances;
-		$this->voided_sales = $voided_sales;
+		$this->voided_ticket_sales = $voided_ticket_sales;
 
 		return TRUE;
 	}
@@ -1329,20 +1329,20 @@ class Allocation extends Base_model {
 		return $ci->db->trans_status();
 	}
 
-	public function _transact_sales()
+	public function _transact_ticket_sales()
 	{
 		$ci =& get_instance();
 
-		$sales = $this->get_sales();
+		$ticket_sales = $this->get_ticket_sales();
 
 		$ci->db->trans_start();
-		foreach( $sales as $sale )
+		foreach( $ticket_sales as $ticket_sale )
 		{
-			if( $sale->get( 'allocation_item_status' ) == SALE_ITEM_PENDING )
+			if( $ticket_sale->get( 'allocation_item_status' ) == TICKET_SALE_ITEM_PENDING )
 			{
-				$sale->set( 'cashier_shift_id', $ci->session->current_shift_id );
-				$sale->set( 'allocation_item_status', SALE_ITEM_RECORDED );
-				$sale->db_save();
+				$ticket_sale->set( 'cashier_shift_id', $ci->session->current_shift_id );
+				$ticket_sale->set( 'allocation_item_status', TICKET_SALE_ITEM_RECORDED );
+				$ticket_sale->db_save();
 			}
 		}
 		$ci->db->trans_complete();
@@ -1503,25 +1503,25 @@ class Allocation extends Base_model {
 		return $this->has_valid_remittance_item;
 	}
 
-	private function _check_for_valid_sales_item( $force = FALSE )
+	private function _check_for_valid_ticket_sale_item( $force = FALSE )
 	{
-		if( ! isset( $this->had_valid_sales_item ) || $force )
+		if( ! isset( $this->had_valid_ticket_sale_item ) || $force )
 		{
-			$this->has_valid_sales_item = false;
-			$sales = $this->get_sales();
+			$this->has_valid_ticket_sale_item = false;
+			$ticket_sales = $this->get_ticket_sales();
 
-			foreach( $sales as $sale )
+			foreach( $ticket_sales as $ticket_sale )
 			{
-				if( in_array( $sale->get( 'allocation_item_status' ), array( SALE_ITEM_PENDING, SALE_ITEM_RECORDED ) )
-					&& $sale->get( 'allocated_quantity' ) > 0 )
+				if( in_array( $ticket_sale->get( 'allocation_item_status' ), array( TICKET_SALE_ITEM_PENDING, TICKET_SALE_ITEM_RECORDED ) )
+					&& $ticket_sale->get( 'allocated_quantity' ) > 0 )
 				{
-					$this->has_valid_sales_item = true;
+					$this->has_valid_ticket_sale_item = true;
 					break;
 				}
 			}
 		}
 
-		return $this->has_valid_sales_item;
+		return $this->has_valid_ticket_sale_item;
 	}
 
 	public function load_from_data( $data = array(), $overwrite = TRUE )
@@ -1556,7 +1556,7 @@ class Allocation extends Base_model {
 					$r->set( $field, $value );
 				}
 			}
-			elseif( in_array( $field, array( 'allocations', 'remittances', 'cash_allocations', 'cash_remittances', 'sales' ) ) )
+			elseif( in_array( $field, array( 'allocations', 'remittances', 'cash_allocations', 'cash_remittances', 'ticket_sales' ) ) )
 			{ // load items
 				$ci->load->library( 'allocation_item' );
 

@@ -2979,8 +2979,8 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 						return false;
 					break;
 
-				case 'sale':
-					if( ! value.is_sales_category )
+				case 'ticket_sales':
+					if( ! value.is_ticket_sales_category )
 						return false;
 					break;
 
@@ -3099,7 +3099,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					{
 						filter['teller_remittable'] = true;
 					}
-					else if( $scope.data.allocationPhase == 'sale' )
+					else if( $scope.data.allocationPhase == 'ticket_sales' )
 					{
 						filter['teller_saleable'] = true;
 					}
@@ -3114,7 +3114,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					{
 						filter['machine_remittable'] = true;
 					}
-					else if( $scope.data.allocationPhase == 'sale' )
+					else if( $scope.data.allocationPhase == 'ticket_sales' )
 					{
 						filter['machine_saleable'] = true;
 					}
@@ -3261,8 +3261,8 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 							$scope.allocationItem.addRemittanceItem( new AllocationItem( data, 'remittance' ) );
 							break;
 
-						case 'sale':
-							$scope.allocationItem.addSaleItem( new AllocationItem( data, 'sale' ) );
+						case 'ticket_sales':
+							$scope.allocationItem.addTicketSaleItem( new AllocationItem( data, 'ticket_sale' ) );
 							break;
 
 						default:
@@ -3295,10 +3295,10 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 						}
 						break;
 
-					case 'sale':
-						if( itemRow.allocation_item_status == 30 ) // SALE_ITEM_PENDING
+					case 'ticket_sale':
+						if( itemRow.allocation_item_status == 30 ) // TICKET_SALE_ITEM_PENDING
 						{ // remove only pending items
-							$scope.allocationItem.removeSaleItem( itemRow );
+							$scope.allocationItem.removeTicketSaleItem( itemRow );
 						}
 						break;
 				}

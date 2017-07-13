@@ -7,7 +7,7 @@ class Category extends Base_model
 	protected $category_type;
 	protected $is_allocation_category;
 	protected $is_remittance_category;
-	protected $is_sales_category;
+	protected $is_ticket_sales_category;
 	protected $is_transfer_category;
     protected $is_teller;
     protected $is_machine;
@@ -22,7 +22,7 @@ class Category extends Base_model
 			'category_type' => array( 'type' => 'integer' ),
 			'is_allocation_category' => array( 'type' => 'boolean' ),
 			'is_remittance_category' => array( 'type' => 'boolean' ),
-			'is_sales_category' => array( 'type' => 'boolean' ),
+			'is_ticket_sales_category' => array( 'type' => 'boolean' ),
 			'is_transfer_category' => array( 'type' => 'boolean' ),
             'is_teller' => array( 'type' => 'boolean' ),
             'is_machine' => array( 'type' => 'boolean' ),

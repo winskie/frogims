@@ -15,7 +15,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 		var cash_allocations;
 		var remittances;
 		var cash_remittances;
-		var sales;
+		var ticket_sales;
 
 		var allocationSummary;
 
@@ -75,7 +75,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 				me.cash_allocations = [];
 				me.remittances = [];
 				me.cash_remittances = [];
-				me.sales = [];
+				me.ticket_sales = [];
 
 				me.allocationSummary = [];
 
@@ -85,7 +85,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 					var allocationCashItems = [];
 					var remittanceItems = [];
 					var remittanceCashItems = [];
-					var saleItems = [];
+					var ticketSaleItems = [];
 
 					if( data.allocations )
 					{
@@ -108,10 +108,10 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 						delete data.cash_remittances;
 					}
 
-					if( data.sales )
+					if( data.ticket_sales )
 					{
-						angular.copy( data.sales, saleItems );
-						delete data.sales;
+						angular.copy( data.ticket_sales, ticketSaleItems );
+						delete data.ticket_sales;
 					}
 
 					angular.merge( me, data );
@@ -161,13 +161,13 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 						}
 					}
 
-					// Sale Items
-					if( saleItems )
+					// Ticket sale Items
+					if( ticketSaleItems )
 					{
-						var n = saleItems.length;
+						var n = ticketSaleItems.length;
 						for( var i = 0; i < n; i++ )
 						{
-							me.sales.push( new AllocationItem( saleItems[i]) );
+							me.ticket_sales.push( new AllocationItem( ticketSaleItems[i]) );
 						}
 					}
 
@@ -346,21 +346,21 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 			};
 
 
-		Allocation.prototype.getValidSales = function()
+		Allocation.prototype.getValidTicketSales = function()
 			{
-				var n = this.sales.length;
-				var validSales = [];
+				var n = this.ticket_sales.length;
+				var validTicketSales = [];
 				for( var i = 0; i < n; i++ )
 				{
-					if( ( this.sales[i].allocation_item_status == 30 || this.sales[i].allocation_item_status == 31 ) &&
-							this.sales[i].allocated_quantity > 0 &&
-							!this.sales[i].markedVoid )
+					if( ( this.ticket_sales[i].allocation_item_status == 30 || this.ticket_sales[i].allocation_item_status == 31 ) &&
+							this.ticket_sales[i].allocated_quantity > 0 &&
+							!this.ticket_sales[i].markedVoid )
 					{
-						validSales.push( this.sales[i] );
+						validTicketSales.push( this.ticket_sales[i] );
 					}
 				}
 
-				return validSales;
+				return validTicketSales;
 			};
 
 
@@ -398,9 +398,9 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 			};
 
 
-		Allocation.prototype.addSaleItem = function( item )
+		Allocation.prototype.addTicketSaleItem = function( item )
 			{
-				this.sales.push( item );
+				this.ticket_sales.push( item );
 			};
 
 
@@ -665,12 +665,12 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 			};
 
 
-		Allocation.prototype.removeSaleItem = function( item )
+		Allocation.prototype.removeTicketSaleItem = function( item )
 			{
 				if( item.id == undefined )
 				{
-					var index = this.sales.indexOf( item );
-					this.sales.splice( index, 1 );
+					var index = this.ticket_sales.indexOf( item );
+					this.ticket_sales.splice( index, 1 );
 				}
 				else
 				{
@@ -685,14 +685,14 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 				var cashAllocationCount = this.cash_allocations.length;
 				var remittanceCount = this.remittances.length;
 				var cashRemittanceCount = this.cash_remittances.length;
-				var salesCount = this.sales.length;
+				var ticketSalesCount = this.ticket_sales.length;
 
 				var preAllocationCategories = [ 'Initial Allocation', 'Magazine Load', 'Change Fund' ];
 				var postAllocationCategories = [ 'Additional Allocation', 'Magazine Load', 'Change Fund' ];
 
 				var hasValidAllocationItem = this.getValidAllocations().length > 0 || this.getValidCashAllocations().length > 0;
 				var hasValidRemittanceItem = this.getValidRemittances().length > 0 || this.getValidCashRemittances().length > 0;
-				var hasValidSaleItem = this.getValidSales().length > 0;
+				var hasValidTicketSaleItem = this.getValidTicketSales().length > 0;
 
 				switch( action )
 				{
@@ -733,9 +733,9 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 
 					case 'complete':
 						// TODO: Do we need to check if allocated item count - sold item count == remitted item count?
-						if( !hasValidAllocationItem && !hasValidRemittanceItem && !hasValidSaleItem )
+						if( !hasValidAllocationItem && !hasValidRemittanceItem && !hasValidTicketSaleItem )
 						{
-							notifications.alert( 'Record does not contain any valid allocation, remittance or sale items', 'warning' );
+							notifications.alert( 'Record does not contain any valid allocation, remittance or ticket sale items', 'warning' );
 							return false;
 						}
 
@@ -796,19 +796,19 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 						cash_allocations: [],
 						remittances: [],
 						cash_remittances: [],
-						sales: []
+						ticket_sales: []
 					};
 
 				var allocations = this.allocations;
 				var remittances = this.remittances;
 				var cash_allocations = this.cash_allocations;
 				var cash_remittances = this.cash_remittances;
-				var sales = this.sales;
+				var ticket_sales = this.ticket_sales;
 				var m = allocations.length;
 				var n = remittances.length;
 				var cm = cash_allocations.length;
 				var cn = cash_remittances.length;
-				var s = sales.length;
+				var ts = ticket_sales.length;
 
 				for( var i = 0; i < m; i++ )
 				{
@@ -902,27 +902,27 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 					data.cash_remittances.push( remittanceData );
 				}
 
-				for( var i = 0; i < s; i++ )
+				for( var i = 0; i < ts; i++ )
 				{
-					var saleData = {
-							id: sales[i].id,
-							allocation_id: sales[i].allocation_id,
-							cashier_id: sales[i].cashier_id,
-							allocated_item_id: sales[i].allocated_item_id,
-							allocated_quantity: sales[i].allocated_quantity,
-							allocation_category_id: sales[i].allocation_category_id,
-							allocation_datetime: sales[i].allocation_datetime ? $filter( 'date' )( sales[i].allocation_datetime, 'yyyy-MM-dd HH:mm:ss' ) : null,
-							allocation_item_status: sales[i].allocation_item_status,
+					var ticketSaleData = {
+							id: ticket_sales[i].id,
+							allocation_id: ticket_sales[i].allocation_id,
+							cashier_id: ticket_sales[i].cashier_id,
+							allocated_item_id: ticket_sales[i].allocated_item_id,
+							allocated_quantity: ticket_sales[i].allocated_quantity,
+							allocation_category_id: ticket_sales[i].allocation_category_id,
+							allocation_datetime: ticket_sales[i].allocation_datetime ? $filter( 'date' )( ticket_sales[i].allocation_datetime, 'yyyy-MM-dd HH:mm:ss' ) : null,
+							allocation_item_status: ticket_sales[i].allocation_item_status,
 							allocation_item_type: 3 // ALLOCATION_ITEM_TYPE_SALES
 						};
 
 					// Change item status of voided items
-					if( sales[i].markedVoid )
+					if( ticket_sales[i].markedVoid )
 					{
-						saleData.allocation_item_status = 32 // SALE_ITEM_VOIDED
+						ticketSaleData.allocation_item_status = 32 // TICKET_SALE_ITEM_VOIDED
 					}
 
-					data.sales.push( saleData );
+					data.ticket_sales.push( ticketSaleData );
 				}
 
 				return data;
@@ -957,7 +957,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 						default:
 							// do nothing
 					}
-					console.log( allocationData );
+
 					$http({
 						method: 'POST',
 						url: allocationUrl,
@@ -1052,7 +1052,7 @@ angular.module( 'coreModels' ).factory( 'AllocationItem', [ '$http', '$q', '$fil
 
 				switch( type )
 				{
-					case 'sale':
+					case 'ticket_sale':
 						me.allocation_item_type = 3;
 						me.allocation_item_status = 30;
 						break;

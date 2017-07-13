@@ -655,7 +655,7 @@ class Installer extends CI_Controller {
 					category_type SMALLINT NOT NULL,
 					is_allocation_category BOOLEAN NOT NULL DEFAULT 0,
 					is_remittance_category BOOLEAN NOT NULL DEFAULT 0,
-					is_sales_category BOOLEAN NOT NULL DEFAULT 0,
+					is_ticket_sales_category BOOLEAN NOT NULL DEFAULT 0,
 					is_transfer_category BOOLEAN NOT NULL DEFAULT 0,
 					is_teller BOOLEAN NOT NULL,
 					is_machine BOOLEAN NOT NULL,
@@ -1145,7 +1145,7 @@ class Installer extends CI_Controller {
 				$this->db->set( 'is_teller', $value[5] );
 				$this->db->set( 'is_machine', $value[6] );
 				$this->db->set( 'category_status', $value[7] );
-				$this->db->set( 'is_sales_category', $value[8] );
+				$this->db->set( 'is_ticket_sales_category', $value[8] );
 				$this->db->insert( 'categories' );
 			}
 			echo 'OK<br />';
