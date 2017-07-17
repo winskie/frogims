@@ -190,6 +190,11 @@ defined('TICKET_SALE_ITEM_PENDING')	OR define('TICKET_SALE_ITEM_PENDING', 30);
 defined('TICKET_SALE_ITEM_RECORDED')	OR define('TICKET_SALE_ITEM_RECORDED', 31);
 defined('TICKET_SALE_ITEM_VOIDED')	OR define('TICKET_SALE_ITEM_VOIDED', 32);
 
+// Allocation sales item types
+defined('SALES_ITEM_PENDING')		OR define('SALES_ITEM_PENDING', 10);
+defined('SALES_ITEM_RECORDED')	OR define('SALES_ITEM_RECORDED', 11);
+defined('SALES_ITEM_VOIDED')		OR define('SALES_ITEM_VOIDED', 12);
+
 // Adjustment types
 defined('ADJUSTMENT_TYPE_ACTUAL')	OR define('ADJUSTMENT_TYPE_ACTUAL', 1);
 

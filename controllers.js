@@ -2926,8 +2926,8 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 	}
 ]);
 
-app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'assigneeShifts', 'Allocation', 'AllocationItem',
-	function( $scope, $filter, $state, $stateParams, session, appData, notifications, assigneeShifts, Allocation, AllocationItem )
+app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'assigneeShifts', 'Allocation', 'AllocationItem', 'AllocationSalesItem',
+	function( $scope, $filter, $state, $stateParams, session, appData, notifications, assigneeShifts, Allocation, AllocationItem, AllocationSalesItem )
 	{
 		function category_filter( value, index, array )
 		{
@@ -2984,6 +2984,9 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 						return false;
 					break;
 
+				case 'sales':
+					break;
+
 				default:
 					return false;
 			}
@@ -3001,6 +3004,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 				assigneeTypes: angular.copy( appData.data.assigneeTypes ),
 				selectedAssigneeType: { id: 1, typeName: 'Station Teller' },
 				inventoryItems: angular.copy( appData.data.items ),
+				salesItems: angular.copy( appData.data.salesItems ),
 				selectedItem: null,
 				categories: angular.copy( appData.data.categories ),
 				allocationPhase: 'allocation',
@@ -3017,6 +3021,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 		$scope.input = {
 				category: null,
 				item: $scope.data.inventoryItems[0] || null,
+				salesItem: $scope.data.salesItems[0] || null,
 				itemReservedQuantity: 0,
 				quantity: null,
 			};
@@ -3103,6 +3108,10 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					{
 						filter['teller_saleable'] = true;
 					}
+					else if( $scope.data.allocationPhase == 'sales' )
+					{
+						// do nothing
+					}
 				}
 				else if( $scope.data.selectedAssigneeType.id == 2 )
 				{ // Ticket Vending Machine
@@ -3118,14 +3127,21 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					{
 						filter['machine_saleable'] = true;
 					}
+					else if( $scope.data.allocationPhase == 'sales' )
+					{
+						// do nothing
+					}
 				}
 
-				$scope.data.inventoryItems = $filter( 'filter' )( appData.data.items, filter, true );
-				if( $scope.data.inventoryItems.length )
+				if( $scope.data.allocationPhase != 'sales' )
 				{
-					$scope.input.item = $scope.data.inventoryItems[0];
+					$scope.data.inventoryItems = $filter( 'filter' )( appData.data.items, filter, true );
+					if( $scope.data.inventoryItems.length )
+					{
+						$scope.input.item = $scope.data.inventoryItems[0];
+					}
+					$scope.updateCategories();
 				}
-				$scope.updateCategories();
 			};
 
 		$scope.getItemQuantities = function()
@@ -3231,42 +3247,67 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 		// Allocation and remittance items actions
 		$scope.addAllocationItem = function()
 			{
-				if( ( event.type == 'keypress' ) && ( event.keyCode == 13 )
-						&& $scope.input.category
-						&& $scope.input.item
-						&& $scope.input.quantity > 0 )
+				if( ( event.type == 'keypress' ) && ( event.keyCode == 13 ) )
 				{
-					var data = {
-							cashier_shift_num: session.data.currentShift.shift_num,
-							category_name: $scope.input.category.category,
-							item_name: $scope.input.item.item_name,
-							item_class: $scope.input.item.item_class,
-
-							iprice_currency: $scope.input.item.iprice_currency,
-							iprice_unit_price: $scope.input.item.iprice_unit_price,
-
-							cashier_shift_id: session.data.currentShift.id,
-							allocated_item_id: $scope.input.item.item_id,
-							allocated_quantity: $scope.input.quantity,
-							allocation_category_id: $scope.input.category.id,
-							allocation_datetime: new Date()
-						};
-					switch( $scope.data.allocationPhase )
+					if( $scope.data.allocationPhase == 'sales'
+							&& $scope.input.salesItem
+							&& $scope.input.quantity > 0 )
 					{
-						case 'allocation':
-							$scope.allocationItem.addAllocationItem( new AllocationItem( data, 'allocation' ) );
-							break;
+						console.log( $scope.input.salesItem );
+						var data = {
+								cashier_shift_num: session.data.currentShift.shift_num,
+								slitem_name: $scope.input.salesItem.slitem_name,
+								slitem_description: $scope.input.salesItem.slitem_description,
+								slitem_group: $scope.input.salesItem.slitem_group,
+								slitem_mode: $scope.input.salesItem.slitem_mode,
 
-						case 'remittance':
-							$scope.allocationItem.addRemittanceItem( new AllocationItem( data, 'remittance' ) );
-							break;
+								alsale_allocation_id: $scope.allocationItem.id,
+								alsale_shift_id: session.data.currentShift.id,
+								alsale_sales_item_id: $scope.input.salesItem.id,
+								alsale_amount: $scope.input.quantity
+						}
 
-						case 'ticket_sales':
-							$scope.allocationItem.addTicketSaleItem( new AllocationItem( data, 'ticket_sale' ) );
-							break;
+						$scope.allocationItem.addSalesItem( new AllocationSalesItem( data ) );
+					}
+					else
+					{
+						if( $scope.input.category
+								&& $scope.input.item
+								&& $scope.input.quantity > 0 )
+						{
+							var data = {
+									cashier_shift_num: session.data.currentShift.shift_num,
+									category_name: $scope.input.category.category,
+									item_name: $scope.input.item.item_name,
+									item_class: $scope.input.item.item_class,
 
-						default:
-							// do nothing
+									iprice_currency: $scope.input.item.iprice_currency,
+									iprice_unit_price: $scope.input.item.iprice_unit_price,
+
+									cashier_shift_id: session.data.currentShift.id,
+									allocated_item_id: $scope.input.item.item_id,
+									allocated_quantity: $scope.input.quantity,
+									allocation_category_id: $scope.input.category.id,
+									allocation_datetime: new Date()
+								};
+							switch( $scope.data.allocationPhase )
+							{
+								case 'allocation':
+									$scope.allocationItem.addAllocationItem( new AllocationItem( data, 'allocation' ) );
+									break;
+
+								case 'remittance':
+									$scope.allocationItem.addRemittanceItem( new AllocationItem( data, 'remittance' ) );
+									break;
+
+								case 'ticket_sales':
+									$scope.allocationItem.addTicketSaleItem( new AllocationItem( data, 'ticket_sale' ) );
+									break;
+
+								default:
+									// do nothing
+							}
+						}
 					}
 
 					// Clear quantity

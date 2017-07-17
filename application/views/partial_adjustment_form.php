@@ -14,7 +14,7 @@
 					</select>
 				</div>
 
-				<div class="col-sm-5" ng-switch_default>
+				<div class="col-sm-5" ng-switch-default>
 					<p class="form-control-static">{{ adjustmentItem.item_description }}</p>
 				</div>
 

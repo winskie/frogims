@@ -294,7 +294,6 @@
 								</a>
 								<input type="checkbox" value="{{ row.id }}"
 										ng-if="row.allocation_item_status == <?php echo TICKET_SALE_ITEM_RECORDED;?> || row.allocation_item_status == <?php echo TICKET_SALE_ITEM_PENDING;?> && row.id"
-										ng-click="getItemQuantities()"
 										ng-model="row.markedVoid">
 							</td>
 						</tr>
@@ -308,8 +307,49 @@
 			</div>
 		</uib-tab>
 		<!-- Sale Items -->
-		<uib-tab heading="Sales" select="updatePhase( 'sale' )" index="2" disable="allocationItem.allocation_status == 1 && allocationItem.assignee_type == 1">
-
+		<uib-tab heading="Sales" select="updatePhase( 'sales' )" index="3" disable="allocationItem.allocation_status == 1 && allocationItem.assignee_type == 1">
+			<div class="panel panel-default" style="margin: 20px 0; height: 300px; overflow-y: auto;">
+				<table class="table table-condensed">
+					<thead>
+						<tr>
+							<th class="text-center">Row</th>
+							<th class="text-left">Cashier Shift</th>
+							<th class="text-left">Item Description</th>
+							<th class="text-center">Amount</th>
+							<th class="text-center">Status</th>
+							<th class="text-center" ng-if="data.editMode != 'view'">Void</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="row in allocationItem.sales"
+								ng-class="{
+										danger: row.markedVoid || row.alsale_sales_item_status == <?php echo SALES_ITEM_VOIDED; ?>,
+										deleted: row.alsale_sales_item_status == <?php echo SALES_ITEM_VOIDED; ?>
+									}">
+							<td class="text-center">{{ $index + 1 }}</td>
+							<td class="text-left">{{ row.cashier_shift_num }}</td>
+							<td class="text-left">{{ row.slitem_name }}</td>
+							<td class="text-right">{{ ( row.slitem_mode === 1 ? row.alsale_amount : row.alsale_amount * -1 ) | number: 2 }}</td>
+							<td class="text-center">{{ row.get( 'allocationSalesItemStatus' ) }}</td>
+							<td class="text-center" ng-if="data.editMode != 'view'" ng-switch on="row.alsale_sales_item_status">
+								<a href
+										ng-if="row.alsale_sales_item_status == <?php echo SALES_ITEM_PENDING;?> && row.id == undefined"
+										ng-click="removeSalesItem( row )">
+									<i class="glyphicon glyphicon-remove-circle"></i>
+								</a>
+								<input type="checkbox" value="{{ row.id }}"
+										ng-if="row.alsale_sales_item_status == <?php echo SALES_ITEM_RECORDED;?> || row.alsale_sales_item_status == <?php echo SALES_ITEM_PENDING;?> && row.id"
+										ng-model="row.markedVoid">
+							</td>
+						</tr>
+						<tr ng-if="!allocationItem.sales.length">
+							<td colspan="6" class="text-center bg-warning">
+								No sales items
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		</uib-tab>
 	</uib-tabset>
 </div>
@@ -321,15 +361,21 @@
 			<!-- Item -->
 			<div class="form-group col-sm-12 col-md-6 col-lg-5">
 				<label class="control-label">Item</label>
-				<select class="form-control"
+				<select class="form-control ng-animate-disabled"
 						ng-model="input.item"
 						ng-change="onItemChange()"
-						ng-options="item as item.item_name for item in data.inventoryItems track by item.id">
+						ng-options="item as item.item_name for item in data.inventoryItems track by item.id"
+						ng-hide="data.allocationPhase == 'sales'">
+				</select>
+				<select class="form-control ng-animate-disabled"
+						ng-model="input.salesItem"
+						ng-options="item as item.slitem_name for item in data.salesItems track by item.id"
+						ng-show="data.allocationPhase == 'sales'">
 				</select>
 			</div>
 
 			<!-- Category -->
-			<div class="form-group col-sm-12 col-md-6 col-lg-4">
+			<div class="form-group col-sm-12 col-md-6 col-lg-4" ng-if="data.allocationPhase != 'sales'">
 				<label class="control-label">Category</label>
 				<select class="form-control"
 						ng-model="input.category"
@@ -345,7 +391,7 @@
 
 			<!-- Quantity-->
 			<div class="form-group col-sm-6 col-md-3 col-lg-2">
-				<label class="control-label">Quantity</label>
+				<label class="control-label">{{ data.allocationPhase == 'sales' ? 'Amount' : 'Quantity' }}</label>
 				<input type="number" class="form-control" min="1"
 						ng-model="input.quantity"
 						ng-keypress="addAllocationItem()">

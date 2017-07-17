@@ -1,5 +1,5 @@
-angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'AllocationItem',
-	function( $http, $q, $filter, baseUrl, session, notifications, AllocationItem )
+angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'AllocationItem', 'AllocationSalesItem',
+	function( $http, $q, $filter, baseUrl, session, notifications, AllocationItem, AllocationSalesItem )
 	{
 		var id;
 		var store_id;
@@ -16,6 +16,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 		var remittances;
 		var cash_remittances;
 		var ticket_sales;
+		var sales;
 
 		var allocationSummary;
 
@@ -76,6 +77,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 				me.remittances = [];
 				me.cash_remittances = [];
 				me.ticket_sales = [];
+				me.sales = [];
 
 				me.allocationSummary = [];
 
@@ -86,6 +88,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 					var remittanceItems = [];
 					var remittanceCashItems = [];
 					var ticketSaleItems = [];
+					var salesItems = [];
 
 					if( data.allocations )
 					{
@@ -112,6 +115,12 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 					{
 						angular.copy( data.ticket_sales, ticketSaleItems );
 						delete data.ticket_sales;
+					}
+
+					if( data.sales )
+					{
+						angular.copy( data.sales, salesItems );
+						delete data.sales;
 					}
 
 					angular.merge( me, data );
@@ -170,6 +179,16 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 							me.ticket_sales.push( new AllocationItem( ticketSaleItems[i]) );
 						}
 					}
+
+					// Sales Items
+					if( salesItems )
+						{
+							var n = salesItems.length;
+							for( var i = 0; i < n; i++ )
+							{
+								me.sales.push( new AllocationSalesItem( salesItems[i] ) );
+							}
+						}
 
 					me.updateAllocationSummary();
 				}
@@ -364,6 +383,24 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 			};
 
 
+		Allocation.prototype.getValidSales = function()
+			{
+				var n = this.sales.length;
+				var validSales = [];
+				for( var i = 0; i < n; i++ )
+				{
+					if( ( this.sales[i].alsale_sales_item_status == 10 || this.sales[i].alsale_sales_item_status == 11 ) &&
+							this.sales[i].alsale_amount > 0 &&
+							!this.sales[i].markedVoid )
+					{
+						validSales.push( this.sales[i] );
+					}
+				}
+
+				return validSales;
+			};
+
+
 		Allocation.prototype.addAllocationItem = function( item )
 			{
 				switch( item.item_class )
@@ -401,6 +438,12 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 		Allocation.prototype.addTicketSaleItem = function( item )
 			{
 				this.ticket_sales.push( item );
+			};
+
+
+		Allocation.prototype.addSalesItem = function( item )
+			{
+				this.sales.push( item );
 			};
 
 
@@ -679,6 +722,20 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 			};
 
 
+		Allocation.prototype.removeSalesItem = function( item )
+			{
+				if( item.id == undefined )
+				{
+					var index = this.sales.indexOf( item );
+					this.sales.splice( index, 1 );
+				}
+				else
+				{
+					item.void( !item.void() );
+				}
+			};
+
+
 		Allocation.prototype.checkAllocation = function( action )
 			{
 				var allocationCount = this.allocations.length;
@@ -686,6 +743,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 				var remittanceCount = this.remittances.length;
 				var cashRemittanceCount = this.cash_remittances.length;
 				var ticketSalesCount = this.ticket_sales.length;
+				var salesCount = this.sales.length;
 
 				var preAllocationCategories = [ 'Initial Allocation', 'Magazine Load', 'Change Fund' ];
 				var postAllocationCategories = [ 'Additional Allocation', 'Magazine Load', 'Change Fund' ];
@@ -693,6 +751,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 				var hasValidAllocationItem = this.getValidAllocations().length > 0 || this.getValidCashAllocations().length > 0;
 				var hasValidRemittanceItem = this.getValidRemittances().length > 0 || this.getValidCashRemittances().length > 0;
 				var hasValidTicketSaleItem = this.getValidTicketSales().length > 0;
+				var hasValidSalesItem = this.getValidSales().length > 0;
 
 				switch( action )
 				{
@@ -796,7 +855,8 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 						cash_allocations: [],
 						remittances: [],
 						cash_remittances: [],
-						ticket_sales: []
+						ticket_sales: [],
+						sales: [],
 					};
 
 				var allocations = this.allocations;
@@ -804,11 +864,13 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 				var cash_allocations = this.cash_allocations;
 				var cash_remittances = this.cash_remittances;
 				var ticket_sales = this.ticket_sales;
+				var sales = this.sales;
 				var m = allocations.length;
 				var n = remittances.length;
 				var cm = cash_allocations.length;
 				var cn = cash_remittances.length;
 				var ts = ticket_sales.length;
+				var s = sales.length;
 
 				for( var i = 0; i < m; i++ )
 				{
@@ -923,6 +985,26 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 					}
 
 					data.ticket_sales.push( ticketSaleData );
+				}
+
+				for( var i = 0; i < s; i++ )
+				{
+					var saleData = {
+							id: sales[i].id,
+							alsale_allocation_id: sales[i].alsale_allocation_id,
+							alsale_cashier_id: sales[i].alsale_cashier_id,
+							alsale_sales_item_id: sales[i].alsale_sales_item_id,
+							alsale_amount: sales[i].alsale_amount,
+							alsale_sales_item_status: sales[i].alsale_sales_item_status
+						};
+
+					// Change item status of voided items
+					if( sales[i].markedVoid )
+					{
+						saleData.alsale_sales_item_status = 12 // TICKET_SALE_ITEM_VOIDED
+					}
+
+					data.sales.push( saleData );
 				}
 
 				return data;
@@ -1074,7 +1156,7 @@ angular.module( 'coreModels' ).factory( 'AllocationItem', [ '$http', '$q', '$fil
 				{
 					angular.merge( me, data );
 
-					if( me.business_date )
+					if( me.allocation_datetime )
 					{
 						me.allocation_datetime = Date.parse( me.allocation_datetime );
 					}
@@ -1115,5 +1197,86 @@ angular.module( 'coreModels' ).factory( 'AllocationItem', [ '$http', '$q', '$fil
 			};
 
 		return AllocationItem;
+	}
+]);
+
+angular.module( 'coreModels' ).factory( 'AllocationSalesItem', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications',
+	function( $http, $q, $filter, baseUrl, session, notifications )
+	{
+		var id;
+		var alsale_allocation_id;
+		var alsale_shift_id
+		var alsale_cashier_id;
+		var alsale_sales_item_id;
+		var alsale_amount;
+		var alsale_sales_item_status;
+
+		var allocationSalesItemStatus = {
+				'10': 'Pending',
+				'11': 'Recorded',
+				'12': 'Voided',
+			};
+
+
+		/**
+		 * Constructor
+		 */
+		function AllocationSalesItem( data )
+		{
+			this.loadData( data );
+		}
+
+		AllocationSalesItem.prototype.loadData = function( data )
+			{
+				var me = this;
+
+				me.id = null;
+				me.alsale_allocation_id = null;
+				me.alsale_shift_id = null;
+				me.alsale_cashier_id = null;
+				me.alsale_sales_item_id = null;
+				me.alsale_amount = null;
+				me.alsale_sales_item_status = 10;
+
+				if( data )
+				{
+					angular.merge( me, data );
+				}
+			};
+
+		AllocationSalesItem.prototype.get = function( field )
+			{
+				console.log( 'yyy' );
+				switch( field )
+				{
+					case 'allocationSalesItemStatus':
+						return allocationSalesItemStatus[this.alsale_sales_item_status.toString()];
+
+					default:
+						if( this.hasOwnProperty( field ) )
+						{
+							return this[field];
+						}
+						else
+						{
+							console.error( 'The property [' + field + '] does not exist!' );
+							return undefined;
+						}
+				}
+			};
+
+		AllocationSalesItem.prototype.void = function( status )
+			{
+				if( status == undefined)
+				{
+					return this.markedVoid;
+				}
+				else if( status == true || status == false )
+				{
+					this.markedVoid = status;
+				}
+			};
+
+		return AllocationSalesItem;
 	}
 ]);

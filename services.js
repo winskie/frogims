@@ -504,6 +504,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 					],
 
 				items: [],
+				salesItems: [],
 				transactions: [],
 				shiftTurnovers: [],
 				transfers: [],
@@ -735,6 +736,37 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 							var d = response.data;
 
 							me.data.items = d.data;
+							deferred.resolve( d );
+						}
+						else
+						{
+							notifications.showMessages( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
+
+		me.getSalesItems = function()
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/sales_items'
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							var d = response.data;
+
+							me.data.salesItems = d.data;
 							deferred.resolve( d );
 						}
 						else

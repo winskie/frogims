@@ -195,12 +195,14 @@ class Api_v1 extends MY_Controller {
 								$remittance_items = $allocation->get_remittances();
 								$cash_remittance_items = $allocation->get_cash_remittances();
 								$ticket_sale_items = $allocation->get_ticket_sales();
+								$sales_items = $allocation->get_sales();
 
 								$allocation_items_data = array();
 								$cash_allocation_items_data = array();
 								$remittance_items_data = array();
 								$cash_remittance_items_data = array();
 								$ticket_sale_items_data = array();
+								$sales_items_data = array();
 
 								// Allocation items
 								foreach( $allocation_items as $item )
@@ -280,6 +282,18 @@ class Api_v1 extends MY_Controller {
 										'cashier_shift_num' => array( 'type' => 'string' ) ) );
 								}
 								$allocation_data['ticket_sales'] = $ticket_sale_items_data;
+
+								// Sales items
+								foreach( $sales_items as $item )
+								{
+									$sales_items_data[] = $item->as_array( array(
+										'slitem_name' => array( 'type' => 'string' ),
+										'slitem_description' => array( 'type' => 'string' ),
+										'slitem_group' => array( 'type' => 'string' ),
+										'slitem_mode' => array( 'type' => 'integer'),
+										'cashier_shift_num' => array( 'type', 'string' ) ) );
+								}
+								$allocation_data['sales'] = $sales_items_data;
 
 								$this->_response( $allocation_data );
 							}
@@ -1013,6 +1027,40 @@ class Api_v1 extends MY_Controller {
 		$this->output->set_output( json_encode( $response ) );
 	}
 
+	public function sales_items()
+	{
+		$request_method = $this->input->method();
+
+		switch( $request_method )
+		{
+			case 'get':
+				$this->load->library( 'sales_item' );
+				$SalesItem = new Sales_item();
+				$items = $SalesItem->get_sale_items();
+				$items_data = array();
+				$additional_fields = array(
+					'slitem_name' => array( 'type' => 'string' ),
+					'slitem_description' => array( 'type' => 'string' ),
+					'slitem_group' => array( 'type' => 'string' ),
+					'slitem_mode' => array( 'type' => 'integer' )
+				);
+
+				foreach( $items as $item )
+				{
+					$item_data = $item->as_array( $additional_fields );
+					$items_data[] = $item_data;
+				}
+
+				$this->_response( $items_data );
+				break;
+
+			default:
+				$this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
+		}
+
+		$this->_send_response();
+	}
+
 	public function session()
 	{
 		/*
@@ -1502,12 +1550,14 @@ class Api_v1 extends MY_Controller {
 											$remittance_items = $allocation->get_remittances( TRUE );
 											$remittance_cash_items = $allocation->get_cash_remittances( TRUE );
 											$ticket_sale_items = $allocation->get_ticket_sales( TRUE );
+											$sales_items = $allocation->get_sales( TRUE );
 
 											$allocation_items_data = array();
 											$allocation_cash_items_data = array();
 											$remittance_items_data = array();
 											$remittance_cash_items_data = array();
 											$ticket_sale_items_data = array();
+											$sales_items_data = array();
 
 											foreach( $allocation_items as $item )
 											{
@@ -1578,6 +1628,16 @@ class Api_v1 extends MY_Controller {
 														'cashier_shift_num' => array( 'type' => 'string' ) ) );
 											}
 
+											foreach( $sales_items as $item )
+											{
+												$sales_items_data[] = $item->as_array( array(
+														'slitem_name' => array( 'type' => 'string' ),
+														'slitem_description' => array( 'type' => 'string' ),
+														'slitem_group' => array( 'type' => 'string' ),
+														'slitem_mode' => array( 'type' => 'integer'),
+														'cashier_shift_num' => array( 'type', 'string' ) ) );
+											}
+
 											$allocation_data = $allocation->as_array( array(
 													'shift_num' => array( 'type' => 'string' ),
 													'shift_description' => array( 'type' => 'string' ) ) );
@@ -1587,6 +1647,7 @@ class Api_v1 extends MY_Controller {
 											$allocation_data['cash_allocations'] = $allocation_cash_items_data;
 											$allocation_data['cash_remittances'] = $remittance_cash_items_data;
 											$allocation_data['ticket_sales'] = $ticket_sale_items_data;
+											$allocation_data['sales'] = $sales_items_data;
 
 											$allocations_data[] = $allocation_data;
 										}

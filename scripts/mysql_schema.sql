@@ -153,6 +153,7 @@ CREATE TABLE IF NOT EXISTS sales_items
 (
 	id INTEGER AUTO_INCREMENT NOT NULL,
 	slitem_name VARCHAR(100) NOT NULL,
+	slitem_description VARCHAR(255) NOT NULL,
 	slitem_group VARCHAR(100) NOT NULL,
 	slitem_mode SMALLINT NOT NULL DEFAULT 1,
 	PRIMARY KEY (id),
@@ -538,6 +539,28 @@ CREATE TABLE IF NOT EXISTS allocation_items
 		ON UPDATE CASCADE
 		ON DELETE RESTRICT,
 	INDEX allocation_items_type_ndx (allocation_id, allocation_item_type)
+)
+ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS allocation_sales_items
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	alsale_allocation_id INTEGER NOT NULL,
+	alsale_shift_id INTEGER NOT NULL,
+	alsale_cashier_id INTEGER NOT NULL,
+	alsale_sales_item_id INTEGER NOT NULL,
+	alsale_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+	alsale_sales_item_status SMALLINT NOT NULL DEFAULT 1,
+	date_created DATETIME NOT NULL,
+	date_modified TIMESTAMP NOT NULL,
+	last_modified INTEGER NOT NULL,
+	PRIMARY KEY (id),
+	FOREIGN KEY alsale_allocation_fk (alsale_allocation_id) REFERENCES allocations (id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE,
+	FOREIGN KEY alsale_sales_items_fk (alsale_sales_item_id) REFERENCES sales_items (id)
+		ON UPDATE CASCADE
+		ON DELETE RESTRICT
 )
 ENGINE=InnoDB;
 

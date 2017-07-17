@@ -87,6 +87,9 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider
 								var sessionData = response;
 
 								// Load session dependent data
+								console.log( 'Loading sales items...' );
+								var initSalesItems = appData.getSalesItems();
+
 								console.log( 'Loading current inventory...' );
 								var initInventory = appData.getInventory( currentStoreId );
 
@@ -120,7 +123,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider
 									}
 								);
 
-								$q.all( [ initInventory, initTransactions, initTransferValidations, initTransfers, initReceipts, initAdjustments, initAllocations, initConversions, initConversionData ] ).then(
+								$q.all( [ initSalesItems, initInventory, initTransactions, initTransferValidations, initTransfers, initReceipts, initAdjustments, initAllocations, initConversions, initConversionData ] ).then(
 									function( promises )
 									{
 										console.log( 'Finished loading session data' );

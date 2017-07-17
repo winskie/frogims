@@ -189,6 +189,7 @@ class Installer extends CI_Controller {
 				(
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					slitem_name VARCHAR(100) NOT NULL,
+					slitem_description VARCHAR(255) NOT NULL,
 					slitem_group VARCHAR(100) NOT NULL,
 					slitem_mode SMALLINT NOT NULL DEFAULT 1,
 					PRIMARY KEY (id),
@@ -596,6 +597,30 @@ class Installer extends CI_Controller {
 				)
 				ENGINE=InnoDB" );
 
+		echo 'Creating allocation_sales_items table...<br />';
+		$this->db->query( "
+				CREATE TABLE IF NOT EXISTS allocation_sales_items
+				(
+					id INTEGER AUTO_INCREMENT NOT NULL,
+					alsale_allocation_id INTEGER NOT NULL,
+					alsale_shift_id INTEGER NOT NULL,
+					alsale_cashier_id INTEGER NOT NULL,
+					alsale_sales_item_id INTEGER NOT NULL,
+					alsale_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+					alsale_sales_item_status SMALLINT NOT NULL DEFAULT 1,
+					date_created DATETIME NOT NULL,
+					date_modified TIMESTAMP NOT NULL,
+					last_modified INTEGER NOT NULL,
+					PRIMARY KEY (id),
+					FOREIGN KEY alsale_allocation_fk (alsale_allocation_id) REFERENCES allocations (id)
+						ON UPDATE CASCADE
+						ON DELETE CASCADE,
+					FOREIGN KEY alsale_sales_items_fk (alsale_sales_item_id) REFERENCES sales_items (id)
+						ON UPDATE CASCADE
+						ON DELETE RESTRICT
+				)
+				ENGINE=InnoDB" );
+
 		echo 'Creating allocation status log table... <br />';
 		$this->db->query( "
 				CREATE TABLE IF NOT EXISTS allocation_status_log
@@ -954,31 +979,48 @@ class Installer extends CI_Controller {
 			$sales_items = array(
 					array(
 						'slitem_name' => 'Gross Sales',
+						'slitem_description' => 'Gross Sales',
 						'slitem_group' => '',
 						'slitem_mode' => 1 ),
 					array(
 						'slitem_name' => 'Excess Time',
+						'slitem_description' => 'Excess Time',
 						'slitem_group' => 'Penalties',
 						'slitem_mode' => 1 ),
 					array(
 						'slitem_name' => 'Mismatch',
+						'slitem_description' => 'Mismatch',
 						'slitem_group' => 'Penalties',
 						'slitem_mode' => 1 ),
 					array(
 						'slitem_name' => 'Payment for Lost Ticket',
+						'slitem_description' => 'Payment for Lost Ticket',
 						'slitem_group' => 'Penalties',
 						'slitem_mode' => 1 ),
 					array(
 						'slitem_name' => 'Other Penalties',
+						'slitem_description' => 'Other Penalties',
 						'slitem_group' => 'Penalties',
 						'slitem_mode' => 1 ),
 					array(
 						'slitem_name' => 'TCERF',
+						'slitem_description' => 'TCERF',
 						'slitem_group' => 'Deductions',
 						'slitem_mode' => 0 ),
 					array(
 						'slitem_name' => 'Change Fund',
+						'slitem_description' => 'Change Fund',
 						'slitem_group' => 'Allocation',
+						'slitem_mode' => 1 ),
+					array(
+						'slitem_name' => 'Shortage',
+						'slitem_description' => 'Shortage',
+						'slitem_group' => 'Short Over',
+						'slitem_mode' => 0 ),
+					array(
+						'slitem_name' => 'Overage',
+						'slitem_name' => 'Overage',
+						'slitem_group' => 'Short Over',
 						'slitem_mode' => 1 ),
 				);
 
@@ -1464,6 +1506,7 @@ class Installer extends CI_Controller {
 		$this->db->query( "TRUNCATE TABLE conversions" );
 		$this->db->query( "TRUNCATE TABLE allocations" );
 		$this->db->query( "TRUNCATE TABLE allocation_items" );
+		$this->db->query( "TRUNCATE TABLE allocation_sales_items" );
 		$this->db->query( "TRUNCATE TABLE mopping" );
 		$this->db->query( "TRUNCATE TABLE mopping_items" );
 		$this->db->query( "TRUNCATE TABLE adjustment_status_log" );
