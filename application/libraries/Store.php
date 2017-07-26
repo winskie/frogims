@@ -16,7 +16,8 @@ class Store extends Base_model
 
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
-	protected $last_modified_field = 'last_modified';
+	protected $created_by_field = 'created_by';
+	protected $modified_by_field = 'modified_by';
 
 	public function __construct()
 	{
@@ -1035,6 +1036,66 @@ class Store extends Base_model
 		return $conversions;
 	}
 
+	public function get_tvm_readings( $params = array() )
+	{
+		$limit = param( $params, 'limit' );
+		$page = param( $params, 'page', 1 );
+		$order = param( $params, 'order', 'tvmr.tvmr_datetime DESC, tvmr.tvmr_shift_id DESC' );
+		$format = param( $params, 'format', 'object' );
+
+		$business_date = param( $params, 'date' );
+		$shift = param( $params, 'shift' );
+		$machine_id = param( $params, 'machine_id' );
+
+		$ci =& get_instance();
+		$ci->load->library( 'tvm_reading' );
+
+		if( $limit )
+		{
+			$ci->db->limit( $limit, ( $page ? ( ( $page - 1 ) * $limit ) : 0 ) );
+		}
+
+		if( $order )
+		{
+				$ci->db->order_by( $order );
+		}
+
+		if( $business_date )
+		{
+			$ci->db->where( 'DATE(tvmr.tvmr_datetime)', $business_date );
+		}
+
+		if( $shift )
+		{
+			$ci->db->where( 'tvmr.tvmr_shift_id', $shift );
+		}
+
+		if( $machine_id )
+		{
+			$ci->db->where( 'tvmr.tvmr_machine_id', $machine_id );
+		}
+
+		$ci->db->select( 'tvmr.*, s.shift_num, u.full_name as cashier_name' );
+		$ci->db->where( 'tvmr.tvmr_store_id', $this->id );
+		$ci->db->join( 'shifts s', 's.id = tvmr.tvmr_shift_id', 'left' );
+		$ci->db->join( 'users u', 'u.id = tvmr.tvmr_cashier_id', 'left' );
+		$readings = $ci->db->get( 'tvm_readings tvmr' );
+		$readings = $readings->result( 'Tvm_reading' );
+
+		if( $format == 'array' )
+		{
+			$readings_array = array();
+			foreach( $readings as $reading )
+			{
+				$readings_array[] = $reading->as_array();
+			}
+
+			return $readings_array;
+		}
+
+		return $readings;
+	}
+
 	public function count_transactions( $params = array() )
 	{
 		$ci =& get_instance();
@@ -1435,6 +1496,37 @@ class Store extends Base_model
 		$ci->db->where( 'conversion_status', CONVERSION_PENDING );
 		$ci->db->where( 'c.store_id', $this->id );
 		$count = $ci->db->count_all_results( 'conversions c' );
+
+		return $count;
+	}
+
+	public function count_tvm_readings( $params = array() )
+	{
+		$business_date = param( $params, 'date' );
+		$shift = param( $params, 'shift' );
+		$machine_id = param( $params, 'machine_id' );
+
+		$ci =& get_instance();
+		$ci->load->library( 'tvm_reading' );
+
+		if( $business_date )
+		{
+			$ci->db->where( 'DATE(tvmr.tvmr_datetime)', $business_date );
+		}
+
+		if( $shift )
+		{
+			$ci->db->where( 'tvmr.tvmr_shift_id', $shift );
+		}
+
+		if( $machine_id )
+		{
+			$ci->db->where( 'tvmr.tvmr_machine_id', $machine_id );
+		}
+
+		$ci->db->where( 'tvmr.tvmr_store_id', $this->id );
+
+		$count = $ci->db->count_all_results( 'tvm_readings tvmr' );
 
 		return $count;
 	}

@@ -1,4 +1,4 @@
-<div  ng-if="checkPermissions( 'transfers', 'view' )">
+<div ng-if="checkPermissions( 'transfers', 'view' )">
 	<div class="panel panel-default">
 		<div class="panel-heading clearfix" ng-switch on="data.editMode">
 			<div class="pull-left">

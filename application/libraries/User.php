@@ -11,16 +11,14 @@ class User extends Base_model {
 	protected $user_status;
 	protected $user_role;
 	protected $group_id;
-	protected $date_created;
-	protected $date_modified;
-	protected $last_modified;
 
 	protected $stores;
 	protected $group;
 
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
-	protected $last_modified_field = 'last_modified';
+	protected $created_by_field = 'created_by';
+	protected $modified_by_field = 'modified_by';
 
 	public function __construct()
 	{

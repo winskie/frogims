@@ -85,7 +85,8 @@ CREATE TABLE IF NOT EXISTS groups
 	group_perm_dashboard VARCHAR(255) NULL DEFAULT NULL,
 	date_created DATETIME NOT NULL,
 	date_modified DATETIME NOT NULL,
-	last_modified INTEGER NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
 	PRIMARY KEY( id ),
 	UNIQUE groups_undx ( group_name )
 )
@@ -106,7 +107,8 @@ CREATE TABLE IF NOT EXISTS users
 	group_id INTEGER NULL,
 	date_created DATETIME NOT NULL,
 	date_modified DATETIME NOT NULL,
-	last_modified INTEGER NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
 	PRIMARY KEY (id),
 	UNIQUE users_undx (username),
 	FOREIGN KEY users_group_fk (group_id) REFERENCES groups (id)
@@ -127,7 +129,8 @@ CREATE TABLE IF NOT EXISTS stores
 	store_contact_number VARCHAR(25) NULL,
 	date_created DATETIME NOT NULL,
 	date_modified DATETIME NOT NULL,
-	last_modified INTEGER NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
 	PRIMARY KEY (id),
 	UNIQUE stores_undx (store_code)
 )
@@ -156,10 +159,11 @@ CREATE TABLE IF NOT EXISTS sales_items
 	slitem_description VARCHAR(255) NOT NULL,
 	slitem_group VARCHAR(100) NOT NULL,
 	slitem_mode SMALLINT NOT NULL DEFAULT 1,
-	PRIMARY KEY (id),
 	date_created DATETIME NOT NULL,
 	date_modified DATETIME NOT NULL,
-	last_modified INTEGER NOT NULL
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
+	PRIMARY KEY( id )
 )
 ENGINE=InnoDB;
 
@@ -183,7 +187,8 @@ CREATE TABLE IF NOT EXISTS items
 	turnover_item BOOLEAN NOT NULL DEFAULT 0,
 	date_created DATETIME NOT NULL,
 	date_modified DATETIME NOT NULL,
-	last_modified INTEGER NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
 	PRIMARY KEY (id)
 )
 ENGINE=InnoDB;
@@ -223,7 +228,8 @@ CREATE TABLE IF NOT EXISTS shift_turnovers
 	st_status SMALLINT NOT NULL DEFAULT 1,
 	date_created DATETIME NOT NULL,
 	date_modified DATETIME NOT NULL,
-	last_modified INTEGER NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
 	PRIMARY KEY (id),
 	FOREIGN KEY st_start_user_fk ( st_start_user_id ) REFERENCES users (id)
 		ON UPDATE CASCADE
@@ -246,7 +252,8 @@ CREATE TABLE IF NOT EXISTS shift_turnover_items
 	sti_ending_balance INTEGER NULL DEFAULT NULL,
 	date_created DATETIME NOT NULL,
 	date_modified DATETIME NOT NULL,
-	last_modified INTEGER NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
 	PRIMARY KEY (id),
 	FOREIGN KEY sti_shift_turnover_fk (sti_turnover_id) REFERENCES shift_turnovers (id)
 		ON UPDATE CASCADE
@@ -296,7 +303,8 @@ CREATE TABLE IF NOT EXISTS adjustments
 	adj_transaction_id INTEGER NULL DEFAULT NULL,
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,
-	last_modified INTEGER NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
 	PRIMARY KEY (id),
 	FOREIGN KEY adjustments_store_inventory_fk (store_inventory_id) REFERENCES store_inventory (id)
 		ON UPDATE CASCADE
@@ -344,7 +352,8 @@ CREATE TABLE IF NOT EXISTS transfers
 	transfer_status SMALLINT NOT NULL DEFAULT 1,
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,
-	last_modified INTEGER NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
 	PRIMARY KEY (id),
 	FOREIGN KEY transfers_origin_fk (origin_id) REFERENCES stores (id)
 		ON UPDATE CASCADE
@@ -382,7 +391,8 @@ CREATE TABLE IF NOT EXISTS transfer_items
 	transfer_item_transfer_item_id INTEGER NULL DEFAULT NULL,
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,
-	last_modified INTEGER NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
 	PRIMARY KEY (id),
 	FOREIGN KEY transfer_items_transfer_fk (transfer_id) REFERENCES transfers (id)
 		ON UPDATE CASCADE
@@ -423,7 +433,8 @@ CREATE TABLE IF NOT EXISTS transfer_validations
 	transval_status SMALLINT NOT NULL DEFAULT 1,
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,
-	last_modified INTEGER NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
 	PRIMARY KEY (id),
 	FOREIGN KEY transval_items_transfer_fk (transval_transfer_id) REFERENCES transfers (id)
 		ON UPDATE CASCADE
@@ -459,10 +470,10 @@ CREATE TABLE IF NOT EXISTS conversions
 	target_quantity INTEGER NOT NULL,
 	remarks TEXT NULL DEFAULT NULL,
 	conversion_status SMALLINT NOT NULL DEFAULT 1,
-	created_by INTEGER NOT NULL,
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,
-	last_modified INTEGER NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
 	PRIMARY KEY (id),
 	FOREIGN KEY conversions_store_fk (store_id) REFERENCES stores (id)
 		ON UPDATE CASCADE
@@ -505,7 +516,8 @@ CREATE TABLE IF NOT EXISTS allocations
 	cashier_id INTEGER NOT NULL,
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,
-	last_modified INTEGER NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
 	PRIMARY KEY (id),
 	FOREIGN KEY allocations_store_fk (store_id) REFERENCES stores (id)
 		ON UPDATE CASCADE
@@ -530,7 +542,8 @@ CREATE TABLE IF NOT EXISTS allocation_items
 	allocation_item_type SMALLINT NOT NULL DEFAULT 1,
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,
-	last_modified INTEGER NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
 	PRIMARY KEY (id),
 	FOREIGN KEY allocation_items_fk (allocation_id) REFERENCES allocations (id)
 		ON UPDATE CASCADE
@@ -553,7 +566,8 @@ CREATE TABLE IF NOT EXISTS allocation_sales_items
 	alsale_sales_item_status SMALLINT NOT NULL DEFAULT 1,
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,
-	last_modified INTEGER NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
 	PRIMARY KEY (id),
 	FOREIGN KEY alsale_allocation_fk (alsale_allocation_id) REFERENCES allocations (id)
 		ON UPDATE CASCADE
@@ -589,7 +603,8 @@ CREATE TABLE IF NOT EXISTS mopping
 	cashier_shift_id INTEGER NOT NULL,
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,
-	last_modified INTEGER NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
 	PRIMARY KEY (id),
 	FOREIGN KEY mopping_store_fk (store_id) REFERENCES stores (id)
 		ON UPDATE CASCADE
@@ -614,7 +629,8 @@ CREATE TABLE IF NOT EXISTS mopping_items
 	delivery_person VARCHAR(100) NOT NULL,
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,
-	last_modified INTEGER NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
 	PRIMARY KEY (id),
 	FOREIGN KEY mopping_items_fk (mopping_id) REFERENCES mopping (id)
 		ON UPDATE CASCADE
@@ -668,11 +684,57 @@ CREATE TABLE IF NOT EXISTS item_prices
 	iprice_unit_price DECIMAL(15,2) NOT NULL DEFAULT 0.00,
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,
-	last_modified INTEGER NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
 	PRIMARY KEY (id),
 	UNIQUE iprice_currency_udx (iprice_item_id, iprice_currency),
 	FOREIGN KEY iprice_item_fk (iprice_item_id) REFERENCES items (id)
 		ON UPDATE CASCADE
 		ON DELETE CASCADE
+)
+ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS tvm_readings
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	tvmr_store_id INTEGER NOT NULL,
+	tvmr_machine_id VARCHAR(50) NOT NULL,
+	tvmr_datetime DATETIME NOT NULL,
+	tvmr_shift_id INTEGER NOT NULL,
+	tvmr_cashier_id INTEGER NOT NULL,
+	tvmr_last_reading BOOLEAN NOT NULL DEFAULT 0,
+	date_created DATETIME NOT NULL,
+	date_modified TIMESTAMP NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
+	PRIMARY KEY (id),
+	FOREIGN KEY tvmr_store_fk (tvmr_store_id) REFERENCES stores (id)
+		ON UPDATE CASCADE
+		ON DELETE RESTRICT,
+	FOREIGN KEY tvmr_shift_fk (tvmr_shift_id) REFERENCES shifts (id)
+		ON UPDATE CASCADE
+		ON DELETE RESTRICT,
+	FOREIGN KEY tvmr_cashier_fk (tvmr_cashier_id) REFERENCES users (id)
+		ON UPDATE CASCADE
+		ON DELETE RESTRICT
+)
+ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS tvm_reading_items
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	tvmri_reading_id INTEGER NOT NULL,
+	tvmri_name VARCHAR(100) NOT NULL,
+	tvmri_quantity INTEGER NOT NULL DEFAULT 0,
+	tvmri_amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+	date_created DATETIME NOT NULL,
+	date_modified TIMESTAMP NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
+	PRIMARY KEY (id),
+	UNIQUE tvmri_reading_udx (tvmri_reading_id, tvmri_name),
+	FOREIGN KEY tvmri_reading_fk (tvmri_reading_id) REFERENCES tvm_readings (id)
+		ON UPDATE CASCADE
+		ON DELETE RESTRICT
 )
 ENGINE=InnoDB;

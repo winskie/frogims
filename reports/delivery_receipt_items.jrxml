@@ -28,7 +28,7 @@ WHERE ti.transfer_id = $P{transfer_id}]]>
 	<field name="transfer_item_transfer_item_id" class="java.lang.Integer"/>
 	<field name="date_created" class="java.sql.Timestamp"/>
 	<field name="date_modified" class="java.sql.Timestamp"/>
-	<field name="last_modified" class="java.lang.Integer"/>
+	<field name="modified_by" class="java.lang.Integer"/>
 	<field name="item_name" class="java.lang.String"/>
 	<field name="item_description" class="java.lang.String"/>
 	<field name="item_unit" class="java.lang.String"/>

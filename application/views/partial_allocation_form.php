@@ -80,7 +80,10 @@
 <div>
 	<uib-tabset justified="false" active="data.activeTab">
 		<!-- Allocations -->
-		<uib-tab heading="Allocations" select="updatePhase( 'allocation' )" index="0">
+		<uib-tab select="updatePhase( 'allocation' )" index="0">
+			<uib-tab-heading>
+				{{ data.allocationsTabLabel }}
+			</uib-tab-heading>
 			<div class="panel panel-default" style="margin: 20px 0; height: 300px; overflow-y: auto;">
 				<table class="table table-condensed">
 					<thead>
@@ -307,7 +310,8 @@
 			</div>
 		</uib-tab>
 		<!-- Sale Items -->
-		<uib-tab heading="Sales" select="updatePhase( 'sales' )" index="3" disable="allocationItem.allocation_status == 1 && allocationItem.assignee_type == 1">
+		<uib-tab heading="Sales" select="updatePhase( 'sales' )" index="3" ng-if="allocationItem.assignee_type == 1"
+				disable="allocationItem.allocation_status == 1 && allocationItem.assignee_type == 1">
 			<div class="panel panel-default" style="margin: 20px 0; height: 300px; overflow-y: auto;">
 				<table class="table table-condensed">
 					<thead>

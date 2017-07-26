@@ -15,7 +15,8 @@ class Shift_turnover extends Base_model
 
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
-	protected $last_modified_field = 'last_modified';
+	protected $created_by_field = 'created_by';
+	protected $modified_by_field = 'modified_by';
 
 	protected $items;
 	protected $previousStatus;

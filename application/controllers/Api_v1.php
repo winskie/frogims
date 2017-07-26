@@ -497,7 +497,7 @@ class Api_v1 extends MY_Controller {
 					}
 					else
 					{
-						$this->_error( 500, 'A database error has occurred while trying to save transfer record' );
+						$this->_error( 500, 'A database error has occurred while trying to save collection record' );
 					}
 				}
 				else
@@ -2197,6 +2197,42 @@ class Api_v1 extends MY_Controller {
 									}
 									break;
 
+								case 'tvm_readings': // TVM readings
+									// Check permissions
+									if( !$current_user->check_permissions( 'allocations', 'view' ) )
+									{
+										$this->_error( 403, 'You are not allowed to access this resource' );
+									}
+									else
+									{
+										$params = array(
+											'date' => param( $this->input->get(), 'date' ),
+											'shift' => param( $this->input->get(), 'shift' ),
+											'machine_id' => param( $this->input->get(), 'machine_id' ),
+											'page' => param( $this->input->get(), 'page' ),
+											'limit' => param( $this->input->get(), 'limit' ),
+											'order' => 'tvmr_datetime DESC, id DESC'
+										);
+										$readings = $store->get_tvm_readings( $params );
+										$total_tvm_readings = $store->count_tvm_readings( $params );
+										$readings_data = array();
+
+										$additional_fields = array(
+											'shift_num' => array( 'type' => 'string' ),
+											'cashier_name' => array( 'type' => 'string' ),
+										);
+
+										foreach( $readings as $reading )
+										{
+											$readings_data[] = $reading->as_array( $additional_fields );
+										}
+
+										$this->_response( array(
+											'tvm_readings' => $readings_data,
+											'total' => $total_tvm_readings ) );
+									}
+									break;
+
 								default:
 									$this->_error( 404, sprintf( '%s resource not found', $relation ) );
 							}
@@ -2612,6 +2648,100 @@ class Api_v1 extends MY_Controller {
 			default:
 				$this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
 
+		}
+
+		$this->_send_response();
+	}
+
+	public function tvm_readings()
+	{
+		$request_method = $this->input->method();
+		$current_user = current_user();
+
+		$this->load->library( 'tvm_reading' );
+		$TVM_Reading = new Tvm_reading();
+
+		switch( $request_method )
+		{
+			case 'get':
+				// Check permissions
+				if( !$current_user->check_permissions( 'allocations', 'view' ) )
+				{
+					$this->_error( 403, 'You are not allowed to access this resource' );
+				}
+				else
+				{
+					$tvm_reading_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
+
+					if( $tvm_reading_id )
+					{
+						$tvm_reading = $TVM_Reading->get_by_id( $tvm_reading_id );
+						if( $tvm_reading )
+						{
+							if( $tvm_reading->get( 'tvmr_store_id') != current_store( TRUE )
+								|| ! is_store_member( $tvmr_reading->get( 'tvmr_store_id' ), current_user( TRUE ) ) )
+							{
+								$this->_error( 403, 'You are not allowed to access this resource.
+										The resource you are trying to access belongs to another store or you are not a member of the owner store.' );
+							}
+							else
+							{
+								$tvm_reading_data = $tvm_reading->as_array();
+								$tvm_reading_items = $tvm_reading->get_items();
+								$tvm_reading_items_data = array();
+								foreach( $tvm_reading_items as $item )
+								{
+									$tvm_reading_items_data[] = $item->as_array();
+								}
+								$tvm_reading_data['items'] = $tvm_reading_items_data;
+								$this->_response( $tvm_reading_data );
+							}
+						}
+						else
+						{
+							$this->_error( 404, 'TVM reading record not found' );
+						}
+					}
+					else
+					{
+						$this->_error( 400, 'Missing required TVM reading ID' );
+					}
+				}
+				break;
+
+			case 'post':
+				$action = param_type( $this->uri->rsegment( 3 ), 'string' );
+				$tvm_reading_id = param( $this->input->post(), 'id' );
+				$tvm_reading = $TVM_Reading->load_from_data( $this->input->post() );
+
+				$this->db->trans_start();
+				switch( $action )
+				{
+					default:
+						$result = $collection->db_save();
+				}
+				if( $result )
+				{
+					$this->db->trans_complete();
+
+					if( $this->db->trans_status() )
+					{
+						$this->_response( $tvm_reading->as_array(), $tvm_reading_id ? 200 : 201 );
+					}
+					else
+					{
+						$this->_error( 500, 'A database error has occurred while trying to save TVM reading record' );
+					}
+				}
+				else
+				{
+					$messages = get_messages();
+					$this->_error( 200, $messages );
+				}
+				break;
+
+			default:
+				$this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
 		}
 
 		$this->_send_response();

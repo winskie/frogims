@@ -9,27 +9,22 @@ class Base_model
 	protected $db_fields = array();
 	protected $children = array();
 
-	protected $creator_field;
 	protected $date_created_field;
 	protected $date_modified_field;
-	protected $last_modified_field;
+	protected $created_by_field;
+	protected $modified_by_field;
 
 	public function __construct()
 	{
 		$ci =& get_instance();
 
 		$this->db_metadata = array(
-			$this->creator_field => array(),
 			$this->date_created_field => array(),
 			$this->date_modified_field => array(),
-			$this->last_modified_field => array()
+			$this->created_by_field => array(),
+			$this->modified_by_field => array()
 		);
 
-		if( isset( $this->creator_field ) )
-		{
-			$creator_field = $this->creator_field;
-			$this->$creator_field = NULL;
-		}
 		if( isset( $this->date_created_field ) )
 		{
 			$date_created_field = $this->date_created_field;
@@ -40,10 +35,15 @@ class Base_model
 			$date_modified_field = $this->date_modified_field;
 			$this->$date_modified_field = NULL;
 		}
-		if( isset( $this->last_modified_field ) )
+		if( isset( $this->created_by_field ) )
 		{
-			$last_modified_field = $this->last_modified_field;
-			$this->$last_modified_field = NULL;
+			$created_by_field = $this->created_by_field;
+			$this->$created_by_field = NULL;
+		}
+		if( isset( $this->modified_by_field ) )
+		{
+			$modified_by_field = $this->modified_by_field;
+			$this->$modified_by_field = NULL;
 		}
 	}
 
@@ -220,11 +220,6 @@ class Base_model
 	{
 		$ci =& get_instance();
 
-		if( isset( $this->creator_field ) && $is_new && current_user( TRUE ) )
-		{
-			$this->set( $this->creator_field, current_user( TRUE ) );
-		}
-
 		if( isset( $this->date_created_field ) && $is_new )
 		{
 			$this->set( $this->date_created_field, date( TIMESTAMP_FORMAT ) );
@@ -235,9 +230,14 @@ class Base_model
 			$this->set( $this->date_modified_field, date( TIMESTAMP_FORMAT ) );
 		}
 
-		if( isset( $this->last_modified_field ) && current_user( TRUE ) )
+		if( isset( $this->created_by_field ) && current_user( TRUE ) )
 		{
-			$this->set( $this->last_modified_field, current_user( TRUE ) );
+			$this->set( $this->created_by_field, current_user( TRUE ) );
+		}
+
+		if( isset( $this->modified_by_field ) && current_user( TRUE ) )
+		{
+			$this->set( $this->modified_by_field, current_user( TRUE ) );
 		}
 	}
 

@@ -261,6 +261,15 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider
 			}
 		};
 
+	var tvmReading = {
+			name: 'main.tvmReading',
+			parent: main,
+			url: '/tvm_reading',
+			params: { tvmReadingItem: null, editMode: 'view' },
+			templateUrl: baseUrl + 'index.php/main/view/partial_tvm_reading_form',
+			controller: 'TVMReadingController',
+		};
+
 	var user = {
 			name: 'main.user',
 			parent: main,
@@ -300,6 +309,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider
 		.state( convert )
 		.state( mopping )
 		.state( allocation )
+		.state( tvmReading )
 
 		.state( admin )
 		.state( user )

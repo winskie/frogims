@@ -214,6 +214,16 @@ app.controller( 'MainController', [ '$rootScope', '$scope', '$filter', '$state',
 							});
 						break;
 
+					case 'tvmReadings':
+						appData.getTvmReading( id ).then(
+							function( response )
+							{
+								if( response.status == 'ok' )
+								{
+									$state.go( 'main.tvmReading', { tvmReading: response.data, editMode: 'auto' } );
+								}
+							});
+
 					default:
 						// do nothing
 				}
@@ -666,7 +676,8 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 				collections: { index: 6, title: 'Mopping Collections' },
 				allocations: { index: 7, title: 'Allocations' },
 				conversions: { index: 8, title: 'Conversions' },
-				shiftTurnovers: { index: 9, title: 'Shift Turnovers' }
+				shiftTurnovers: { index: 9, title: 'Shift Turnovers' },
+				tvmReadings: { index: 10, title: 'TVM Readings' }
 			};
 
 		if( $stateParams.activeTab )
@@ -710,7 +721,8 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 				adjustments: false,
 				collections: false,
 				conversions: false,
-				shiftTurnovers: false
+				shiftTurnovers: false,
+				tvmReadings: false,
 			};
 
 		$scope.widgets = {
@@ -779,7 +791,12 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 				conversionsDate: {
 					opened: false
 				},
-				conversionsItems: angular.copy( appData.data.items )
+				conversionsItems: angular.copy( appData.data.items ),
+
+				tvmReadingsDate: {
+					opened: false
+				},
+				tvmReadingsShifts: angular.copy( session.data.storeShifts ),
 			};
 
 		$scope.widgets.transactionsItems.unshift({ id: null, item_name: 'All', item_description: 'All' });
@@ -811,6 +828,8 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 		$scope.widgets.allocationsStatus.unshift({ id: null, statusName: 'All' });
 
 		$scope.widgets.conversionsItems.unshift({ id: null, item_name: 'All', item_description: 'All' });
+
+		$scope.widgets.tvmReadingsShifts.unshift({ id: null, shift_num: 'All', description: 'All' });
 
 		$scope.toggleFilters = function( tab )
 			{
@@ -862,6 +881,10 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 						$scope.updateShiftTurnovers( currentStoreId );
 						break;
 
+					case 'tvmReadings':
+						$scope.updateTvmReadings( currentStoreId );
+						break;
+
 					default:
 						// none
 				}
@@ -904,6 +927,7 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 		$scope.updateAllocations = appData.getAllocations;
 		$scope.updateConversions = appData.getConversions;
 		$scope.updateShiftTurnovers = appData.getShiftTurnovers;
+		$scope.updateTvmReadings = appData.getTVMReadings;
 
 		// Transfer validation actions
 		$scope.completeTransferValidation = function( validation )
@@ -3194,6 +3218,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					$scope.data.assigneeShifts = $filter( 'filter' )( assigneeShifts, { store_type: 0 }, true );
 					$scope.data.assigneeLabel = 'Teller Name';
 					$scope.data.assigneeShiftLabel = 'Teller Shift';
+					$scope.data.allocationsTabLabel = 'Allocations';
 					$scope.data.remittancesTabLabel = 'Remittances';
 					$scope.data.remittancesEmptyText = 'No remittance items';
 					$scope.data.activeTab = 0;
@@ -3203,7 +3228,8 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					$scope.data.assigneeShifts = $filter( 'filter' )( assigneeShifts, { store_type: 1 }, true );
 					$scope.data.assigneeLabel = 'TVM Number';
 					$scope.data.assigneeShiftLabel = 'TVM Shift';
-					$scope.data.remittancesTabLabel = 'Return Loose/ Reject Bin';
+					$scope.data.allocationsTabLabel = 'Replenishments';
+					$scope.data.remittancesTabLabel = 'Cash Collection/ Reject Bin';
 					$scope.data.remittancesEmptyText = 'No reject or return items';
 				}
 				else
@@ -3480,6 +3506,85 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 			$scope.onAssigneeShiftChange();
 			$scope.updateSaveButton();
 			$scope.getItemQuantities();
+		}
+	}
+]);
+
+app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'UserServices', 'TVMReading', 'TVMReadingItem',
+	function( $scope, $filter, $state, $stateParams, session, appData, notifications, UserServices, TVMReading, TVMReadingItem )
+	{
+		$scope.pendingAction = false;
+
+		$scope.data = {
+				editMode: $stateParams.editMode || 'auto',
+				datepicker: { format: 'yyyy-MM-dd', opened: false },
+				title: 'TVM Reading'
+			};
+
+		$scope.input = {
+
+			};
+
+		$scope.findUser = UserServices.findUser;
+
+		$scope.showDatePicker = function()
+			{
+				$scope.data.datepicker.opened = true;
+			};
+
+
+		// TVM Reading record actions
+		$scope.saveTVMReading = function()
+			{
+				if( !$scope.pendingAction )
+				{
+					$scope.pendingAction = true;
+					$scope.TVMReading.save().then(
+						function( response )
+						{
+							appData.refresh( session.data.currentStore.id, 'tvmReadings' );
+							notifications.alert( 'TVM readings saved', 'success' );
+							$state.go( 'main.store', { activeTab: 'tvmReadings' } );
+							$scope.pendingAction = false;
+						},
+						function( reason )
+						{
+							$scope.pendingAction = false;
+						});
+				}
+			};
+
+
+		// Initialize controller
+
+		// Load TVM reading item
+		if( $stateParams.TVMReading )
+		{
+			$scope.data.editMode = $stateParams.editMode || 'view';
+			appData.getTVMReading( $stateParams.TVMReading.id ).then(
+				function( response )
+				{
+					if( response.status == 'ok' )
+					{
+						$scope.TVMReading = TVMReading.createFromData( response.data );
+						if( !$scope.checkPermissions( 'allocations', 'edit' ) || ( $scope.data.editMode != 'view'  ) )
+						{
+							$scope.data.editMode = 'view';
+						}
+					}
+					else
+					{
+						console.error( 'Unable to load mopping collection record' );
+					}
+				},
+				function( reason )
+				{
+					console.error( reason );
+				});
+		}
+		else
+		{
+			$scope.TVMReading = new TVMReading();
 		}
 	}
 ]);

@@ -13,10 +13,10 @@ class Conversion extends Base_model {
 	protected $remarks;
     protected $conversion_status;
 
-    protected $creator_field = 'created_by';
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
-	protected $last_modified_field = 'last_modified';
+    protected $created_by_field = 'created_by';
+	protected $modified_by_field = 'modified_by';
 
     protected $status_log = array(
 			'table' => 'conversion_status_log',

@@ -1,6 +1,7 @@
 <?php
 $current_user = current_user();
 ?>
+
 <div>
 	<uib-tabset id="mainTabSet" active="activeTab">
 		<!-- Inventory -->
@@ -1441,7 +1442,141 @@ $current_user = current_user();
 					</div>
 				</div>
 			</div>
-		</uib>
+		</uib-tab>
+
+		<!-- TVM Readings -->
+		<uib-tab index="10" select="onTabSelect('tvmReadings')" ng-if="sessionData.currentStore.store_type == 4">
+			<uib-tab-heading>
+				TVM Readings
+			</uib-tab-heading>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title pull-left">
+						TVM Readings <span class="label label-default" ng-if="filters.tvmReadings.filtered">Filtered</span>
+					</h3>
+					<div class="pull-right">
+						<button class="btn btn-default btn-sm btn-filter" ng-click="toggleFilters( 'tvmReadings' )">
+							<i class="glyphicon glyphicon-filter"></i> {{ filterPanels.tvmReadings ? 'Hide' : 'Show' }} filters
+						</button>&nbsp;
+						<span ng-if="checkPermissions( 'allocations', 'edit' )">
+							<button class="btn btn-primary btn-sm" ui-sref="main.tvmReading({ editMode: 'edit' })">
+								<i class="glyphicon glyphicon-plus"></i> New reading
+							</button>&nbsp;
+						</span>
+						<button class="btn btn-default btn-sm" ng-click="updateTvmReadings( sessionData.currentStore.id )">
+							<i class="glyphicon glyphicon-refresh"></i>
+						</button>
+					</div>
+					<div class="clearfix"></div>
+				</div>
+				<div class="panel-body">
+					<!-- Quick Search -->
+					<div class="text-right clearfix">
+						<div class="input-group quicksearch pull-right">
+							<span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
+							<input type="text" class="form-control"
+									ng-model="quicksearch.tvmReadings"
+									ng-keypress="loadRecord( $event, 'tvmReadings' )">
+						</div>
+					</div>
+
+					<!-- Filter Panel -->
+					<div class="row filter_panel" ng-show="filterPanels.tvmReadings">
+						<div class="col-sm-4 col-md-3 col-lg-2">
+							<div class="form-group">
+								<label class="control-label">Date</label>
+								<div class="input-group">
+									<input type="text" class="form-control" uib-datepicker-popup="{{ filters.dateFormat }}" is-open="widgets.tvmReadingsDate.opened"
+											min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)"
+											ng-model="filters.tvmReadings.date" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" />
+									<span class="input-group-btn">
+										<button type="button" class="btn btn-default" ng-click="showDatePicker( 'tvmReadingsDate' )"><i class="glyphicon glyphicon-calendar"></i></button>
+									</span>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-sm-4 col-md-3 col-lg-2">
+							<div class="form-group">
+								<label class="control-label">Shift</label>
+								<select class="form-control"
+										ng-model="filters.tvmReadings.shift"
+										ng-options="shift as shift.shift_num for shift in widgets.tvmReadingsShifts track by shift.id">
+								</select>
+							</div>
+						</div>
+
+						<div class="col-sm-4 col-md-3 col-lg-2">
+							<div class="form-group">
+								<label class="control-label">TVM ID</label>
+								<input type="text" class="form-control"
+										ng-model="filters.tvmReadings.machine_id">
+							</div>
+						</div>
+
+						<div>
+							<div class="form-group">
+								<button style="margin-top: 25px" class="btn btn-primary" ng-click="applyFilter( 'tvmReadings' )">Apply</button>
+								<button style="margin-top: 25px" class="btn btn-default" ng-click="clearFilter( 'tvmReadings' )">Clear</button>
+							</div>
+						</div>
+					</div>
+
+					<table class="table">
+						<thead>
+							<tr>
+								<th class="text-center">ID</th>
+								<th class="text-left">Date / Time</th>
+								<th class="text-left">Shift</th>
+								<th class="text-center">TVM</th>
+								<th class="text-left">Cashier</th>
+								<th class="text-center">Last Reading</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="reading in appData.tvmReadings">
+								<td class="text-center">{{ reading.id }}</td>
+								<td class="text-left">{{ reading.tvmr_datetime | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
+								<td class="text-left">{{ reading.shift_num }}</td>
+								<td class="text-center">{{ reading.tvmr_machine_id }}</td>
+								<td class="text-left">{{ reading.cashier_name }}</td>
+								<td class="text-center">{{ reading.tvmr_last_reading }}</td>
+								<td class="text-right">
+									<div class="btn-group" uib-dropdown>
+										<button type="button" class="btn btn-default" ui-sref="main.tvmReading({ tvmReadingItem: reading, editMode: 'view' })">View details...</button>
+										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="reading.canEdit() || reading.canCancel()">
+											<span class="caret"></span>
+										</button>
+										<ul uib-dropdown-menu role="menu" ng-if="reading.canEdit() || reading.canCancel()">
+											<li role="menuitem" ng-if="conversion.canCancel()">
+												<a href ng-click="cancelReading( reading )">Cancel</a>
+											</li>
+											<li role="menuitem" ng-if="reading.canEdit()">
+												<a ui-sref="main.tvmReading({ tvmReadingItem: reading, editMode: 'edit' })">Edit...</a>
+											</li>
+										</ul>
+									</div>
+								</td>
+							</tr>
+							<tr ng-show="!appData.tvmReadings.length">
+								<td colspan="7" class="text-center">No TVM readings data available</td>
+							</tr>
+						</tbody>
+					</table>
+					<div class="text-center" ng-if="appData.totals.tvmReadings > filters.itemsPerPage">
+						<uib-pagination
+								total-items="appData.totals.tvmReadings"
+								items-per-page="filters.itemsPerPage"
+								max-size="5"
+								boundary-link-numbers="true"
+								ng-model="pagination.tvmReadings"
+								ng-change="updateTvmReadings( sessionData.currentStore.id )">
+						</uib-pagination>
+					</div>
+				</div>
+			</div>
+		</uib-tab>
 
 	</uib-tabset>
 </div>

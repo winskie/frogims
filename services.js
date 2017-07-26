@@ -421,8 +421,8 @@ angular.module( 'appServices' ).service( 'session', [ '$http', '$q', '$filter', 
 	}
 ]);
 
-angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'Transfer', 'Conversion', 'Allocation', 'Collection', 'Adjustment', 'ShiftTurnover',
-	function( $http, $q, $filter, baseUrl, session, notifications, Transfer, Conversion, Allocation, Collection, Adjustment, ShiftTurnover )
+angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'Transfer', 'Conversion', 'Allocation', 'Collection', 'Adjustment', 'ShiftTurnover', 'TVMReading',
+	function( $http, $q, $filter, baseUrl, session, notifications, Transfer, Conversion, Allocation, Collection, Adjustment, ShiftTurnover, TVMReading )
 	{
 		var me = this;
 
@@ -513,6 +513,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 				collections: [],
 				allocations: [],
 				conversions: [],
+				tvmReadings: [],
 
 				totals: {
 						transactions: 0,
@@ -523,7 +524,8 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 						adjustments: 0,
 						collections: 0,
 						allocations: 0,
-						conversions: 0
+						conversions: 0,
+						tvmReadings: 0,
 					},
 
 				pending: {
@@ -601,6 +603,12 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 					inputItem: { id: null, item_name: 'All', item_description: 'All' },
 					outputItem: { id: null, item_name: 'All', item_description: 'All' },
 					filtered: false
+				},
+				tvmReadings: {
+					date: null,
+					shift: { id: null, item_name: 'All', item_description: 'All' },
+					machine_id: null,
+					filtered: false
 				}
 			};
 
@@ -624,7 +632,8 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 				adjustments: 1,
 				collections: 1,
 				allocations: 1,
-				conversions: 1
+				conversions: 1,
+				tvmReadings: 1,
 			};
 
 		me.get = function( data )
@@ -1191,6 +1200,50 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 				return deferred.promise;
 			};
 
+		me.getTVMReadings = function( storeId )
+			{
+				console.log( 'Get TVM Readings...' );
+				if( !session.checkPermissions( 'allocations', 'view' ) )
+				{
+					return;
+				}
+
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/tvm_readings',
+					params: {
+						date: me.filters.tvmReadings.date ? $filter( 'date' )( me.filters.conversions.date, 'yyyy-MM-dd' ) : null,
+						shift: me.filters.tvmReadings.shift ? me.filters.tvmReadings.shift.id : null,
+						machine_id: me.filters.tvmReadings.machine_id ? me.filters.tvmReadings.machine_id : null,
+						page: me.pagination.tvmReadings ? me.pagination.tvmReadings : null,
+						limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
+					}
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							var d = response.data;
+							me.data.tvmReadings = TVMReading.createFromData( d.data.tvm_readings );
+							me.data.totals.tvmReadings = d.data.total;
+							deferred.resolve( d );
+						}
+						else
+						{
+							notifications.showMessages( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
+
 		// Shift Turnovers
 		me.getShiftTurnover = function( shiftTurnoverId )
 			{
@@ -1610,6 +1663,36 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 			};
 
 
+		// TVM Readings
+		me.getTVMReading = function( tvmReadingId )
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/tvm_readings/' + tvmReadingId
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							deferred.resolve( response.data );
+						}
+						else
+						{
+							notifications.showMessages( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
+
+
 		// Refresh
 		me.refresh = function( currentStoreId, group )
 			{
@@ -1661,6 +1744,10 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 						me.getConversions( currentStoreId );
 						break;
 
+					case 'tvmReadings':
+						me.getTVMReadings( currentStoreId );
+						break;
+
 					case 'all':
 					default:
 						me.getInventory( currentStoreId );
@@ -1673,6 +1760,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 						me.getCollections( currentStoreId );
 						me.getAllocations( currentStoreId );
 						me.getConversions( currentStoreId );
+						me.getTVMReadings( currentStoreId );
 				}
 			};
 

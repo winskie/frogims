@@ -4,7 +4,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class Group extends Base_model {
 
 	protected $group_name;
-    protected $is_admin;
+	protected $is_admin;
 
 	protected $members;
 
@@ -31,7 +31,8 @@ class Group extends Base_model {
 
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
-	protected $last_modified_field = 'last_modified';
+	protected $created_by_field = 'created_by';
+	protected $modified_by_field = 'modified_by';
 
 	public function __construct()
 	{

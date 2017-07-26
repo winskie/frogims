@@ -89,7 +89,7 @@ WHERE t.id = $P{transfer_id}
 	<field name="date_modified" class="java.sql.Timestamp">
 		<fieldDescription><![CDATA[]]></fieldDescription>
 	</field>
-	<field name="last_modified" class="java.lang.Integer">
+	<field name="modified_by" class="java.lang.Integer">
 		<fieldDescription><![CDATA[]]></fieldDescription>
 	</field>
 	<field name="sender_full_name" class="java.lang.String"/>
