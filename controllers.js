@@ -3279,7 +3279,6 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 							&& $scope.input.salesItem
 							&& $scope.input.quantity > 0 )
 					{
-						console.log( $scope.input.salesItem );
 						var data = {
 								cashier_shift_num: session.data.currentShift.shift_num,
 								slitem_name: $scope.input.salesItem.slitem_name,
@@ -3290,6 +3289,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 								alsale_allocation_id: $scope.allocationItem.id,
 								alsale_shift_id: session.data.currentShift.id,
 								alsale_sales_item_id: $scope.input.salesItem.id,
+								alsale_remarks: $scope.input.remarks,
 								alsale_amount: $scope.input.quantity
 						}
 

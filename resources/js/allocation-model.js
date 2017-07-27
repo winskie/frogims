@@ -995,6 +995,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 							alsale_cashier_id: sales[i].alsale_cashier_id,
 							alsale_sales_item_id: sales[i].alsale_sales_item_id,
 							alsale_amount: sales[i].alsale_amount,
+							alsale_remarks: sales[i].alsale_remarks,
 							alsale_sales_item_status: sales[i].alsale_sales_item_status
 						};
 
@@ -1209,6 +1210,7 @@ angular.module( 'coreModels' ).factory( 'AllocationSalesItem', [ '$http', '$q', 
 		var alsale_cashier_id;
 		var alsale_sales_item_id;
 		var alsale_amount;
+		var alsale_remarks;
 		var alsale_sales_item_status;
 
 		var allocationSalesItemStatus = {
@@ -1236,6 +1238,7 @@ angular.module( 'coreModels' ).factory( 'AllocationSalesItem', [ '$http', '$q', 
 				me.alsale_cashier_id = null;
 				me.alsale_sales_item_id = null;
 				me.alsale_amount = null;
+				me.alsale_remarks = null;
 				me.alsale_sales_item_status = 10;
 
 				if( data )
@@ -1246,7 +1249,6 @@ angular.module( 'coreModels' ).factory( 'AllocationSalesItem', [ '$http', '$q', 
 
 		AllocationSalesItem.prototype.get = function( field )
 			{
-				console.log( 'yyy' );
 				switch( field )
 				{
 					case 'allocationSalesItemStatus':

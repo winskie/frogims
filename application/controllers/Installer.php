@@ -620,6 +620,7 @@ class Installer extends CI_Controller {
 					alsale_cashier_id INTEGER NOT NULL,
 					alsale_sales_item_id INTEGER NOT NULL,
 					alsale_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+					alsale_remarks VARCHAR(255) NULL,
 					alsale_sales_item_status SMALLINT NOT NULL DEFAULT 1,
 					date_created DATETIME NOT NULL,
 					date_modified TIMESTAMP NOT NULL,
@@ -1071,6 +1072,11 @@ class Installer extends CI_Controller {
 					array(
 						'slitem_name' => 'TCERF',
 						'slitem_description' => 'TCERF',
+						'slitem_group' => 'Deductions',
+						'slitem_mode' => 0 ),
+					array(
+						'slitem_name' => 'Other Deductions',
+						'slitem_description' => 'Other Deductions',
 						'slitem_group' => 'Deductions',
 						'slitem_mode' => 0 ),
 					array(

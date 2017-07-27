@@ -332,7 +332,7 @@
 									}">
 							<td class="text-center">{{ $index + 1 }}</td>
 							<td class="text-left">{{ row.cashier_shift_num }}</td>
-							<td class="text-left">{{ row.slitem_name }}</td>
+							<td class="text-left">{{ row.slitem_name + ( row.alsale_remarks ? ( ' / ' + row.alsale_remarks ) : '' ) }}</td>
 							<td class="text-right">{{ ( row.slitem_mode === 1 ? row.alsale_amount : row.alsale_amount * -1 ) | number: 2 }}</td>
 							<td class="text-center">{{ row.get( 'allocationSalesItemStatus' ) }}</td>
 							<td class="text-center" ng-if="data.editMode != 'view'" ng-switch on="row.alsale_sales_item_status">
@@ -399,6 +399,12 @@
 				<input type="number" class="form-control" min="1"
 						ng-model="input.quantity"
 						ng-keypress="addAllocationItem()">
+			</div>
+
+			<!-- Remarks -->
+			<div class="form-group col-sm-12 col-md-3 col-lg-5" ng-if="data.allocationPhase == 'sales'">
+				<label class="control-label">Remarks</label>
+				<input type="text" class="form-control" ng-model="input.remarks">
 			</div>
 		</div>
 	</form>

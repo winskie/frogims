@@ -563,6 +563,7 @@ CREATE TABLE IF NOT EXISTS allocation_sales_items
 	alsale_cashier_id INTEGER NOT NULL,
 	alsale_sales_item_id INTEGER NOT NULL,
 	alsale_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+	alsale_remarks VARCHAR(255) NULL,
 	alsale_sales_item_status SMALLINT NOT NULL DEFAULT 1,
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,

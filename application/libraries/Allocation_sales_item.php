@@ -8,6 +8,7 @@ class Allocation_sales_item extends Base_model {
 	protected $alsale_cashier_id;
 	protected $alsale_sales_item_id;
 	protected $alsale_amount;
+	protected $alsale_remarks;
 	protected $alsale_sales_item_status;
 
 	protected $sales_item = NULL;
@@ -30,6 +31,7 @@ class Allocation_sales_item extends Base_model {
 				'alsale_cashier_id' => array( 'type' => 'integer' ),
 				'alsale_sales_item_id' => array( 'type' => 'integer' ),
 				'alsale_amount' => array( 'type' => 'decimal' ),
+				'alsale_remarks' => array( 'type' => 'string' ),
 				'alsale_sales_item_status' => array( 'type' => 'integer' )
 			);
 	}
