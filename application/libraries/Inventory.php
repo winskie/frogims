@@ -17,10 +17,10 @@ class Inventory extends Base_model
 		$this->db_fields = array(
 			'store_id' => array( 'type' => 'integer' ),
 			'item_id' => array( 'type' => 'integer' ),
-			'quantity' => array( 'type' => 'integer' ),
+			'quantity' => array( 'type' => 'decimal' ),
 			'quantity_timestamp' => array( 'type' => 'datetime' ),
-			'buffer_level' => array( 'type' => 'integer' ),
-			'reserved' => array( 'type' => 'integer' )
+			'buffer_level' => array( 'type' => 'decimal' ),
+			'reserved' => array( 'type' => 'decimal' ),
 		);
 	}
 
@@ -118,8 +118,8 @@ class Inventory extends Base_model
 		$ci->db->set( 'store_inventory_id', $this->id );
 		$ci->db->set( 'transaction_type', $transaction_type );
 		$ci->db->set( 'transaction_datetime', date( TIMESTAMP_FORMAT, strtotime( $datetime ) ) );
-		$ci->db->set( 'transaction_quantity', $quantity );
-		$ci->db->set( 'current_quantity', $new_quantity );
+		$ci->db->set( 'transaction_quantity', ( double ) $quantity );
+		$ci->db->set( 'current_quantity', ( double ) $new_quantity );
 		$ci->db->set( 'transaction_id', $reference_id);
 		$ci->db->set( 'transaction_item_id', $reference_item_id );
 		$ci->db->set( 'transaction_timestamp', $timestamp );
@@ -139,7 +139,7 @@ class Inventory extends Base_model
 		$new_reserved_quantity = $this->reserved + $quantity;
 
 		$ci->db->trans_start();
-		$this->set( 'reserved', $new_reserved_quantity );
+		$this->set( 'reserved', ( double ) $new_reserved_quantity );
 		$this->db_save();
 		$ci->db->trans_complete();
 
@@ -163,8 +163,8 @@ class Inventory extends Base_model
 
 		$adjustment->set( 'store_inventory_id', $this->id );
 		$adjustment->set( 'adjustment_type', ADJUSTMENT_TYPE_ACTUAL );
-		$adjustment->set( 'adjusted_quantity', $quantity );
-		$adjustment->set( 'previous_quantity', $this->quantity );
+		$adjustment->set( 'adjusted_quantity', ( double ) $quantity );
+		$adjustment->set( 'previous_quantity', ( double ) $this->quantity );
 		$adjustment->set( 'reason', $reason );
 		$adjustment->set( 'adjustment_status', ADJUSTMENT_PENDING );
 		$adjustment->set( 'user_id', $ci->session->current_user_id );

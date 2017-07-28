@@ -31,8 +31,8 @@ class Shift_turnover_item extends Base_model
 			'sti_turnover_id' => array( 'type' => 'integer' ),
 			'sti_item_id' => array( 'type' => 'integer' ),
 			'sti_inventory_id' => array( 'type' => 'integer' ),
-			'sti_beginning_balance' => array( 'type' => 'integer' ),
-			'sti_ending_balance' => array( 'type' => 'integer' )
+			'sti_beginning_balance' => array( 'type' => 'decimal' ),
+			'sti_ending_balance' => array( 'type' => 'decimal' )
 		);
 		parent::__construct();
 	}
