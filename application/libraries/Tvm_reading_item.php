@@ -5,8 +5,9 @@ class Tvm_reading_item extends Base_model
 {
 	protected $tvmri_reading_id;
 	protected $tvmri_name;
+	protected $tvmri_item_id;
+	protected $tvmri_reference_num;
 	protected $tvmri_quantity;
-	protected $tvmri_amount;
 
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
@@ -21,8 +22,9 @@ class Tvm_reading_item extends Base_model
 		$this->db_fields = array(
 			'tvmri_reading_id' => array( 'type' => 'integer' ),
 			'tvmri_name' => array( 'type' => 'string' ),
-			'tvmri_quantity' => array( 'type' => 'integer' ),
-			'tvmri_amount' => array( 'type' => 'decimal' ),
+			'tvmri_item_id' => array( 'type' => 'integer' ),
+			'tvmri_reference_num' => array( 'type' => 'string' ),
+			'tvmri_quantity' => array( 'type' => 'decimal' ),
 		);
 	}
 }

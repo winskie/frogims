@@ -13,6 +13,12 @@ class Transfer_item extends Base_model {
 	protected $transfer_item_allocation_item_id;
 	protected $transfer_item_transfer_item_id;
 
+	protected $item = NULL;
+
+	// Metadata
+	protected $item_class;
+	protected $iprice_unit_price;
+
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
 	protected $created_by_field = 'created_by';
@@ -39,6 +45,45 @@ class Transfer_item extends Base_model {
 			'transfer_item_allocation_item_id' => array( 'type' => 'integer' ),
 			'transfer_item_transfer_item_id' => array( 'type' => 'integer' )
 		);
+	}
+
+	public function load_meta()
+	{
+		$ci =& get_instance();
+		$ci->db->select( 'i.item_class, ip.iprice_unit_price' );
+		$ci->db->where( 'i.id', $this->item_id );
+		$ci->db->join( 'item_prices ip', 'ip.iprice_item_id = i.id', 'left' );
+		$query = $ci->db->get( 'items i' );
+		$row = $query->row();
+
+		if( isset( $row ) )
+		{
+			$this->item_class = $row->item_class;
+			$this->iprice_unit_price = ( double ) $row->iprice_unit_price;
+		}
+	}
+
+	public function get_item()
+	{
+		if( ! isset( $this->item ) && isset( $this->item_id ) )
+		{
+			$ci =& get_instance();
+
+			$ci->load->library( 'item' );
+
+			$ci->db->select( 'i.*, ip.iprice_unit_price' );
+			$ci->db->where( 'i.id', $this->item_id );
+			$ci->db->join( 'item_prices ip', 'ip.iprice_item_id = i.id', 'left' );
+			$query = $ci->db->get( 'items i' );
+			$row = $query->custom_row_object( 0, 'Item' );
+
+			if( isset( $row ) )
+			{
+				$this->item = $row;
+			}
+		}
+
+		return $this->item;
 	}
 
 	public function set( $property, $value )

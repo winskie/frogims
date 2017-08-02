@@ -73,6 +73,17 @@ if( ! function_exists( 'param' ) )
                 }
 				break;
 
+			case 'decimal':
+                if( is_null( $param ) )
+                {
+                    $v = floatval( $default );
+                }
+                else
+                {
+                    $v = floatval( $param );
+                }
+				break;
+
 			case 'string':
                 if( is_null( $param ) )
                 {

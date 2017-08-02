@@ -1293,6 +1293,11 @@ class Allocation extends Base_model {
 		$ci =& get_instance();
 
 		$ci->load->library( 'inventory' );
+		$ci->load->library( 'category' );
+
+		$Inventory = new Inventory();
+		$Category = new Category();
+
 		$allocations = $this->get_allocations();
 		$cash_allocations = $this->get_cash_allocations();
 		//$transaction_datetime = $this->business_date.' '.date( 'H:i:s' );
@@ -1304,8 +1309,7 @@ class Allocation extends Base_model {
 			if( $allocation->get( 'allocation_item_status' ) == ALLOCATION_ITEM_SCHEDULED
 				&& in_array( $this->allocation_status, array( ALLOCATION_ALLOCATED, ALLOCATION_REMITTED ) ) )
 			{
-				$inventory = new Inventory();
-				$inventory = $inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ) );
+				$inventory = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ) );
 				if ( $inventory )
 				{
 					$quantity = $allocation->get( 'allocated_quantity' ) * -1; // Item will be removed from inventory
@@ -1322,13 +1326,35 @@ class Allocation extends Base_model {
 			}
 		}
 
+		$vault_fund = $Inventory->get_by_store_item_name( $this->store_id, FUND_CASH_VAULT );
+		$ca_fund = $Inventory->get_by_store_item_name( $this->store_id, FUND_COIN_ACCEPTOR );
+		$ca_category = $Category->get_by_name( 'Coin Acceptor Replenishment' );
+
 		foreach( $cash_allocations as $allocation )
 		{
 			if( $allocation->get( 'allocation_item_status' ) == ALLOCATION_ITEM_SCHEDULED
 				&& in_array( $this->allocation_status, array( ALLOCATION_ALLOCATED, ALLOCATION_REMITTED ) ) )
 			{
-				$inventory = new Inventory();
-				$inventory = $inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ) );
+				$item = $allocation->get_item();
+				$is_ca_allocation = $allocation->get( 'allocation_category_id' ) == $ca_category->get( 'id' );
+
+				if( $item && ! empty( $item->get( 'iprice_unit_price' ) ) )
+				{
+					$amount = $allocation->get( 'allocated_quantity' ) * $item->get( 'iprice_unit_price' );
+
+					// TODO: Move to TVM Readings?
+					if( $is_ca_allocation && $ca_fund )
+					{ // Coin Acceptor Fund
+						$ca_fund->transact( TRANSACTION_ALLOCATION, $amount, $transaction_datetime, $this->id, $allocation->get( 'id' ) );
+					}
+
+					if( $vault_fund )
+					{
+						$vault_fund->transact( TRANSACTION_ALLOCATION, $amount * -1, $transaction_datetime, $this->id, $allocation->get( 'id' ) );
+					}
+				}
+
+				$inventory = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ) );
 				if ( $inventory )
 				{
 					$quantity = $allocation->get( 'allocated_quantity' ) * -1; // Item will be removed from inventory
@@ -1355,8 +1381,13 @@ class Allocation extends Base_model {
 		$ci =& get_instance();
 
 		$ci->load->library( 'inventory' );
+
+		$Inventory = new Inventory();
+		$Category = new Category();
+
 		$remittances = $this->get_remittances();
 		$cash_remittances = $this->get_cash_remittances();
+
 		//$transaction_datetime = $this->business_date.' '.date( 'H:i:s' );
 		$transaction_datetime = date( TIMESTAMP_FORMAT );
 
@@ -1365,8 +1396,7 @@ class Allocation extends Base_model {
 		{
 			if( $remittance->get( 'allocation_item_status' ) == REMITTANCE_ITEM_PENDING )
 			{
-				$inventory = new Inventory();
-				$inventory = $inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ) );
+				$inventory = $Inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ) );
 				if( $inventory )
 				{
 					$quantity = $remittance->get( 'allocated_quantity' );
@@ -1383,12 +1413,25 @@ class Allocation extends Base_model {
 			}
 		}
 
+		$vault_fund = $Inventory->get_by_store_item_name( $this->store_id, FUND_CASH_VAULT );
+
 		foreach( $cash_remittances as $remittance )
 		{
 			if( $remittance->get( 'allocation_item_status' ) == REMITTANCE_ITEM_PENDING )
 			{
-				$inventory = new Inventory();
-				$inventory = $inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ) );
+				// TODO: Should this be here or in the _transact_sales()?
+				$item = $remittance->get_item();
+				if( $item && ! empty( $item->get( 'iprice_unit_price' ) ) )
+				{
+					$amount = $remittance->get( 'allocated_quantity' ) * $item->get( 'iprice_unit_price' );
+
+					if( $vault_fund )
+					{
+						$vault_fund->transact( TRANSACTION_REMITTANCE, $amount, $transaction_datetime, $this->id, $remittance->get( 'id' ) );
+					}
+				}
+
+				$inventory = $Inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ) );
 				if( $inventory )
 				{
 					$quantity = $remittance->get( 'allocated_quantity' );

@@ -64,6 +64,44 @@ app.filter('parseDate', function()
   };
 });
 
+app.filter('sumByColumn', function()
+{
+	return function( collection, col, type )
+	{
+		var total = 0;
+
+		switch( type )
+		{
+			case 'float':
+				collection.forEach( function( item ) {
+					total += parseFloat( item[col] );
+				});
+				break;
+
+			default:
+				collection.forEach( function( item ) {
+					total += parseInt( item[col] );
+				});
+		}
+
+		return total;
+	};
+});
+
+app.filter('sumItemPrice', function()
+{
+	return function( collection, priceCol, quantityCol, type )
+	{
+		var total = 0.00;
+
+		collection.forEach( function( item ) {
+			total += parseFloat( item[priceCol] * item[quantityCol] );
+		});
+
+		return total;
+	};
+});
+
 app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider, $animateProvider )
 {
 	$animateProvider.classNameFilter( /^(?:(?!ng-animate-disabled).)*$/ ); // disable animation for elements with .ng-animate-disabled class

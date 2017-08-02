@@ -359,10 +359,12 @@ class Transfer extends Base_model {
 		else
 		{
 			$ci->load->library( 'transfer_item' );
-			$ci->db->select( 'ti.*, i.item_name, i.item_description, i.item_unit, c.category as category_name, c.is_transfer_category' );
+			$ci->db->select( 'ti.*, i.item_name, i.item_description, i.item_unit,
+					c.category as category_name, c.is_transfer_category, ip.iprice_unit_price' );
 			$ci->db->where( 'transfer_id', $this->id );
 			$ci->db->join( 'items i', 'i.id = ti.item_id', 'left' );
 			$ci->db->join( 'categories c', 'c.id = ti.transfer_item_category_id', 'left' );
+			$ci->db->join( 'item_prices ip', 'ip.iprice_item_id = ti.item_id', 'left' );
 			$query = $ci->db->get( 'transfer_items ti' );
 			$this->items = $query->result( 'Transfer_item' );
 		}
@@ -784,31 +786,51 @@ class Transfer extends Base_model {
 		$ci =& get_instance();
 
 		$ci->load->library( 'inventory' );
+		$Inventory = new Inventory();
+		$transfer_items = $this->get_items();
 
-		$items = $this->get_items();
+		$is_in_transit = ( int )$this->transfer_category == TRANSFER_CATEGORY_CASH_EXCHANGE; // Bills to Coins Exchange
+		$in_transit_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_IN_TRANSIT );
+		$vault_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_CASH_VAULT );
+
+		//$transaction_datetime = $this->transfer_datetime;
+		$transaction_datetime = date( TIMESTAMP_FORMAT );
+
 		$ci->db->trans_start();
-		foreach( $items as $item )
+		foreach( $transfer_items as $transfer_item )
 		{
-			if( in_array( $item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_SCHEDULED ) ) )
+			if( in_array( $transfer_item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_SCHEDULED ) ) )
 			{
-				$inventory = new Inventory();
-				$inventory = $inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
+				$item = $transfer_item->get_item();
 
-				//$transaction_datetime = $this->transfer_datetime;
-				$transaction_datetime = date( TIMESTAMP_FORMAT );
+				if( $item->get( 'item_class' ) == 'cash' && ! empty( $item->get( 'iprice_unit_price' ) ) )
+				{
+					$amount = $transfer_item->get( 'quantity' ) * $item->get( 'iprice_unit_price' );
 
+					if( $is_in_transit && $in_transit_fund )
+					{ // In Transit transaction, add cash item amount to In Transit Fund
+						$in_transit_fund->transact( TRANSACTION_TRANSFER_OUT, $amount, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+					}
+
+					if( $vault_fund )
+					{
+						$vault_fund->transact( TRANSACTION_TRANSFER_OUT, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+					}
+				}
+
+				$inventory = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ) );
 				if( $inventory )
 				{
-					$quantity = $item->get( 'quantity' ) * -1; // Item will be removed from inventory
+					$quantity = $transfer_item->get( 'quantity' ) * -1; // Item will be removed from inventory
 					$inventory->reserve( $quantity );
-					$inventory->transact( TRANSACTION_TRANSFER_OUT, $quantity, $transaction_datetime, $this->id, $item->get( 'id' ) );
+					$inventory->transact( TRANSACTION_TRANSFER_OUT, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
 
-					$item->set( 'transfer_item_status', TRANSFER_ITEM_APPROVED );
-					$item->db_save();
+					$transfer_item->set( 'transfer_item_status', TRANSFER_ITEM_APPROVED );
+					$transfer_item->db_save();
 				}
 				else
 				{
-					die( sprintf( 'Inventory record not found for store %s and item %s.', $this->origin_id, $item->get( 'item_id' ) ) );
+					die( sprintf( 'Inventory record not found for store %s and item %s.', $this->origin_id, $transfer_item->get( 'item_id' ) ) );
 				}
 			}
 		}
@@ -823,38 +845,58 @@ class Transfer extends Base_model {
 		$ci =& get_instance();
 
 		$ci->load->library( 'inventory' );
+		$Inventory = new Inventory();
+		$transfer_items = $this->get_items();
 
-		$items = $this->get_items();
+		$is_in_transit = ( int )$this->transfer_category == TRANSFER_CATEGORY_CASH_EXCHANGE; // Bills to Coins Exchange
+		$in_transit_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_IN_TRANSIT );
+		$vault_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_CASH_VAULT );
+
+		//$transaction_datetime = $this->transfer_datetime;
+		$transaction_datetime = date( TIMESTAMP_FORMAT );
+
 		$ci->db->trans_start();
-		foreach( $items as $item )
+		foreach( $transfer_items as $transfer_item )
 		{
-			$inventory = new Inventory();
-			$inventory = $inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
+			$item = $transfer_item->get_item();
 
-			//$transaction_datetime = $this->transfer_datetime;
-			$transaction_datetime = date( TIMESTAMP_FORMAT );
+			if( $item->get( 'item_class' ) == 'cash' && ! empty( $item->get( 'iprice_unit_price' ) ) )
+			{
+				$amount = $transfer_item->get( 'quantity' ) * $item->get( 'iprice_unit_price' ) * -1;
 
+				if( $is_in_transit && $in_transit_fund )
+				{ // In transit transaction, deduct cash item amount to In Transit Fund
+					$in_transit_fund->transact( TRANSACTION_TRANSFER_CANCEL, $amount, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+				}
+
+				if( $vault_fund )
+				{
+					$vault_fund->transact( TRANSACTION_TRANSFER_CANCEL, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+				}
+			}
+
+			$inventory = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ) );
 			if( ! $inventory )
 			{ // Somehow the inventory record was removed prior to cancellation of transfer, let's create a new inventory record
 				$current_store = current_store();
 				$ci->load->library( 'item' );
 
 				$new_item = new Item();
-				$new_item = $new_item->get_by_id( $item->get( 'item_id') );
+				$new_item = $new_item->get_by_id( $transfer_item->get( 'item_id') );
 				$inventory = $current_store->add_item( $new_item );
 			}
 
-			$quantity = $item->get( 'quantity' ); // Item will be returned to the inventory
-			if( $item->get( 'transfer_item_status' ) == TRANSFER_ITEM_APPROVED )
+			$quantity = $transfer_item->get( 'quantity' ); // Item will be returned to the inventory
+			if( $transfer_item->get( 'transfer_item_status' ) == TRANSFER_ITEM_APPROVED )
 			{
-				$inventory->transact( TRANSACTION_TRANSFER_CANCEL, $quantity, $transaction_datetime, $this->id, $item->get( 'id' ) );
+				$inventory->transact( TRANSACTION_TRANSFER_CANCEL, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
 			}
 
-			if( in_array( $item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_SCHEDULED, TRANSFER_ITEM_APPROVED ) ) )
+			if( in_array( $transfer_item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_SCHEDULED, TRANSFER_ITEM_APPROVED ) ) )
 			{
-				$item->set( 'transfer_item_status', TRANSFER_ITEM_CANCELLED );
+				$transfer_item->set( 'transfer_item_status', TRANSFER_ITEM_CANCELLED );
 			}
-			$item->db_save();
+			$transfer_item->db_save();
 		}
 		$ci->db->trans_complete();
 
@@ -867,39 +909,59 @@ class Transfer extends Base_model {
 		$ci =& get_instance();
 
 		$ci->load->library( 'inventory' );
+		$Inventory = new Inventory();
+		$transfer_items = $this->get_items();
 
-		$items = $this->get_items();
+		$is_in_transit = ( int ) $this->transfer_category == TRANSFER_CATEGORY_CASH_EXCHANGE; // Bills to Coins Exchange
+		$in_transit_fund = $Inventory->get_by_store_item_name( $this->destination_id, FUND_IN_TRANSIT );
+		$vault_fund = $Inventory->get_by_store_item_name( $this->destination_id, FUND_CASH_VAULT );
+
+		//$transaction_datetime = $this->receipt_datetime;
+		$transaction_datetime = date( TIMESTAMP_FORMAT );
+
 		$ci->db->trans_start();
-		foreach( $items as $item )
+		foreach( $transfer_items as $transfer_item )
 		{
-			if( in_array( $item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_SCHEDULED, TRANSFER_ITEM_APPROVED ) ) )
+			if( in_array( $transfer_item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_SCHEDULED, TRANSFER_ITEM_APPROVED ) ) )
 			{
-				$inventory = new Inventory();
-				$inventory = $inventory->get_by_store_item( $this->destination_id, $item->get( 'item_id' ) );
+				$item = $transfer_item->get_item();
 
-				//$transaction_datetime = $this->receipt_datetime;
-				$transaction_datetime = date( TIMESTAMP_FORMAT );
+				if( $in_transit_fund && $item->get( 'item_class' ) == 'cash' && ! empty( $item->get( 'iprice_unit_price' ) ) )
+				{
+					$amount = $transfer_item->get( 'quantity' ) * $item->get( 'iprice_unit_price' ) * -1;
 
+					if( $is_in_transit && $in_transit_fund )
+					{ // In Transit transaction, add cash item amount to In Transit Fund
+						$in_transit_fund->transact( TRANSACTION_TRANSFER_IN, $amount, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+					}
+
+					if( $vault_fund )
+					{
+						$vault_fund->transact( TRANSACTION_TRANSFER_IN, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+					}
+				}
+
+				$inventory = $Inventory->get_by_store_item( $this->destination_id, $transfer_item->get( 'item_id' ) );
 				if( ! $inventory )
 				{ // Current store does not carry item yet, let's create a new inventory record
 					$current_store = current_store();
 					$ci->load->library( 'item' );
 
 					$new_item = new Item();
-					$new_item = $new_item->get_by_id( $item->get( 'item_id') );
+					$new_item = $new_item->get_by_id( $transfer_item->get( 'item_id') );
 					$inventory = $current_store->add_item( $new_item );
 				}
 
-				$quantity = $item->get( 'quantity_received' ); // Item will be added to the inventory
+				$quantity = $transfer_item->get( 'quantity_received' ); // Item will be added to the inventory
 				if( is_null( $quantity ) )
 				{
-					$quantity = $item->get( 'quantity' );
-					$item->set( 'quantity_received', $quantity );
+					$quantity = $transfer_item->get( 'quantity' );
+					$transfer_item->set( 'quantity_received', $quantity );
 				}
-				$inventory->transact( TRANSACTION_TRANSFER_IN, $quantity, $transaction_datetime, $this->id, $item->get( 'id' ) );
+				$inventory->transact( TRANSACTION_TRANSFER_IN, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
 
-				$item->set( 'transfer_item_status', TRANSFER_ITEM_RECEIVED );
-				$item->db_save();
+				$transfer_item->set( 'transfer_item_status', TRANSFER_ITEM_RECEIVED );
+				$transfer_item->db_save();
 			}
 		}
 		$ci->db->trans_complete();
@@ -913,6 +975,10 @@ class Transfer extends Base_model {
 		$ci =& get_instance();
 
 		$ci->load->library( 'inventory' );
+		$ci->load->library( 'transfer_item' );
+		$Inventory = new Inventory();
+		$Voided_item = new Transfer_item();
+
 		//$transaction_datetime = $this->transfer_datetime;
 		$transaction_datetime = date( TIMESTAMP_FORMAT );
 
@@ -921,14 +987,33 @@ class Transfer extends Base_model {
 		{
 			foreach( $this->voided_items as $k => $v )
 			{
-				$inventory = new Inventory();
-				$inventory = $inventory->get_by_store_item( $this->origin_id, $k );
+				/*
+				$voided_item = $Voided_item->get_by_id( $k );
+				$item = $voided_item->get_item();
+
+				if( $item->get( 'item_class' ) == 'cash' && ! empty( $item->get( 'iprice_unit_price' ) ) )
+				{
+					$amount = $voided_item->get( 'quantity' ) * $item->get( 'iprice_unit_price' );
+
+					if( $is_in_transit && $in_transit_fund )
+					{ // In transit transaction, deduct cash item amount to In Transit Fund
+						$in_transit_fund->transact( TRANSACTION_TRANSFER_VOID, $amount, $transaction_datetime, $this->id, $voided_item->get( 'id' ) );
+					}
+
+					if( $vault_fund )
+					{
+						$vault_fund->transact( TRANSACTION_TRANSFER_VOID, $amount * -1, $transaction_datetime, $this->id, $voided_item->get( 'id' ) );
+					}
+				}
+
+				$inventory = $Inventory->get_by_store_item( $this->origin_id, $k );
 
 				if( $inventory )
 				{
 					$quantity = $v;
 					$inventory->transact( TRANSACTION_TRANSFER_VOID, $quantity, $transaction_datetime, $this->id, $k );
 				}
+				*/
 			}
 		}
 		$ci->db->trans_complete();
@@ -998,7 +1083,7 @@ class Transfer extends Base_model {
 		}
 
 		// If this is a validated transfer, only returned transfers can be cancelled
-		if( $this->get_transfer_validation() )
+		if( $this->get_validation() )
 		{
 			if( $this->transfer_validation->get( 'transval_status' ) != TRANSFER_VALIDATION_NOTREQUIRED
 					&& $this->transfer_validation->get( 'transval_receipt_status' ) != TRANSFER_VALIDATION_RECEIPT_RETURNED )

@@ -794,8 +794,9 @@ class Installer extends CI_Controller {
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					tvmri_reading_id INTEGER NOT NULL,
 					tvmri_name VARCHAR(100) NOT NULL,
-					tvmri_quantity INTEGER NOT NULL DEFAULT 0,
-					tvmri_amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+					tvmri_item_id INTEGER NULL,
+					tvmri_reference_num VARCHAR(15) NULL,
+					tvmri_quantity DECIMAL(15,2) NOT NULL DEFAULT 0.00,
 					date_created DATETIME NOT NULL,
 					date_modified TIMESTAMP NOT NULL,
 					created_by INTEGER NOT NULL,
@@ -1149,6 +1150,14 @@ class Installer extends CI_Controller {
 					array( 'Php5@500', 'Bag of Php5 coins worth Php500', 23, 1, 1, 1, 1, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
 					array( 'Php5@100', 'Bag of Php5 coins worth Php100', 23, 1, 1, 1, 1, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
 					array( 'Php1@500', 'Bag of Php1 coins worth Php500', 21, 1, 1, 1, 1, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
+
+					array( 'Vault', 'Available cashroom fund', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
+					array( 'CA Fund', 'Coin Acceptor Fund', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
+					array( 'TVM Hopper', 'Coins in TVM', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
+					array( 'In Transit', 'In Transit Cash', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
+					array( 'CSC Card Fee', 'Concessionary Card Fee Fund', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
+					array( 'TVMIR', 'TVMIR Refund', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
+					array( 'Buy Back', 'SVC Buy Back Fund', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
 				);
 
 			foreach( $items as $i )
@@ -1187,7 +1196,7 @@ class Installer extends CI_Controller {
 			{
 				foreach( $items as $item )
 				{
-					if( $item->get( 'item_class' ) == 'cash' && $store->get( 'store_type' ) != STORE_TYPE_CASHROOM )
+					if( in_array( $item->get( 'item_class' ), array( 'cash', 'fund' ) ) && ( $store->get( 'store_type' ) != STORE_TYPE_CASHROOM ) )
 					{
 						continue;
 					}
@@ -1222,7 +1231,7 @@ class Installer extends CI_Controller {
 									break;
 
 								default:
-									if( $test_inventory ) $quantity = rand(0, 5);
+									if( $test_inventory ) $quantity = 0;
 							}
 					}
 					$inventory->transact( TRANSACTION_INIT, $quantity, date( TIMESTAMP_FORMAT ), 0 );
@@ -1299,6 +1308,7 @@ class Installer extends CI_Controller {
 					array( 'Initial Change Fund', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1, FALSE ),
 					array( 'Additional Change Fund', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1, FALSE ),
 					array( 'Coin Replenishment', 1, TRUE, FALSE, FALSE, FALSE, TRUE, 1, FALSE ),
+					array( 'Coin Acceptor Replenishment', 1, TRUE, FALSE, FALSE, FALSE, TRUE, 1, FALSE ),
 
 					array( 'Cash Collection', 2, FALSE, TRUE, FALSE, TRUE, TRUE, 1, TRUE ),
 
@@ -1396,6 +1406,7 @@ class Installer extends CI_Controller {
 					array( 'Php1 Coin', 'Initial Change Fund' ),
 					array( 'Php1 Coin', 'Additional Change Fund' ),
 					array( 'Php1 Coin', 'Coin Replenishment' ),
+					array( 'Php1 Coin', 'Coin Acceptor Replenishment' ),
 					array( 'Php1 Coin', 'Cash Collection' ),
 
 					array( 'Php0.25 Coin', 'Initial Change Fund' ),
@@ -1405,11 +1416,13 @@ class Installer extends CI_Controller {
 					array( 'Php5 Coin', 'Initial Change Fund' ),
 					array( 'Php5 Coin', 'Additional Change Fund' ),
 					array( 'Php5 Coin', 'Coin Replenishment' ),
+					array( 'Php5 Coin', 'Coin Acceptor Replenishment' ),
 					array( 'Php5 Coin', 'Cash Collection' ),
 
 					array( 'Php10 Coin', 'Initial Change Fund' ),
 					array( 'Php10 Coin', 'Additional Change Fund' ),
 					array( 'Php10 Coin', 'Coin Replenishment' ),
+					array( 'Php10 Coin', 'Coin Acceptor Replenishment' ),
 					array( 'Php10 Coin', 'Cash Collection' ),
 
 					array( 'Php20 Bill', 'Initial Change Fund' ),

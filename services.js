@@ -469,7 +469,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 						{ id: 5, categoryName: 'Cashroom to Cashroom' },
 						{ id: 6, categoryName: 'Blackbox Receipt' },
 						{ id: 7, categoryName: 'Passenger Issuance' },
-						{ id: 8, categoryName: 'Cash Exchange' },
+						{ id: 8, categoryName: 'Bills to Coins Exchange' },
 					],
 				transferStatus: [
 						{ id: 1, statusName: 'Scheduled' },
@@ -1202,7 +1202,6 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 
 		me.getTVMReadings = function( storeId )
 			{
-				console.log( 'Get TVM Readings...' );
 				if( !session.checkPermissions( 'allocations', 'view' ) )
 				{
 					return;
@@ -1308,7 +1307,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 
 
 		// Transfer Validations
-		me.suggestTransferCategory = function( transfer )
+		me.suggestTransferCategory = function( transfer, currentCategory )
 			{
 				var category = 1; // None
 
@@ -1337,7 +1336,32 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 				}
 				else
 				{
-					category = 1; // External
+					var origin, destination;
+
+					if( transfer.origin_id )
+					{
+						origin = $filter( 'filter' )( me.data.stores, { id: transfer.origin_id }, true )[0];
+					}
+					else if( transfer.destination_id )
+					{
+						destination = $filter( 'filter' )( me.data.stores, { id: transfer.destination_id }, true )[0];
+					}
+
+					if( ( origin && origin.store_type == 4 ) || ( destination && destination.store_type == 4 ) )
+					{
+						if( currentCategory.id == 8 ) // Bills to Coins Exchange
+						{
+							category = currentCategory.id;
+						}
+						else
+						{
+							category = 1; // External
+						}
+					}
+					else
+					{
+						category = 1; // External
+					}
 				}
 
 				return category;
@@ -2049,7 +2073,7 @@ angular.module( 'appServices' ).service( 'lookup',
 				'40': 'Adjustment',
 
 				'50': 'Conversion From',
-				'51': 'Conversion To'
+				'51': 'Conversion To',
 			},
 			shiftTurnoverStatus: {
 				'1': 'Open',

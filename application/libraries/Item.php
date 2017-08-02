@@ -18,6 +18,8 @@ class Item extends Base_model
     protected $machine_saleable;
     protected $turnover_item;
 
+    protected $item_unit_price;
+
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
 	protected $created_by_field = 'created_by';
@@ -43,6 +45,36 @@ class Item extends Base_model
             'machine_saleable' => array( 'type' => 'boolean' ),
             'turnover_item' => array( 'type' => 'boolean' )
 		);
+	}
+
+    public function get( $property )
+	{
+        if( $property == 'item_unit_price' )
+        {
+            if( is_null( $this->iprice_unit_price ) )
+            {
+                $ci =& get_instance();
+                $ci->db->select( 'iprice_unit_price' );
+                $ci->db->where( 'iprice_item_id', $this->id );
+                $ci->db->limit( 1 );
+                $query = $ci->db->get( 'item_prices' );
+                $row = $query->row();
+                if( isset( $row ) )
+                {
+                    $this->iprice_unit_price = $row->iprice_unit_price;
+                }
+            }
+
+            return $this->iprice_unit_price;
+        }
+		elseif( property_exists( $this, $property ) )
+		{
+			return $this->$property;
+		}
+		else
+		{
+			return NULL;
+		}
 	}
 
 	public function get_items()

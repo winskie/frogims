@@ -1442,7 +1442,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		function suggestTransferCategory()
 		{
-			var category = appData.suggestTransferCategory( $scope.transferItem );
+			var category = appData.suggestTransferCategory( $scope.transferItem, $scope.data.selectedCategory );
 			$scope.data.selectedCategory = getCategoryById( category );
 			return category; // General
 		}
@@ -1482,6 +1482,22 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 			return filteredItems;
 		}
+
+		function filterCashItems( items )
+		{
+			var n = items.length;
+			var filteredItems = [];
+			for( var i = 0; i < n; i++ )
+			{
+				if( items[i].item_class == 'cash' )
+				{
+					filteredItems.push( items[i] );
+				}
+			}
+
+			return filteredItems;
+		}
+
 		$scope.pendingAction = false;
 		$scope.data = {
 			mode: null, // transfer | receipt
@@ -1678,11 +1694,15 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				}
 			};
 
-		$scope.toggle = function( field )
+		$scope.toggle = function( field, editMode )
 			{
 				if( field == 'source' )
 				{
-					if( $scope.data.editMode == 'receipt' )
+					if( editMode )
+					{
+						$scope.data.editMode = editMode;
+					}
+					else if( $scope.data.editMode == 'receipt' )
 					{
 						$scope.data.editMode = 'externalReceipt';
 					}
@@ -1699,7 +1719,11 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				}
 				else if( field == 'destination' )
 				{
-					if( $scope.data.editMode == 'transfer' )
+					if( editMode )
+					{
+						$scope.data.editMode = editMode;
+					}
+					else if( $scope.data.editMode == 'transfer' )
 					{
 						$scope.data.editMode = 'externalTransfer';
 					}
@@ -1724,7 +1748,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				$scope.changeEditMode();
 				if( $scope.data.autoCategory )
 				{
-					$scope.transferItem.transfer_category = suggestTransferCategory();
+					$scope.transferItem.transfer_category = suggestTransferCategory( $scope.data.selectedCategory );
 				}
 			};
 
@@ -1787,12 +1811,36 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 					case 'Blackbox Receipt':
 						var filteredItems;
 						filteredItems = filterItemsWithCategory( appData.data.items, 'Blackbox' );
-						if( filteredItems )
+						if( filteredItems.length > 0 )
 						{
 							$scope.data.inventoryItems = filteredItems;
 							$scope.input.inventoryItem = $scope.data.inventoryItems[0];
 							$scope.onItemChange();
 							$scope.input.category = $filter( 'filter' )( $scope.data.categories, { category: 'Blackbox' }, true )[0];
+						}
+						break;
+
+					case 'Bills to Coins Exchange':
+						switch( $scope.data.editMode )
+						{
+							case 'receipt':
+								$scope.toggle( 'source', 'externalReceipt' );
+							case 'externalReceipt':
+								break;
+
+							case 'transfer':
+								$scope.toggle( 'destination', 'externalTransfer' );
+							case 'externalTransfer':
+								break;
+						}
+						var filteredItems;
+						filteredItems = filterCashItems( appData.data.items );
+						if( filteredItems.length > 0 )
+						{
+							$scope.data.inventoryItems = filteredItems;
+							$scope.input.inventoryItem = $scope.data.inventoryItems[0];
+							$scope.onItemChange();
+							$scope.input.category = $scope.data.categories[0];
 						}
 						break;
 
@@ -2959,8 +3007,8 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 			var assigneeType = $scope.data.selectedAssigneeType;
 			var phase = $scope.data.allocationPhase;
 			var status = $scope.allocationItem ? $scope.allocationItem.allocation_status : 1; // ALLOCATION_SCHEDULED
-			var preAllocationCategories = [ 'Initial Allocation', 'Magazine Load', 'Initial Change Fund', 'Coin Replenishment' ];
-			var postAllocationCategories = [ 'Additional Allocation', 'Magazine Load', 'Additional Change Fund', 'Coin Replenishment' ];
+			var preAllocationCategories = [ 'Initial Allocation', 'Magazine Load', 'Initial Change Fund', 'Coin Replenishment', 'Coin Acceptor Replenishment' ];
+			var postAllocationCategories = [ 'Additional Allocation', 'Magazine Load', 'Additional Change Fund', 'Coin Replenishment', 'Coin Acceptor Replenishment' ];
 
 			switch( assigneeType.id )
 			{

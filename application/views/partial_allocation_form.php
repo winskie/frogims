@@ -160,6 +160,12 @@
 										ng-model="row.markedVoid">
 							</td>
 						</tr>
+						<tr ng-if="allocationItem.cash_allocations.length">
+							<th colspan="5" class="text-right">Total Amount</th>
+							<td class="text-right">{{ allocationItem.cash_allocations | sumItemPrice: 'iprice_unit_price':'allocated_quantity' | number: 2 }}</td>
+							<td></td>
+							<td></td>
+						</tr>
 						<tr ng-if="!allocationItem.cash_allocations.length">
 							<td colspan="8" class="text-center bg-warning">
 								No allocated cash items
@@ -250,6 +256,12 @@
 										ng-model="row.markedVoid">
 							</td>
 						</tr>
+						<tr ng-if="allocationItem.cash_remittances.length">
+							<th colspan="5" class="text-right">Total Amount</th>
+							<td class="text-right">{{ allocationItem.cash_remittances | sumItemPrice: 'iprice_unit_price':'allocated_quantity' | number: 2 }}</td>
+							<td></td>
+							<td></td>
+						</tr>
 						<tr ng-if="!allocationItem.cash_remittances.length">
 							<td colspan="8" class="text-center bg-warning">
 								{{ data.cashRemittancesEmptyText }}
@@ -300,6 +312,7 @@
 										ng-model="row.markedVoid">
 							</td>
 						</tr>
+
 						<tr ng-if="!allocationItem.ticket_sales.length">
 							<td colspan="7" class="text-center bg-warning">
 								No ticket sales items
@@ -345,6 +358,13 @@
 										ng-if="row.alsale_sales_item_status == <?php echo SALES_ITEM_RECORDED;?> || row.alsale_sales_item_status == <?php echo SALES_ITEM_PENDING;?> && row.id"
 										ng-model="row.markedVoid">
 							</td>
+						</tr>
+						<tr ng-if="allocationItem.sales.length">
+							<td></td>
+							<td></td>
+							<th class="text-right">Total Amount</th>
+							<td class="text-right">{{ allocationItem.sales | sumByColumn: 'alsale_amount':'float' | number: 2 }}</td>
+							<td></td>
 						</tr>
 						<tr ng-if="!allocationItem.sales.length">
 							<td colspan="6" class="text-center bg-warning">

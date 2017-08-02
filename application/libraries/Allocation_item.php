@@ -80,10 +80,19 @@ class Allocation_item extends Base_model {
 		if( ! isset( $this->item ) && isset( $this->allocated_item_id ) )
 		{
 			$ci =& get_instance();
+
 			$ci->load->library( 'item' );
-			$item = new Item();
-			$item = $item->get_by_id( $this->allocated_item_id );
-			$this->item = $item;
+
+			$ci->db->select( 'i.*, ip.iprice_unit_price' );
+			$ci->db->where( 'i.id', $this->allocated_item_id );
+			$ci->db->join( 'item_prices ip', 'ip.iprice_item_id = i.id', 'left' );
+			$query = $ci->db->get( 'items i' );
+			$row = $query->row( 0, 'Item' );
+
+			if( isset( $row ) )
+			{
+				$this->item = $row;
+			}
 		}
 
 		return $this->item;

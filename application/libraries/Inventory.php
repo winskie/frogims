@@ -37,6 +37,7 @@ class Inventory extends Base_model
         return $query->custom_result_object( 'Category' );
     }
 
+
 	public function get_by_store_item( $store_id, $item_id )
 	{
 		$ci =& get_instance();
@@ -44,6 +45,25 @@ class Inventory extends Base_model
 		$ci->db->where( 'item_id', $item_id );
 		$ci->db->limit( 1 );
 		$query = $ci->db->get( $this->primary_table );
+
+		if( $query->num_rows() )
+		{
+			return $query->row( 0, get_class( $this ) );
+		}
+
+		return NULL;
+	}
+
+
+	public function get_by_store_item_name( $store_id, $item_name )
+	{
+		$ci =& get_instance();
+		$ci->db->select( 'a.*' );
+		$ci->db->join( 'items i', 'i.id = a.item_id', 'left' );
+		$ci->db->where( 'a.store_id', $store_id );
+		$ci->db->where( 'i.item_name', $item_name );
+		$ci->db->limit( 1 );
+		$query = $ci->db->get( $this->primary_table.' a' );
 
 		if( $query->num_rows() )
 		{
