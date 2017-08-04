@@ -298,9 +298,14 @@ class User extends Base_model {
 		return $ci->db->trans_status();
 	}
 
-	public function search( $query )
+	public function search( $query, $group_id = NULL )
 	{
 		$ci =& get_instance();
+
+		if( $group_id )
+		{
+			$ci->db->where( 'group_id', $group_id );
+		}
 
 		$ci->db->like( 'full_name', $query );
 		$ci->db->limit( 10 );

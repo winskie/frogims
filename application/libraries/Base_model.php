@@ -162,6 +162,8 @@ class Base_model
 
 		$ci =& get_instance();
 
+		$this->_set_default_values();
+
 		if( $this->_check_data() )
 		{
 			$result = NULL;
@@ -207,6 +209,12 @@ class Base_model
 		{
 			$this->db_changes[$property] = $value;
 		}
+	}
+
+
+	public function  _set_default_values()
+	{
+		// Set default field values if empty
 	}
 
 
@@ -325,6 +333,7 @@ class Base_model
 	}
 
 
+	// THIS WILL NOT GENERATE A NEW OBJECT!!!
 	public function load_from_data( $data = array(), $overwrite = TRUE )
 	{
 		// Try to get existing value first if ID exists

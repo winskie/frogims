@@ -303,7 +303,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider
 			name: 'main.tvmReading',
 			parent: main,
 			url: '/tvm_reading',
-			params: { tvmReadingItem: null, editMode: 'view' },
+			params: { TVMReading: null, editMode: 'view' },
 			templateUrl: baseUrl + 'index.php/main/view/partial_tvm_reading_form',
 			controller: 'TVMReadingController',
 		};

@@ -3569,15 +3569,16 @@ app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$state
 				title: 'TVM Reading'
 			};
 
-		$scope.input = {
-
-			};
-
 		$scope.findUser = UserServices.findUser;
 
 		$scope.showDatePicker = function()
 			{
 				$scope.data.datepicker.opened = true;
+			};
+
+		$scope.onCashierChange = function()
+			{
+				$scope.TVMReading.set( 'tvmr_cashier_name', $scope.TVMReading.tvmr_cashier_name );
 			};
 
 
@@ -3615,7 +3616,7 @@ app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$state
 					if( response.status == 'ok' )
 					{
 						$scope.TVMReading = TVMReading.createFromData( response.data );
-						if( !$scope.checkPermissions( 'allocations', 'edit' ) || ( $scope.data.editMode != 'view'  ) )
+						if( !$scope.checkPermissions( 'allocations', 'edit' ) && ( $scope.data.editMode != 'view'  ) )
 						{
 							$scope.data.editMode = 'view';
 						}

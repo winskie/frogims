@@ -1544,7 +1544,7 @@ $current_user = current_user();
 								<td class="text-center">{{ reading.tvmr_last_reading }}</td>
 								<td class="text-right">
 									<div class="btn-group" uib-dropdown>
-										<button type="button" class="btn btn-default" ui-sref="main.tvmReading({ tvmReadingItem: reading, editMode: 'view' })">View details...</button>
+										<button type="button" class="btn btn-default" ui-sref="main.tvmReading({ TVMReading: reading, editMode: 'view' })">View details...</button>
 										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="reading.canEdit() || reading.canCancel()">
 											<span class="caret"></span>
 										</button>
@@ -1553,7 +1553,7 @@ $current_user = current_user();
 												<a href ng-click="cancelReading( reading )">Cancel</a>
 											</li>
 											<li role="menuitem" ng-if="reading.canEdit()">
-												<a ui-sref="main.tvmReading({ tvmReadingItem: reading, editMode: 'edit' })">Edit...</a>
+												<a ui-sref="main.tvmReading({ TVMReading: reading, editMode: 'edit' })">Edit...</a>
 											</li>
 										</ul>
 									</div>

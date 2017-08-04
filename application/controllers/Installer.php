@@ -769,6 +769,7 @@ class Installer extends CI_Controller {
 					tvmr_datetime DATETIME NOT NULL,
 					tvmr_shift_id INTEGER NOT NULL,
 					tvmr_cashier_id INTEGER NOT NULL,
+					tvmr_cashier_name VARCHAR(100) NOT NULL,
 					tvmr_last_reading BOOLEAN NOT NULL DEFAULT 0,
 					date_created DATETIME NOT NULL,
 					date_modified TIMESTAMP NOT NULL,
@@ -794,7 +795,6 @@ class Installer extends CI_Controller {
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					tvmri_reading_id INTEGER NOT NULL,
 					tvmri_name VARCHAR(100) NOT NULL,
-					tvmri_item_id INTEGER NULL,
 					tvmri_reference_num VARCHAR(15) NULL,
 					tvmri_quantity DECIMAL(15,2) NOT NULL DEFAULT 0.00,
 					date_created DATETIME NOT NULL,
@@ -916,6 +916,22 @@ class Installer extends CI_Controller {
 			$this->load->library( 'group' );
 			$admin_Group = new Group();
 			$admin_Group->set( 'group_name', 'System Administrators' );
+
+			$admin_Group->set( 'group_perm_transaction', 'view' );
+			$admin_Group->set( 'group_perm_shift_turnover', 'edit' );
+			$admin_Group->set( 'group_perm_transfer_validation', 'edit' );
+			$admin_Group->set( 'group_perm_transfer_validation_complete', true );
+			$admin_Group->set( 'group_perm_transfer', 'edit' );
+			$admin_Group->set( 'group_perm_transfer_approve', true );
+			$admin_Group->set( 'group_perm_adjustment', 'edit' );
+			$admin_Group->set( 'group_perm_adjustment_approve', true );
+			$admin_Group->set( 'group_perm_conversion', 'edit' );
+			$admin_Group->set( 'group_perm_conversion_approve', true );
+			$admin_Group->set( 'group_perm_collection', 'edit' );
+			$admin_Group->set( 'group_perm_allocation', 'edit' );
+			$admin_Group->set( 'group_perm_allocation_allocate', true );
+			$admin_Group->set( 'group_perm_allocation_complete', true );
+			$admin_Group->set( 'group_perm_dashboard', 'history,inventory,distribution' );
 			$admin_Group = $admin_Group->db_save();
 			echo 'OK<br />';
 			flush();
@@ -1025,12 +1041,16 @@ class Installer extends CI_Controller {
 				$store->set( 'store_type', $s[3] );
 				$store->set( 'store_station_id', $s[4] );
 				$store->db_save();
+
+				// Add admin user to store
+				$store->add_member( $admin_User );
 				unset( $store );
 			}
 			echo 'OK<br />';
 			flush();
 
 			// Adding admin user to first store
+			/*
 			echo 'Adding admin user to first store...';
 			flush();
 			$this->load->library( 'store' );
@@ -1038,6 +1058,7 @@ class Installer extends CI_Controller {
 			$st_depot = $store->get_by_id( 1 );
 			$st_depot->add_member( $admin_User );
 			echo 'OK<br />';
+			*/
 			flush();
 
 			// Create default sales items

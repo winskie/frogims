@@ -2307,11 +2307,12 @@ angular.module( 'appServices' ).service( 'UserServices', [ '$http', '$q', 'baseU
 	{
 		var me = this;
 
-		me.findUser = function( q )
+		me.findUser = function( query, group )
 			{
 				return $http.get( baseUrl + 'index.php/api/v1/users/search', {
 					params: {
-						q: q
+						q: query,
+						group: group
 					}
 				}).then(
 					function( response )

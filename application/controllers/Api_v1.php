@@ -2679,7 +2679,7 @@ class Api_v1 extends MY_Controller {
 						if( $tvm_reading )
 						{
 							if( $tvm_reading->get( 'tvmr_store_id') != current_store( TRUE )
-								|| ! is_store_member( $tvmr_reading->get( 'tvmr_store_id' ), current_user( TRUE ) ) )
+								|| ! is_store_member( $tvm_reading->get( 'tvmr_store_id' ), current_user( TRUE ) ) )
 							{
 								$this->_error( 403, 'You are not allowed to access this resource.
 										The resource you are trying to access belongs to another store or you are not a member of the owner store.' );
@@ -2687,13 +2687,13 @@ class Api_v1 extends MY_Controller {
 							else
 							{
 								$tvm_reading_data = $tvm_reading->as_array();
-								$tvm_reading_items = $tvm_reading->get_items();
+								$tvm_reading_items = $tvm_reading->get_readings();
 								$tvm_reading_items_data = array();
 								foreach( $tvm_reading_items as $item )
 								{
 									$tvm_reading_items_data[] = $item->as_array();
 								}
-								$tvm_reading_data['items'] = $tvm_reading_items_data;
+								$tvm_reading_data['readings'] = $tvm_reading_items_data;
 								$this->_response( $tvm_reading_data );
 							}
 						}
@@ -2718,7 +2718,7 @@ class Api_v1 extends MY_Controller {
 				switch( $action )
 				{
 					default:
-						$result = $collection->db_save();
+						$result = $tvm_reading->db_save();
 				}
 				if( $result )
 				{
@@ -2764,7 +2764,8 @@ class Api_v1 extends MY_Controller {
 				{
 					case 'search':
 						$q = param_type( $this->input->get( 'q' ), 'string' );
-						$users = $User->search( $q );
+						$group = param_type( $this->input->get( 'group' ), 'integer' );
+						$users = $User->search( $q, $group );
 						$users_data = array();
 						foreach( $users as $user )
 						{
