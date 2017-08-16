@@ -4,7 +4,7 @@ angular.module( 'coreModels' ).factory( 'TVMReading', [ '$http', '$q', '$filter'
 		var id;
 		var tvmr_store_id;
 		var tvmr_machine_id;
-    	var tvmr_datetime;
+		var tvmr_datetime;
 		var tvmr_shift_id;
 		var tvmr_cashier_id;
 		var tvmr_cashier_name;
@@ -18,7 +18,7 @@ angular.module( 'coreModels' ).factory( 'TVMReading', [ '$http', '$q', '$filter'
 		var hopper_php1_reading;
 
 		var other_readings;
-		var previous;
+		var previous_reading;
 
 
 		/**
@@ -81,15 +81,23 @@ angular.module( 'coreModels' ).factory( 'TVMReading', [ '$http', '$q', '$filter'
 				me.hopper_php1_reading = new TVMReadingItem( {	tvmri_name: 'hopper_php1' } );
 
 				me.other_readings = [];
+				me.previous_reading = null;
 
 				if( data )
 				{
 					var readingItems = [];
+					var previousReading;
 
 					if( data.readings )
 					{
 						angular.copy( data.readings, readingItems );
 						delete data.readings;
+					}
+
+					if( data.previous_reading )
+					{ // Load previous reading
+						previousReading = new TVMReading( data.previous_reading );
+						delete data.previous_reading;
 					}
 
 					angular.merge( me, data );
@@ -113,6 +121,11 @@ angular.module( 'coreModels' ).factory( 'TVMReading', [ '$http', '$q', '$filter'
 								me.other_readings.push( new TVMReadingItem( readingItems[i] ) );
 							}
 						}
+					}
+
+					if( previousReading )
+					{
+						me.previous_reading = previousReading;
 					}
 				}
 			};

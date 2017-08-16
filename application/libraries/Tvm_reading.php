@@ -11,6 +11,9 @@ class Tvm_reading extends Base_model
 	protected $tvmr_cashier_name;
 	protected $tvmr_last_reading;
 
+	protected $shift;
+	protected $previous_shift_reading;
+
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
 	protected $created_by_field = 'created_by';
@@ -48,6 +51,54 @@ class Tvm_reading extends Base_model
 		}
 
 		return $this->readings;
+	}
+
+
+	public function get_shift()
+	{
+		if( ! isset( $this->shift ) )
+		{
+			$ci =& get_instance();
+			$ci->load->library( 'shift' );
+			$Shift = new Shift();
+			$this->shift = $Shift->get_by_id( $this->tvmr_shift_id );
+		}
+
+		return $this->shift;
+	}
+
+
+	public function get_previous_shift_last_reading()
+	{
+		if( ! isset( $this->previous_shift_reading ) )
+		{
+			$ci =& get_instance();
+
+			$current_shift = $this->get_shift();
+			$previous_shift = $current_shift->get_previous_shift();
+
+			if( $current_shift->get( 'shift_order' ) === 1 )
+			{
+				$previous_shift_date = date( DATE_FORMAT, strtotime( '-1 day', strtotime( $this->tvmr_datetime ) ) );
+			}
+			else
+			{
+				$previous_shift_date = date( DATE_FORMAT, strtotime( $this->tvmr_datetime ) );
+			}
+
+			$ci->db->where( 'tvmr_store_id', $this->tvmr_store_id );
+			$ci->db->where( 'tvmr_machine_id', $this->tvmr_machine_id );
+			$ci->db->where( 'tvmr_shift_id', $previous_shift->get( 'id' ) );
+			$ci->db->where( 'DATE(tvmr_datetime)', $previous_shift_date );
+			$ci->db->where( 'tvmr_last_reading', 1 );
+
+			$query = $ci->db->get( $this->primary_table );
+			//die( var_dump( $ci->db->last_query() ) );
+
+			$this->previous_shift_reading = $query->custom_row_object( 0, get_class( $this ) );
+		}
+
+		return $this->previous_shift_reading;
 	}
 
 
@@ -134,7 +185,7 @@ class Tvm_reading extends Base_model
 		if( array_key_exists( 'id', $data ) && $data['id'] )
 		{
 			$r = $this->get_by_id( $data['id'] );
-			$r->get_items( TRUE );
+			$r->get_readings( TRUE );
 		}
 		else
 		{

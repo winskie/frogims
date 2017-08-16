@@ -58,4 +58,16 @@ class Shift extends Base_model
 
 		return $shifts;
 	}
+
+
+	public function get_previous_shift()
+	{
+		$ci =& get_instance();
+
+		$ci->db->where( 'store_type', $this->store_type );
+		$ci->db->where( 'shift_next_shift_id', $this->id );
+		$prev_shift = $ci->db->get( $this->primary_table );
+
+		return $prev_shift->custom_row_object( 0, get_class( $this) );
+	}
 }

@@ -2694,6 +2694,21 @@ class Api_v1 extends MY_Controller {
 									$tvm_reading_items_data[] = $item->as_array();
 								}
 								$tvm_reading_data['readings'] = $tvm_reading_items_data;
+
+								$previous_tvm_reading = $tvm_reading->get_previous_shift_last_reading();
+								$previous_tvm_reading_data = array();
+								if( $previous_tvm_reading )
+								{
+									$previous_tvm_reading_data = $previous_tvm_reading->as_array();
+									$previous_tvm_reading_items = $previous_tvm_reading->get_readings();
+									$previous_tvm_reading_items_data = array();
+									foreach( $previous_tvm_reading_items as $item )
+									{
+										$previous_tvm_reading_items_data[] = $item->as_array();
+									}
+									$previous_tvm_reading_data['readings'] = $previous_tvm_reading_items_data;
+								}
+								$tvm_reading_data['previous_reading'] = $previous_tvm_reading_data;
 								$this->_response( $tvm_reading_data );
 							}
 						}

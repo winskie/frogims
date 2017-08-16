@@ -69,7 +69,7 @@
 								<input type="number" class="form-control" placeholder="Ticket Count"
 										ng-switch-when="edit"
 										ng-model="TVMReading.magazine_sjt_reading.tvmri_quantity">
-								<p class="form-control-static text-right" ng-switch-default>{{ TVMReading.magazine_sjt_reading.tvmri_quantity |  number }}</p>
+								<p class="form-control-static" ng-switch-default>{{ TVMReading.magazine_sjt_reading.tvmri_quantity |  number }}</p>
 							</div>
 						</div>
 
@@ -80,7 +80,7 @@
 								<input type="number" class="form-control" placeholder="Ticket Count"
 										ng-switch-when="edit"
 										ng-model="TVMReading.magazine_svc_reading.tvmri_quantity">
-								<p class="form-control-static text-right" ng-switch-default>{{ TVMReading.magazine_svc_reading.tvmri_quantity |  number }}</p>
+								<p class="form-control-static" ng-switch-default>{{ TVMReading.magazine_svc_reading.tvmri_quantity |  number }}</p>
 							</div>
 						</div>
 
@@ -93,12 +93,11 @@
 							</div>
 							<div class="col-sm-4" ng-if="data.editMode == 'edit'">
 								<input type="text" class="form-control" placeholder="Coin Box ID"
-										ng-switch-when="edit"
 										ng-model="TVMReading.coin_box_reading.tvmri_reference_num">
 							</div>
 							<div class="col-sm-4" ng-if="data.editMode != 'edit'">
-								<p class="form-control-static text-right">{{ ( TVMReading.coin_box_reading.tvmri_quantity ? ( TVMReading.coin_box_reading.tvmri_quantity |  number: 2 ) : '' )
-										+ ( TVMReading.coin_box_reading.tvmri_reference_num ? ' (#' + TVMReading.coin_box_reading.tvmri_reference_num + ')' : '' ) }}
+								<p class="form-control-static">{{ ( TVMReading.coin_box_reading.tvmri_quantity ? ( TVMReading.coin_box_reading.tvmri_quantity |  number: 2 ) : '' )
+										+ ( TVMReading.coin_box_reading.tvmri_reference_num ? ' #' + TVMReading.coin_box_reading.tvmri_reference_num : '' ) }}
 								</p>
 							</div>
 						</div>
@@ -115,8 +114,8 @@
 										ng-model="TVMReading.note_box_reading.tvmri_reference_num">
 							</div>
 							<div class="col-sm-4" ng-if="data.editMode != 'edit'">
-								<p class="form-control-static text-right">{{ ( TVMReading.note_box_reading.tvmri_quantity ? ( TVMReading.note_box_reading.tvmri_quantity |  number: 2 ) : '' )
-										+ ( TVMReading.note_box_reading.tvmri_reference_num ? ' (#' + TVMReading.note_box_reading.tvmri_reference_num + ')' : '' ) }}
+								<p class="form-control-static">{{ ( TVMReading.note_box_reading.tvmri_quantity ? ( TVMReading.note_box_reading.tvmri_quantity |  number: 2 ) : '' )
+										+ ( TVMReading.note_box_reading.tvmri_reference_num ? ' #' + TVMReading.note_box_reading.tvmri_reference_num : '' ) }}
 								</p>
 							</div>
 						</div>
@@ -128,7 +127,7 @@
 								<input type="number" class="form-control" placeholder="Coin Count"
 										ng-switch-when="edit"
 										ng-model="TVMReading.hopper_php5_reading.tvmri_quantity">
-								<p class="form-control-static text-right" ng-switch-default>{{ TVMReading.hopper_php5_reading.tvmri_quantity |  number }}</p>
+								<p class="form-control-static" ng-switch-default>{{ TVMReading.hopper_php5_reading.tvmri_quantity |  number }}</p>
 							</div>
 						</div>
 
@@ -139,7 +138,7 @@
 								<input type="number" class="form-control" placeholder="Coin Count"
 										ng-switch-when="edit"
 										ng-model="TVMReading.hopper_php1_reading.tvmri_quantity">
-								<p class="form-control-static text-right" ng-switch-default>{{ TVMReading.hopper_php1_reading.tvmri_quantity |  number }}</p>
+								<p class="form-control-static" ng-switch-default>{{ TVMReading.hopper_php1_reading.tvmri_quantity |  number }}</p>
 							</div>
 						</div>
 					</form>
@@ -158,7 +157,7 @@
 						<div class="form-group row">
 							<label class="control-label col-sm-4">SJT in Magazine</label>
 							<div class="col-sm-4">
-								<p class="form-control-static">{{ TVMReading.previous.sjt_count | number }}</p>
+								<p class="form-control-static">{{ TVMReading.previous_reading.magazine_sjt_reading.tvmri_quantity | number }}</p>
 							</div>
 						</div>
 
@@ -166,7 +165,7 @@
 						<div class="form-group row">
 							<label class="control-label col-sm-4">SVC in Magazine</label>
 							<div class="col-sm-4">
-								<p class="form-control-static">{{ TVMReading.previous.svc_count | number }}</p>
+								<p class="form-control-static">{{ TVMReading.previous_reading.magazine_svc_reading.tvmri_quantity | number }}</p>
 							</div>
 						</div>
 
@@ -174,8 +173,8 @@
 						<div class="form-group row">
 							<label class="control-label col-sm-4">Coin Box</label>
 							<div class="col-sm-4">
-								<p class="form-control-static">{{ ( TVMReading.previous.coin_box_value | number: 2 )
-										+ TVMReading.previous_coin_box_id ? '(#' + TVMReading.previous_coin_box_id + ')' : '' }}
+								<p class="form-control-static">{{ ( TVMReading.previous_reading.coin_box_reading.tvmri_quantity ? ( TVMReading.previous_reading.coin_box_reading.tvmri_quantity |  number: 2 ) : '' )
+										+ ( TVMReading.previous_reading.coin_box_reading.tvmri_reference_num ? ' #' + TVMReading.previous_reading.coin_box_reading.tvmri_reference_num : '' ) }}
 								</p>
 							</div>
 						</div>
@@ -184,8 +183,8 @@
 						<div class="form-group row">
 							<label class="control-label col-sm-4">BNA Box</label>
 							<div class="col-sm-4">
-								<p class="form-control-static">{{ ( TVMReading.previous.note_box_value | number: 2 )
-										+ TVMReading.previous_note_box_id ? '(#' + TVMReading.previous_note_box_id + ')' : '' }}
+								<p class="form-control-static">{{ ( TVMReading.previous_reading.note_box_reading.tvmri_quantity ? ( TVMReading.previous_reading.note_box_reading.tvmri_quantity |  number: 2 ) : '' )
+										+ ( TVMReading.previous_reading.note_box_reading.tvmri_reference_num ? ' #' + TVMReading.previous_reading.note_box_reading.tvmri_reference_num : '' ) }}
 								</p>
 							</div>
 						</div>
@@ -194,7 +193,7 @@
 						<div class="form-group row">
 							<label class="control-label col-sm-4">Php5 Hopper</label>
 							<div class="col-sm-4">
-								<p class="form-control-static">{{ TVMReading.previous.hopper_php5_count | number }}</p>
+								<p class="form-control-static">{{ TVMReading.previous_reading.hopper_php5_reading.tvmri_quantity | number }}</p>
 							</div>
 						</div>
 
@@ -202,7 +201,7 @@
 						<div class="form-group row">
 							<label class="control-label col-sm-4">Php1 Hopper</label>
 							<div class="col-sm-4">
-								<p class="form-control-static">{{ TVMReading.previous.hopper_php1_count | number }}</p>
+								<p class="form-control-static">{{ TVMReading.previous_reading.hopper_php1_reading.tvmri_quantity | number }}</p>
 							</div>
 						</div>
 					</form>
