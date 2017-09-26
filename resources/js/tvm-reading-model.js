@@ -149,7 +149,7 @@ angular.module( 'coreModels' ).factory( 'TVMReading', [ '$http', '$q', '$filter'
 			};
 
 
-			TVMReading.prototype.set = function( field, value )
+		TVMReading.prototype.set = function( field, value )
 			{
 				switch( field )
 				{
@@ -182,7 +182,7 @@ angular.module( 'coreModels' ).factory( 'TVMReading', [ '$http', '$q', '$filter'
 			};
 
 
-			TVMReading.prototype.canEdit = function()
+		TVMReading.prototype.canEdit = function()
 			{
 				return session.data.currentStore.store_type == 4 && session.checkPermissions( 'allocations', 'edit' );
 			};

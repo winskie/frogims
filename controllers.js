@@ -677,7 +677,8 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 				allocations: { index: 7, title: 'Allocations' },
 				conversions: { index: 8, title: 'Conversions' },
 				shiftTurnovers: { index: 9, title: 'Shift Turnovers' },
-				tvmReadings: { index: 10, title: 'TVM Readings' }
+				tvmReadings: { index: 10, title: 'TVM Readings' },
+				shiftDetailCashReports: { index: 11, title: 'Shift Detail Cash Reports' },
 			};
 
 		if( $stateParams.activeTab )
@@ -723,6 +724,7 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 				conversions: false,
 				shiftTurnovers: false,
 				tvmReadings: false,
+				shiftDetailCashReports: false,
 			};
 
 		$scope.widgets = {
@@ -797,6 +799,11 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 					opened: false
 				},
 				tvmReadingsShifts: angular.copy( session.data.storeShifts ),
+
+				shiftDetailCashReportsDate: {
+					opened: false
+				},
+				shiftDetailCashReports: angular.copy( session.data.storeShifts ),
 			};
 
 		$scope.widgets.transactionsItems.unshift({ id: null, item_name: 'All', item_description: 'All' });
@@ -830,6 +837,8 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 		$scope.widgets.conversionsItems.unshift({ id: null, item_name: 'All', item_description: 'All' });
 
 		$scope.widgets.tvmReadingsShifts.unshift({ id: null, shift_num: 'All', description: 'All' });
+
+		$scope.widgets.shiftDetailCashReports.unshift({ id: null, shift_num: 'All', description: 'All' });
 
 		$scope.toggleFilters = function( tab )
 			{
@@ -885,6 +894,10 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 						$scope.updateTvmReadings( currentStoreId );
 						break;
 
+					case 'shiftDetailCashReports':
+						$scope.updateShiftDetailCashReports( currentStoreId );
+						break;
+
 					default:
 						// none
 				}
@@ -928,6 +941,7 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 		$scope.updateConversions = appData.getConversions;
 		$scope.updateShiftTurnovers = appData.getShiftTurnovers;
 		$scope.updateTvmReadings = appData.getTVMReadings;
+		$scope.updateShiftDetailCashReports = appData.getShiftDetailCashReports;
 
 		// Transfer validation actions
 		$scope.completeTransferValidation = function( validation )
@@ -1062,6 +1076,17 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 					{
 						notifications.alert( 'Conversion approved', 'success' );
 						appData.refresh( session.data.currentStore.id, 'conversions' );
+					});
+			};
+
+		// Shift Detail Cash Report actions
+		$scope.deleteShiftDetailCashReport = function( report )
+			{
+				report.delete().then(
+					function( response )
+					{
+						notifications.alert( 'Cash report deleted', 'success' );
+						appData.refresh( session.data.currentStore.id, 'shiftDetailCashReports' );
 					});
 			};
 
@@ -3634,6 +3659,132 @@ app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$state
 		else
 		{
 			$scope.TVMReading = new TVMReading();
+		}
+	}
+]);
+
+app.controller( 'ShiftDetailCashReportController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'utilities', 'notifications', 'UserServices', 'ShiftDetailCashReport', 'ShiftDetailCashReportItem',
+	function( $scope, $filter, $state, $stateParams, session, appData, utilities, notifications, UserServices, ShiftDetailCashReport, ShiftDetailCashReportItem )
+	{
+		$scope.pendingAction = false;
+
+		$scope.data = {
+				editMode: $stateParams.editMode || 'auto',
+				datepicker: { format: 'yyyy-MM-dd', opened: false },
+				title: 'Shift Detail Cash Report',
+				cardProfiles: angular.copy( appData.data.cardProfiles ),
+			};
+
+		$scope.default_input = {
+				card_profile: $scope.data.cardProfiles[0] || null,
+				issued_quantity: null,
+				issued_amount: null,
+				add_value_quantity: null,
+				add_value_amount: null,
+				refund_quantity: null,
+				refund_amount: null,
+				entry_exit_mismatch_quantity: null,
+				entry_exit_mismatch_amount: null,
+				excess_time_quantity: null,
+				excess_time_amount: null,
+				product_sales_quantity: null,
+				product_sales_amount: null
+			};
+
+		$scope.input = {};
+
+		$scope.emptyItems = function( items )
+			{
+				return angular.equals( items, {} );
+			};
+
+		$scope.resetInput = function()
+			{
+				var selectedCardProfile = $scope.input.card_profile || null;
+
+				$scope.input = angular.copy( $scope.default_input );
+				if( selectedCardProfile )
+				{
+					$scope.input.card_profile = selectedCardProfile;
+				}
+				else
+				{
+					$scope.input.card_profile = $scope.data.cardProfiles[0] || null;
+				}
+			};
+
+		$scope.resetInput();
+
+		$scope.addReportItem = function( event )
+			{
+				if( ( event.type == 'keypress' ) && ( event.keyCode == 13 ) )
+				{
+					$scope.shiftDetailCashReport.addItem( $scope.input );
+					$scope.resetInput();
+				}
+			};
+
+		$scope.removeReportItem = function( row )
+			{
+				$scope.shiftDetailCashReport.removeItem( row );
+			};
+
+		$scope.saveReport = function()
+			{
+				if( ! $scope.pendingAction )
+					{
+						$scope.pendingAction = true;
+						$scope.shiftDetailCashReport.save().then(
+							function( response )
+							{
+								appData.refresh( session.data.currentStore.id, 'shiftDetailCashReports' );
+								notifications.alert( 'Shift Detail Cash Report saved', 'success' );
+								$state.go( 'main.store', { activeTab: 'shiftDetailCashReports' } );
+								$scope.pendingAction = false;
+							},
+							function( reason )
+							{
+								$scope.pendingAction = false;
+							});
+					}
+			};
+
+		// Load Shift Detail Cash Report
+		if( $stateParams.shiftDetailCashReport )
+		{
+			$scope.data.editMode = $stateParams.editMode || 'view';
+			appData.getShiftDetailCashReport( $stateParams.shiftDetailCashReport.id ).then(
+				function( response )
+				{
+					if( response.status == 'ok' )
+					{
+						$scope.shiftDetailCashReport = ShiftDetailCashReport.createFromData( response.data );
+						angular.forEach( $scope.shiftDetailCashReport.items, function( item, key ) {
+								var index = utilities.findWithAttr( appData.data.cardProfiles, 'id', parseInt( key ) );
+								if( index >= 0 )
+								{
+									$scope.shiftDetailCashReport.items[key].card_profile = appData.data.cardProfiles[index];
+								}
+							} );
+
+						if( !$scope.checkPermissions( 'allocations', 'edit' ) && ( $scope.data.editMode != 'view'  ) )
+						{
+							$scope.data.editMode = 'view';
+						}
+					}
+					else
+					{
+						console.error( 'Unable to load shift detail cash report record' );
+					}
+				},
+				function( reason )
+				{
+					console.error( reason );
+				});
+		}
+		else
+		{
+			$scope.shiftDetailCashReport = new ShiftDetailCashReport();
 		}
 	}
 ]);

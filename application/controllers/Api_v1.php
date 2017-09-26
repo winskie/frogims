@@ -1172,6 +1172,100 @@ class Api_v1 extends MY_Controller {
 		$this->_send_response();
 	}
 
+	public function shift_detail_cash_report()
+	{
+		$request_method = $this->input->method();
+		$current_user = current_user();
+
+		$this->load->library( 'shift_detail_cash_report' );
+		$Shift_Detail_Cash_Report = new Shift_detail_cash_report();
+
+		switch( $request_method )
+		{
+			case 'get':
+				// Check permissions
+				if( ! $current_user->check_permissions( 'allocations', 'view' ) )
+				{
+					$this->_error( 403, 'You are not allowed to access this resource' );
+				}
+				else
+				{
+					$shift_detail_cash_report_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
+
+					if( $shift_detail_cash_report_id )
+					{
+						$shift_detail_cash_report = $Shift_Detail_Cash_Report->get_by_id( $shift_detail_cash_report_id );
+						if( $shift_detail_cash_report )
+						{
+							if( $shift_detail_cash_report->get( 'sdcr_store_id') != current_store( TRUE )
+								|| ! is_store_member( $shift_detail_cash_report->get( 'sdcr_store_id' ), current_user( TRUE ) ) )
+							{
+								$this->_error( 403, 'You are not allowed to access this resource.
+										The resource you are trying to access belongs to another store or you are not a member of the owner store.' );
+							}
+							else
+							{
+								$shift_detail_cash_report_data = $shift_detail_cash_report->as_array();
+								$shift_detail_cash_report_items = $shift_detail_cash_report->get_items();
+								$shift_detail_cash_report_items_data = array();
+								foreach( $shift_detail_cash_report_items as $item )
+								{
+									$shift_detail_cash_report_items_data[] = $item->as_array();
+								}
+								$shift_detail_cash_report_data['report_items'] = $shift_detail_cash_report_items_data;
+
+								$this->_response( $shift_detail_cash_report_data );
+							}
+						}
+						else
+						{
+							$this->_error( 404, 'Shift detail cash report record not found' );
+						}
+					}
+					else
+					{
+						$this->_error( 400, 'Missing required Shift detail cash report ID' );
+					}
+				}
+				break;
+
+			case 'post':
+				$action = param_type( $this->uri->rsegment( 3 ), 'string' );
+				$shift_detail_cash_report_id = param( $this->input->post(), 'id' );
+				$shift_detail_cash_report = $Shift_Detail_Cash_Report->load_from_data( $this->input->post() );
+				$this->db->trans_start();
+				switch( $action )
+				{
+					default:
+						$result = $shift_detail_cash_report->db_save();
+				}
+				if( $result )
+				{
+					$this->db->trans_complete();
+
+					if( $this->db->trans_status() )
+					{
+						$this->_response( $shift_detail_cash_report->as_array(), $shift_detail_cash_report_id ? 200 : 201 );
+					}
+					else
+					{
+						$this->_error( 500, 'A database error has occurred while trying to save TVM reading record' );
+					}
+				}
+				else
+				{
+					$messages = get_messages();
+					$this->_error( 200, $messages );
+				}
+				break;
+
+			default:
+				$this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
+		}
+
+		$this->_send_response();
+	}
+
 	public function shifts()
 	{
 		$request_method = $this->input->method();
@@ -2020,6 +2114,42 @@ class Api_v1 extends MY_Controller {
 										$this->_response( array(
 											'items' => $items,
 											'query' => $this->db->last_query() ) );
+									}
+									break;
+
+								case 'shift_detail_cash_reports': //
+									// Check permissions
+									if( ! $current_user->check_permissions( 'allocations', 'view' ) )
+									{
+										$this->_error( 403, 'You are not allowed to access this resource' );
+									}
+									else
+									{
+										$params = array(
+											'date' => param( $this->input->get(), 'date' ),
+											'shift' => param( $this->input->get(), 'shift' ),
+											'teller_id' => param( $this->input->get(), 'teller_id' ),
+											'pos_id' => param( $this->input->get(), 'pos_id' ),
+											'page' => param( $this->input->get(), 'page' ),
+											'limit' => param( $this->input->get(), 'limit' ),
+											'order' => 'sdcr_business_date DESC, sdcr_login_time DESC, id DESC'
+										);
+										$reports = $store->get_shift_detail_cash_reports( $params );
+										$total_shift_detail_cash_reports = $store->count_shift_detail_cash_reports( $params );
+										$reports_data = array();
+
+										$additional_fields = array(
+											'shift_num' => array( 'type' => 'string' )
+										);
+
+										foreach( $reports as $report )
+										{
+											$reports_data[] = $report->as_array( $additional_fields );
+										}
+
+										$this->_response( array(
+											'shift_detail_cash_reports' => $reports_data,
+											'total' => $total_shift_detail_cash_reports	) );
 									}
 									break;
 

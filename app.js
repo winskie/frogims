@@ -161,7 +161,8 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider
 									}
 								);
 
-								$q.all( [ initSalesItems, initInventory, initTransactions, initTransferValidations, initTransfers, initReceipts, initAdjustments, initAllocations, initConversions, initConversionData ] ).then(
+								$q.all( [ initSalesItems, initInventory, initTransactions, initTransferValidations, initTransfers, initReceipts,
+										initAdjustments, initAllocations, initConversions, initConversionData ] ).then(
 									function( promises )
 									{
 										console.log( 'Finished loading session data' );
@@ -308,6 +309,15 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider
 			controller: 'TVMReadingController',
 		};
 
+	var shiftDetailCashReport = {
+			name: 'main.shiftDetailCashReport',
+			parent: main,
+			url: '/shift_detail_cash_report',
+			params: { shiftDetailCashReport: null, editMode: 'view' },
+			templateUrl: baseUrl + 'index.php/main/view/partial_shift_detail_cash_report_form',
+			controller: 'ShiftDetailCashReportController',
+		};
+
 	var user = {
 			name: 'main.user',
 			parent: main,
@@ -348,6 +358,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider
 		.state( mopping )
 		.state( allocation )
 		.state( tvmReading )
+		.state( shiftDetailCashReport )
 
 		.state( admin )
 		.state( user )

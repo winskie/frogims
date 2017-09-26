@@ -1096,6 +1096,73 @@ class Store extends Base_model
 		return $readings;
 	}
 
+
+	public function get_shift_detail_cash_reports( $params = array() )
+	{
+		$limit = param( $params, 'limit' );
+		$page = param( $params, 'page', 1 );
+		$order = param( $params, 'order', 'sdcr.sdcr_business_date DESC, sdcr.sdcr_login_time DESC, sdcr.id DESC' );
+		$format = param( $params, 'format', 'object' );
+
+		$business_date = param( $params, 'date' );
+		$shift = param( $params, 'shift' );
+		$teller_id = param( $params, 'teller_id' );
+		$pos_id = param( $params, 'pos_id' );
+
+		$ci =& get_instance();
+		$ci->load->library( 'shift_detail_cash_report' );
+
+		if( $limit )
+		{
+			$ci->db->limit( $limit, ( $page ? ( ( $page - 1 ) * $limit ) : 0 ) );
+		}
+
+		if( $order )
+		{
+				$ci->db->order_by( $order );
+		}
+
+		if( $business_date )
+		{
+			$ci->db->where( 'sdcr.sdcr_business_date', $business_date );
+		}
+
+		if( $shift )
+		{
+			$ci->db->where( 'sdcr.sdcr_shift_id', $shift );
+		}
+
+		if( $teller_id )
+		{
+			$ci->db->where( 'sdcr.sdcr_teller_id', $machine_id );
+		}
+
+		if( $pos_id )
+		{
+			$ci->db->where( 'sdcr.sdcr_pos_id', $pos_id );
+		}
+
+		$ci->db->select( 'sdcr.*, s.shift_num' );
+		$ci->db->where( 'sdcr.sdcr_store_id', $this->id );
+		$ci->db->join( 'shifts s', 's.id = sdcr.sdcr_shift_id', 'left' );
+		$reports = $ci->db->get( 'shift_detail_cash_reports sdcr' );
+		$reports = $reports->result( 'Shift_detail_cash_report' );
+
+		if( $format == 'array' )
+		{
+			$reports_array = array();
+			foreach( $reports as $report )
+			{
+				$reports_array[] = $report->as_array();
+			}
+
+			return $reports_array;
+		}
+
+		return $reports;
+	}
+
+
 	public function count_transactions( $params = array() )
 	{
 		$ci =& get_instance();
@@ -1530,6 +1597,45 @@ class Store extends Base_model
 
 		return $count;
 	}
+
+
+	public function count_shift_detail_cash_reports( $params = array() )
+	{
+		$business_date = param( $params, 'date' );
+		$shift = param( $params, 'shift' );
+		$teller_id = param( $params, 'teller_id' );
+		$pos_id = param( $params, 'pos_id' );
+
+		$ci =& get_instance();
+		$ci->load->library( 'shift_detail_cash_report' );
+
+		if( $business_date )
+		{
+			$ci->db->where( 'sdcr.sdcr_business_date', $business_date );
+		}
+
+		if( $shift )
+		{
+			$ci->db->where( 'sdcr.sdcr_shift_id', $shift );
+		}
+
+		if( $teller_id )
+		{
+			$ci->db->where( 'sdcr.sdcr_teller_id', $teller_id );
+		}
+
+		if( $pos_id )
+		{
+			$ci->db->where( 'sdcr.sdcr_pos_id', $pos_id );
+		}
+
+		$ci->db->where( 'sdcr.sdcr_store_id', $this->id );
+
+		$count = $ci->db->count_all_results( 'shift_detail_cash_reports sdcr' );
+
+		return $count;
+	}
+
 
 	public function get_transactions_date_range( $start_time = NULL, $end_time = NULL, $params = array() )
 	{

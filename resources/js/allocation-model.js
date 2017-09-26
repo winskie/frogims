@@ -655,7 +655,6 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 
 		Allocation.prototype.removeAllocationItem = function( item )
 			{
-				console.log( item );
 				if( item.id == undefined )
 				{
 					var index;

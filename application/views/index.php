@@ -31,6 +31,7 @@
 		<script type="text/javascript" src="<?php echo base_url( 'resources/js/adjustment-model.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'resources/js/shift-turnover-model.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'resources/js/tvm-reading-model.js' );?>"></script>
+		<script type="text/javascript" src="<?php echo base_url( 'resources/js/shift-detail-cash-report-model.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'resources/js/admin-controllers.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'resources/js/modal-controllers.js' );?>"></script>
 		<script type="text/javascript" src="<?php echo base_url( 'services.js' );?>"></script>

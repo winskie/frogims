@@ -421,8 +421,8 @@ angular.module( 'appServices' ).service( 'session', [ '$http', '$q', '$filter', 
 	}
 ]);
 
-angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'Transfer', 'Conversion', 'Allocation', 'Collection', 'Adjustment', 'ShiftTurnover', 'TVMReading',
-	function( $http, $q, $filter, baseUrl, session, notifications, Transfer, Conversion, Allocation, Collection, Adjustment, ShiftTurnover, TVMReading )
+angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'Transfer', 'Conversion', 'Allocation', 'Collection', 'Adjustment', 'ShiftTurnover', 'TVMReading', 'ShiftDetailCashReport',
+	function( $http, $q, $filter, baseUrl, session, notifications, Transfer, Conversion, Allocation, Collection, Adjustment, ShiftTurnover, TVMReading, ShiftDetailCashReport )
 	{
 		var me = this;
 
@@ -435,6 +435,31 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 				activeUsers: [],
 
 				categories: [],
+
+				cardProfiles: [
+						{ id: 1, profileName: 'Standard SVC' },
+						{ id: 2, profileName: 'Senior Citizens SVC' },
+						{ id: 3, profileName: 'Person With Disabilities SVC' },
+						{ id: 4, profileName: 'LRT1 Employee Card' },
+						{ id: 5, profileName: 'LRT2 Employee Card' },
+						{ id: 6, profileName: 'MRT3 Employee Card' },
+						{ id: 7, profileName: 'AFCS Employee Card' },
+						{ id: 8, profileName: 'LRT1 SJT' },
+						{ id: 9, profileName: 'LRT2 SJT' },
+						{ id: 10, profileName: 'MRT3 SJT' },
+						{ id: 11, profileName: 'LRT1 SJT for Senior Citizens' },
+						{ id: 12, profileName: 'LRT2 SJT for Senior Citizens' },
+						{ id: 13, profileName: 'MRT3 SJT for Senior Citizens' },
+						{ id: 14, profileName: 'LRT1 SJT for PWD' },
+						{ id: 15, profileName: 'LRT2 SJT for PWD' },
+						{ id: 16, profileName: 'MRT3 SJT for PWD' },
+						{ id: 17, profileName: 'Student' },
+						{ id: 18, profileName: 'Beep-Smart' },
+						{ id: 19, profileName: 'Beep-Globe' },
+						{ id: 20, profileName: 'Beep-BPI' },
+						{ id: 21, profileName: 'Discount Card' },
+					],
+
 				transactionTypes: [
 						{ id: 0, typeName: 'Initial Balance', module: null },
 						{ id: 10, typeName: 'Transfer', module: 'Transfers' },
@@ -514,6 +539,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 				allocations: [],
 				conversions: [],
 				tvmReadings: [],
+				shiftDetailCashReports: [],
 
 				totals: {
 						transactions: 0,
@@ -526,6 +552,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 						allocations: 0,
 						conversions: 0,
 						tvmReadings: 0,
+						shiftDetailCashReports: 0,
 					},
 
 				pending: {
@@ -609,7 +636,14 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 					shift: { id: null, item_name: 'All', item_description: 'All' },
 					machine_id: null,
 					filtered: false
-				}
+				},
+				shiftDetailCashReports: {
+					date: null,
+					shift: { id: null, item_name: 'All', item_description: 'All' },
+					teller_id: null,
+					pos_id: null,
+					filtered: false
+				},
 			};
 
 		me.filters = {}
@@ -634,6 +668,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 				allocations: 1,
 				conversions: 1,
 				tvmReadings: 1,
+				shiftDetailCashReports: 1,
 			};
 
 		me.get = function( data )
@@ -1243,6 +1278,49 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 				return deferred.promise;
 			};
 
+		me.getShiftDetailCashReports = function( storeId )
+			{
+				if( !session.checkPermissions( 'allocations', 'view' ) )
+				{
+					return;
+				}
+
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/shift_detail_cash_reports',
+					params: {
+						date: me.filters.shiftDetailCashReports.date ? $filter( 'date' )( me.filters.shiftDetailCashReports.date, 'yyyy-MM-dd' ) : null,
+						shift: me.filters.shiftDetailCashReports ? me.filters.shiftDetailCashReports.shift.id : null,
+						teller_id: me.filters.shiftDetailCashReports.teller_id ? me.filters.shiftDetailCashReports.teller_id : null,
+						pos_id: me.filters.shiftDetailCashReports.pos_id ? me.filters.shiftDetailCashReports.pos_id : null,
+						page: me.pagination.shiftDetailCashReports ? me.pagination.shiftDetailCashReports : null,
+						limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
+					}
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							var d = response.data;
+							me.data.shiftDetailCashReports = ShiftDetailCashReport.createFromData( d.data.shift_detail_cash_reports );
+							me.data.totals.shiftDetailCashReports = d.data.total;
+							deferred.resolve( d );
+						}
+						else
+						{
+						}
+
+					},
+					function( reason )
+					{
+						console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
+
 		// Shift Turnovers
 		me.getShiftTurnover = function( shiftTurnoverId )
 			{
@@ -1717,6 +1795,36 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 			};
 
 
+		// Shift Detail Cash Reports
+		me.getShiftDetailCashReport = function( reportId )
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/shift_detail_cash_report/' + reportId
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							deferred.resolve( response.data );
+						}
+						else
+						{
+							notifications.showMessage( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
+
+
 		// Refresh
 		me.refresh = function( currentStoreId, group )
 			{
@@ -1772,6 +1880,10 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 						me.getTVMReadings( currentStoreId );
 						break;
 
+					case 'shiftDetailCashReports':
+						me.getShiftDetailCashReports( currentStoreId );
+						break;
+
 					case 'all':
 					default:
 						me.getInventory( currentStoreId );
@@ -1785,6 +1897,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 						me.getAllocations( currentStoreId );
 						me.getConversions( currentStoreId );
 						me.getTVMReadings( currentStoreId );
+						me.getShiftDetailCashReports( currentStoreId );
 				}
 			};
 

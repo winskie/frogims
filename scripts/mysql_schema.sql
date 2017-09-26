@@ -193,6 +193,18 @@ CREATE TABLE IF NOT EXISTS items
 )
 ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS card_profiles
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	cardp_description VARCHAR(100) NOT NULL,
+	cardp_item_id INTEGER DEFAULT NULL,
+	PRIMARY KEY( id ),
+	FOREIGN KEY cardp_item_fk (cardp_item_id) REFERENCES items(id)
+		ON UPDATE CASCADE
+		ON DELETE SET NULL
+)
+ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS store_inventory
 (
 	id INTEGER AUTO_INCREMENT NOT NULL,
@@ -738,5 +750,49 @@ CREATE TABLE IF NOT EXISTS tvm_reading_items
 	FOREIGN KEY tvmri_reading_fk (tvmri_reading_id) REFERENCES tvm_readings (id)
 		ON UPDATE CASCADE
 		ON DELETE RESTRICT
+)
+ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS shift_detail_cash_reports
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	sdcr_allocation_id INTEGER DEFAULT NULL,
+	sdcr_store_id INTEGER NOT NULL,
+	sdcr_shift_id INTEGER NOT NULL,
+	sdcr_teller_id INTEGER NOT NULL,
+	sdcr_pos_id SMALLINT NOT NULL,
+	sdcr_business_date DATE NOT NULL,
+	sdcr_login_time DATETIME NOT NULL,
+	sdcr_logout_time DATETIME NOT NULL,
+	date_created DATETIME NOT NULL,
+	date_modified TIMESTAMP NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
+	PRIMARY KEY (id),
+	FOREIGN KEY sdcr_store_fk (sdcr_store_id) REFERENCES stores (id)
+		ON UPDATE CASCADE
+		ON DELETE RESTRICT,
+	FOREIGN KEY sdcr_shift_fk (sdcr_shift_id) REFERENCES shifts (id)
+		ON UPDATE CASCADE
+		ON DELETE RESTRICT
+)
+ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS shift_detail_cash_report_items
+(
+	id INTEGER AUTO_INCREMENT NOT NULL,
+	sdcri_sdcr_id INTEGER NOT NULL,
+	sdcri_card_profile_id SMALLINT NOT NULL,
+	sdcri_property VARCHAR(10) NOT NULL,
+	sdcri_quantity INTEGER NOT NULL DEFAULT 0,
+	sdcri_amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+	date_created DATETIME NOT NULL,
+	date_modified TIMESTAMP NOT NULL,
+	created_by INTEGER NOT NULL,
+	modified_by INTEGER NOT NULL,
+	PRIMARY KEY (id),
+	FOREIGN KEY sdcri_report_fk (sdcri_sdcr_id) REFERENCES shift_detail_cash_reports (id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
 )
 ENGINE=InnoDB;

@@ -67,7 +67,7 @@ $current_user = current_user();
 		</uib-tab>
 
 		<!-- Transactions -->
-		<uib-tab heading="Transactions Log" index="1" select="onTabSelect('transactions')" ng-if="checkPermissions( 'transactions', 'view')">
+		<uib-tab heading="Transactions" index="1" select="onTabSelect('transactions')" ng-if="checkPermissions( 'transactions', 'view')">
 			<div class="panel panel-default">
 				<div class="panel-heading">
 					<h3 class="panel-title pull-left">
@@ -1330,7 +1330,7 @@ $current_user = current_user();
 		<!-- Shift Turnovers -->
 		<uib-tab index="9" select="onTabSelect('shiftTurnovers')" ng-if="( sessionData.currentStore.store_type == 4 || sessionData.currentStore.store_type == 2 ) && checkPermissions( 'shiftTurnovers', 'view')"> <!-- Cashroom only -->
 			<uib-tab-heading>
-					Shift Turnovers <span ng-show="appData.pending.shiftTurnovers > 0" class="label label-danger label-as-badge">{{ appData.pending.shiftTurnovers }}</span>
+				Shift Turnovers <span ng-show="appData.pending.shiftTurnovers > 0" class="label label-danger label-as-badge">{{ appData.pending.shiftTurnovers }}</span>
 			</uib-tab-heading>
 			<div class="panel panel-default">
 				<div class="panel-heading">
@@ -1447,7 +1447,7 @@ $current_user = current_user();
 		<!-- TVM Readings -->
 		<uib-tab index="10" select="onTabSelect('tvmReadings')" ng-if="sessionData.currentStore.store_type == 4">
 			<uib-tab-heading>
-				TVM Readings
+				Readings
 			</uib-tab-heading>
 			<div class="panel panel-default">
 				<div class="panel-heading">
@@ -1549,7 +1549,7 @@ $current_user = current_user();
 											<span class="caret"></span>
 										</button>
 										<ul uib-dropdown-menu role="menu" ng-if="reading.canEdit() || reading.canCancel()">
-											<li role="menuitem" ng-if="conversion.canCancel()">
+											<li role="menuitem" ng-if="reading.canCancel()">
 												<a href ng-click="cancelReading( reading )">Cancel</a>
 											</li>
 											<li role="menuitem" ng-if="reading.canEdit()">
@@ -1572,6 +1572,150 @@ $current_user = current_user();
 								boundary-link-numbers="true"
 								ng-model="pagination.tvmReadings"
 								ng-change="updateTvmReadings( sessionData.currentStore.id )">
+						</uib-pagination>
+					</div>
+				</div>
+			</div>
+		</uib-tab>
+
+		<!-- Shift Detail Cash Report -->
+		<uib-tab index="11" select="onTabSelect('shiftDetailCashReport')" ng-if="sessionData.currentStore.store_type == 4">
+			<uib-tab-heading>
+				Shift Detail Cash Report
+			</uib-tab-heading>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title pull-left">
+						Shift Detail Cash Reports <span class="label label-default" ng-if="filters.shiftDetailCashReports.filtered">Filtered</span>
+					</h3>
+					<div class="pull-right">
+						<button class="btn btn-default btn-sm btn-filter" ng-click="toggleFilters( 'shiftDetailCashReports' )">
+							<i class="glyphicon glyphicon-filter"></i> {{ filterPanels.shiftDetailCashReports ? 'Hide' : 'Show' }} filters
+						</button>&nbsp;
+						<span ng-if="checkPermissions( 'allocations', 'edit' )">
+							<button class="btn btn-primary btn-sm" ui-sref="main.shiftDetailCashReport({ editMode: 'edit' })">
+								<i class="glyphicon glyphicon-plus"></i> New Cash Report
+							</button>&nbsp;
+						</span>
+						<button class="btn btn-default btn-sm" ng-click="updateShiftDetailCashReports( sessionData.currentStore.id )">
+							<i class="glyphicon glyphicon-refresh"></i>
+						</button>
+					</div>
+					<div class="clearfix"></div>
+				</div>
+				<div class="panel-body">
+					<!-- Quick Search -->
+					<div class="text-right clearfix">
+						<div class="input-group quicksearch pull-right">
+							<span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
+							<input type="text" class="form-control"
+									ng-model="quicksearch.shiftDetailCashReports"
+									ng-keypress="loadRecord( $event, 'shiftDetailCashReports' )">
+						</div>
+					</div>
+
+					<!-- Filter Panel -->
+					<div class="row filter_panel" ng-show="filterPanels.shiftDetailCashReports">
+						<div class="col-sm-4 col-md-3 col-lg-2">
+							<div class="form-group">
+								<label class="control-label">Date</label>
+								<div class="input-group">
+									<input type="text" class="form-control" uib-datepicker-popup="{{ filters.dateFormat }}" is-open="widgets.shiftDetailCashReportDate.opened"
+											min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)"
+											ng-model="filters.shiftDetailCashReports.date" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" />
+									<span class="input-group-btn">
+										<button type="button" class="btn btn-default" ng-click="showDatePicker( 'shiftDetailCashReportDate' )"><i class="glyphicon glyphicon-calendar"></i></button>
+									</span>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-sm-4 col-md-3 col-lg-2">
+							<div class="form-group">
+								<label class="control-label">Shift</label>
+								<select class="form-control"
+										ng-model="filters.shiftDetailCashReports.shift"
+										ng-options="shift as shift.shift_num for shift in widgets.shiftDetailCashReportsShifts track by shift.id">
+								</select>
+							</div>
+						</div>
+
+						<div class="col-sm-4 col-md-3 col-lg-2">
+							<div class="form-group">
+								<label class="control-label">Teller ID</label>
+								<input type="text" class="form-control"
+										ng-model="filters.shiftDetailCashReports.teller_id">
+							</div>
+						</div>
+
+						<div class="col-sm-4 col-md-3 col-lg-2">
+							<div class="form-group">
+								<label class="control-label">POS ID</label>
+								<input type="text" class="form-control"
+										ng-model="filters.shiftDetailCashReports.pos_id">
+							</div>
+						</div>
+
+						<div>
+							<div class="form-group">
+								<button style="margin-top: 25px" class="btn btn-primary" ng-click="applyFilter( 'shiftDetailCashReports' )">Apply</button>
+								<button style="margin-top: 25px" class="btn btn-default" ng-click="clearFilter( 'shiftDetailCashReports' )">Clear</button>
+							</div>
+						</div>
+					</div>
+
+					<table class="table">
+						<thead>
+							<tr>
+								<th class="text-center">ID</th>
+								<th class="text-left">Date</th>
+								<th class="text-left">Shift</th>
+								<th class="text-center">POS</th>
+								<th class="text-left">Teller</th>
+								<th class="text-left">Login</th>
+								<th class="text-left">Logout</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="report in appData.shiftDetailCashReports">
+								<td class="text-center">{{ report.id }}</td>
+								<td class="text-left">{{ report.sdcr_business_date | date: 'yyyy-MM-dd' }}</td>
+								<td class="text-left">{{ report.shift_num }}</td>
+								<td class="text-center">{{ report.sdcr_pos_id }}</td>
+								<td class="text-left">{{ report.sdcr_teller_id }}</td>
+								<td class="text-left">{{ report.sdcr_login_time | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
+								<td class="text-left">{{ report.sdcr_logout_time | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
+								<td class="text-right">
+									<div class="btn-group" uib-dropdown>
+										<button type="button" class="btn btn-default" ui-sref="main.shiftDetailCashReport({ shiftDetailCashReport: report, editMode: 'view' })">View details...</button>
+										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="report.canEdit() || report.canCancel()">
+											<span class="caret"></span>
+										</button>
+										<ul uib-dropdown-menu role="menu" ng-if="report.canEdit() || report.canDelete()">
+											<li role="menuitem" ng-if="report.canDelete()">
+												<a href ng-click="deleteShiftDetailCashReport( report )">Delete</a>
+											</li>
+											<li role="menuitem" ng-if="report.canEdit()">
+												<a ui-sref="main.shiftDetailCashReport({ shiftDetailCashReport: report, editMode: 'edit' })">Edit...</a>
+											</li>
+										</ul>
+									</div>
+								</td>
+							</tr>
+							<tr ng-show="!appData.shiftDetailCashReports.length">
+								<td colspan="8" class="text-center">No Shift Detail Cash Reports data available</td>
+							</tr>
+						</tbody>
+					</table>
+					<div class="text-center" ng-if="appData.totals.shiftDetailCashReports > filters.itemsPerPage">
+						<uib-pagination
+								total-items="appData.totals.shiftDetailCashReports"
+								items-per-page="filters.itemsPerPage"
+								max-size="5"
+								boundary-link-numbers="true"
+								ng-model="pagination.shiftDetailCashReports"
+								ng-change="updateShiftDetailCashReports( sessionData.currentStore.id )">
 						</uib-pagination>
 					</div>
 				</div>

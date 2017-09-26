@@ -141,7 +141,7 @@ class Tvm_reading extends Base_model
 
 				$result = $this->_db_insert();
 
-				// Save mopping items
+				// Save TVM readings
 				foreach( $this->readings as $reading )
 				{
 					$reading->set( 'tvmri_reading_id', $this->id );

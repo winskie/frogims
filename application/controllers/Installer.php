@@ -230,6 +230,20 @@ class Installer extends CI_Controller {
 				)
 				ENGINE=InnoDB" );
 
+		echo 'Creating card profiles table...<br />';
+		$this->db->query( "
+				CREATE TABLE IF NOT EXISTS card_profiles
+				(
+					id INTEGER AUTO_INCREMENT NOT NULL,
+					cardp_description VARCHAR(100) NOT NULL,
+					cardp_item_id INTEGER DEFAULT NULL,
+					PRIMARY KEY( id ),
+					FOREIGN KEY cardp_item_fk (cardp_item_id) REFERENCES items(id)
+						ON UPDATE CASCADE
+						ON DELETE SET NULL
+				)
+				ENGINE=InnoDB" );
+
 		echo 'Creating store inventory table....<br />';
 		$this->db->query( "
 				CREATE TABLE IF NOT EXISTS store_inventory
@@ -809,6 +823,54 @@ class Installer extends CI_Controller {
 				)
 				ENGINE=InnoDB" );
 
+		echo 'Creating shift detail cash reports table...<br />';
+		$this->db->query( "
+				CREATE TABLE IF NOT EXISTS shift_detail_cash_reports
+				(
+					id INTEGER AUTO_INCREMENT NOT NULL,
+					sdcr_allocation_id INTEGER DEFAULT NULL,
+					sdcr_store_id INTEGER NOT NULL,
+					sdcr_shift_id INTEGER NOT NULL,
+					sdcr_teller_id INTEGER NOT NULL,
+					sdcr_pos_id SMALLINT NOT NULL,
+					sdcr_business_date DATE NOT NULL,
+					sdcr_login_time DATETIME NOT NULL,
+					sdcr_logout_time DATETIME NOT NULL,
+					date_created DATETIME NOT NULL,
+					date_modified TIMESTAMP NOT NULL,
+					created_by INTEGER NOT NULL,
+					modified_by INTEGER NOT NULL,
+					PRIMARY KEY (id),
+					FOREIGN KEY sdcr_store_fk (sdcr_store_id) REFERENCES stores (id)
+						ON UPDATE CASCADE
+						ON DELETE RESTRICT,
+					FOREIGN KEY sdcr_shift_fk (sdcr_shift_id) REFERENCES shifts (id)
+						ON UPDATE CASCADE
+						ON DELETE RESTRICT
+				)
+				ENGINE=InnoDB" );
+
+		echo 'Creating shift detail cash report items table...<br />';
+		$this->db->query( "
+				CREATE TABLE IF NOT EXISTS shift_detail_cash_report_items
+				(
+					id INTEGER AUTO_INCREMENT NOT NULL,
+					sdcri_sdcr_id INTEGER NOT NULL,
+					sdcri_card_profile_id SMALLINT NOT NULL,
+					sdcri_property VARCHAR(10) NOT NULL,
+					sdcri_quantity INTEGER NOT NULL DEFAULT 0,
+					sdcri_amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+					date_created DATETIME NOT NULL,
+					date_modified TIMESTAMP NOT NULL,
+					created_by INTEGER NOT NULL,
+					modified_by INTEGER NOT NULL,
+					PRIMARY KEY (id),
+					FOREIGN KEY sdcri_report_fk (sdcri_sdcr_id) REFERENCES shift_detail_cash_reports (id)
+						ON UPDATE CASCADE
+						ON DELETE CASCADE
+				)
+				ENGINE=InnoDB" );
+
 		echo 'Done with creating database tables.';
 	}
 
@@ -1204,6 +1266,41 @@ class Installer extends CI_Controller {
 			echo 'OK<br />';
 			flush();
 
+			// Create default items
+			echo 'Creating default card_profiles...';
+			flush();
+			$card_profiles = array(
+					array( 'id' => 1, 'cardp_description' => 'Standard SVC', 'cardp_item_id' => 6 ),
+					array( 'id' => 2, 'cardp_description' => 'Senior Citizens SVC', 'cardp_item_id' => 12 ),
+					array( 'id' => 3, 'cardp_description' => 'Person with Disabilities SVC', 'cardp_item_id' => 13 ),
+					array( 'id' => 4, 'cardp_description' => 'LRT1 Employee Card', 'cardp_item_id' => NULL ),
+					array( 'id' => 5, 'cardp_description' => 'LRT2 Employee Card', 'cardp_item_id' => NULL ),
+					array( 'id' => 6, 'cardp_description' => 'MRT3 Employee Card', 'cardp_item_id' => NULL ),
+					array( 'id' => 7, 'cardp_description' => 'AFCS Employee Card', 'cardp_item_id' => NULL ),
+					array( 'id' => 8, 'cardp_description' => 'LRT1 SJT', 'cardp_item_id' => NULL ),
+					array( 'id' => 9, 'cardp_description' => 'LRT2 SJT', 'cardp_item_id' => 1 ),
+					array( 'id' => 10, 'cardp_description' => 'MRT3 SJT', 'cardp_item_id' => NULL ),
+					array( 'id' => 11, 'cardp_description' => 'LRT1 SJT for Senior Citizens', 'cardp_item_id' => NULL ),
+					array( 'id' => 12, 'cardp_description' => 'LRT2 SJT for Senior Citizens', 'cardp_item_id' => 1 ),
+					array( 'id' => 13, 'cardp_description' => 'MRT3 SJT for Senior Citizens', 'cardp_item_id' => NULL ),
+					array( 'id' => 14, 'cardp_description' => 'LRT1 SJT for PWD', 'cardp_item_id' => NULL ),
+					array( 'id' => 15, 'cardp_description' => 'LRT2 SJT for PWD', 'cardp_item_id' => 1 ),
+					array( 'id' => 16, 'cardp_description' => 'MRT3 SJT for PWD', 'cardp_item_id' => NULL ),
+					array( 'id' => 17, 'cardp_description' => 'Student', 'cardp_item_id' => NULL ),
+					array( 'id' => 18, 'cardp_description' => 'Beep-Smart', 'cardp_item_id' => NULL ),
+					array( 'id' => 19, 'cardp_description' => 'Beep-Globe', 'cardp_item_id' => NULL ),
+					array( 'id' => 20, 'cardp_description' => 'Beep-BPI', 'cardp_item_id' => NULL ),
+					array( 'id' => 21, 'cardp_description' => 'Discount Card', 'cardp_item_id' => NULL ),
+				);
+
+			$profile_values = array();
+			foreach( $card_profiles as $profile )
+			{
+				$profile_values[] = '('.$profile['id'].", '".$profile['cardp_description']."', ".( is_null( $profile['cardp_item_id'] ) ? 'NULL' : $profile['cardp_item_id'] ).')';
+			}
+			$sql = 'INSERT INTO card_profiles (id, cardp_description, cardp_item_id) VALUES '.implode( ', ', $profile_values );
+			$this->db->query( $sql );
+
 			// Creating default inventory
 			echo 'Creating store inventories...';
 			$test_inventory = param( $params, 'test_inventory' );
@@ -1596,6 +1693,7 @@ class Installer extends CI_Controller {
 			$this->db->query( "TRUNCATE TABLE store_users" );
 			$this->db->query( "TRUNCATE TABLE sales_items" );
 			$this->db->query( "TRUNCATE TABLE items" );
+			$this->db->query( "TRUNCATE TABLE card_profiles" );
 			$this->db->query( "TRUNCATE TABLE categories" );
 			$this->db->query( "TRUNCATE TABLE item_categories" );
 			$this->db->query( "TRUNCATE TABLE item_prices" );
@@ -1622,6 +1720,8 @@ class Installer extends CI_Controller {
 		$this->db->query( "TRUNCATE TABLE allocation_status_log" );
 		$this->db->query( "TRUNCATE TABLE tvm_readings" );
 		$this->db->query( "TRUNCATE TABLE tvm_reading_items" );
+		$this->db->query( "TRUNCATE TABLE shift_detail_cash_reports" );
+		$this->db->query( "TRUNCATE TABLE shift_detail_cash_report_items" );
 
 
 		$this->db->query( "SET FOREIGN_KEY_CHECKS = OFF" );
