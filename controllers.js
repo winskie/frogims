@@ -1869,6 +1869,30 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						}
 						break;
 
+					case 'CSC Application':
+						switch( $scope.data.editMode )
+						{
+							case 'receipt':
+								$scope.toggle( 'source', 'externalReceipt' );
+							case 'externalReceipt':
+								break;
+
+							case 'transfer':
+								$scope.toggle( 'destination', 'externalTransfer' );
+							case 'externalTransfer':
+								break;
+						}
+						var filteredItems;
+						filteredItems = filterCashItems( appData.data.items );
+						if( filteredItems.length > 0 )
+						{
+							$scope.data.inventoryItems = filteredItems;
+							$scope.input.inventoryItem = $scope.data.inventoryItems[0];
+							$scope.onItemChange();
+							$scope.input.category = $scope.data.categories[0];
+						}
+						break;
+
 					default:
 						$scope.data.inventoryItems = angular.copy( appData.data.items );
 						$scope.onItemChange();

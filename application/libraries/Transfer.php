@@ -791,6 +791,8 @@ class Transfer extends Base_model {
 
 		$is_in_transit = ( int )$this->transfer_category == TRANSFER_CATEGORY_CASH_EXCHANGE; // Bills to Coins Exchange
 		$in_transit_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_IN_TRANSIT );
+		$is_csc_application = ( int ) $this->transfer_category == TRANSFER_CATEGORY_CSC_APPLICATION; // CSC Application
+		$csc_card_fee_fund = $Inventory->get_by_store_item_name( $this->destination_id, FUND_CSC_CARD_FEE );
 		$vault_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_CASH_VAULT );
 
 		//$transaction_datetime = $this->transfer_datetime;
@@ -799,6 +801,8 @@ class Transfer extends Base_model {
 		$ci->db->trans_start();
 		foreach( $transfer_items as $transfer_item )
 		{
+			$transact_inventory = true;
+			$deduct_from_vault = true;
 			if( in_array( $transfer_item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_SCHEDULED ) ) )
 			{
 				$item = $transfer_item->get_item();
@@ -811,27 +815,32 @@ class Transfer extends Base_model {
 					{ // In Transit transaction, add cash item amount to In Transit Fund
 						$in_transit_fund->transact( TRANSACTION_TRANSFER_OUT, $amount, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
 					}
+					elseif( $is_csc_application )
+					{
+						$csc_card_fee_fund->transact( TRANSACTION_TRANSFER_OUT, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+						$transact_inventory = false;
+						$deduct_from_vault = false;
+					}
 
-					if( $vault_fund )
+					if( $vault_fund && $deduct_from_vault )
 					{
 						$vault_fund->transact( TRANSACTION_TRANSFER_OUT, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
 					}
 				}
 
-				$inventory = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ) );
-				if( $inventory )
+				if( $transact_inventory )
 				{
-					$quantity = $transfer_item->get( 'quantity' ) * -1; // Item will be removed from inventory
-					$inventory->reserve( $quantity );
-					$inventory->transact( TRANSACTION_TRANSFER_OUT, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+					$inventory = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ) );
+					if( $inventory )
+					{
+						$quantity = $transfer_item->get( 'quantity' ) * -1; // Item will be removed from inventory
+						$inventory->reserve( $quantity );
+						$inventory->transact( TRANSACTION_TRANSFER_OUT, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+					}
+				}
 
-					$transfer_item->set( 'transfer_item_status', TRANSFER_ITEM_APPROVED );
-					$transfer_item->db_save();
-				}
-				else
-				{
-					die( sprintf( 'Inventory record not found for store %s and item %s.', $this->origin_id, $transfer_item->get( 'item_id' ) ) );
-				}
+				$transfer_item->set( 'transfer_item_status', TRANSFER_ITEM_APPROVED );
+				$transfer_item->db_save();
 			}
 		}
 		$ci->db->trans_complete();
@@ -914,6 +923,8 @@ class Transfer extends Base_model {
 
 		$is_in_transit = ( int ) $this->transfer_category == TRANSFER_CATEGORY_CASH_EXCHANGE; // Bills to Coins Exchange
 		$in_transit_fund = $Inventory->get_by_store_item_name( $this->destination_id, FUND_IN_TRANSIT );
+		$is_csc_application = ( int ) $this->transfer_category == TRANSFER_CATEGORY_CSC_APPLICATION; // CSC Application
+		$csc_card_fee_fund = $Inventory->get_by_store_item_name( $this->destination_id, FUND_CSC_CARD_FEE );
 		$vault_fund = $Inventory->get_by_store_item_name( $this->destination_id, FUND_CASH_VAULT );
 
 		//$transaction_datetime = $this->receipt_datetime;
@@ -922,11 +933,13 @@ class Transfer extends Base_model {
 		$ci->db->trans_start();
 		foreach( $transfer_items as $transfer_item )
 		{
+			$transact_inventory = true;
+			$add_to_vault = true;
 			if( in_array( $transfer_item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_SCHEDULED, TRANSFER_ITEM_APPROVED ) ) )
 			{
 				$item = $transfer_item->get_item();
 
-				if( $in_transit_fund && $item->get( 'item_class' ) == 'cash' && ! empty( $item->get( 'iprice_unit_price' ) ) )
+				if( $item->get( 'item_class' ) == 'cash' && ! empty( $item->get( 'iprice_unit_price' ) ) )
 				{
 					$amount = $transfer_item->get( 'quantity' ) * $item->get( 'iprice_unit_price' ) * -1;
 
@@ -934,32 +947,43 @@ class Transfer extends Base_model {
 					{ // In Transit transaction, add cash item amount to In Transit Fund
 						$in_transit_fund->transact( TRANSACTION_TRANSFER_IN, $amount, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
 					}
+					elseif( $is_csc_application )
+					{
+						$csc_card_fee_fund->transact( TRANSACTION_TRANSFER_IN, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+						// CSC application goes directly to card fee fund
+						$transact_inventory = false;
+						$add_to_vault = false;
+					}
 
-					if( $vault_fund )
+					if( $vault_fund && $add_to_vault )
 					{
 						$vault_fund->transact( TRANSACTION_TRANSFER_IN, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
 					}
 				}
 
-				$inventory = $Inventory->get_by_store_item( $this->destination_id, $transfer_item->get( 'item_id' ) );
-				if( ! $inventory )
-				{ // Current store does not carry item yet, let's create a new inventory record
-					$current_store = current_store();
-					$ci->load->library( 'item' );
+				$quantity = $transfer_item->get( 'quantity_received' ); // Item will be added to the inventory
 
-					$new_item = new Item();
-					$new_item = $new_item->get_by_id( $transfer_item->get( 'item_id') );
-					$inventory = $current_store->add_item( $new_item );
+				if( $transact_inventory )
+				{
+					$inventory = $Inventory->get_by_store_item( $this->destination_id, $transfer_item->get( 'item_id' ) );
+					if( ! $inventory )
+					{ // Current store does not carry item yet, let's create a new inventory record
+						$current_store = current_store();
+						$ci->load->library( 'item' );
+
+						$new_item = new Item();
+						$new_item = $new_item->get_by_id( $transfer_item->get( 'item_id') );
+						$inventory = $current_store->add_item( $new_item );
+					}
+
+					$inventory->transact( TRANSACTION_TRANSFER_IN, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
 				}
 
-				$quantity = $transfer_item->get( 'quantity_received' ); // Item will be added to the inventory
 				if( is_null( $quantity ) )
 				{
 					$quantity = $transfer_item->get( 'quantity' );
 					$transfer_item->set( 'quantity_received', $quantity );
 				}
-				$inventory->transact( TRANSACTION_TRANSFER_IN, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
-
 				$transfer_item->set( 'transfer_item_status', TRANSFER_ITEM_RECEIVED );
 				$transfer_item->db_save();
 			}

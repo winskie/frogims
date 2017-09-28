@@ -49,6 +49,7 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 				'6': 'Blackbox Receipt',
 				'7': 'Passenger Issuance',
 				'8': 'Bills to Coins Exchange',
+				'9': 'CSC Application'
 			};
 
 		var transferValidationReceiptStatus = {

@@ -213,11 +213,6 @@ class Transfer_item extends Base_model {
 		}
 	}
 
-	private function _set_default_values()
-	{
-
-	}
-
 	public function load_from_data( $data = array(), $overwrite = TRUE )
 	{
 		// Try to get existing value first if ID exists

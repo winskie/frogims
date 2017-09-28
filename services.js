@@ -495,6 +495,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 						{ id: 6, categoryName: 'Blackbox Receipt' },
 						{ id: 7, categoryName: 'Passenger Issuance' },
 						{ id: 8, categoryName: 'Bills to Coins Exchange' },
+						{ id: 9, categoryName: 'CSC Application' },
 					],
 				transferStatus: [
 						{ id: 1, statusName: 'Scheduled' },

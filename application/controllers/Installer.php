@@ -1206,8 +1206,8 @@ class Installer extends CI_Controller {
 					array( 'SVC - Defective', 'Defective Stored Value Card', 6, 0, 1, 0, 1, 'SVC', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
 					array( 'SVC - Damaged', 'Damaged Stored Value Card', 6, 0, 1, 0, 1, 'SVC', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
 
-					array( 'Senior', 'Senior Citizen Stored Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece', 1, 1, 'ticket', TRUE, FALSE ), // ID: 12
-					array( 'PWD', 'Passenger with Disability Store Value Card', NULL, 0, 0, 0, 0, 'Concessionary', 'piece', 1, 1, 'ticket', TRUE, FALSE ), // ID: 13
+					array( 'Senior', 'Senior Citizen Stored Value Card', NULL, 1, 0, 0, 0, 'Concessionary', 'piece', 1, 1, 'ticket', TRUE, FALSE ), // ID: 12
+					array( 'PWD', 'Passenger with Disability Store Value Card', NULL, 1, 0, 0, 0, 'Concessionary', 'piece', 1, 1, 'ticket', TRUE, FALSE ), // ID: 13
 					array( 'Senior - Defective', 'Defective Senior Citizen Stored Value Card', 12, 0, 0, 0, 0, 'Concessionary', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
 					array( 'PWD - Defective', 'Defective - Passenger with Disability Store Value Card', 13, 0, 0, 0, 0, 'Concessionary', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
 
@@ -1431,7 +1431,7 @@ class Installer extends CI_Controller {
 					array( 'Cash Collection', 2, FALSE, TRUE, FALSE, TRUE, TRUE, 1, TRUE ),
 
 					array( 'Regular Sale', 3, FALSE, FALSE, FALSE, TRUE, TRUE, 1, TRUE ),
-					array( 'Application', 3, FALSE, FALSE, FALSE, TRUE, TRUE, 1, TRUE ),
+					array( 'Application', 3, TRUE, FALSE, FALSE, TRUE, FALSE, 1, TRUE ),
 					array( 'Paid Exit', 3, FALSE, FALSE, FALSE, TRUE, TRUE, 1, TRUE ),
 				);
 
@@ -1500,10 +1500,12 @@ class Installer extends CI_Controller {
 					array( 'SVC - Damaged', 'Reject Bin' ),
 					array( 'SVC - Damaged', 'Blackbox' ),
 
+					array( 'Senior', 'Additional Allocation' ),
 					array( 'Senior', 'TIR' ),
 					array( 'Senior', 'Blackbox' ),
 					array( 'Senior', 'Application' ),
 
+					array( 'PWD', 'Additional Allocation' ),
 					array( 'PWD', 'TIR' ),
 					array( 'PWD', 'Blackbox' ),
 					array( 'PWD', 'Application' ),
