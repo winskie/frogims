@@ -18,6 +18,7 @@ class Allocation extends Base_model {
 	protected $cash_remittances;
 	protected $ticket_sales;
 	protected $sales;
+	protected $cash_reports;
 
 	protected $previousStatus;
 	protected $voided_allocations;
@@ -200,6 +201,22 @@ class Allocation extends Base_model {
 		}
 
 		return $this->sales;
+	}
+
+	public function get_cash_reports( $force = FALSE )
+	{
+		$ci =& get_instance();
+
+		if( !isset( $this->cash_reports ) || $force )
+		{
+			$ci->load->library( 'shift_detail_cash_report' );
+			$ci->db->select( 'sdcr.*' );
+			$ci->db->where( 'sdcr.sdcr_allocation_id', $this->id );
+			$query = $ci->db->get( 'shift_detail_cash_reports AS sdcr' );
+			$this->cash_reports = $query->result( 'Shift_detail_cash_report' );
+		}
+
+		return $this->cash_reports;
 	}
 
 	public function set( $property, $value )
@@ -1682,6 +1699,8 @@ class Allocation extends Base_model {
 			$r->get_remittances( TRUE );
 			$r->get_cash_allocations( TRUE );
 			$r->get_cash_remittances( TRUE );
+			$r->get_sales( TRUE );
+			$r->get_cash_reports( TRUE );
 		}
 		else
 		{
@@ -1751,6 +1770,43 @@ class Allocation extends Base_model {
 				foreach( $value as $i )
 				{
 					$Item = new Allocation_sales_item();
+					$item_id = param( $i, 'id' );
+
+					if( is_null( $item_id ) )
+					{
+						$item = $Item->load_from_data( $i );
+
+						$x =& $r->$field;
+						$x[] = $item;
+					}
+					else
+					{
+						$index = array_value_search( 'id', $item_id, $r->$field, FALSE );
+						if( ! is_null( $index ) )
+						{
+							$x =& $r->$field;
+							$x[$index] = $Item->load_from_data( $i );
+						}
+						else
+						{
+							$item = $Item->load_from_data( $i );
+							$x =& $r->$field;
+							$x[] = $item;
+						}
+					}
+				}
+			}
+			elseif( $field == 'cash_reports' )
+			{
+				$ci->load->library( 'shift_detail_cash_report' );
+				if( ! isset( $r->$field ) )
+				{
+					$r->$field = array();
+				}
+
+				foreach( $value as $i )
+				{
+					$Item = new Shift_detail_cash_report();
 					$item_id = param( $i, 'id' );
 
 					if( is_null( $item_id ) )

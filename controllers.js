@@ -3118,6 +3118,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 		$scope.pendingAction = false;
 
 		$scope.data = {
+				title: 'Allocation Information',
 				editMode: $stateParams.editMode || 'auto',
 				businessDatepicker: { format: 'yyyy-MM-dd', opened: false },
 				assigneeShifts: angular.copy( assigneeShifts ),
@@ -3368,7 +3369,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 
 
 		// Allocation and remittance items actions
-		$scope.addAllocationItem = function()
+		$scope.addAllocationItem = function( event )
 			{
 				if( ( event.type == 'keypress' ) && ( event.keyCode == 13 ) )
 				{
@@ -3590,6 +3591,8 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					{
 						console.error( 'Unable to load mopping collection record' );
 					}
+
+					$scope.data.title = 'Allocation Information #' + $scope.allocationItem.id;
 				},
 				function( reason )
 				{
@@ -3808,7 +3811,18 @@ app.controller( 'ShiftDetailCashReportController', [ '$scope', '$filter', '$stat
 		}
 		else
 		{
-			$scope.shiftDetailCashReport = new ShiftDetailCashReport();
+			var allocation;
+			if( $stateParams.allocation )
+			{
+				allocation = {
+						sdcr_allocation_id: $stateParams.allocation.id,
+						sdcr_business_date: $stateParams.allocation.business_date,
+						sdcr_login_time: $stateParams.allocation.business_date,
+						sdcr_logout_time: $stateParams.allocation.business_date,
+					};
+			}
+			$scope.shiftDetailCashReport = new ShiftDetailCashReport( allocation );
+			console.log( $scope.shiftDetailCashReport );
 		}
 	}
 ]);

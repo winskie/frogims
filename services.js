@@ -1428,7 +1428,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 
 					if( ( origin && origin.store_type == 4 ) || ( destination && destination.store_type == 4 ) )
 					{
-						if( currentCategory.id == 8 ) // Bills to Coins Exchange
+						if( currentCategory.id == 8 || currentCategory.id == 9 ) // Bills to Coins Exchange or CSC Application
 						{
 							category = currentCategory.id;
 						}

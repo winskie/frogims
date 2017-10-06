@@ -1,6 +1,6 @@
 <div class="panel panel-default">
 	<div class="panel-heading">
-		<h3 class="panel-title">Allocation Information</h3>
+		<h3 class="panel-title">{{ data.title }}</h3>
 	</div>
 	<div class="panel-body">
 		<form class="form-horizontal row" ng-switch on="allocationItem.allocation_status == <?php echo ALLOCATION_SCHEDULED;?> && data.editMode != 'view' ">
@@ -375,11 +375,55 @@
 				</table>
 			</div>
 		</uib-tab>
+		<!-- Shift Detail Cash Report -->
+		<uib-tab heading="Cash Report" select="updatePhase( 'cash_report' )" index="4" disable="allocationItem.allocation_status == 1" ng-if="allocationItem.assignee_type == 1">
+			<div class="panel panel-default" style="margin: 20px 0; height: 300px; overflow-y: auto;">
+				<div class="panel-heading">
+					<div class="text-right">
+						<button class="btn btn-primary btn-sm" ui-sref="main.shiftDetailCashReport({ allocation: allocationItem, editMode: 'edit' })">
+							<i class="glyphicon glyphicon-plus"></i> New Cash Report
+						</button>
+					</div>
+				</div>
+				<table class="table table-condensed">
+					<thead>
+						<tr>
+							<th class="text-center shrinkwrap">Row</th>
+							<th class="text-center">Teller ID</th>
+							<th class="text-center">POS</th>
+							<th class="text-left">Login Time</th>
+							<th class="text-left">Logout Time</th>
+							<th class="text-center" ng-if="data.editMode != 'view'"></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="row in allocationItem.cash_reports"
+								ng-class="{ danger: row.markedVoid }">
+							<td class="text-center">{{ $index + 1 }}</td>
+							<td class="text-center">{{ row.sdcr_teller_id }}</td>
+							<td class="text-center">{{ row.sdcr_pos_id }}</td>
+							<td class="text-left">{{ row.sdcr_login_time | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
+							<td class="text-left">{{ row.sdcr_logout_time | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
+							<td class="text-center" ng-if="data.editMode != 'view'">
+								<a href ng-click="removeCashReportItem( row )">
+									<i class="glyphicon glyphicon-remove-circle"></i>
+								</a>
+							</td>
+						</tr>
+						<tr ng-if="!allocationItem.cash_reports.length">
+							<td colspan="6" class="text-center bg-warning">
+								No associated shift detail cash report data
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</uib-tab>
 	</uib-tabset>
 </div>
 
 <!-- Input form -->
-<div class="panel panel-default" ng-if="data.editMode != 'view'">
+<div class="panel panel-default" ng-if="data.editMode != 'view' && data.allocationPhase != 'cash_report'">
 	<form>
 		<div class="panel-body row">
 			<!-- Item -->
@@ -418,7 +462,7 @@
 				<label class="control-label">{{ data.allocationPhase == 'sales' ? 'Amount' : 'Quantity' }}</label>
 				<input type="number" class="form-control" min="1"
 						ng-model="input.quantity"
-						ng-keypress="addAllocationItem()">
+						ng-keypress="addAllocationItem( $event )">
 			</div>
 
 			<!-- Remarks -->

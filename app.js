@@ -313,7 +313,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider
 			name: 'main.shiftDetailCashReport',
 			parent: main,
 			url: '/shift_detail_cash_report',
-			params: { shiftDetailCashReport: null, editMode: 'view' },
+			params: { shiftDetailCashReport: null, editMode: 'view', allocation: null },
 			templateUrl: baseUrl + 'index.php/main/view/partial_shift_detail_cash_report_form',
 			controller: 'ShiftDetailCashReportController',
 		};

@@ -196,6 +196,7 @@ class Api_v1 extends MY_Controller {
 								$cash_remittance_items = $allocation->get_cash_remittances();
 								$ticket_sale_items = $allocation->get_ticket_sales();
 								$sales_items = $allocation->get_sales();
+								$cash_reports = $allocation->get_cash_reports();
 
 								$allocation_items_data = array();
 								$cash_allocation_items_data = array();
@@ -203,6 +204,7 @@ class Api_v1 extends MY_Controller {
 								$cash_remittance_items_data = array();
 								$ticket_sale_items_data = array();
 								$sales_items_data = array();
+								$cash_reports_data = array();
 
 								// Allocation items
 								foreach( $allocation_items as $item )
@@ -294,6 +296,13 @@ class Api_v1 extends MY_Controller {
 										'cashier_shift_num' => array( 'type', 'string' ) ) );
 								}
 								$allocation_data['sales'] = $sales_items_data;
+
+								// Cash reports
+								foreach( $cash_reports as $report )
+								{
+									$cash_reports_data[] = $report->as_array();
+								}
+								$allocation_data['cash_reports'] = $cash_reports_data;
 
 								$this->_response( $allocation_data );
 							}
@@ -1645,6 +1654,7 @@ class Api_v1 extends MY_Controller {
 											$remittance_cash_items = $allocation->get_cash_remittances( TRUE );
 											$ticket_sale_items = $allocation->get_ticket_sales( TRUE );
 											$sales_items = $allocation->get_sales( TRUE );
+											$cash_reports = $allocation->get_cash_reports( TRUE );
 
 											$allocation_items_data = array();
 											$allocation_cash_items_data = array();
@@ -1652,6 +1662,7 @@ class Api_v1 extends MY_Controller {
 											$remittance_cash_items_data = array();
 											$ticket_sale_items_data = array();
 											$sales_items_data = array();
+											$cash_reports_data = array();
 
 											foreach( $allocation_items as $item )
 											{
@@ -1732,6 +1743,11 @@ class Api_v1 extends MY_Controller {
 														'cashier_shift_num' => array( 'type', 'string' ) ) );
 											}
 
+											foreach( $cash_reports as $report )
+											{
+												$cash_reports_data[] = $report->as_array();
+											}
+
 											$allocation_data = $allocation->as_array( array(
 													'shift_num' => array( 'type' => 'string' ),
 													'shift_description' => array( 'type' => 'string' ) ) );
@@ -1742,6 +1758,7 @@ class Api_v1 extends MY_Controller {
 											$allocation_data['cash_remittances'] = $remittance_cash_items_data;
 											$allocation_data['ticket_sales'] = $ticket_sale_items_data;
 											$allocation_data['sales'] = $sales_items_data;
+											$allocation_data['cash_reports'] = $cash_reports_data;
 
 											$allocations_data[] = $allocation_data;
 										}

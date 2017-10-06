@@ -506,6 +506,8 @@ class Transfer extends Base_model {
 		$result = NULL;
 		$ci->db->trans_start();
 
+		$no_reservation_categories = array( TRANSFER_CATEGORY_CSC_APPLICATION );
+
 		if( isset( $this->id ) )
 		{ // Update transfer record
 			if( $this->_check_data() )
@@ -514,6 +516,11 @@ class Transfer extends Base_model {
 				{
 					if( array_key_exists( 'transfer_item_status', $item->db_changes ) )
 					{
+						if( in_array( $this->transfer_category, $no_reservation_categories ) )
+						{
+							continue;
+						}
+
 						if( $item->db_changes['transfer_item_status']  == TRANSFER_ITEM_SCHEDULED )
 						{
 							$inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
@@ -617,6 +624,11 @@ class Transfer extends Base_model {
 				{
 					foreach( $this->items as $item )
 					{
+						if( in_array( $this->transfer_category, $no_reservation_categories ) )
+						{
+							continue;
+						}
+
 						$inventory = new Inventory();
 						$inventory = $inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
 						if( $inventory )
@@ -792,7 +804,7 @@ class Transfer extends Base_model {
 		$is_in_transit = ( int )$this->transfer_category == TRANSFER_CATEGORY_CASH_EXCHANGE; // Bills to Coins Exchange
 		$in_transit_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_IN_TRANSIT );
 		$is_csc_application = ( int ) $this->transfer_category == TRANSFER_CATEGORY_CSC_APPLICATION; // CSC Application
-		$csc_card_fee_fund = $Inventory->get_by_store_item_name( $this->destination_id, FUND_CSC_CARD_FEE );
+		$csc_card_fee_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_CSC_CARD_FEE );
 		$vault_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_CASH_VAULT );
 
 		//$transaction_datetime = $this->transfer_datetime;
