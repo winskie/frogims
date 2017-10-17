@@ -110,15 +110,18 @@ class Shift_detail_cash_report extends Base_model
 				$result = $this->_db_update();
 
 				// Update reading items
-				foreach( $this->items as $item )
+				if( ! empty( $this->items ) )
 				{
-					if( $item->get( 'marked_void' ) )
+					foreach( $this->items as $item )
 					{
-						$item->db_remove();
-					}
-					else
-					{
-						$item->db_save();
+						if( $item->get( 'marked_void' ) )
+						{
+							$item->db_remove();
+						}
+						else
+						{
+							$item->db_save();
+						}
 					}
 				}
 			}

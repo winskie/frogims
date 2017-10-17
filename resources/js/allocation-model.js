@@ -1,5 +1,5 @@
-angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'AllocationItem', 'AllocationSalesItem',
-	function( $http, $q, $filter, baseUrl, session, notifications, AllocationItem, AllocationSalesItem )
+angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'AllocationItem', 'AllocationSalesItem', 'ShiftDetailCashReport',
+	function( $http, $q, $filter, baseUrl, session, notifications, AllocationItem, AllocationSalesItem, ShiftDetailCashReport )
 	{
 		var id;
 		var store_id;
@@ -17,6 +17,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 		var cash_remittances;
 		var ticket_sales;
 		var sales;
+		var cash_reports;
 
 		var allocationSummary;
 
@@ -78,6 +79,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 				me.cash_remittances = [];
 				me.ticket_sales = [];
 				me.sales = [];
+				me.cash_reports = [];
 
 				me.allocationSummary = [];
 
@@ -89,6 +91,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 					var remittanceCashItems = [];
 					var ticketSaleItems = [];
 					var salesItems = [];
+					var cashReports = [];
 
 					if( data.allocations )
 					{
@@ -121,6 +124,12 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 					{
 						angular.copy( data.sales, salesItems );
 						delete data.sales;
+					}
+
+					if( data.cash_reports )
+					{
+						angular.copy( data.cash_reports, cashReports );
+						delete data.cash_reports;
 					}
 
 					angular.merge( me, data );
@@ -182,13 +191,23 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 
 					// Sales Items
 					if( salesItems )
+					{
+						var n = salesItems.length;
+						for( var i = 0; i < n; i++ )
 						{
-							var n = salesItems.length;
-							for( var i = 0; i < n; i++ )
-							{
-								me.sales.push( new AllocationSalesItem( salesItems[i] ) );
-							}
+							me.sales.push( new AllocationSalesItem( salesItems[i] ) );
 						}
+					}
+
+					// Cash Reports
+					if( cashReports )
+					{
+						var n = cashReports.length;
+						for( var i = 0; i < n; i++ )
+						{
+							me.cash_reports.push( new ShiftDetailCashReport( cashReports[i] ) );
+						}
+					}
 
 					me.updateAllocationSummary();
 				}
@@ -732,6 +751,17 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 				{
 					item.void( !item.void() );
 				}
+			};
+
+		Allocation.prototype.removeCashReport = function( item )
+			{
+				var me = this;
+				var index = this.cash_reports.indexOf( item );
+				item.remove().then(
+					function( response )
+					{
+						me.cash_reports.splice( index, 1 );
+					} );
 			};
 
 

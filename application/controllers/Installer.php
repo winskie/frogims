@@ -819,7 +819,7 @@ class Installer extends CI_Controller {
 					UNIQUE tvmri_reading_udx (tvmri_reading_id, tvmri_name),
 					FOREIGN KEY tvmri_reading_fk (tvmri_reading_id) REFERENCES tvm_readings (id)
 						ON UPDATE CASCADE
-						ON DELETE RESTRICT
+						ON DELETE CASCADE
 				)
 				ENGINE=InnoDB" );
 

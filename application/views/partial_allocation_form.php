@@ -376,7 +376,8 @@
 			</div>
 		</uib-tab>
 		<!-- Shift Detail Cash Report -->
-		<uib-tab heading="Cash Report" select="updatePhase( 'cash_report' )" index="4" disable="allocationItem.allocation_status == 1" ng-if="allocationItem.assignee_type == 1">
+		<uib-tab heading="Cash Report" select="updatePhase( 'cash_report' )" index="4" disable="allocationItem.allocation_status == 1"
+				ng-if="allocationItem.assignee_type == 1">
 			<div class="panel panel-default" style="margin: 20px 0; height: 300px; overflow-y: auto;">
 				<div class="panel-heading">
 					<div class="text-right">
@@ -405,7 +406,7 @@
 							<td class="text-left">{{ row.sdcr_login_time | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
 							<td class="text-left">{{ row.sdcr_logout_time | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
 							<td class="text-center" ng-if="data.editMode != 'view'">
-								<a href ng-click="removeCashReportItem( row )">
+								<a href ng-click="removeCashReportItem( row )" ng-if="row.canRemove()">
 									<i class="glyphicon glyphicon-remove-circle"></i>
 								</a>
 							</td>

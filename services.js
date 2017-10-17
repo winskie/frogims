@@ -421,8 +421,8 @@ angular.module( 'appServices' ).service( 'session', [ '$http', '$q', '$filter', 
 	}
 ]);
 
-angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'Transfer', 'Conversion', 'Allocation', 'Collection', 'Adjustment', 'ShiftTurnover', 'TVMReading', 'ShiftDetailCashReport',
-	function( $http, $q, $filter, baseUrl, session, notifications, Transfer, Conversion, Allocation, Collection, Adjustment, ShiftTurnover, TVMReading, ShiftDetailCashReport )
+angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'utilities', 'Transfer', 'Conversion', 'Allocation', 'Collection', 'Adjustment', 'ShiftTurnover', 'TVMReading', 'ShiftDetailCashReport',
+	function( $http, $q, $filter, baseUrl, session, notifications, utilities, Transfer, Conversion, Allocation, Collection, Adjustment, ShiftTurnover, TVMReading, ShiftDetailCashReport )
 	{
 		var me = this;
 
@@ -433,6 +433,8 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 				stations: [],
 				stores: [],
 				activeUsers: [],
+
+				shifts: [],
 
 				categories: [],
 
@@ -766,6 +768,36 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 
 				return deferred.promise;
 			};
+
+		me.getShifts = function()
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/shifts'
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							var d = response.data;
+							me.data.shifts = d.data;
+							deferred.resolve( d );
+						}
+						else
+						{
+							notifications.showMessages( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			}
 
 		me.getInventory = function( storeId )
 			{
@@ -1767,6 +1799,36 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 
 
 		// TVM Readings
+		me.getCashierShifts = function()
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/shifts',
+					params: {
+						'store_type[]': [ 4 ]
+					}
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							deferred.resolve( response.data.data );
+						}
+						else
+						{
+							notifications.showMessages( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
 		me.getTVMReading = function( tvmReadingId )
 			{
 				var deferred = $q.defer();
@@ -1784,6 +1846,35 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 						{
 							notifications.showMessages( response.data.errorMsg );
 							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
+
+		me.getTVMReadingLastReading = function( params )
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					params: params,
+					url: baseUrl + 'index.php/api/v1/tvm_readings/last_reading'
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							deferred.resolve( response.data );
+						}
+						else
+						{
+							//notifications.showMessages( response.data.errorMsg );
+							deferred.resolve( response.data.errorMsg );
 						}
 					},
 					function( reason )
@@ -1900,6 +1991,33 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 						me.getTVMReadings( currentStoreId );
 						me.getShiftDetailCashReports( currentStoreId );
 				}
+			};
+
+		me.getPreviousShift = function( date, shiftId )
+			{
+				var index = utilities.findWithAttr( me.data.shifts, 'shift_next_shift_id', shiftId );
+				if( index != -1 )
+				{
+					var previousShift = me.data.shifts[index];
+					var previousShiftData = {
+						date: date,
+						shift: previousShift
+					};
+
+					index = utilities.findWithAttr( me.data.shifts, 'id', shiftId );
+					if( index != -1 )
+					{
+						var currentShift = me.data.shifts[index];
+						if( currentShift.shift_order === 1 )
+						{ // previous date
+							previousShiftData.date = date.setDate( date.getDate() - 1 );
+						}
+
+						return previousShiftData;
+					}
+				}
+
+				return null;
 			};
 
 	}

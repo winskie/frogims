@@ -289,7 +289,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider
 			name: 'main.allocation',
 			parent: main,
 			url: '/allocation',
-			params: { allocationItem: null, editMode: 'view' },
+			params: { allocationId: null, allocationItem: null, editMode: 'view', activeTab: 0 },
 			templateUrl: baseUrl + 'index.php/main/view/partial_allocation_form',
 			controller: 'AllocationController',
 			resolve: {
@@ -307,6 +307,12 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider
 			params: { TVMReading: null, editMode: 'view' },
 			templateUrl: baseUrl + 'index.php/main/view/partial_tvm_reading_form',
 			controller: 'TVMReadingController',
+			resolve: {
+				cashierShifts: function( appData )
+					{
+						return appData.getCashierShifts();
+					}
+			}
 		};
 
 	var shiftDetailCashReport = {
@@ -399,6 +405,17 @@ app.run( [ '$rootScope', 'session', 'appData',
 
 		console.log( 'Loading item categories...' );
 		appData.getCategories().then(
+			function( response )
+			{
+				// do nothing
+			},
+			function( reason )
+			{
+				console.error( reason );
+			});
+
+		console.log( 'Loading shifts data...' );
+		appData.getShifts().then(
 			function( response )
 			{
 				// do nothing

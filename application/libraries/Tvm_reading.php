@@ -68,6 +68,70 @@ class Tvm_reading extends Base_model
 	}
 
 
+	public function get_by_id( $id )
+	{
+		$ci =& get_instance();
+
+		$ci->db->select( 'tvmr.*, s.shift_num' );
+		$ci->db->where( 'tvmr.id', $id );
+		$ci->db->join( 'shifts s', 's.id = tvmr.tvmr_shift_id' );
+		$ci->db->limit( 1 );
+		$query = $ci->db->get( $this->primary_table.' tvmr' );
+
+		if( $query->num_rows() )
+		{
+			return $query->row( 0, get_class( $this ) );
+		}
+
+		return NULL;
+	}
+
+
+	public function get_by_shift_last_reading( $params )
+	{
+		$ci =& get_instance();
+
+		$machine_id = param( $params, 'machine', NULL, 'integer' );
+		$business_date = param( $params, 'date', NULL, 'date' );
+		$shift_id = param( $params, 'shift', NULL, 'integer' );
+		$limit = param( $params, 'limit', 1, 'integer' );
+		//$last = param( $params, 'last', 1, 'integer' );
+		$order = 'tvmr_datetime DESC, id DESC';
+
+		$select = array( $this->primary_table.'.*' );
+
+		$ci->db->select( implode(', ', $select ) );
+		if( isset( $machine_id ) )
+		{
+			$ci->db->where( 'tvmr_machine_id', $machine_id );
+		}
+
+		if( isset( $business_date ) )
+		{
+			$ci->db->where( 'DATE( tvmr_datetime ) =', $business_date );
+		}
+
+		if( isset( $shift_id ) )
+		{
+			$ci->db->where( 'tvmr_shift_id', $shift_id );
+		}
+
+		$ci->db->where( 'tvmr_store_id', current_store( TRUE ) );
+
+		$ci->db->limit( $limit );
+		$ci->db->order_by( $order );
+
+		$query = $ci->db->get( $this->primary_table );
+
+		if( $query->num_rows() )
+		{
+			return $query->row( 0, get_class( $this ) );
+		}
+
+		return NULL;
+	}
+
+
 	public function get_previous_shift_last_reading()
 	{
 		if( ! isset( $this->previous_shift_reading ) )

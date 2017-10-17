@@ -188,7 +188,7 @@ angular.module( 'coreModels' ).factory( 'TVMReading', [ '$http', '$q', '$filter'
 			};
 
 
-		TVMReading.prototype.canCancel = function( showAction )
+		TVMReading.prototype.canRemove = function()
 			{
 				return session.data.currentStore.store_type == 4 && session.checkPermissions( 'allocations', 'edit' );
 			};
@@ -246,7 +246,7 @@ angular.module( 'coreModels' ).factory( 'TVMReading', [ '$http', '$q', '$filter'
 					var url = baseUrl + 'index.php/api/v1/tvm_readings/';
 					switch( status )
 					{
-						case 'cancel':
+						case 'remove':
 							url += 'cancel';
 							break;
 
@@ -282,6 +282,38 @@ angular.module( 'coreModels' ).factory( 'TVMReading', [ '$http', '$q', '$filter'
 				{
 					deferred.reject( 'Failed TVM reading data check' );
 				}
+
+				return deferred.promise;
+			};
+
+
+		TVMReading.prototype.remove = function()
+			{
+				var me = this;
+				var deferred = $q.defer();
+				var url = baseUrl + 'index.php/api/v1/tvm_readings/';
+
+				$http({
+					method: 'DELETE',
+					url: url + me.id
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							me.loadData( response.data.data );
+							deferred.resolve( me );
+						}
+						else
+						{
+							notifications.showMessages( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						deferred.reject( reason );
+					}	);
 
 				return deferred.promise;
 			};

@@ -1268,6 +1268,28 @@ class Api_v1 extends MY_Controller {
 				}
 				break;
 
+			case 'delete':
+				if( !$current_user->check_permissions( 'allocations', 'edit' ) )
+				{
+					$this->_error( 403, 'You are not allowed to access this resource' );
+				}
+				else
+				{
+					$shift_detail_cash_report_id = param_type( $this->uri->rsegment( 3 ), 'string' );
+					$shift_detail_cash_report = $Shift_Detail_Cash_Report->get_by_id( $shift_detail_cash_report_id );
+
+					if( $shift_detail_cash_report )
+					{
+						$shift_detail_cash_report->db_remove();
+						$this->_response( array( 'id' => $shift_detail_cash_report_id ) );
+					}
+					else
+					{
+						$this->_error( 404, 'Shift detail cash report record not found' );
+					}
+				}
+				break;
+
 			default:
 				$this->_error( 405, sprintf( '%s request not allowed', $request_method ) );
 		}
@@ -2818,9 +2840,57 @@ class Api_v1 extends MY_Controller {
 				}
 				else
 				{
-					$tvm_reading_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
+					$tvm_reading_id = param_type( $this->uri->rsegment( 3 ), 'string' );
 
-					if( $tvm_reading_id )
+					if( $tvm_reading_id == 'last_reading' )
+					{
+						$params = array();
+						$params['machine'] = param_type( $this->input->get( 'machine' ), 'integer' );
+						$params['date'] = param_type( $this->input->get( 'date' ), 'date' );
+						$params['shift'] = param_type( $this->input->get( 'shift' ), 'integer' );
+						$tvm_reading = $TVM_Reading->get_by_shift_last_reading( $params );
+						if( $tvm_reading )
+						{
+							if( $tvm_reading->get( 'tvmr_store_id') != current_store( TRUE )
+								|| ! is_store_member( $tvm_reading->get( 'tvmr_store_id' ), current_user( TRUE ) ) )
+							{
+								$this->_error( 403, 'You are not allowed to access this resource.
+										The resource you are trying to access belongs to another store or you are not a member of the owner store.' );
+							}
+							else
+							{
+								$tvm_reading_data = $tvm_reading->as_array();
+								$tvm_reading_items = $tvm_reading->get_readings();
+								$tvm_reading_items_data = array();
+								foreach( $tvm_reading_items as $item )
+								{
+									$tvm_reading_items_data[] = $item->as_array();
+								}
+								$tvm_reading_data['readings'] = $tvm_reading_items_data;
+
+								$previous_tvm_reading = $tvm_reading->get_previous_shift_last_reading();
+								$previous_tvm_reading_data = array();
+								if( $previous_tvm_reading )
+								{
+									$previous_tvm_reading_data = $previous_tvm_reading->as_array();
+									$previous_tvm_reading_items = $previous_tvm_reading->get_readings();
+									$previous_tvm_reading_items_data = array();
+									foreach( $previous_tvm_reading_items as $item )
+									{
+										$previous_tvm_reading_items_data[] = $item->as_array();
+									}
+									$previous_tvm_reading_data['readings'] = $previous_tvm_reading_items_data;
+								}
+								$tvm_reading_data['previous_reading'] = $previous_tvm_reading_data;
+								$this->_response( $tvm_reading_data );
+							}
+						}
+						else
+						{
+							$this->_error( 200, 'TVM reading record not found' );
+						}
+					}
+					elseif( intval( $tvm_reading_id ) )
 					{
 						$tvm_reading = $TVM_Reading->get_by_id( $tvm_reading_id );
 						if( $tvm_reading )
@@ -2833,7 +2903,8 @@ class Api_v1 extends MY_Controller {
 							}
 							else
 							{
-								$tvm_reading_data = $tvm_reading->as_array();
+								$tvm_reading_data = $tvm_reading->as_array( array(
+									'shift_num' => array( 'type' => 'string' ) ) );
 								$tvm_reading_items = $tvm_reading->get_readings();
 								$tvm_reading_items_data = array();
 								foreach( $tvm_reading_items as $item )
@@ -2899,6 +2970,29 @@ class Api_v1 extends MY_Controller {
 				{
 					$messages = get_messages();
 					$this->_error( 200, $messages );
+				}
+				break;
+
+			case 'delete':
+				// Check permissions
+				if( !$current_user->check_permissions( 'allocations', 'edit' ) )
+				{
+					$this->_error( 403, 'You are not allowed to access this resource' );
+				}
+				else
+				{
+					$tvm_reading_id = param_type( $this->uri->rsegment( 3 ), 'string' );
+					$tvm_reading = $TVM_Reading->get_by_id( $tvm_reading_id );
+
+					if( $tvm_reading )
+					{
+						$tvm_reading->db_remove();
+						$this->_response( array( 'id' => $tvm_reading_id ) );
+					}
+					else
+					{
+						$this->_error( 404, 'TVM reading record not found' );
+					}
 				}
 				break;
 

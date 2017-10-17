@@ -1545,12 +1545,12 @@ $current_user = current_user();
 								<td class="text-right">
 									<div class="btn-group" uib-dropdown>
 										<button type="button" class="btn btn-default" ui-sref="main.tvmReading({ TVMReading: reading, editMode: 'view' })">View details...</button>
-										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="reading.canEdit() || reading.canCancel()">
+										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="reading.canEdit() || reading.canRemove()">
 											<span class="caret"></span>
 										</button>
-										<ul uib-dropdown-menu role="menu" ng-if="reading.canEdit() || reading.canCancel()">
-											<li role="menuitem" ng-if="reading.canCancel()">
-												<a href ng-click="cancelReading( reading )">Cancel</a>
+										<ul uib-dropdown-menu role="menu" ng-if="reading.canEdit() || reading.canRemove()">
+											<li role="menuitem" ng-if="reading.canRemove()">
+												<a href ng-click="removeReading( reading )">Remove</a>
 											</li>
 											<li role="menuitem" ng-if="reading.canEdit()">
 												<a ui-sref="main.tvmReading({ TVMReading: reading, editMode: 'edit' })">Edit...</a>
@@ -1674,6 +1674,7 @@ $current_user = current_user();
 								<th class="text-left">Teller</th>
 								<th class="text-left">Login</th>
 								<th class="text-left">Logout</th>
+								<th class="text-center">Allocation</th>
 								<th></th>
 							</tr>
 						</thead>
@@ -1686,15 +1687,18 @@ $current_user = current_user();
 								<td class="text-left">{{ report.sdcr_teller_id }}</td>
 								<td class="text-left">{{ report.sdcr_login_time | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
 								<td class="text-left">{{ report.sdcr_logout_time | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
+								<td class="text-center">
+									<a ui-sref="main.allocation({ allocationId: report.sdcr_allocation_id, editMode: 'view' })" ng-if="report.sdcr_allocation_id">View</a>
+								</td>
 								<td class="text-right">
 									<div class="btn-group" uib-dropdown>
 										<button type="button" class="btn btn-default" ui-sref="main.shiftDetailCashReport({ shiftDetailCashReport: report, editMode: 'view' })">View details...</button>
-										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="report.canEdit() || report.canCancel()">
+										<button type="button" class="btn btn-default btn-dropdown-caret" uib-dropdown-toggle ng-if="report.canEdit() || report.canRemove()">
 											<span class="caret"></span>
 										</button>
-										<ul uib-dropdown-menu role="menu" ng-if="report.canEdit() || report.canDelete()">
-											<li role="menuitem" ng-if="report.canDelete()">
-												<a href ng-click="deleteShiftDetailCashReport( report )">Delete</a>
+										<ul uib-dropdown-menu role="menu" ng-if="report.canEdit() || report.canRemove()">
+											<li role="menuitem" ng-if="report.canRemove()">
+												<a href ng-click="removeShiftDetailCashReport( report )">Delete</a>
 											</li>
 											<li role="menuitem" ng-if="report.canEdit()">
 												<a ui-sref="main.shiftDetailCashReport({ shiftDetailCashReport: report, editMode: 'edit' })">Edit...</a>
@@ -1704,7 +1708,7 @@ $current_user = current_user();
 								</td>
 							</tr>
 							<tr ng-show="!appData.shiftDetailCashReports.length">
-								<td colspan="8" class="text-center">No Shift Detail Cash Reports data available</td>
+								<td colspan="9" class="text-center">No Shift Detail Cash Reports data available</td>
 							</tr>
 						</tbody>
 					</table>

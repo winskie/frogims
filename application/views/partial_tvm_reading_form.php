@@ -9,18 +9,46 @@
 				<div class="row">
 
 					<!-- Machine ID -->
-					<div class="form-group col-sm-3">
-						<label class="control-label col-sm-4">TVM #</label>
-						<div class="col-sm-7" ng-switch on="data.editMode">
-							<input type="text" class="form-control" ng-model="TVMReading.tvmr_machine_id" ng-switch-when="edit">
+					<div class="form-group col-sm-6">
+						<label class="control-label col-sm-2">TVM #</label>
+						<div class="col-sm-6" ng-switch on="data.editMode">
+							<input type="text" class="form-control"
+									ng-model="TVMReading.tvmr_machine_id" ng-switch-when="edit"
+									ng-change="loadPreviousReading()">
 							<p class="form-control-static" ng-switch-default>{{ TVMReading.tvmr_machine_id }}</p>
 						</div>
 					</div>
 
+					<!-- Date -->
+					<div class="form-group col-sm-6">
+						<label class="control-label col-sm-4">Reading Date</label>
+						<div class="col-sm-7" ng-switch on="data.editMode">
+							<input type="datetime-local" class="form-control" ng-model="TVMReading.tvmr_datetime" ng-switch-when="edit"
+									ng-required="true" ng-change="loadPreviousReading()">
+							<p class="form-control-static" ng-switch-default>{{ TVMReading.tvmr_datetime | parseDate | date: 'yyyy-MM-dd HH:mm:ss' }}</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="row">
+					<!-- Shift ID -->
+					<div class="form-group col-sm-6">
+						<label class="control-label col-sm-2">Shift</label>
+						<div class="col-sm-6" ng-switch on="data.editMode">
+							<select class="form-control"
+									ng-switch-when="edit"
+									ng-model="data.selectedCashierShift"
+									ng-options="shift.shift_num for shift in data.cashierShifts track by shift.id"
+									ng-change="loadPreviousReading()">
+							</select>
+							<p class="form-control-static" ng-switch-default>{{ TVMReading.shift_num }}</p>
+						</div>
+					</div>
+
 					<!-- Cashier -->
-					<div class="form-group col-sm-5">
-						<label class="control-label col-sm-3">Cashier</label>
-						<div class="col-sm-8" ng-switch on="data.editMode">
+					<div class="form-group col-sm-6">
+						<label class="control-label col-sm-4">Cashier</label>
+						<div class="col-sm-7" ng-switch on="data.editMode">
 							<input type="text" class="form-control"
 									ng-switch-when="edit"
 									ng-model="TVMReading.tvmr_cashier_name"
@@ -30,22 +58,6 @@
 									typeahead-on-select="onCashierChange()"
 									uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
 							<p class="form-control-static" ng-switch-default>{{ TVMReading.tvmr_cashier_name }}</p>
-						</div>
-					</div>
-
-					<!-- Date -->
-					<div class="form-group col-sm-4">
-						<label class="control-label col-sm-5">Reading Date</label>
-						<div class="input-group col-sm-6" ng-if="data.editMode == 'edit'">
-							<input type="text" class="form-control" uib-datepicker-popup="{{ data.datepicker.format }}" is-open="data.datepicker.opened"
-									min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)"
-									ng-model="TVMReading.tvmr_datetime" ng-required="true" close-text="Close" alt-input-formats="altInputFormats">
-							<span class="input-group-btn">
-								<button type="button" class="btn btn-default" ng-click="showDatePicker()"><i class="glyphicon glyphicon-calendar"></i></button>
-							</span>
-						</div>
-						<div class="col-sm-6" ng-if="data.editMode != 'edit'">
-							<p class="form-control-static">{{ TVMReading.tvmr_datetime | parseDate | date: 'yyyy-MM-dd HH:mm:ss' }}</p>
 						</div>
 					</div>
 				</div>
@@ -149,7 +161,8 @@
 		<div class="col-sm-6">
 			<div class="panel panel-default">
 				<div class="panel-heading clearfix">
-					<span class="panel-title">Previous Reading</span>
+					<span class="panel-title">Previous Reading </span>&nbsp;
+					<span ng-if="TVMReading.previous_reading.id">{{ TVMReading.previous_reading.tvmr_datetime | date: 'yyyy-MM-dd HH:mm:ss' }} - {{ TVMReading.previous_reading.shift_num }}</span>
 				</div>
 				<div class="panel-body">
 					<form class="form-horizontal">

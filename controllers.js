@@ -1079,10 +1079,21 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 					});
 			};
 
-		// Shift Detail Cash Report actions
-		$scope.deleteShiftDetailCashReport = function( report )
+		// TVM Readings actions
+		$scope.removeReading = function( reading )
 			{
-				report.delete().then(
+				reading.remove().then(
+					function( response )
+					{
+						notifications.alert( 'TVM reading removed', 'success' );
+						appData.refresh( session.data.currentStore.id, 'tvmReadings' );
+					});
+			};
+
+		// Shift Detail Cash Report actions
+		$scope.removeShiftDetailCashReport = function( report )
+			{
+				report.remove().then(
 					function( response )
 					{
 						notifications.alert( 'Cash report deleted', 'success' );
@@ -3148,7 +3159,6 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 				quantity: null,
 			};
 
-
 		$scope.showDatePicker = function()
 			{
 				$scope.data.businessDatepicker.opened = true;
@@ -3319,7 +3329,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					$scope.data.allocationsTabLabel = 'Allocations';
 					$scope.data.remittancesTabLabel = 'Remittances';
 					$scope.data.remittancesEmptyText = 'No remittance items';
-					$scope.data.activeTab = 0;
+					//$scope.data.activeTab = 0;
 				}
 				else if( $scope.data.selectedAssigneeType.id == 2 )
 				{ // TVM
@@ -3470,6 +3480,12 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 				$scope.getItemQuantities();
 			};
 
+		$scope.removeCashReportItem = function( report )
+			{
+				$scope.allocationItem.removeCashReport( report )
+				notifications.alert( 'Cash report deleted', 'success' );
+			};
+
 
 		// Allocation record actions
 		$scope.saveAllocation = function()
@@ -3534,12 +3550,28 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 
 
 		// Initialize controller
+		if( $stateParams.activeTab )
+		{
+			$scope.data.activeTab = $stateParams.activeTab;
+		}
+
+		console.log( $stateParams, $scope.data );
 
 		// Load allocation item
-		if( $stateParams.allocationItem )
+		if( $stateParams.allocationItem || $stateParams.allocationId )
 		{
+			var allocationId;
+			if( $stateParams.allocationId )
+			{
+				allocationId = $stateParams.allocationId;
+			}
+			else if( $stateParams.allocationItem )
+			{
+				allocationId = $stateParams.allocationItem.id;
+			}
+
 			$scope.data.editMode = $stateParams.editMode || 'view';
-			appData.getAllocation( $stateParams.allocationItem.id ).then(
+			appData.getAllocation( allocationId ).then(
 				function( response )
 				{
 					if( response.status == 'ok' )
@@ -3610,13 +3642,15 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 	}
 ]);
 
-app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'UserServices', 'TVMReading', 'TVMReadingItem',
-	function( $scope, $filter, $state, $stateParams, session, appData, notifications, UserServices, TVMReading, TVMReadingItem )
+app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'cashierShifts', 'UserServices', 'TVMReading', 'TVMReadingItem',
+	function( $scope, $filter, $state, $stateParams, session, appData, notifications, cashierShifts,  UserServices, TVMReading, TVMReadingItem )
 	{
 		$scope.pendingAction = false;
 
 		$scope.data = {
 				editMode: $stateParams.editMode || 'auto',
+				cashierShifts: angular.copy( cashierShifts ),
+				selectedCashierShift: angular.copy( session.data.currentShift ),
 				datepicker: { format: 'yyyy-MM-dd', opened: false },
 				title: 'TVM Reading'
 			};
@@ -3631,6 +3665,35 @@ app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$state
 		$scope.onCashierChange = function()
 			{
 				$scope.TVMReading.set( 'tvmr_cashier_name', $scope.TVMReading.tvmr_cashier_name );
+			};
+
+		$scope.loadPreviousReading = function()
+			{
+				console.log( 'Trigger...' );
+				console.log( $scope.TVMReading.tvmr_machine_id, $scope.TVMReading.tvmr_datetime, $scope.data.selectedCashierShift.id );
+				if( $scope.TVMReading.tvmr_machine_id && $scope.TVMReading.tvmr_datetime && $scope.data.selectedCashierShift.id )
+				{
+					var previousShiftData = appData.getPreviousShift( $scope.TVMReading.tvmr_datetime, $scope.data.selectedCashierShift.id );
+					appData.getTVMReadingLastReading( {
+						machine: $scope.TVMReading.tvmr_machine_id,
+						date: $filter( 'date' )( previousShiftData.date, 'yyyy-MM-dd' ),
+						shift: previousShiftData.shift.id
+					}).then(
+						function( response )
+						{
+							$scope.TVMReading.previous_reading = new TVMReading( response.data );
+							console.log( response );
+						},
+						function( reason )
+						{
+							console.log( reason );
+						});
+				}
+				else
+				{
+					$scope.TVMReading.previous_reading = null;
+				}
+				//appData.getTVMReadingByParams();
 			};
 
 
@@ -3766,7 +3829,14 @@ app.controller( 'ShiftDetailCashReportController', [ '$scope', '$filter', '$stat
 							{
 								appData.refresh( session.data.currentStore.id, 'shiftDetailCashReports' );
 								notifications.alert( 'Shift Detail Cash Report saved', 'success' );
-								$state.go( 'main.store', { activeTab: 'shiftDetailCashReports' } );
+								if( $scope.shiftDetailCashReport.sdcr_allocation_id )
+								{
+									$state.go( 'main.allocation', { allocationId: $scope.shiftDetailCashReport.sdcr_allocation_id, editMode: 'auto', activeTab: 4 } );
+								}
+								else
+								{
+									$state.go( 'main.store', { activeTab: 'shiftDetailCashReports' } );
+								}
 								$scope.pendingAction = false;
 							},
 							function( reason )

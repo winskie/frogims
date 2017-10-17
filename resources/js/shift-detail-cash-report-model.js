@@ -195,7 +195,7 @@ angular.module( 'coreModels' ).factory( 'ShiftDetailCashReport', [ '$http', '$q'
 			};
 
 
-		ShiftDetailCashReport.prototype.canCancel = function( showAction )
+		ShiftDetailCashReport.prototype.canRemove = function( showAction )
 			{
 				return session.data.currentStore.store_type == 4 && session.checkPermissions( 'allocations', 'edit' );
 			};
@@ -336,6 +336,38 @@ angular.module( 'coreModels' ).factory( 'ShiftDetailCashReport', [ '$http', '$q'
 				{
 					deferred.reject( 'Failed shift detail cash report data check' );
 				}
+
+				return deferred.promise;
+			};
+
+
+			ShiftDetailCashReport.prototype.remove = function()
+			{
+				var me = this;
+				var deferred = $q.defer();
+				var url = baseUrl + 'index.php/api/v1/shift_detail_cash_report/';
+
+				$http({
+					method: 'DELETE',
+					url: url + me.id,
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							me.loadData( response.data.data );
+							deferred.resolve( me );
+						}
+						else
+						{
+							notifications.showMessages( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						deferred.reject( reason );
+					}	);
 
 				return deferred.promise;
 			};
