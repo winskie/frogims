@@ -104,7 +104,7 @@ angular.module( 'coreModels' ).factory( 'TVMReading', [ '$http', '$q', '$filter'
 
 					if( me.tvmr_datetime )
 					{
-						me.tvmr_datetime = Date.parse( me.tvmr_datetime );
+						me.tvmr_datetime = new Date( me.tvmr_datetime );
 					}
 
 					if( readingItems )

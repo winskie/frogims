@@ -12,10 +12,11 @@
 					<div class="form-group col-sm-6">
 						<label class="control-label col-sm-2">TVM #</label>
 						<div class="col-sm-6" ng-switch on="data.editMode">
-							<input type="text" class="form-control"
-									ng-model="TVMReading.tvmr_machine_id" ng-switch-when="edit"
-									ng-change="loadPreviousReading()">
-							<p class="form-control-static" ng-switch-default>{{ TVMReading.tvmr_machine_id }}</p>
+							<select class="form-control"
+									ng-model="data.selectedTVM" ng-switch-when="edit" ng-change="onTVMChange()"
+									ng-options="tvm as tvm.description for tvm in data.tvms track by tvm.id">
+							</select>
+							<p class="form-control-static" ng-switch-default>{{ data.selectedTVM.description}}</p>
 						</div>
 					</div>
 
@@ -39,7 +40,7 @@
 									ng-switch-when="edit"
 									ng-model="data.selectedCashierShift"
 									ng-options="shift.shift_num for shift in data.cashierShifts track by shift.id"
-									ng-change="loadPreviousReading()">
+									ng-change="onShiftChange()">
 							</select>
 							<p class="form-control-static" ng-switch-default>{{ TVMReading.shift_num }}</p>
 						</div>

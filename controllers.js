@@ -3652,7 +3652,9 @@ app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$state
 				cashierShifts: angular.copy( cashierShifts ),
 				selectedCashierShift: angular.copy( session.data.currentShift ),
 				datepicker: { format: 'yyyy-MM-dd', opened: false },
-				title: 'TVM Reading'
+				title: 'TVM Reading',
+				tvms: angular.copy( appData.data.tvms ),
+				selectedTVM: angular.copy( appData.data.tvms[0] )
 			};
 
 		$scope.findUser = UserServices.findUser;
@@ -3667,10 +3669,20 @@ app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$state
 				$scope.TVMReading.set( 'tvmr_cashier_name', $scope.TVMReading.tvmr_cashier_name );
 			};
 
+		$scope.onTVMChange = function()
+			{
+				$scope.TVMReading.set( 'tvmr_machine_id', $scope.data.selectedTVM.id );
+				$scope.loadPreviousReading();
+			};
+
+		$scope.onShiftChange = function()
+			{
+				$scope.TVMReading.set( 'tvmr_shift_id', $scope.data.selectedCashierShift.id );
+				$scope.loadPreviousReading();
+			};
+
 		$scope.loadPreviousReading = function()
 			{
-				console.log( 'Trigger...' );
-				console.log( $scope.TVMReading.tvmr_machine_id, $scope.TVMReading.tvmr_datetime, $scope.data.selectedCashierShift.id );
 				if( $scope.TVMReading.tvmr_machine_id && $scope.TVMReading.tvmr_datetime && $scope.data.selectedCashierShift.id )
 				{
 					var previousShiftData = appData.getPreviousShift( $scope.TVMReading.tvmr_datetime, $scope.data.selectedCashierShift.id );
@@ -3682,11 +3694,10 @@ app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$state
 						function( response )
 						{
 							$scope.TVMReading.previous_reading = new TVMReading( response.data );
-							console.log( response );
 						},
 						function( reason )
 						{
-							console.log( reason );
+							console.error( reason );
 						});
 				}
 				else
@@ -3731,6 +3742,7 @@ app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$state
 					if( response.status == 'ok' )
 					{
 						$scope.TVMReading = TVMReading.createFromData( response.data );
+						$scope.data.selectedTVM = $filter( 'filter' )( $scope.data.tvms, { id: parseInt( $scope.TVMReading.tvmr_machine_id ) }, true )[0];
 						if( !$scope.checkPermissions( 'allocations', 'edit' ) && ( $scope.data.editMode != 'view'  ) )
 						{
 							$scope.data.editMode = 'view';
@@ -3748,7 +3760,9 @@ app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$state
 		}
 		else
 		{
-			$scope.TVMReading = new TVMReading();
+			$scope.TVMReading = new TVMReading( { tmvr_machine_ID: $scope.data.tvms[0].id } );
+			$scope.onTVMChange();
+			$scope.onShiftChange();
 		}
 	}
 ]);
