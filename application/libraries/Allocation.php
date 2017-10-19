@@ -598,26 +598,28 @@ class Allocation extends Base_model {
 					}
 				}
 
+				$transact_status = array( ALLOCATION_ALLOCATED, ALLOCATION_REMITTED );
+
 				// Transact allocation
-				if( in_array( $this->allocation_status, array( ALLOCATION_ALLOCATED, ALLOCATION_REMITTED ) ) )
+				if( in_array( $this->allocation_status, $transact_status ) )
 				{
 					$this->_transact_allocation();
 				}
 
 				// Transact remittances
-				if( $this->remittances )
+				if( ( $this->remittances || $this->cash_remittances ) && in_array( $this->allocation_status, $transact_status ) )
 				{
 					$this->_transact_remittance();
 				}
 
 				// Transact ticket sales
-				if( $this->ticket_sales )
+				if( $this->ticket_sales && in_array( $this->allocation_status, $transact_status ) )
 				{
 					$this->_transact_ticket_sales();
 				}
 
 				// Transact sales
-				if( $this->sales )
+				if( $this->sales  && in_array( $this->allocation_status, $transact_status ) )
 				{
 					$this->_transact_sales();
 				}
@@ -729,21 +731,27 @@ class Allocation extends Base_model {
 		}
 
 		// All pending allocations must be allocated or cancelled
-		foreach( $this->allocations as $allocation )
+		if( ! empty( $this->allocations ) )
 		{
-			if( $allocation->get( 'allocation_item_status' ) == ALLOCATION_ITEM_SCHEDULED )
+			foreach( $this->allocations as $allocation )
 			{
-				set_message( 'Pending allocations must be allocated or cancelled' );
-				return FALSE;
+				if( $allocation->get( 'allocation_item_status' ) == ALLOCATION_ITEM_SCHEDULED )
+				{
+					set_message( 'Pending allocations must be allocated or cancelled' );
+					return FALSE;
+				}
 			}
 		}
 
-		foreach( $this->cash_allocations as $allocation )
+		if( ! empty( $this->cash_allocations ) )
 		{
-			if( $allocation->get( 'allocation_item_status' ) == ALLOCATION_ITEM_SCHEDULED )
+			foreach( $this->cash_allocations as $allocation )
 			{
-				set_message( 'Pending allocations must be allocated or cancelled' );
-				return FALSE;
+				if( $allocation->get( 'allocation_item_status' ) == ALLOCATION_ITEM_SCHEDULED )
+				{
+					set_message( 'Pending allocations must be allocated or cancelled' );
+					return FALSE;
+				}
 			}
 		}
 

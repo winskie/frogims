@@ -58,7 +58,11 @@
 				<div class="form-group">
 					<label class="control-label col-sm-5">{{ data.assigneeLabel }}</label>
 					<div class="input-group col-sm-7" ng-switch-when="true">
-						<input class="form-control" ng-model="allocationItem.assignee" >
+						<input class="form-control ng-animate-disabled" ng-model="allocationItem.assignee" ng-if="data.selectedAssigneeType.id == 1">
+						<select class="form-control ng-animate-disabled"
+								ng-model="data.selectedTVM" ng-if="data.selectedAssigneeType.id == 2" ng-change="onTVMChange()"
+								ng-options="tvm as tvm.description for tvm in data.tvms track by tvm.id">
+						</select>
 					</div>
 					<div class="input-group col-sm-7" ng-switch-default>
 						<p class="form-control-static">{{ allocationItem.assignee }}</p>

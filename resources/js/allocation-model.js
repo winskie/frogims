@@ -275,7 +275,8 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 									 && session.checkPermissions( 'allocations', 'complete' )
 									 && ( showAction || !this.hasPendingAllocation() )
 									 && ( showAction || ( this.getValidAllocations().length > 0 || this.getValidCashAllocations().length > 0
-									 		|| this.getValidRemittances().length > 0 || this.getValidCashRemittances().length > 0) )
+											 || this.getValidRemittances().length > 0 || this.getValidCashRemittances().length > 0
+											 || this.getValidTicketSales().length > 0 || this.getValidSales().length > 0 ) )
 									 && ( showAction || this.assignee );
 				}
 			};

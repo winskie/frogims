@@ -14,7 +14,7 @@
 						<div class="col-sm-6" ng-switch on="data.editMode">
 							<select class="form-control"
 									ng-model="data.selectedTVM" ng-switch-when="edit" ng-change="onTVMChange()"
-									ng-options="tvm as tvm.description for tvm in data.tvms track by tvm.id">
+									ng-options="tvm as tvm.description for tvm in data.tvms track by tvm.description">
 							</select>
 							<p class="form-control-static" ng-switch-default>{{ data.selectedTVM.description}}</p>
 						</div>

@@ -3136,6 +3136,9 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 				selectedAssigneeShift: null,
 				assigneeTypes: angular.copy( appData.data.assigneeTypes ),
 				selectedAssigneeType: { id: 1, typeName: 'Station Teller' },
+				tvms: angular.copy( appData.data.tvms ),
+				selectedTVM: angular.copy( appData.data.tvms[0] ),
+				tempAssignee: null,
 				inventoryItems: angular.copy( appData.data.items ),
 				salesItems: angular.copy( appData.data.salesItems ),
 				selectedItem: null,
@@ -3201,7 +3204,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 							break;
 
 						default:
-							$scope.data.saveButton = { icon: 'time', label: 'Schedule' };
+							$scope.data.saveButton = { icon: 'time', label: 'Save' };
 					}
 				}
 			}
@@ -3330,15 +3333,21 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					$scope.data.remittancesTabLabel = 'Remittances';
 					$scope.data.remittancesEmptyText = 'No remittance items';
 					//$scope.data.activeTab = 0;
+					if( $scope.allocationItem.allocation_status == 1 )
+					{
+						$scope.data.activeTab = 0;
+					}
 				}
 				else if( $scope.data.selectedAssigneeType.id == 2 )
 				{ // TVM
 					$scope.data.assigneeShifts = $filter( 'filter' )( assigneeShifts, { store_type: 1 }, true );
-					$scope.data.assigneeLabel = 'TVM Number';
+					$scope.data.assigneeLabel = 'TVM #';
 					$scope.data.assigneeShiftLabel = 'TVM Shift';
 					$scope.data.allocationsTabLabel = 'Replenishments';
 					$scope.data.remittancesTabLabel = 'Cash Collection/ Reject Bin';
 					$scope.data.remittancesEmptyText = 'No reject or return items';
+
+					$scope.allocationItem.assignee = $scope.data.selectedTVM.description;
 				}
 				else
 				{
@@ -3369,6 +3378,11 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 		$scope.onAssigneeShiftChange = function()
 			{
 				$scope.allocationItem.shift_id = $scope.data.selectedAssigneeShift.id;
+			};
+
+		$scope.onTVMChange = function()
+			{
+				$scope.allocationItem.assignee = $scope.data.selectedTVM.description;
 			};
 
 		$scope.onItemChange = function()
@@ -3555,8 +3569,6 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 			$scope.data.activeTab = $stateParams.activeTab;
 		}
 
-		console.log( $stateParams, $scope.data );
-
 		// Load allocation item
 		if( $stateParams.allocationItem || $stateParams.allocationId )
 		{
@@ -3671,7 +3683,7 @@ app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$state
 
 		$scope.onTVMChange = function()
 			{
-				$scope.TVMReading.set( 'tvmr_machine_id', $scope.data.selectedTVM.id );
+				$scope.TVMReading.set( 'tvmr_machine_id', $scope.data.selectedTVM.description );
 				$scope.loadPreviousReading();
 			};
 
@@ -3742,7 +3754,7 @@ app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$state
 					if( response.status == 'ok' )
 					{
 						$scope.TVMReading = TVMReading.createFromData( response.data );
-						$scope.data.selectedTVM = $filter( 'filter' )( $scope.data.tvms, { id: parseInt( $scope.TVMReading.tvmr_machine_id ) }, true )[0];
+						$scope.data.selectedTVM = $filter( 'filter' )( $scope.data.tvms, { description: $scope.TVMReading.tvmr_machine_id }, true )[0];
 						if( !$scope.checkPermissions( 'allocations', 'edit' ) && ( $scope.data.editMode != 'view'  ) )
 						{
 							$scope.data.editMode = 'view';
