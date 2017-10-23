@@ -3500,6 +3500,11 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 				notifications.alert( 'Cash report deleted', 'success' );
 			};
 
+		$scope.removeSalesItem = function( itemRow )
+			{
+				$scope.allocationItem.removeSalesItem( itemRow );
+			};
+
 
 		// Allocation record actions
 		$scope.saveAllocation = function()

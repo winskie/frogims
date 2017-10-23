@@ -1219,20 +1219,20 @@ class Installer extends CI_Controller {
 					array( 'Staff Card', 'Staff Card', 17, 0, 0, 0, 0, 'Others', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
 
 					array( 'Php1 Coin', '1 peso coin', NULL, 1, 1, 1, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ), // ID: 21
-					array( 'Php0.25 Coin', '25 centavos coin', 21, 1, 1, 1, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php0.25 Coin', '25 centavos coin', 21, 1, 1, 0, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ),
 					array( 'Php5 Coin', '5 pesos coin', 21, 1, 1, 1, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ), // ID: 23
-					array( 'Php10 Coin', '10 pesos coin', 21, 1, 1, 1, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php10 Coin', '10 pesos coin', 21, 1, 1, 0, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ),
 
-					array( 'Php20 Bill', '20 pesos bill', 21, 1, 1, 1, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php50 Bill', '50 pesos bill', 21, 1, 1, 1, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php100 Bill', '100 pesos bill', 21, 1, 1, 1, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php200 Bill', '200 pesos bill', 21, 1, 1, 1, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php500 Bill', '500 pesos bill', 21, 1, 1, 1, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php1000 Bill', '1000 pesos bill', 21, 1, 1, 1, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php20 Bill', '20 pesos bill', 21, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php50 Bill', '50 pesos bill', 21, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php100 Bill', '100 pesos bill', 21, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php200 Bill', '200 pesos bill', 21, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php500 Bill', '500 pesos bill', 21, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php1000 Bill', '1000 pesos bill', 21, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
 
-					array( 'Php5@500', 'Bag of Php5 coins worth Php500', 23, 1, 1, 1, 1, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php5@100', 'Bag of Php5 coins worth Php100', 23, 1, 1, 1, 1, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php1@500', 'Bag of Php1 coins worth Php500', 21, 1, 1, 1, 1, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php5@500', 'Bag of Php5 coins worth Php500', 23, 1, 1, 0, 1, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php5@100', 'Bag of Php5 coins worth Php100', 23, 1, 1, 0, 1, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php1@500', 'Bag of Php1 coins worth Php500', 21, 1, 1, 0, 1, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
 
 					array( 'Vault', 'Available cashroom fund', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
 					array( 'CA Fund', 'Coin Acceptor Fund', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
