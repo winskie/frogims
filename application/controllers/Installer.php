@@ -514,6 +514,7 @@ class Installer extends CI_Controller {
 					target_item_id INTEGER NOT NULL,
 					conversion_factor INTEGER NOT NULL,
 					PRIMARY KEY (id),
+					INDEX conversion_table_main_ndx (target_item_id, source_item_id),
 					FOREIGN KEY conversion_table_source_fk (source_item_id) REFERENCES items (id)
 						ON UPDATE CASCADE
 						ON DELETE CASCADE,

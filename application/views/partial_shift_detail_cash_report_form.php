@@ -61,7 +61,7 @@
 							<label class="control-label">Login Time</label>
 							<div ng-switch on="data.editMode">
 								<input type="datetime-local" class="form-control" ng-model="shiftDetailCashReport.sdcr_login_time" ng-switch-when="edit">
-								<p class="form-control-static" ng-switch-default>{{ shiftDetailCashReport.sdcr_login_time }}</p>
+								<p class="form-control-static" ng-switch-default>{{ shiftDetailCashReport.sdcr_login_time | date : 'yyyy-MM-dd HH:mm' }}</p>
 							</div>
 						</div>
 
@@ -70,7 +70,7 @@
 							<label class="control-label">Logout Time</label>
 							<div ng-switch on="data.editMode">
 								<input type="datetime-local" class="form-control" ng-model="shiftDetailCashReport.sdcr_logout_time" ng-switch-when="edit">
-								<p class="form-control-static" ng-switch-default>{{ shiftDetailCashReport.sdcr_logout_time }}</p>
+								<p class="form-control-static" ng-switch-default>{{ shiftDetailCashReport.sdcr_logout_time | date : 'yyyy-MM-dd HH:mm' }}</p>
 							</div>
 						</div>
 					</div>

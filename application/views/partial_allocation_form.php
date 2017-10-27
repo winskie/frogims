@@ -97,7 +97,7 @@
 							<th class="text-left">Category</th>
 							<th class="text-left">Item Description</th>
 							<th class="text-center">Quantity</th>
-							<th class="text-center">Total Amount</th>
+							<th class="text-right">Total Amount</th>
 							<th class="text-center">Status</th>
 							<th class="text-center" ng-if="data.editMode != 'view'">Void</th>
 						</tr>
@@ -193,7 +193,7 @@
 							<th class="text-left">Category</th>
 							<th class="text-left">Item Description</th>
 							<th class="text-center">Quantity</th>
-							<th class="text-center">Total Amount</th>
+							<th class="text-right">Total Amount</th>
 							<th class="text-center">Status</th>
 							<th class="text-center" ng-if="data.editMode != 'view'">Void</th>
 						</tr>
@@ -398,7 +398,7 @@
 							<th class="text-center">POS</th>
 							<th class="text-left">Login Time</th>
 							<th class="text-left">Logout Time</th>
-							<th class="text-center" ng-if="data.editMode != 'view'"></th>
+							<th class="text-center"></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -409,8 +409,11 @@
 							<td class="text-center">{{ row.sdcr_pos_id }}</td>
 							<td class="text-left">{{ row.sdcr_login_time | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
 							<td class="text-left">{{ row.sdcr_logout_time | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
-							<td class="text-center" ng-if="data.editMode != 'view'">
-								<a href ng-click="removeCashReportItem( row )" ng-if="row.canRemove()">
+							<td class="text-left">
+								<button class="btn btn-default btn-sm" ui-sref="main.shiftDetailCashReport({ shiftDetailCashReport: row, editMode: 'view' })">
+									View
+								</button>
+								<a href ng-click="removeCashReportItem( row )" ng-if="row.canRemove()" ng-if="data.editMode != 'view'">
 									<i class="glyphicon glyphicon-remove-circle"></i>
 								</a>
 							</td>

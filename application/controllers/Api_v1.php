@@ -217,7 +217,8 @@ class Api_v1 extends MY_Controller {
 										'item_class' => array( 'type' => 'string' ),
 										'teller_allocatable' => array( 'type' => 'boolean' ),
 										'machine_allocatable' => array( 'type' => 'boolean' ),
-										'cashier_shift_num' => array( 'type' => 'string' ) ) );
+										'cashier_shift_num' => array( 'type' => 'string' ),
+										'base_quantity' => array( 'type' => 'integer' ) ) );
 								}
 								$allocation_data['allocations'] = $allocation_items_data;
 
@@ -1696,7 +1697,8 @@ class Api_v1 extends MY_Controller {
 														'item_class' => array( 'type' => 'string' ),
 														'teller_allocatable' => array( 'type' => 'boolean' ),
 														'machine_allocatable' => array( 'type' => 'boolean' ),
-														'cashier_shift_num' => array( 'type' => 'string' ) ) );
+														'cashier_shift_num' => array( 'type' => 'string' ),
+														'base_quantity' => array( 'type' => 'integer' ) ) );
 											}
 
 											foreach( $allocation_cash_items as $item )

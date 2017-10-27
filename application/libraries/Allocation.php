@@ -73,13 +73,15 @@ class Allocation extends Base_model {
 			$ci->load->library( 'allocation_item' );
 			$ci->db->select( 'ai.*, c.category AS category_name, c.category_type,
 					i.item_name, i.item_description, i.item_class, i.teller_allocatable, i.machine_allocatable,
-					s.shift_num AS cashier_shift_num' );
+					s.shift_num AS cashier_shift_num,
+					( ai.allocated_quantity * ct.conversion_factor ) AS base_quantity' );
 			$ci->db->where( 'allocation_id', $this->id );
 			$ci->db->where( 'ai.allocation_item_type', 1 );
 			$ci->db->where( 'i.item_class', 'ticket' );
 			$ci->db->join( 'items i', 'i.id = ai.allocated_item_id', 'left' );
 			$ci->db->join( 'categories c', 'c.id = ai.allocation_category_id', 'left' );
 			$ci->db->join( 'shifts s', 's.id = ai.cashier_shift_id', 'left' );
+			$ci->db->join( 'conversion_table ct', 'ct.target_item_id = i.id AND ct.source_item_id = i.base_item_id' );
 			$query = $ci->db->get( 'allocation_items AS ai' );
 			$this->allocations = $query->result( 'Allocation_item' );
 		}
