@@ -3359,7 +3359,8 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					if( $scope.allocationItem.shift_id )
 					{
 						$scope.data.selectedAssigneeShift = $filter( 'filter')( assigneeShifts, { id: $scope.allocationItem.shift_id }, true )[0];
-						if( $scope.data.selectedAssigneeShift )
+
+						if( ! $scope.data.selectedAssigneeShift )
 						{
 							$scope.data.selectedAssigneeShift = $scope.data.assigneeShifts[0];
 						}
