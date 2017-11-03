@@ -210,16 +210,20 @@ CREATE TABLE IF NOT EXISTS store_inventory
 	id INTEGER AUTO_INCREMENT NOT NULL,
 	store_id INTEGER NOT NULL,
 	item_id INTEGER NOT NULL,
+	parent_item_id INTEGER NULL DEFAULT NULL,
 	quantity DECIMAL(15,2) NOT NULL DEFAULT 0,
 	quantity_timestamp DATETIME NOT NULL,
 	buffer_level DECIMAL(15,2) NOT NULL DEFAULT 0,
 	reserved DECIMAL(15,2) NOT NULL DEFAULT 0,
 	PRIMARY KEY (id),
-	UNIQUE store_inventory_undx (store_id, item_id),
+	UNIQUE store_inventory_undx (store_id, item_id, parent_item_id),
 	FOREIGN KEY store_inventory_store_fk (store_id) REFERENCES stores (id)
 		ON UPDATE CASCADE
 		ON DELETE RESTRICT,
 	FOREIGN KEY store_inventory_item_fx (item_id) REFERENCES items (id)
+		ON UPDATE CASCADE
+		ON DELETE RESTRICT,
+	FOREIGN KEY store_inventory_parent_item_fx (parent_item_id) REFERENCES items (id)
 		ON UPDATE CASCADE
 		ON DELETE RESTRICT
 )

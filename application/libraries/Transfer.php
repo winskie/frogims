@@ -805,7 +805,7 @@ class Transfer extends Base_model {
 		$in_transit_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_IN_TRANSIT );
 		$is_csc_application = ( int ) $this->transfer_category == TRANSFER_CATEGORY_CSC_APPLICATION; // CSC Application
 		$csc_card_fee_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_CSC_CARD_FEE );
-		$vault_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_CASH_VAULT );
+		$change_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_CHANGE_FUND );
 
 		//$transaction_datetime = $this->transfer_datetime;
 		$transaction_datetime = date( TIMESTAMP_FORMAT );
@@ -834,9 +834,9 @@ class Transfer extends Base_model {
 						$deduct_from_vault = false;
 					}
 
-					if( $vault_fund && $deduct_from_vault )
+					if( $change_fund && $deduct_from_vault )
 					{
-						$vault_fund->transact( TRANSACTION_TRANSFER_OUT, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+						$change_fund->transact( TRANSACTION_TRANSFER_OUT, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
 					}
 				}
 
@@ -871,7 +871,7 @@ class Transfer extends Base_model {
 
 		$is_in_transit = ( int )$this->transfer_category == TRANSFER_CATEGORY_CASH_EXCHANGE; // Bills to Coins Exchange
 		$in_transit_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_IN_TRANSIT );
-		$vault_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_CASH_VAULT );
+		$change_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_CHANGE_FUND );
 
 		//$transaction_datetime = $this->transfer_datetime;
 		$transaction_datetime = date( TIMESTAMP_FORMAT );
@@ -890,9 +890,9 @@ class Transfer extends Base_model {
 					$in_transit_fund->transact( TRANSACTION_TRANSFER_CANCEL, $amount, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
 				}
 
-				if( $vault_fund )
+				if( $change_fund )
 				{
-					$vault_fund->transact( TRANSACTION_TRANSFER_CANCEL, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+					$change_fund->transact( TRANSACTION_TRANSFER_CANCEL, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
 				}
 			}
 
@@ -937,7 +937,7 @@ class Transfer extends Base_model {
 		$in_transit_fund = $Inventory->get_by_store_item_name( $this->destination_id, FUND_IN_TRANSIT );
 		$is_csc_application = ( int ) $this->transfer_category == TRANSFER_CATEGORY_CSC_APPLICATION; // CSC Application
 		$csc_card_fee_fund = $Inventory->get_by_store_item_name( $this->destination_id, FUND_CSC_CARD_FEE );
-		$vault_fund = $Inventory->get_by_store_item_name( $this->destination_id, FUND_CASH_VAULT );
+		$change_fund = $Inventory->get_by_store_item_name( $this->destination_id, FUND_CHANGE_FUND );
 
 		//$transaction_datetime = $this->receipt_datetime;
 		$transaction_datetime = date( TIMESTAMP_FORMAT );
@@ -967,9 +967,9 @@ class Transfer extends Base_model {
 						$add_to_vault = false;
 					}
 
-					if( $vault_fund && $add_to_vault )
+					if( $change_fund && $add_to_vault )
 					{
-						$vault_fund->transact( TRANSACTION_TRANSFER_IN, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+						$change_fund->transact( TRANSACTION_TRANSFER_IN, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
 					}
 				}
 
@@ -1036,9 +1036,9 @@ class Transfer extends Base_model {
 						$in_transit_fund->transact( TRANSACTION_TRANSFER_VOID, $amount, $transaction_datetime, $this->id, $voided_item->get( 'id' ) );
 					}
 
-					if( $vault_fund )
+					if( $change_fund )
 					{
-						$vault_fund->transact( TRANSACTION_TRANSFER_VOID, $amount * -1, $transaction_datetime, $this->id, $voided_item->get( 'id' ) );
+						$change_fund->transact( TRANSACTION_TRANSFER_VOID, $amount * -1, $transaction_datetime, $this->id, $voided_item->get( 'id' ) );
 					}
 				}
 

@@ -232,6 +232,7 @@ defined('ITEM_REUSABLE')			OR define('ITEM_REUSABLE', 1);
 
 
 // Funds
-defined('FUND_CASH_VAULT')		OR define('FUND_CASH_VAULT', 'Vault');
+defined('FUND_CHANGE_FUND')		OR define('FUND_CHANGE_FUND', 'Change Fund');
+defined('FUND_SALES')			OR define('FUND_SALES', 'Sales');
 defined('FUND_IN_TRANSIT')		OR define('FUND_IN_TRANSIT', 'In Transit');
 defined('FUND_COIN_ACCEPTOR')	OR define('FUND_COIN_ACCEPTOR', 'CA Fund');

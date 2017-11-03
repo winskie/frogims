@@ -251,16 +251,20 @@ class Installer extends CI_Controller {
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					store_id INTEGER NOT NULL,
 					item_id INTEGER NOT NULL,
+					parent_item_id INTEGER NULL DEFAULT NULL,
 					quantity DECIMAL(15,2) NOT NULL DEFAULT 0.00,
 					quantity_timestamp DATETIME NOT NULL,
 					buffer_level DECIMAL(15,2) NOT NULL DEFAULT 0.00,
 					reserved DECIMAL(15,2) NOT NULL DEFAULT 0.00,
 					PRIMARY KEY (id),
-					UNIQUE store_inventory_undx (store_id, item_id),
+					UNIQUE store_inventory_undx (store_id, item_id, parent_item_id),
 					FOREIGN KEY store_inventory_store_fk (store_id) REFERENCES stores (id)
 						ON UPDATE CASCADE
 						ON DELETE RESTRICT,
 					FOREIGN KEY store_inventory_item_fx (item_id) REFERENCES items (id)
+						ON UPDATE CASCADE
+						ON DELETE RESTRICT,
+					FOREIGN KEY store_inventory_parent_item_fx (parent_item_id) REFERENCES items (id)
 						ON UPDATE CASCADE
 						ON DELETE RESTRICT
 				)
@@ -1188,6 +1192,8 @@ class Installer extends CI_Controller {
 				$item->db_save();
 				unset( $item );
 			}
+			echo 'OK<br />';
+			flush();
 
 			// Create default items
 			echo 'Creating default items...';
@@ -1231,17 +1237,16 @@ class Installer extends CI_Controller {
 					array( 'Php500 Bill', '500 pesos bill', 21, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
 					array( 'Php1000 Bill', '1000 pesos bill', 21, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
 
-					array( 'Php5@500', 'Bag of Php5 coins worth Php500', 23, 1, 1, 0, 1, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php5@100', 'Bag of Php5 coins worth Php100', 23, 1, 1, 0, 1, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php1@500', 'Bag of Php1 coins worth Php500', 21, 1, 1, 0, 1, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Bag Php5@100', 'Bag of Php5 coins worth Php100', 23, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Bag Php1@100', 'Bag of Php1 coins worth Php100', 21, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
 
-					array( 'Vault', 'Available cashroom fund', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
+					array( 'Change Fund', 'Change Fund', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
+					array( 'Sales', 'Sales', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
 					array( 'CA Fund', 'Coin Acceptor Fund', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
 					array( 'TVM Hopper', 'Coins in TVM', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
 					array( 'In Transit', 'In Transit Cash', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
 					array( 'CSC Card Fee', 'Concessionary Card Fee Fund', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
 					array( 'TVMIR', 'TVMIR Refund', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
-					array( 'Buy Back', 'SVC Buy Back Fund', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
 				);
 
 			foreach( $items as $i )
@@ -1301,6 +1306,8 @@ class Installer extends CI_Controller {
 			}
 			$sql = 'INSERT INTO card_profiles (id, cardp_description, cardp_item_id) VALUES '.implode( ', ', $profile_values );
 			$this->db->query( $sql );
+			echo 'OK<br />';
+			flush();
 
 			// Creating default inventory
 			echo 'Creating store inventories...';
@@ -1387,9 +1394,8 @@ class Installer extends CI_Controller {
 				array( 'MRT SJT', 'Others', 1 ),
 				array( 'Staff Card', 'Others', 1 ),
 
-				array( 'Php1 Coin', 'Php1@500', 500 ),
-				array( 'Php5 Coin', 'Php5@100', 20 ),
-				array( 'Php5 Coin', 'Php5@500', 100 ),
+				array( 'Php1 Coin', 'Bag Php1@100', 100 ),
+				array( 'Php5 Coin', 'Bag Php5@100', 20 ),
 			);
 
 			$item = new Item();
@@ -1411,42 +1417,257 @@ class Installer extends CI_Controller {
 			flush();
 
 			$values = array(
-					array( 'Initial Allocation', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1, FALSE ),
-					array( 'Additional Allocation', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1, FALSE ),
-					array( 'Magazine Load', 1, TRUE, FALSE, FALSE, FALSE, TRUE, 1, FALSE ),
-					array( 'Unsold / Loose', 2, FALSE, TRUE, TRUE, TRUE, TRUE, 1, FALSE ),
-					array( 'Free Exit', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1, TRUE ),
-					array( 'Expired', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1, FALSE ),
-					array( 'Code Red', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1, FALSE ),
-					array( 'Unconfirmed', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1, TRUE ),
-					array( 'TCERF', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1, FALSE ),
-					array( 'TIR', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1, FALSE ),
-					array( 'Reject Bin', 2, FALSE, TRUE, TRUE, FALSE, TRUE, 1, FALSE ),
-					array( 'Blackbox', 2, FALSE, TRUE, TRUE, TRUE, FALSE, 1, FALSE ),
+					array(
+						'category' => 'Initial Allocation',
+						'category_type' => 1,
+						'is_allocation_category' => TRUE,
+						'is_remittance_category' => FALSE,
+						'is_transfer_category' => FALSE,
+						'is_ticket_sales_category' => FALSE,
+						'is_teller' => TRUE,
+						'is_machine' => FALSE,
+						'category_status' => 1,
+					),
+					array(
+						'category' => 'Additional Allocation',
+						'category_type' => 1,
+						'is_allocation_category' => TRUE,
+						'is_remittance_category' => FALSE,
+						'is_transfer_category' => FALSE,
+						'is_ticket_sales_category' => FALSE,
+						'is_teller' => TRUE,
+						'is_machine' => FALSE,
+						'category_status' => 1,
+					),
+					array(
+						'category' => 'Magazine Load',
+						'category_type' => 1,
+						'is_allocation_category' => TRUE,
+						'is_remittance_category' => FALSE,
+						'is_transfer_category' => FALSE,
+						'is_ticket_sales_category' => FALSE,
+						'is_teller' => FALSE,
+						'is_machine' => TRUE,
+						'category_status' => 1,
+					),
+					array(
+						'category' => 'Unsold / Loose',
+						'category_type' => 2,
+						'is_allocation_category' => FALSE,
+						'is_remittance_category' => TRUE,
+						'is_transfer_category' => TRUE,
+						'is_ticket_sales_category' => FALSE,
+						'is_teller' => TRUE,
+						'is_machine' => TRUE,
+						'category_status' => 1,
+					),
+					array(
+						'category' => 'Free Exit',
+						'category_type' => 2,
+						'is_allocation_category' => FALSE,
+						'is_remittance_category' => TRUE,
+						'is_transfer_category' => TRUE,
+						'is_ticket_sales_category' => TRUE,
+						'is_teller' => TRUE,
+						'is_machine' => FALSE,
+						'category_status' => 1,
+					),
+					array(
+						'category' => 'Expired',
+						'category_type' => 2,
+						'is_allocation_category' => FALSE,
+						'is_remittance_category' => TRUE,
+						'is_transfer_category' => TRUE,
+						'is_ticket_sales_category' => FALSE,
+						'is_teller' => TRUE,
+						'is_machine' => FALSE,
+						'category_status' => 1,
+					),
+					array(
+						'category' => 'Code Red',
+						'category_type' => 2,
+						'is_allocation_category' => FALSE,
+						'is_remittance_category' => TRUE,
+						'is_transfer_category' => TRUE,
+						'is_ticket_sales_category' => FALSE,
+						'is_teller' => TRUE,
+						'is_machine' => FALSE,
+						'category_status' => 1,
+					),
+					array(
+						'category' => 'Unconfirmed',
+						'category_type' => 2,
+						'is_allocation_category' => FALSE,
+						'is_remittance_category' => TRUE,
+						'is_transfer_category' => TRUE,
+						'is_ticket_sales_category' => TRUE,
+						'is_teller' => TRUE,
+						'is_machine' => FALSE,
+						'category_status' => 1,
+					),
+					array(
+						'category' => 'TCERF',
+						'category_type' => 2,
+						'is_allocation_category' => FALSE,
+						'is_remittance_category' => TRUE,
+						'is_transfer_category' => TRUE,
+						'is_ticket_sales_category' => FALSE,
+						'is_teller' => TRUE,
+						'is_machine' => FALSE,
+						'category_status' => 1,
+					),
+					array(
+						'category' => 'TIR',
+						'category_type' => 2,
+						'is_allocation_category' => FALSE,
+						'is_remittance_category' => TRUE,
+						'is_transfer_category' => TRUE,
+						'is_ticket_sales_category' => FALSE,
+						'is_teller' => TRUE,
+						'is_machine' => FALSE,
+						'category_status' => 1,
+					),
+					array(
+						'category' => 'Reject Bin',
+						'category_type' => 2,
+						'is_allocation_category' => FALSE,
+						'is_remittance_category' => TRUE,
+						'is_transfer_category' => TRUE,
+						'is_ticket_sales_category' => FALSE,
+						'is_teller' => FALSE,
+						'is_machine' => TRUE,
+						'category_status' => 1,
+					),
+					array(
+						'category' => 'Blackbox',
+						'category_type' => 2,
+						'is_allocation_category' => FALSE,
+						'is_remittance_category' => TRUE,
+						'is_transfer_category' => TRUE,
+						'is_ticket_sales_category' => FALSE,
+						'is_teller' => TRUE,
+						'is_machine' => FALSE,
+						'category_status' => 1,
+					),
 
-					array( 'Initial Change Fund', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1, FALSE ),
-					array( 'Additional Change Fund', 1, TRUE, FALSE, FALSE, TRUE, FALSE, 1, FALSE ),
-					array( 'Coin Replenishment', 1, TRUE, FALSE, FALSE, FALSE, TRUE, 1, FALSE ),
-					array( 'Coin Acceptor Replenishment', 1, TRUE, FALSE, FALSE, FALSE, TRUE, 1, FALSE ),
+					array(
+						'category' => 'Initial Change Fund',
+						'category_type' => 1,
+						'is_allocation_category' => TRUE,
+						'is_remittance_category' => FALSE,
+						'is_transfer_category' => FALSE,
+						'is_ticket_sales_category' => FALSE,
+						'is_teller' => TRUE,
+						'is_machine' => FALSE,
+						'category_status' => 1,
+					),
+					array(
+						'category' => 'Additional Change Fund',
+						'category_type' => 1,
+						'is_allocation_category' => TRUE,
+						'is_remittance_category' => FALSE,
+						'is_transfer_category' => FALSE,
+						'is_ticket_sales_category' => FALSE,
+						'is_teller' => TRUE,
+						'is_machine' => FALSE,
+						'category_status' => 1,
+					),
+					array(
+						'category' => 'Coin Replenishment',
+						'category_type' => 1,
+						'is_allocation_category' => TRUE,
+						'is_remittance_category' => FALSE,
+						'is_transfer_category' => FALSE,
+						'is_ticket_sales_category' => FALSE,
+						'is_teller' => FALSE,
+						'is_machine' => TRUE,
+						'category_status' => 1,
+					),
+					array(
+						'category' => 'Coin Acceptor Replenishment',
+						'category_type' => 1,
+						'is_allocation_category' => TRUE,
+						'is_remittance_category' => FALSE,
+						'is_transfer_category' => FALSE,
+						'is_ticket_sales_category' => FALSE,
+						'is_teller' => FALSE,
+						'is_machine' => TRUE,
+						'category_status' => 1,
+					),
 
-					array( 'Cash Collection', 2, FALSE, TRUE, FALSE, TRUE, TRUE, 1, TRUE ),
+					array(
+						'category' => 'Sales Collection',
+						'category_type' => 2,
+						'is_allocation_category' => FALSE,
+						'is_remittance_category' => TRUE,
+						'is_transfer_category' => FALSE,
+						'is_ticket_sales_category' => FALSE,
+						'is_teller' => TRUE,
+						'is_machine' => TRUE,
+						'category_status' => 1,
+					),
+					array(
+						'category' => 'Change Fund Return',
+						'category_type' => 2,
+						'is_allocation_category' => FALSE,
+						'is_remittance_category' => TRUE,
+						'is_transfer_category' => FALSE,
+						'is_ticket_sales_category' => FALSE,
+						'is_teller' => TRUE,
+						'is_machine' => FALSE,
+						'category_status' => 1,
+					),
+					array(
+						'category' => 'Hopper Pullout',
+						'category_type' => 2,
+						'is_allocation_category' => FALSE,
+						'is_remittance_category' => TRUE,
+						'is_transfer_category' => FALSE,
+						'is_ticket_sales_category' => FALSE,
+						'is_teller' => FALSE,
+						'is_machine' => TRUE,
+						'category_status' => 1,
+					),
 
-					array( 'Regular Sale', 3, FALSE, FALSE, FALSE, TRUE, TRUE, 1, TRUE ),
-					array( 'Application', 3, TRUE, FALSE, FALSE, TRUE, FALSE, 1, TRUE ),
-					array( 'Paid Exit', 3, FALSE, FALSE, FALSE, TRUE, TRUE, 1, TRUE ),
+					array(
+						'category' => 'Regular Sale',
+						'category_type' => 3,
+						'is_allocation_category' => FALSE,
+						'is_remittance_category' => FALSE,
+						'is_transfer_category' => FALSE,
+						'is_ticket_sales_category' => TRUE,
+						'is_teller' => TRUE,
+						'is_machine' => TRUE,
+						'category_status' => 1,
+					),
+					array(
+						'category' => 'CSC Application',
+						'category_type' => 3,
+						'is_allocation_category' => TRUE,
+						'is_remittance_category' => FALSE,
+						'is_transfer_category' => FALSE,
+						'is_ticket_sales_category' => TRUE,
+						'is_teller' => TRUE,
+						'is_machine' => FALSE,
+						'category_status' => 1,
+					),
+					array(
+						'category' => 'Paid Exit',
+						'category_type' => 3,
+						'is_allocation_category' => FALSE,
+						'is_remittance_category' => FALSE,
+						'is_transfer_category' => FALSE,
+						'is_ticket_sales_category' => TRUE,
+						'is_teller' => TRUE,
+						'is_machine' => FALSE,
+						'category_status' => 1,
+					),
+
 				);
 
 			foreach( $values as $value )
 			{
-				$this->db->set( 'category', $value[0] );
-				$this->db->set( 'category_type', $value[1] );
-				$this->db->set( 'is_allocation_category', $value[2] );
-				$this->db->set( 'is_remittance_category', $value[3] );
-				$this->db->set( 'is_transfer_category', $value[4] );
-				$this->db->set( 'is_teller', $value[5] );
-				$this->db->set( 'is_machine', $value[6] );
-				$this->db->set( 'category_status', $value[7] );
-				$this->db->set( 'is_ticket_sales_category', $value[8] );
+				$this->db->set( $value );
 				$this->db->insert( 'categories' );
 			}
 			echo 'OK<br />';
@@ -1504,12 +1725,12 @@ class Installer extends CI_Controller {
 					array( 'Senior', 'Additional Allocation' ),
 					array( 'Senior', 'TIR' ),
 					array( 'Senior', 'Blackbox' ),
-					array( 'Senior', 'Application' ),
+					array( 'Senior', 'CSC Application' ),
 
 					array( 'PWD', 'Additional Allocation' ),
 					array( 'PWD', 'TIR' ),
 					array( 'PWD', 'Blackbox' ),
-					array( 'PWD', 'Application' ),
+					array( 'PWD', 'CSC Application' ),
 
 					array( 'L2 Ticket Coupon', 'Initial Allocation' ),
 					array( 'L2 Ticket Coupon', 'Additional Allocation' ),
@@ -1524,51 +1745,73 @@ class Installer extends CI_Controller {
 
 					array( 'Staff Card', 'Blackbox' ),
 
-					array( 'Php1 Coin', 'Initial Change Fund' ),
-					array( 'Php1 Coin', 'Additional Change Fund' ),
-					array( 'Php1 Coin', 'Coin Replenishment' ),
+					//array( 'Php1 Coin', 'Initial Change Fund' ),
+					//array( 'Php1 Coin', 'Additional Change Fund' ),
+					//array( 'Php1 Coin', 'Coin Replenishment' ),
 					array( 'Php1 Coin', 'Coin Acceptor Replenishment' ),
-					array( 'Php1 Coin', 'Cash Collection' ),
+					array( 'Php1 Coin', 'Sales Collection' ),
+					array( 'Php1 Coin', 'Change Fund Return' ),
+					array( 'Php1 Coin', 'Hopper Pullout' ),
 
-					array( 'Php0.25 Coin', 'Initial Change Fund' ),
-					array( 'Php0.25 Coin', 'Additional Change Fund' ),
-					array( 'Php0.25 Coin', 'Cash Collection' ),
+					//array( 'Php0.25 Coin', 'Initial Change Fund' ),
+					//array( 'Php0.25 Coin', 'Additional Change Fund' ),
+					array( 'Php0.25 Coin', 'Sales Collection' ),
+					array( 'Php0.25 Coin', 'Change Fund Return' ),
 
-					array( 'Php5 Coin', 'Initial Change Fund' ),
-					array( 'Php5 Coin', 'Additional Change Fund' ),
-					array( 'Php5 Coin', 'Coin Replenishment' ),
+					//array( 'Php5 Coin', 'Initial Change Fund' ),
+					//array( 'Php5 Coin', 'Additional Change Fund' ),
+					//array( 'Php5 Coin', 'Coin Replenishment' ),
 					array( 'Php5 Coin', 'Coin Acceptor Replenishment' ),
-					array( 'Php5 Coin', 'Cash Collection' ),
+					array( 'Php5 Coin', 'Sales Collection' ),
+					array( 'Php5 Coin', 'Change Fund Return' ),
+					array( 'Php5 Coin', 'Hopper Pullout' ),
 
-					array( 'Php10 Coin', 'Initial Change Fund' ),
-					array( 'Php10 Coin', 'Additional Change Fund' ),
-					array( 'Php10 Coin', 'Coin Replenishment' ),
+					//array( 'Php10 Coin', 'Initial Change Fund' ),
+					//array( 'Php10 Coin', 'Additional Change Fund' ),
+					//array( 'Php10 Coin', 'Coin Replenishment' ),
 					array( 'Php10 Coin', 'Coin Acceptor Replenishment' ),
-					array( 'Php10 Coin', 'Cash Collection' ),
+					array( 'Php10 Coin', 'Sales Collection' ),
+					array( 'Php10 Coin', 'Change Fund Return' ),
 
-					array( 'Php20 Bill', 'Initial Change Fund' ),
-					array( 'Php20 Bill', 'Additional Change Fund' ),
-					array( 'Php20 Bill', 'Cash Collection' ),
+					//array( 'Php20 Bill', 'Initial Change Fund' ),
+					//array( 'Php20 Bill', 'Additional Change Fund' ),
+					array( 'Php20 Bill', 'Sales Collection' ),
+					array( 'Php20 Bill', 'Change Fund Return' ),
 
-					array( 'Php50 Bill', 'Initial Change Fund' ),
-					array( 'Php50 Bill', 'Additional Change Fund' ),
-					array( 'Php50 Bill', 'Cash Collection' ),
+					//array( 'Php50 Bill', 'Initial Change Fund' ),
+					//array( 'Php50 Bill', 'Additional Change Fund' ),
+					array( 'Php50 Bill', 'Sales Collection' ),
+					array( 'Php50 Bill', 'Change Fund Return' ),
 
-					array( 'Php100 Bill', 'Initial Change Fund' ),
-					array( 'Php100 Bill', 'Additional Change Fund' ),
-					array( 'Php100 Bill', 'Cash Collection' ),
+					//array( 'Php100 Bill', 'Initial Change Fund' ),
+					//array( 'Php100 Bill', 'Additional Change Fund' ),
+					array( 'Php100 Bill', 'Sales Collection' ),
+					array( 'Php100 Bill', 'Change Fund Return' ),
 
-					array( 'Php200 Bill', 'Initial Change Fund' ),
-					array( 'Php200 Bill', 'Additional Change Fund' ),
-					array( 'Php200 Bill', 'Cash Collection' ),
+					//array( 'Php200 Bill', 'Initial Change Fund' ),
+					//array( 'Php200 Bill', 'Additional Change Fund' ),
+					array( 'Php200 Bill', 'Sales Collection' ),
+					array( 'Php200 Bill', 'Change Fund Return' ),
 
-					array( 'Php500 Bill', 'Initial Change Fund' ),
-					array( 'Php500 Bill', 'Additional Change Fund' ),
-					array( 'Php500 Bill', 'Cash Collection' ),
+					//array( 'Php500 Bill', 'Initial Change Fund' ),
+					//array( 'Php500 Bill', 'Additional Change Fund' ),
+					array( 'Php500 Bill', 'Sales Collection' ),
+					array( 'Php500 Bill', 'Change Fund Return' ),
 
-					array( 'Php1000 Bill', 'Initial Change Fund' ),
-					array( 'Php1000 Bill', 'Additional Change Fund' ),
-					array( 'Php1000 Bill', 'Cash Collection' ),
+					//array( 'Php1000 Bill', 'Initial Change Fund' ),
+					//array( 'Php1000 Bill', 'Additional Change Fund' ),
+					array( 'Php1000 Bill', 'Sales Collection' ),
+					array( 'Php1000 Bill', 'Change Fund Return' ),
+
+					array( 'Bag Php1@100', 'Initial Change Fund' ),
+					array( 'Bag Php1@100', 'Additional Change Fund' ),
+					array( 'Bag Php1@100', 'Coin Replenishment' ),
+					array( 'Bag Php1@100', 'Change Fund Return' ),
+
+					array( 'Bag Php5@100', 'Initial Change Fund' ),
+					array( 'Bag Php5@100', 'Additional Change Fund' ),
+					array( 'Bag Php5@100', 'Coin Replenishment' ),
+					array( 'Bag Php5@100', 'Change Fund Return' ),
 				);
 
 			$this->load->library( 'item' );
@@ -1577,6 +1820,7 @@ class Installer extends CI_Controller {
 			$Category = new Category();
 			foreach( $values as $value )
 			{
+				//echo $value[0].' === '.$value[1].'<br/>';
 				$item = $Item->get_by_name( $value[0] );
 				$category = $Category->get_by_name( $value[1] );
 				$this->db->set( 'ic_item_id', $item->get( 'id' ) );
@@ -1602,9 +1846,8 @@ class Installer extends CI_Controller {
 						array( 'Php200 Bill', 'PHP', 200.00 ),
 						array( 'Php500 Bill', 'PHP', 500.00 ),
 						array( 'Php1000 Bill', 'PHP', 1000.00 ),
-						array( 'Php5@500', 'PHP', 2500.00 ),
-						array( 'Php5@100', 'PHP', 500.00 ),
-						array( 'Php1@500', 'PHP', 500.00 ),
+						array( 'Bag Php1@100', 'PHP', 100.00 ),
+						array( 'Bag Php5@100', 'PHP', 100.00 ),
 				);
 
 			$this->load->library( 'item' );

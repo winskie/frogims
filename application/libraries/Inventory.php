@@ -5,10 +5,13 @@ class Inventory extends Base_model
 {
 	protected $store_id;
 	protected $item_id;
+	protected $parent_item_id;
 	protected $quantity;
 	protected $quantity_timestamp;
 	protected $buffer_level;
 	protected $reserved;
+
+	protected $item;
 
 	public function __construct()
 	{
@@ -17,6 +20,7 @@ class Inventory extends Base_model
 		$this->db_fields = array(
 			'store_id' => array( 'type' => 'integer' ),
 			'item_id' => array( 'type' => 'integer' ),
+			'parent_item_id' => array( 'type' => 'integer' ),
 			'quantity' => array( 'type' => 'decimal' ),
 			'quantity_timestamp' => array( 'type' => 'datetime' ),
 			'buffer_level' => array( 'type' => 'decimal' ),
@@ -24,25 +28,53 @@ class Inventory extends Base_model
 		);
 	}
 
+	public function get_item()
+	{
+		if( isset( $this->item ) )
+		{
+			return $this->item;
+		}
+
+		if( ! isset( $this->item_id ) )
+		{
+			return NULL;
+		}
+
+		$ci =& get_instance();
+		$ci->load->library( 'item' );
+		$Item = new Item();
+		$this->item = $Item->get_by_id( $this->item_id );
+
+		return $this->item;
+	}
+
 	public function get_categories()
-    {
-        $ci =& get_instance();
-        $ci->load->library( 'category' );
+	{
+		$ci =& get_instance();
+		$ci->load->library( 'category' );
 
-        $ci->db->select( 'c.*' );
-        $ci->db->where( 'ic_item_id', $this->item_id );
-        $ci->db->join( 'categories c', 'c.id = ic_category_id', 'left' );
-        $query = $ci->db->get( 'item_categories' );
+		$ci->db->select( 'c.*' );
+		$ci->db->where( 'ic_item_id', $this->item_id );
+		$ci->db->join( 'categories c', 'c.id = ic_category_id', 'left' );
+		$query = $ci->db->get( 'item_categories' );
 
-        return $query->custom_result_object( 'Category' );
-    }
+		return $query->custom_result_object( 'Category' );
+	}
 
 
-	public function get_by_store_item( $store_id, $item_id )
+	public function get_by_store_item( $store_id, $item_id, $parent_item_id = NULL, $create = FALSE )
 	{
 		$ci =& get_instance();
 		$ci->db->where( 'store_id', $store_id );
 		$ci->db->where( 'item_id', $item_id );
+		if( is_null( $parent_item_id ) )
+		{
+			$ci->db->where( 'parent_item_id IS NULL' );
+		}
+		else
+		{
+			$ci->db->where( 'parent_item_id', $parent_item_id );
+		}
 		$ci->db->limit( 1 );
 		$query = $ci->db->get( $this->primary_table );
 
@@ -50,18 +82,44 @@ class Inventory extends Base_model
 		{
 			return $query->row( 0, get_class( $this ) );
 		}
+		elseif( $create )
+		{
+			$ci->load->library( 'store' );
+			$ci->load->library( 'item' );
+
+			$Store = new Store();
+			$Item = new Item();
+			$store = $Store->get_by_id( $store_id );
+			$new_item = $Item->get_by_id( $item_id );
+
+			if( empty( $store ) || empty( $new_item ) )
+			{
+				return NULL;
+			}
+
+			return $store->add_item( $new_item, 0, $parent_item_id );
+		}
 
 		return NULL;
 	}
 
 
-	public function get_by_store_item_name( $store_id, $item_name )
+	public function get_by_store_item_name( $store_id, $item_name, $parent_item_name = NULL )
 	{
 		$ci =& get_instance();
 		$ci->db->select( 'a.*' );
 		$ci->db->join( 'items i', 'i.id = a.item_id', 'left' );
+		$ci->db->join( 'items pi', 'pi.id = a.parent_item_id', 'left' );
 		$ci->db->where( 'a.store_id', $store_id );
 		$ci->db->where( 'i.item_name', $item_name );
+		if( is_null( $parent_item_name ) )
+		{
+			$ci->db->where( 'pi.item_name IS NULL' );
+		}
+		else
+		{
+			$ci->db->where( 'pi.item_name', $parent_item_name );
+		}
 		$ci->db->limit( 1 );
 		$query = $ci->db->get( $this->primary_table.' a' );
 
@@ -125,11 +183,11 @@ class Inventory extends Base_model
 		// Update current inventory levels
 		$new_quantity = $this->quantity + $quantity;
 		$timestamp = date( TIMESTAMP_FORMAT );
-        $current_shift = $ci->session->current_shift_id;
+		$current_shift = $ci->session->current_shift_id;
 
 		$ci->db->trans_start();
 
-		$this->set( 'quantity', $new_quantity );
+		$this->set( 'quantity', ( double ) $new_quantity );
 		$this->set( 'quantity_timestamp', $timestamp );
 
 		$this->db_save();

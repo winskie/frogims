@@ -98,7 +98,7 @@ class Base_model
 	{
 		$ci =& get_instance();
 
-        $select = array( $this->primary_table.'.*' );
+		$select = array( $this->primary_table.'.*' );
 
 		$ci->db->select( implode(', ', $select ) );
 		$ci->db->where( $this->primary_table.'.id', $id );

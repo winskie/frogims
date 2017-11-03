@@ -291,6 +291,9 @@ class Store extends Base_model
 				WHERE
 					store_id = ?';
 
+		// Do not show subinventories
+		$sql .= ' AND parent_item_id IS NULL';
+
 		$query_params[] = $this->id;
 
 		$query = $ci->db->query( $sql, $query_params );
@@ -315,7 +318,7 @@ class Store extends Base_model
 	}
 
 
-	public function add_item( $item, $buffer_level = 0 )
+	public function add_item( $item, $buffer_level = 0, $parent_item_id = NULL )
 	{
 		$ci =& get_instance();
 
@@ -323,6 +326,7 @@ class Store extends Base_model
 		$data = array(
 			'store_id' => $this->id,
 			'item_id' => $item_id,
+			'parent_item_id' => $parent_item_id,
 			'quantity' => 0,
 			'quantity_timestamp' => date( TIMESTAMP_FORMAT ),
 			'buffer_level' => $buffer_level,
@@ -334,7 +338,7 @@ class Store extends Base_model
 		$ci->db->trans_complete();
 
 		$ci->load->library( 'Inventory' );
-		$inventory = $ci->inventory->get_by_store_item( $this->id, $item_id );
+		$inventory = $ci->inventory->get_by_store_item( $this->id, $item_id, $parent_item_id );
 
 		if ( $ci->db->trans_status() )
 		{
@@ -390,6 +394,9 @@ class Store extends Base_model
 		$ci->db->join( 'items i', 'i.id = si.item_id' );
 		$ci->db->join( 'shifts s', 's.id = t.transaction_shift' );
 		$ci->db->where( 'si.store_id', intval( $this->id ) );
+
+		// Do not include transactions of subinventories
+		$ci->db->where( 'si.parent_item_id IS NULL' );
 
 		if( $business_date )
 		{
