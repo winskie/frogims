@@ -176,7 +176,7 @@ class Inventory extends Base_model
 	}
 
 
-	public function transact( $transaction_type, $quantity, $datetime, $reference_id, $reference_item_id = NULL )
+	public function transact( $transaction_type, $quantity, $datetime, $reference_id, $reference_item_id = NULL, $category_id = NULL )
 	{
 		$ci =& get_instance();
 
@@ -195,13 +195,16 @@ class Inventory extends Base_model
 		// Generate inventory transaction record
 		$ci->db->set( 'store_inventory_id', $this->id );
 		$ci->db->set( 'transaction_type', $transaction_type );
+		$ci->db->set( 'transaction_date', date( DATE_FORMAT, strtotime( $datetime ) ) );
 		$ci->db->set( 'transaction_datetime', date( TIMESTAMP_FORMAT, strtotime( $datetime ) ) );
+		$ci->db->set( 'transaction_shift', $current_shift );
+		$ci->db->set( 'transaction_category_id', $category_id );
 		$ci->db->set( 'transaction_quantity', ( double ) $quantity );
 		$ci->db->set( 'current_quantity', ( double ) $new_quantity );
 		$ci->db->set( 'transaction_id', $reference_id);
 		$ci->db->set( 'transaction_item_id', $reference_item_id );
 		$ci->db->set( 'transaction_timestamp', $timestamp );
-		$ci->db->set( 'transaction_shift', $current_shift );
+
 		$ci->db->insert( 'transactions' );
 
 		$ci->db->trans_complete();

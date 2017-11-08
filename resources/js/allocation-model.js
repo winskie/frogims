@@ -506,11 +506,11 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 							{
 								tempObj[this.allocations[i].allocated_item_id].scheduled += this.allocations[i].allocated_quantity;
 							}
-							else if( this.allocations[i].category_name == 'Initial Allocation' )
+							else if( this.allocations[i].cat_description == 'Initial Allocation' )
 							{
 								tempObj[this.allocations[i].allocated_item_id].initial += this.allocations[i].allocated_quantity;
 							}
-							else if( this.allocations[i].category_name == 'Additional Allocation' )
+							else if( this.allocations[i].cat_description == 'Additional Allocation' )
 							{
 								tempObj[this.allocations[i].allocated_item_id].additional += this.allocations[i].allocated_quantity;
 							}
@@ -542,11 +542,11 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 							{
 								tempObj[this.cash_allocations[i].allocated_item_id].scheduled += this.cash_allocations[i].allocated_quantity;
 							}
-							else if( this.cash_allocations[i].category_name == 'Initial Change Fund' )
+							else if( this.cash_allocations[i].cat_description == 'Initial Change Fund' )
 							{
 								tempObj[this.cash_allocations[i].allocated_item_id].initial += this.cash_allocations[i].allocated_quantity * this.cash_allocations[i].iprice_unit_price;
 							}
-							else if( this.cash_allocations[i].category_name == 'Additional Change Fund' )
+							else if( this.cash_allocations[i].cat_description == 'Additional Change Fund' )
 							{
 								tempObj[this.cash_allocations[i].allocated_item_id].additional += this.cash_allocations[i].allocated_quantity;
 							}
@@ -648,11 +648,11 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 									};
 							}
 
-							if( this.remittances[i].category_name == 'Unsold / Loose' )
+							if( this.remittances[i].cat_description == 'Unsold / Loose' )
 							{
 								tempObj[this.remittances[i].allocated_item_id].unsold += this.remittances[i].allocated_quantity;
 							}
-							else if( this.remittances[i].category_name == 'Reject Bin' )
+							else if( this.remittances[i].cat_description == 'Reject Bin' )
 							{
 								tempObj[this.remittances[i].allocated_item_id].rejected += this.remittances[i].allocated_quantity;
 							}

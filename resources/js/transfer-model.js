@@ -41,15 +41,14 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 			};
 
 		var transferCategories = {
-				'1': 'External',
-				'2': 'Regular',
+				'1': 'External Transfer',
+				'2': 'Internal Transfer',
 				'3': 'Ticket Turnover',
 				'4': 'Stock Replenishment',
-				'5': 'Cashroom to Cashroom',
-				'6': 'Blackbox Receipt',
-				'7': 'Passenger Issuance',
-				'8': 'Bills to Coins Exchange',
-				'9': 'CSC Application'
+				'5': 'Blackbox Receipt',
+				'6': 'Bills to Coins Exchange',
+				'7': 'CSC Application',
+				'8': 'Bank Deposit',
 			};
 
 		var transferValidationReceiptStatus = {
@@ -645,6 +644,10 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 
 						case 'receive':
 							transferUrl += 'receive';
+							break;
+
+						case 'quick_receive':
+							transferUrl += 'quick_receive';
 							break;
 
 						default:

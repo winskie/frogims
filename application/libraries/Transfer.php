@@ -33,6 +33,8 @@ class Transfer extends Base_model {
 	protected $voided_items;
 	protected $transfer_validation;
 
+	protected $_quick_receipt = FALSE;
+
 	protected $status_log = array(
 			'table' => 'transfer_status_log',
 			'status_field' => 'transfer_status',
@@ -195,7 +197,7 @@ class Transfer extends Base_model {
 					'item_name' => array( 'type', 'string' ),
 					'item_description' => array( 'type', 'string' ),
 					'item_unit' => array( 'type', 'string' ),
-					'category_name' => array( 'type', 'string' ) ) );
+					'cat_description' => array( 'type', 'string' ) ) );
 		}
 		$transfer_data['items'] = $items_data;
 
@@ -360,7 +362,7 @@ class Transfer extends Base_model {
 		{
 			$ci->load->library( 'transfer_item' );
 			$ci->db->select( 'ti.*, i.item_name, i.item_description, i.item_unit,
-					c.category as category_name, c.is_transfer_category, ip.iprice_unit_price' );
+					c.cat_description, c.cat_module, ip.iprice_unit_price' );
 			$ci->db->where( 'transfer_id', $this->id );
 			$ci->db->join( 'items i', 'i.id = ti.item_id', 'left' );
 			$ci->db->join( 'categories c', 'c.id = ti.transfer_item_category_id', 'left' );
@@ -825,18 +827,18 @@ class Transfer extends Base_model {
 
 					if( $is_in_transit && $in_transit_fund )
 					{ // In Transit transaction, add cash item amount to In Transit Fund
-						$in_transit_fund->transact( TRANSACTION_TRANSFER_OUT, $amount, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+						$in_transit_fund->transact( TRANSACTION_TRANSFER_OUT, $amount, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
 					}
 					elseif( $is_csc_application )
 					{
-						$csc_card_fee_fund->transact( TRANSACTION_TRANSFER_OUT, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+						$csc_card_fee_fund->transact( TRANSACTION_TRANSFER_OUT, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
 						$transact_inventory = false;
 						$deduct_from_vault = false;
 					}
 
 					if( $change_fund && $deduct_from_vault )
 					{
-						$change_fund->transact( TRANSACTION_TRANSFER_OUT, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+						$change_fund->transact( TRANSACTION_TRANSFER_OUT, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
 					}
 				}
 
@@ -847,7 +849,7 @@ class Transfer extends Base_model {
 					{
 						$quantity = $transfer_item->get( 'quantity' ) * -1; // Item will be removed from inventory
 						$inventory->reserve( $quantity );
-						$inventory->transact( TRANSACTION_TRANSFER_OUT, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+						$inventory->transact( TRANSACTION_TRANSFER_OUT, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
 					}
 				}
 
@@ -887,12 +889,12 @@ class Transfer extends Base_model {
 
 				if( $is_in_transit && $in_transit_fund )
 				{ // In transit transaction, deduct cash item amount to In Transit Fund
-					$in_transit_fund->transact( TRANSACTION_TRANSFER_CANCEL, $amount, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+					$in_transit_fund->transact( TRANSACTION_TRANSFER_CANCEL, $amount, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
 				}
 
 				if( $change_fund )
 				{
-					$change_fund->transact( TRANSACTION_TRANSFER_CANCEL, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+					$change_fund->transact( TRANSACTION_TRANSFER_CANCEL, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
 				}
 			}
 
@@ -910,7 +912,7 @@ class Transfer extends Base_model {
 			$quantity = $transfer_item->get( 'quantity' ); // Item will be returned to the inventory
 			if( $transfer_item->get( 'transfer_item_status' ) == TRANSFER_ITEM_APPROVED )
 			{
-				$inventory->transact( TRANSACTION_TRANSFER_CANCEL, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+				$inventory->transact( TRANSACTION_TRANSFER_CANCEL, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
 			}
 
 			if( in_array( $transfer_item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_SCHEDULED, TRANSFER_ITEM_APPROVED ) ) )
@@ -941,8 +943,8 @@ class Transfer extends Base_model {
 
 		//$transaction_datetime = $this->receipt_datetime;
 		$transaction_datetime = date( TIMESTAMP_FORMAT );
-
 		$ci->db->trans_start();
+
 		foreach( $transfer_items as $transfer_item )
 		{
 			$transact_inventory = true;
@@ -957,11 +959,11 @@ class Transfer extends Base_model {
 
 					if( $is_in_transit && $in_transit_fund )
 					{ // In Transit transaction, add cash item amount to In Transit Fund
-						$in_transit_fund->transact( TRANSACTION_TRANSFER_IN, $amount, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+						$in_transit_fund->transact( TRANSACTION_TRANSFER_IN, $amount, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
 					}
 					elseif( $is_csc_application )
 					{
-						$csc_card_fee_fund->transact( TRANSACTION_TRANSFER_IN, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+						$csc_card_fee_fund->transact( TRANSACTION_TRANSFER_IN, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
 						// CSC application goes directly to card fee fund
 						$transact_inventory = false;
 						$add_to_vault = false;
@@ -969,11 +971,20 @@ class Transfer extends Base_model {
 
 					if( $change_fund && $add_to_vault )
 					{
-						$change_fund->transact( TRANSACTION_TRANSFER_IN, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+						$change_fund->transact( TRANSACTION_TRANSFER_IN, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
 					}
 				}
 
-				$quantity = $transfer_item->get( 'quantity_received' ); // Item will be added to the inventory
+				if( $this->_quick_receipt )
+				{ // Quantity received is always equal to quantity sent
+					$quantity = $transfer_item->get( 'quantity' );
+					$transfer_item->set( 'quantity_received', $quantity );
+				}
+				else
+				{
+					$quantity = $transfer_item->get( 'quantity_received' ); // Item will be added to the inventory
+				}
+
 
 				if( $transact_inventory )
 				{
@@ -988,14 +999,16 @@ class Transfer extends Base_model {
 						$inventory = $current_store->add_item( $new_item );
 					}
 
-					$inventory->transact( TRANSACTION_TRANSFER_IN, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ) );
+					$inventory->transact( TRANSACTION_TRANSFER_IN, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
 				}
 
+				/* This does not work all the time! See Quick Receipt.
 				if( is_null( $quantity ) )
 				{
 					$quantity = $transfer_item->get( 'quantity' );
 					$transfer_item->set( 'quantity_received', $quantity );
 				}
+				*/
 				$transfer_item->set( 'transfer_item_status', TRANSFER_ITEM_RECEIVED );
 				$transfer_item->db_save();
 			}
@@ -1033,12 +1046,12 @@ class Transfer extends Base_model {
 
 					if( $is_in_transit && $in_transit_fund )
 					{ // In transit transaction, deduct cash item amount to In Transit Fund
-						$in_transit_fund->transact( TRANSACTION_TRANSFER_VOID, $amount, $transaction_datetime, $this->id, $voided_item->get( 'id' ) );
+						$in_transit_fund->transact( TRANSACTION_TRANSFER_VOID, $amount, $transaction_datetime, $this->id, $voided_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
 					}
 
 					if( $change_fund )
 					{
-						$change_fund->transact( TRANSACTION_TRANSFER_VOID, $amount * -1, $transaction_datetime, $this->id, $voided_item->get( 'id' ) );
+						$change_fund->transact( TRANSACTION_TRANSFER_VOID, $amount * -1, $transaction_datetime, $this->id, $voided_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
 					}
 				}
 
@@ -1159,7 +1172,7 @@ class Transfer extends Base_model {
 	}
 
 
-	public function receive()
+	public function receive( $quick_receipt = FALSE )
 	{
 		$ci =& get_instance();
 
@@ -1180,7 +1193,9 @@ class Transfer extends Base_model {
 
 		$ci->db->trans_start();
 		$this->set( 'transfer_status', TRANSFER_RECEIVED );
+		$this->_quick_receipt = $quick_receipt;
 		$result = $this->db_save();
+		$this->_quick_receipt = FALSE;
 		if( $result )
 		{
 			$ci->db->trans_complete();

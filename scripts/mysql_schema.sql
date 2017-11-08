@@ -286,18 +286,24 @@ CREATE TABLE IF NOT EXISTS transactions
 	id INTEGER AUTO_INCREMENT NOT NULL,
 	store_inventory_id INTEGER NOT NULL,
 	transaction_type SMALLINT NOT NULL,
+	transaction_date DATE NOT NULL,
 	transaction_datetime DATETIME NOT NULL,
+	transaction_shift INTEGER NOT NULL,
+	transaction_category_id INTEGER NULL DEFAULT NULL,
 	transaction_quantity DECIMAL(15,2) NOT NULL DEFAULT 0,
 	current_quantity DECIMAL(15,2) NOT NULL,
 	transaction_id INTEGER NOT NULL,
 	transaction_item_id INTEGER NULL DEFAULT NULL,
 	transaction_timestamp DATETIME NOT NULL,
-	transaction_shift INTEGER NOT NULL,
 	PRIMARY KEY (id),
 	INDEX transactions_main_ndx (transaction_datetime, transaction_type),
+	INDEX transactions_shift_ndx (transaction_date, transaction_shift, transaction_type),
 	FOREIGN KEY transactions_store_inventory_fk (store_inventory_id) REFERENCES store_inventory (id)
 		ON UPDATE CASCADE
-		ON DELETE RESTRICT
+		ON DELETE RESTRICT,
+	FOREIGN KEY transactions_category_fk (transaction_category_id) REFERENCES categories(id)
+		ON UPDATE CASCADE
+		ON DELETE SET NULL
 )
 ENGINE=InnoDB;
 
@@ -660,21 +666,20 @@ CREATE TABLE IF NOT EXISTS mopping_items
 ENGINE=InnoDB;
 
 
--- category_type: 1 - allocation, 2 - remittance
--- category_status: 0 - inactive, 1 - in use
+-- cat_status: 0 - inactive, 1 - in use
 CREATE TABLE IF NOT EXISTS categories
 (
 	id INTEGER AUTO_INCREMENT NOT NULL,
-	category VARCHAR(100) NOT NULL,
-	category_type SMALLINT NOT NULL,
-	is_allocation_category BOOLEAN NOT NULL DEFAULT 0,
-	is_remittance_category BOOLEAN NOT NULL DEFAULT 0,
-	is_ticket_sales_category BOOLEAN NOT NULL DEFAULT 0,
-	is_transfer_category BOOLEAN NOT NULL DEFAULT 0,
-	is_teller BOOLEAN NOT NULL,
-	is_machine BOOLEAN NOT NULL,
-	category_status SMALLINT NOT NULL DEFAULT 1,
-	PRIMARY KEY (id)
+	cat_name VARCHAR(10) NOT NULL,
+	cat_description VARCHAR(100) NOT NULL,
+	cat_module VARCHAR(100) NOT NULL,
+	cat_cash BOOLEAN NOT NULL DEFAULT 0,
+	cat_ticket BOOLEAN NOT NULL DEFAULT 0,
+	cat_teller BOOLEAN NULL DEFAULT NULL,
+	cat_machine BOOLEAN NULL DEFAULT NULL,
+	cat_status SMALLINT NOT NULL DEFAULT 1,
+	PRIMARY KEY (id),
+	UNIQUE cat_name_udx (cat_name)
 )
 ENGINE=InnoDB;
 

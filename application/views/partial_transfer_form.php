@@ -40,11 +40,6 @@
 						<div class="form-group">
 							<label class="control-label col-sm-3">Destination</label>
 							<div class="input-group col-sm-8" ng-if="[ 'transfer', 'externalTransfer' ].indexOf( data.editMode ) != -1">
-								<div class="input-group-btn">
-									<button type="button" class="btn btn-default" ng-click="toggle( 'destination' )">
-										<i class="glyphicon glyphicon-refresh"></i>
-									</button>
-								</div>
 								<select class="form-control ng-animate-disabled"
 										ng-model="data.selectedDestination"
 										ng-options="store.store_name for store in data.destinations track by store.id"
@@ -163,7 +158,7 @@
 							{{ row.quantity_received == null ? '---' : ( row.quantity_received | number ) }}
 						</span>
 					</td>
-					<td class="text-left">{{ row.category_name ? row.category_name : '- None -' }}</td>
+					<td class="text-left">{{ row.cat_description }}</td>
 					<td class="text-left">{{ row.remarks }}</td>
 					<td class="text-center" ng-if="[ 'view', 'receipt' ].indexOf( data.editMode ) == -1">
 						<a href
@@ -214,7 +209,7 @@
 				<label class="control-label">Category</label>
 				<select class="form-control"
 						ng-model="input.category"
-						ng-options="category as category.category for category in data.categories track by category.id">
+						ng-options="category as category.cat_description for category in ( input.inventoryItem.categories | filter:{ cat_module: 'Transfer' }:true ) track by category.id">
 				</select>
 			</div>
 			<div class="form-group" ng-class="{ 'col-sm-12 col-md-6 col-lg-3': data.showCategory, 'col-sm-12 col-md-6 col-lg-6': !data.showCategory }">
@@ -306,10 +301,10 @@
 						ng-if="transferItem.canApprove( true )">
 						<i class="glyphicon glyphicon-ok"></i> Approve
 				</button>
-				<button type="button" class="btn btn-success" ng-click="receiveTransfer()"
+				<button type="button" class="btn btn-success" ng-click="receiveTransfer( true )"
 						ng-disabled="pendingAction || !transferItem.canReceive()"
 						ng-if="transferItem.canReceive( true )">
-						<i class="glyphicon glyphicon-ok"></i> Receive
+						<i class="glyphicon glyphicon-ok"></i> Quick Receive
 				</button>
 				<button type="button" class="btn btn-default" ui-sref="main.store({ activeTab: ( data.mode == 'transfer' ? 'transfers' : 'receipts' ) })">Close</button>
 			</div>

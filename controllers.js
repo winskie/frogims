@@ -988,7 +988,7 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 
 		$scope.receiveTransfer = function( transfer )
 			{
-				transfer.save( 'receive' ).then(
+				transfer.save( 'quick_receive' ).then(
 					function( response )
 					{
 						notifications.alert( 'Transfer received', 'success' );
@@ -1499,26 +1499,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			return null;
 		}
 
-		function filterItemsWithCategory( items, categoryName )
-		{
-			var n = items.length;
-			var m, filteredItems = [];
-			for( var i = 0; i < n; i++ )
-			{
-				m = items[i].categories.length;
-				for( var j = 0; j < m; j++ )
-				{
-					if( items[i].categories[j].category == categoryName )
-					{
-						filteredItems.push( items[i] );
-						break;
-					}
-				}
-			}
-
-			return filteredItems;
-		}
-
 		function filterCashItems( items )
 		{
 			var n = items.length;
@@ -1532,6 +1512,11 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			}
 
 			return filteredItems;
+		}
+
+		function filterTransferCategories( category, index, array )
+		{
+			return category.store_types.indexOf( session.data.currentStore.store_type ) != -1;
 		}
 
 		$scope.pendingAction = false;
@@ -1548,7 +1533,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			inventoryItems: angular.copy( appData.data.items ),
 			categories: [],
 			sweepers: [],
-			transferCategories: angular.copy( appData.data.transferCategories ),
+			transferCategories: $filter( 'filter' )( angular.copy( appData.data.transferCategories ), filterTransferCategories ),
 			selectedCategory: null,
 			autoCategory: true,
 			transferDatepicker: { format: 'yyyy-MM-dd', opened: false },
@@ -1570,8 +1555,15 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		$scope.findUser = UserServices.findUser;
 
-		$scope.changeEditMode = function()
+		$scope.changeEditMode = function( editMode )
 			{
+				var validEditModes = [ 'transfer', 'receipt', 'externalTransfer', 'externalReceipt' ];
+
+				if( editMode && validEditModes.indexOf( editMode ) != -1 )
+				{
+					$scope.data.editMode = editMode;
+				}
+
 				switch( $scope.data.editMode )
 				{
 					case 'transfer':
@@ -1579,6 +1571,8 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.data.title = 'Transfer';
 						$scope.isExternalSource = false;
 						$scope.isExternalDestination = false;
+
+						/*
 						$scope.data.sources = [ $scope.currentStore ];
 						if( $scope.transferItem.origin_id )
 						{
@@ -1607,6 +1601,9 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 							console.error( 'Unable to load destination stores' );
 						}
 
+						// Set applicable transfer categories
+						$scope.data.transferCategories = angular.copy( appData.data.transferCategories );
+						*/
 						break;
 
 					case 'receipt':
@@ -1614,6 +1611,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.data.title = 'Receipt';
 						$scope.isExternalSource = false;
 						$scope.isExternalDestination = false;
+						/*
 						$scope.data.sources = $filter( 'filter' )( appData.data.stores, { id: '!' + session.data.currentStore.id }, function(a, e) { return angular.equals( parseInt( a ), parseInt( e ) ) } );
 						if( $scope.transferItem.origin_id )
 						{
@@ -1637,6 +1635,10 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						{
 							$scope.data.selectedDestination = session.data.currentStore;
 						}
+
+						// Set applicable transfer categories
+						$scope.data.transferCategories = angular.copy( appData.data.transferCategories );
+						*/
 						break;
 
 					case 'externalTransfer':
@@ -1644,6 +1646,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.data.title = 'External Transfer';
 						$scope.isExternalSource = false;
 						$scope.isExternalDestination = true;
+						/*
 						$scope.data.sources = [ session.data.currentStore ];
 						if( $scope.transferItem.origin_id )
 						{
@@ -1654,7 +1657,11 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 							$scope.data.selectedSource = session.data.currentStore;
 						}
 
-						// $scope.data.destinations = []; // why do we need to clear this?
+						// Set applicable transfer categories
+						$scope.data.transferCategories = angular.copy( appData.data.transferCategories );
+
+						$scope.data.destinations = []; // why do we need to clear this?
+						*/
 						break;
 
 					case 'externalReceipt':
@@ -1662,6 +1669,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.data.title = 'External Receipt';
 						$scope.isExternalSource = true;
 						$scope.isExternalDestination = false;
+						/*
 						// $scope.data.sources = []; // why do we need to clear this?
 
 						$scope.data.destinations = [ session.data.currentStore ];
@@ -1673,6 +1681,10 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						{
 							$scope.data.selectedDestination = session.data.currentStore;
 						}
+
+						// Set applicable transfer categories
+						$scope.data.transferCategories = $filter( 'filter' )( appData.data.transferCategories, { categoryName: '!Internal Transfer' }, true );
+						*/
 						break;
 
 					case 'view':
@@ -1716,6 +1728,8 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				{
 					$scope.data.title = 'New ' + $scope.data.title;
 				}
+
+				// Check if current selected transfer category is valid
 			};
 
 		$scope.showDatePicker = function( dp )
@@ -1784,14 +1798,13 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				$scope.changeEditMode();
 				if( $scope.data.autoCategory )
 				{
-					$scope.transferItem.transfer_category = suggestTransferCategory( $scope.data.selectedCategory );
+					//$scope.transferItem.transfer_category = suggestTransferCategory( $scope.data.selectedCategory );
 				}
 			};
 
 		$scope.updateItemCategories = function()
 			{
-				$scope.data.categories = $filter( 'filter' )( $scope.input.inventoryItem.categories, { is_transfer_category: true }, true );
-				$scope.data.categories.unshift( { id: null, category: '- None -' });
+				$scope.data.categories = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_module: 'Transfer' }, true );
 			};
 
 		$scope.getItemQuantities = function()
@@ -1822,19 +1835,11 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 		$scope.changeSource = function()
 			{
 				$scope.transferItem.setOrigin( $scope.data.selectedSource );
-				if( $scope.data.autoCategory )
-				{
-					$scope.transferItem.transfer_category = suggestTransferCategory();
-				}
 			};
 
 		$scope.changeDestination = function()
 			{
 				$scope.transferItem.setDestination( $scope.data.selectedDestination );
-				if( $scope.data.autoCategory )
-				{
-					$scope.transferItem.transfer_category = suggestTransferCategory();
-				}
 			}
 
 		$scope.changeTransferCategory = function( category )
@@ -1844,15 +1849,116 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 				switch( category.categoryName )
 				{
-					case 'Blackbox Receipt':
+					case 'External Transfer':
+						switch( $scope.data.editMode )
+						{ // Switch to external
+							case 'receipt':
+								$scope.data.editMode = 'externalReceipt';
+							case 'externalReceipt':
+								$scope.data.selectedSource = null;
+								$scope.data.selectedDestination = session.data.currentStore;
+								break;
+
+							case 'transfer':
+								$scope.data.editMode = 'externalTransfer';
+							case 'externalTransfer':
+								$scope.data.selectedSource = session.data.currentStore;
+								$scope.data.selectedDestination = null;
+								break;
+						}
+						$scope.changeEditMode();
+
 						var filteredItems;
-						filteredItems = filterItemsWithCategory( appData.data.items, 'Blackbox' );
+						filteredItems = $filter( 'itemsWithCategory' )( appData.data.items, 'ExtTrans' );
 						if( filteredItems.length > 0 )
 						{
 							$scope.data.inventoryItems = filteredItems;
 							$scope.input.inventoryItem = $scope.data.inventoryItems[0];
 							$scope.onItemChange();
-							$scope.input.category = $filter( 'filter' )( $scope.data.categories, { category: 'Blackbox' }, true )[0];
+							$scope.input.category = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_name: 'ExtTrans' }, true )[0];
+						}
+						break;
+
+					case 'Internal Transfer':
+						switch( $scope.data.editMode )
+						{
+							case 'externalReceipt':
+								$scope.data.editMode = 'receipt';
+								console.error( 'Should not be possible! Contact the system administrator.' );
+							case 'receipt':
+								$scope.selectedDestination = session.data.currentStore;
+								break;
+
+							case 'externalTransfer':
+								$scope.data.editMode = 'transfer';
+							case 'transfer':
+								$scope.data.selectedSource = session.data.currentStore;
+								$scope.data.destinations = $filter( 'filter' )( appData.data.stores, { id: '!' + session.data.currentStore.id }, function(a, e) { return angular.equals( parseInt(a), parseInt(e) ) } );
+								$scope.data.selectedDestination = $scope.data.destinations[0];
+								break;
+						}
+						$scope.changeEditMode();
+
+						var filteredItems;
+						filteredItems = $filter( 'itemsWithCategory' )( appData.data.items, 'IntTrans' );
+						if( filteredItems.length > 0 )
+						{
+							$scope.data.inventoryItems = filteredItems;
+							$scope.input.inventoryItem = $scope.data.inventoryItems[0];
+							$scope.onItemChange();
+							$scope.input.category = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_name: 'IntTrans' }, true )[0];
+						}
+						break;
+
+					case 'Ticket Turnover':
+						$scope.data.selectedSource = session.data.currentStore;
+						// Filter destination to stores with production store type
+						$scope.data.destinations = $filter( 'filter' )( appData.data.stores, { store_type: 2 }, true );
+						$scope.data.selectedDestination = $scope.data.destinations[0];
+						$scope.changeEditMode( 'transfer' );
+
+						var filteredItems;
+						filteredItems = $filter( 'itemsWithCategory' )( appData.data.items, 'TktTurn' );
+						if( filteredItems.length > 0 )
+						{
+							$scope.data.inventoryItems = filteredItems;
+							$scope.input.inventoryItem = $scope.data.inventoryItems[0];
+							$scope.onItemChange();
+							$scope.input.category = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_name: 'TktTurn' }, true )[0];
+						}
+						break;
+
+					case 'Stock Replenishment':
+						$scope.data.selectedSource = session.data.currentStore;
+						// Filter destination to stores with cashroom store type
+						$scope.data.destinations = $filter( 'filter' )( appData.data.stores, { store_type: 4 }, true );
+						$scope.data.selectedDestination = $scope.data.destinations[0];
+						$scope.changeEditMode( 'transfer' );
+
+						var filteredItems;
+						filteredItems = $filter( 'itemsWithCategory' )( appData.data.items, 'StockRep' );
+						if( filteredItems.length > 0 )
+						{
+							$scope.data.inventoryItems = filteredItems;
+							$scope.input.inventoryItem = $scope.data.inventoryItems[0];
+							$scope.onItemChange();
+							$scope.input.category = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_name: 'StockRep' }, true )[0];
+						}
+						break;
+
+					case 'Blackbox Receipt':
+						$scope.data.selectedSource = null;
+						$scope.data.selectedDestination = session.data.currentStore;
+						$scope.changeEditMode( 'externalReceipt' );
+
+						var filteredItems;
+						filteredItems = $filter( 'itemsWithCategory' )( appData.data.items, 'Blackbox' );
+						if( filteredItems.length > 0 )
+						{
+							$scope.data.inventoryItems = filteredItems;
+							$scope.input.inventoryItem = $scope.data.inventoryItems[0];
+							$scope.onItemChange();
+							$scope.input.category = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_name: 'Blackbox' }, true )[0];
 						}
 						break;
 
@@ -1860,23 +1966,29 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						switch( $scope.data.editMode )
 						{
 							case 'receipt':
-								$scope.toggle( 'source', 'externalReceipt' );
+								$scope.data.editMode = 'externalReceipt';
 							case 'externalReceipt':
+								$scope.data.selectedSource = null;
+								$scope.data.selectedDestination = session.data.currentStore;
 								break;
 
 							case 'transfer':
-								$scope.toggle( 'destination', 'externalTransfer' );
+								$scope.data.editMode = 'externalTransfer';
 							case 'externalTransfer':
+								$scope.data.selectedSource = session.data.currentStore;
+								$scope.data.selectedDestination = null;
 								break;
 						}
+						$scope.changeEditMode();
+
 						var filteredItems;
-						filteredItems = filterCashItems( appData.data.items );
+						filteredItems = $filter( 'itemsWithCategory' )( appData.data.items, 'BillToCoin' );
 						if( filteredItems.length > 0 )
 						{
 							$scope.data.inventoryItems = filteredItems;
 							$scope.input.inventoryItem = $scope.data.inventoryItems[0];
 							$scope.onItemChange();
-							$scope.input.category = $scope.data.categories[0];
+							$scope.input.category = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_name: 'BillToCoin' }, true )[0];
 						}
 						break;
 
@@ -1884,31 +1996,50 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						switch( $scope.data.editMode )
 						{
 							case 'receipt':
-								$scope.toggle( 'source', 'externalReceipt' );
+								$scope.data.editMode = 'externalReceipt';
 							case 'externalReceipt':
+								$scope.data.selectedSource = null;
+								$scope.data.selectedDestination = session.data.currentStore;
 								break;
 
 							case 'transfer':
-								$scope.toggle( 'destination', 'externalTransfer' );
+								$scope.data.editMode = 'externalTransfer';
 							case 'externalTransfer':
+								$scope.data.selectedSource = session.data.currentStore;
+								$scope.data.selectedDestination = null;
 								break;
 						}
 						var filteredItems;
-						filteredItems = filterCashItems( appData.data.items );
+						filteredItems = $filter( 'itemsWithCategory' )( appData.data.items, 'CSCApp' );
 						if( filteredItems.length > 0 )
 						{
 							$scope.data.inventoryItems = filteredItems;
 							$scope.input.inventoryItem = $scope.data.inventoryItems[0];
 							$scope.onItemChange();
-							$scope.input.category = $scope.data.categories[0];
+							$scope.input.category = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_name: 'CSCApp' }, true )[0];
 						}
 						break;
 
-					default:
-						$scope.data.inventoryItems = angular.copy( appData.data.items );
-						$scope.onItemChange();
-						$scope.input.category = $scope.data.categories[0];
+					case 'Bank Deposit':
+						$scope.data.selectedSource = session.data.currentStore;
+						$scope.data.selectedDestination = null;
+						$scope.changeEditMode( 'externalTransfer' );
+
+						var filteredItems;
+						filteredItems = $filter( 'itemsWithCategory' )( appData.data.items, 'BankDep' );
+						if( filteredItems.length > 0 )
+						{
+							$scope.data.inventoryItems = filteredItems;
+							$scope.input.inventoryItem = $scope.data.inventoryItems[0];
+							$scope.onItemChange();
+							$scope.input.category = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_name: 'BankDep' }, true )[0];
+						}
+						break;
 				}
+
+				// Apply changes to source and destination
+				$scope.changeSource();
+				$scope.changeDestination();
 			};
 
 		$scope.onItemChange = function()
@@ -1967,13 +2098,13 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				{
 					var data = {
 							item_name: $scope.input.inventoryItem.item_name,
-							category_name: $scope.input.category.category,
+							cat_description: $scope.input.category.cat_description,
 
 							item_id: $scope.input.inventoryItem.item_id,
 							transfer_item_category_id: $scope.input.category.id,
 							quantity: $scope.input.quantity,
 							remarks: $scope.input.remarks,
-							transfer_item_status: 1 // TRANSFER_ITEM_SCHEDULED
+							transfer_item_status: 1, // TRANSFER_ITEM_SCHEDULED
 						};
 
 					if( $scope.data.editMode == 'externalReceipt' )
@@ -2074,12 +2205,12 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				}
 			};
 
-		$scope.receiveTransfer = function()
+		$scope.receiveTransfer = function( quick )
 			{
 				if( !$scope.pendingAction )
 				{
 					$scope.pendingAction = true;
-					$scope.transferItem.save( 'receive' ).then(
+					$scope.transferItem.save( quick ? 'quick_receive' : 'receive' ).then(
 						function( response )
 						{
 							appData.refresh( session.data.currentStore.id, 'receipts' );
@@ -2135,7 +2266,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		// Select initial category
 		$scope.updateItemCategories();
-		$scope.input.category = $scope.data.categories[0];
+		$scope.input.category = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_module: 'Transfer' }, true )[0];
 
 		if( $stateParams.transferItem )
 		{ // Load transfer record
@@ -2305,15 +2436,65 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 		}
 		else
 		{
+			var defaultCategory;
+
 			$scope.transferItem = new Transfer();
 			$scope.transferItem.setMode( $scope.data.editMode );
 			$scope.changeEditMode();
-			$scope.changeSource();
-			$scope.changeDestination();
-			if( $scope.data.autoCategory )
+
+			if( $stateParams.category )
 			{
-				$scope.transferItem.transfer_category = suggestTransferCategory();
+				var defaultCategories = $filter( 'filter' )( appData.data.transferCategories, { categoryName: $stateParams.category }, true );
+				if( $defaultCategories.length )
+				{
+					$defaultCategory = $defaultCategories[0];
+				}
+				else
+				{
+					console.error( 'Invalid transfer category. Please contact the system administrator.' );
+				}
 			}
+			else
+			{
+				// Change to default category per store type
+				switch( session.data.currentStore.store_type )
+				{
+					case 3: // TGM
+						defaultCategory = { id: 4, categoryName: 'Stock Replenishment', transfer: true, receipt: false };
+						break;
+					case 4: // Cashroom
+						defaultCategory = { id: 6, categoryName: 'Bills to Coins Exchange', transfer: true, receipt: true };
+						break;
+
+					case 1: // Standard
+					case 2: // Production
+					default:
+						switch( $scope.data.editMode )
+						{
+							case 'transfer':
+								defaultCategory = { id: 2, categoryName: 'Internal Transfer', transfer: true, receipt: false };
+								break;
+
+							case 'externalTransfer':
+								defaultCategory = { id: 1, categoryName: 'External Transfer', transfer: true, receipt: false };
+								break;
+
+							case 'receipt':
+								defaultCategory = { id: 2, categoryName: 'Internal Transfer', transfer: true, receipt: false };
+								break;
+
+							case 'externalReceipt':
+								defaultCategory = { id: 1, categoryName: 'External Transfer', transfer: true, receipt: false };
+								break;
+						}
+				}
+			}
+			if( defaultCategory )
+			{
+				$scope.changeTransferCategory( defaultCategory );
+			}
+			//$scope.changeSource();
+			//$scope.changeDestination();
 		}
 	}
 ]);
@@ -3126,6 +3307,12 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 			return true;
 		}
 
+		function empty_category_filter( value, index, array )
+		{
+			//console.log( value );
+			return value.categories.length > 0;
+		}
+
 		$scope.pendingAction = false;
 
 		$scope.data = {
@@ -3271,6 +3458,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 				if( $scope.data.allocationPhase != 'sales' )
 				{
 					$scope.data.inventoryItems = $filter( 'filter' )( appData.data.items, filter, true );
+					$scope.data.inventoryItems = $filter( 'filter' )( $scope.data.inventoryItems, empty_category_filter );
 					if( $scope.data.inventoryItems.length )
 					{
 						$scope.input.item = $scope.data.inventoryItems[0];
@@ -3431,7 +3619,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 						{
 							var data = {
 									cashier_shift_num: session.data.currentShift.shift_num,
-									category_name: $scope.input.category.category,
+									category_name: $scope.input.category.cat_description,
 									item_name: $scope.input.item.item_name,
 									item_class: $scope.input.item.item_class,
 
@@ -3706,6 +3894,7 @@ app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$state
 
 		$scope.loadPreviousReading = function()
 			{
+				/*
 				if( $scope.TVMReading.tvmr_machine_id && $scope.TVMReading.tvmr_datetime && $scope.data.selectedCashierShift.id )
 				{
 					var previousShiftData = appData.getPreviousShift( $scope.TVMReading.tvmr_datetime, $scope.data.selectedCashierShift.id );
@@ -3727,7 +3916,7 @@ app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$state
 				{
 					$scope.TVMReading.previous_reading = null;
 				}
-				//appData.getTVMReadingByParams();
+				*/
 			};
 
 

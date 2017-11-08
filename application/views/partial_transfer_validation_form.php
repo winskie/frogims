@@ -203,7 +203,7 @@
 					<td class="text-center">{{ $index + 1 }}</td>
 					<td class="text-left">{{ row.item_name }}</td>
 					<td class="text-left">{{ row.remarks ? row.remarks : '---' }}</td>
-					<td class="text-left">{{ row.category_name ? row.category_name : '---' }}</td>
+					<td class="text-left">{{ row.cat_description ? row.cat_description : '---' }}</td>
 					<td class="text-center">{{ row.quantity | number }}</td>
 					<td class="text-center">
 						<i class="glyphicon glyphicon-exclamation-sign text-danger"

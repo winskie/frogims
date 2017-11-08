@@ -57,49 +57,77 @@ angular.module( 'coreModels', [] );
 
 app.constant( 'baseUrl', baseUrl );
 
+app.filter('itemsWithCategory', function()
+{
+	return function( items, categoryName )
+	{
+		var filteredItems = [];
+		var validProps = [ 'cash', 'ticket', 'teller', 'machine' ];
+		for( var i = 0, m = items.length; i < m; i++ )
+		{
+			if( items[i].categories )
+			{
+				var item = items[i];
+				for( var j = 0, n = item.categories.length; j < n; j++ )
+				{
+					var category = item.categories[j];
+					if( category.cat_name == categoryName )
+					{
+						filteredItems.push( item );
+						break;
+					}
+				}
+			}
+		}
+
+		return filteredItems;
+	}
+});
+
 app.filter('parseDate', function()
 {
-  return function( input ) {
-    return new Date( input );
-  };
+	return function( input )
+		{
+			return new Date( input );
+		};
 });
 
 app.filter('sumByColumn', function()
 {
 	return function( collection, col, type )
-	{
-		var total = 0;
-
-		switch( type )
 		{
-			case 'float':
-				collection.forEach( function( item ) {
-					total += parseFloat( item[col] );
-				});
-				break;
+			var total = 0;
 
-			default:
-				collection.forEach( function( item ) {
-					total += parseInt( item[col] );
-				});
-		}
+			switch( type )
+			{
+				case 'float':
+					collection.forEach( function( item ) {
+						total += parseFloat( item[col] );
+					});
+					break;
 
-		return total;
-	};
+				default:
+					collection.forEach( function( item ) {
+						total += parseInt( item[col] );
+					});
+			}
+
+			return total;
+		};
 });
 
 app.filter('sumItemPrice', function()
 {
 	return function( collection, priceCol, quantityCol, type )
-	{
-		var total = 0.00;
+		{
+			var total = 0.00;
 
-		collection.forEach( function( item ) {
-			total += parseFloat( item[priceCol] * item[quantityCol] );
-		});
+			collection.forEach( function( item ) {
+				total += parseFloat( item[priceCol] * item[quantityCol] );
+			});
 
-		return total;
-	};
+			return total;
+		};
 });
 
 app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider, $animateProvider )
@@ -235,7 +263,7 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider
 			name: 'main.transfer',
 			parent: main,
 			url: '/transfer',
-			params: { transferItem: null, editMode: 'view' },
+			params: { transferItem: null, editMode: 'view', category: null },
 			templateUrl: baseUrl + 'index.php/main/view/partial_transfer_form',
 			controller: 'TransferController'
 		};

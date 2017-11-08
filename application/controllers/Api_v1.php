@@ -210,8 +210,8 @@ class Api_v1 extends MY_Controller {
 								foreach( $allocation_items as $item )
 								{
 									$allocation_items_data[] = $item->as_array( array(
-										'category_name' => array( 'type' => 'string' ),
-										'category_type' => array( 'type' => 'integer' ),
+										'cat_description' => array( 'type' => 'string' ),
+										'cat_module' => array( 'type' => 'string' ),
 										'item_name' => array( 'type' => 'string' ),
 										'item_description' => array( 'type' => 'string' ),
 										'item_class' => array( 'type' => 'string' ),
@@ -226,8 +226,8 @@ class Api_v1 extends MY_Controller {
 								foreach( $cash_allocation_items as $item )
 								{
 									$cash_allocation_items_data[] = $item->as_array( array(
-										'category_name' => array( 'type' => 'string' ),
-										'category_type' => array( 'type' => 'integer' ),
+										'cat_description' => array( 'type' => 'string' ),
+										'cat_module' => array( 'type' => 'string' ),
 										'item_name' => array( 'type' => 'string' ),
 										'item_description' => array( 'type' => 'string' ),
 										'item_class' => array( 'type' => 'string' ),
@@ -243,8 +243,8 @@ class Api_v1 extends MY_Controller {
 								foreach( $remittance_items as $item )
 								{
 									$remittance_items_data[] = $item->as_array( array(
-										'category_name' => array( 'type' => 'string' ),
-										'category_type' => array( 'type' => 'integer' ),
+										'cat_description' => array( 'type' => 'string' ),
+										'cat_module' => array( 'type' => 'string' ),
 										'item_name' => array( 'type' => 'string' ),
 										'item_description' => array( 'type' => 'string' ),
 										'item_class' => array( 'type' => 'string' ),
@@ -258,8 +258,8 @@ class Api_v1 extends MY_Controller {
 								foreach( $cash_remittance_items as $item )
 								{
 									$cash_remittance_items_data[] = $item->as_array( array(
-										'category_name' => array( 'type' => 'string' ),
-										'category_type' => array( 'type' => 'integer' ),
+										'cat_description' => array( 'type' => 'string' ),
+										'cat_module' => array( 'type' => 'string' ),
 										'item_name' => array( 'type' => 'string' ),
 										'item_description' => array( 'type' => 'string' ),
 										'item_class' => array( 'type' => 'string' ),
@@ -275,8 +275,8 @@ class Api_v1 extends MY_Controller {
 								foreach( $ticket_sale_items as $item )
 								{
 									$ticket_sale_items_data[] = $item->as_array( array(
-										'category_name' => array( 'type' => 'string' ),
-										'category_type' => array( 'type' => 'integer' ),
+										'cat_description' => array( 'type' => 'string' ),
+										'cat_module' => array( 'type' => 'string' ),
 										'item_name' => array( 'type' => 'string' ),
 										'item_description' => array( 'type' => 'string' ),
 										'item_class' => array( 'type' => 'string' ),
@@ -1690,8 +1690,8 @@ class Api_v1 extends MY_Controller {
 											foreach( $allocation_items as $item )
 											{
 												$allocation_items_data[] = $item->as_array( array(
-														'category_name' => array( 'type' => 'string' ),
-														'category_type' => array( 'type' => 'integer' ),
+														'cat_description' => array( 'type' => 'string' ),
+														'cat_module' => array( 'type' => 'string' ),
 														'item_name' => array( 'type' => 'string' ),
 														'item_description' => array( 'type' => 'string' ),
 														'item_class' => array( 'type' => 'string' ),
@@ -1704,8 +1704,8 @@ class Api_v1 extends MY_Controller {
 											foreach( $allocation_cash_items as $item )
 											{
 												$allocation_cash_items_data[] = $item->as_array( array(
-														'category_name' => array( 'type' => 'string' ),
-														'category_type' => array( 'type' => 'integer' ),
+														'cat_description' => array( 'type' => 'string' ),
+														'cat_module' => array( 'type' => 'string' ),
 														'item_name' => array( 'type' => 'string' ),
 														'item_description' => array( 'type' => 'string' ),
 														'item_class' => array( 'type' => 'string' ),
@@ -1719,8 +1719,8 @@ class Api_v1 extends MY_Controller {
 											foreach( $remittance_items as $item )
 											{
 												$remittance_items_data[] = $item->as_array( array(
-														'category_name' => array( 'type' => 'string' ),
-														'category_type' => array( 'type' => 'integer' ),
+														'cat_description' => array( 'type' => 'string' ),
+														'cat_module' => array( 'type' => 'string' ),
 														'item_name' => array( 'type' => 'string' ),
 														'item_description' => array( 'type' => 'string' ),
 														'item_class' => array( 'type' => 'string' ),
@@ -1732,8 +1732,8 @@ class Api_v1 extends MY_Controller {
 											foreach( $remittance_cash_items as $item )
 											{
 												$remittance_cash_items_data[] = $item->as_array( array(
-														'category_name' => array( 'type' => 'string' ),
-														'category_type' => array( 'type' => 'integer' ),
+														'cat_description' => array( 'type' => 'string' ),
+														'cat_module' => array( 'type' => 'string' ),
 														'item_name' => array( 'type' => 'string' ),
 														'item_description' => array( 'type' => 'string' ),
 														'item_class' => array( 'type' => 'string' ),
@@ -1747,8 +1747,8 @@ class Api_v1 extends MY_Controller {
 											foreach( $ticket_sale_items as $item )
 											{
 												$ticket_sale_items_data[] = $item->as_array( array(
-														'category_name' => array( 'type' => 'string' ),
-														'category_type' => array( 'type' => 'integer' ),
+														'cat_description' => array( 'type' => 'string' ),
+														'cat_module' => array( 'type' => 'string' ),
 														'item_name' => array( 'type' => 'string' ),
 														'item_description' => array( 'type' => 'string' ),
 														'item_class' => array( 'type' => 'string' ),
@@ -2262,7 +2262,7 @@ class Api_v1 extends MY_Controller {
 													$transfer_items_data[] = $item->as_array( array(
 														'item_name' => array( 'type' => 'string' ),
 														'item_description' => array( 'type' => 'string' ),
-														'category_name' => array( 'type' => 'string' ),
+														'cat_description' => array( 'type' => 'string' ),
 														'is_transfer_category' => array( 'type' => 'boolean' ) ) );
 												}
 												$transfer_data['items'] = $transfer_items_data;
@@ -2515,7 +2515,7 @@ class Api_v1 extends MY_Controller {
 											$items_data[] = $item->as_array( array(
 												'item_name' => array( 'type', 'string' ),
 												'item_description' => array( 'type', 'string' ),
-												'category_name' => array( 'type', 'string' ) ) );
+												'cat_description' => array( 'type', 'string' ) ) );
 										}
 										$transfer_data['items'] = $items_data;
 
@@ -2640,10 +2640,12 @@ class Api_v1 extends MY_Controller {
 						}
 						break;
 
+					case 'quick_receive':
+						$quick_receipt = TRUE;
 					case 'receive':
 						if( $current_user->check_permissions( 'transfers', 'edit' ) )
 						{
-							$result = $transfer->receive();
+							$result = $transfer->receive( isset( $quick_receipt ) && $quick_receipt );
 						}
 						else
 						{
@@ -2664,7 +2666,7 @@ class Api_v1 extends MY_Controller {
 						$transfer_data['items'][] = $item->as_array( array(
 								'item_name' => array( 'type' => 'string' ),
 								'item_description' => array( 'type' => 'string' ),
-								'category_name' => array( 'type' => 'string' ),
+								'cat_description' => array( 'type' => 'string' ),
 								'is_transfer_category' => array( 'type' => 'boolean' ) ) );
 					}
 					$this->db->trans_complete();

@@ -71,7 +71,7 @@ class Allocation extends Base_model {
 		if( !isset( $this->allocations ) || $force )
 		{
 			$ci->load->library( 'allocation_item' );
-			$ci->db->select( 'ai.*, c.category AS category_name, c.category_type,
+			$ci->db->select( 'ai.*, c.cat_description AS category_name, c.category_type,
 					i.item_name, i.item_description, i.item_class, i.teller_allocatable, i.machine_allocatable,
 					s.shift_num AS cashier_shift_num,
 					( ai.allocated_quantity * ct.conversion_factor ) AS base_quantity' );
@@ -96,7 +96,7 @@ class Allocation extends Base_model {
 		if( !isset( $this->cash_allocations ) || $force )
 		{
 			$ci->load->library( 'allocation_item' );
-			$ci->db->select( 'ai.*, c.category AS category_name, c.category_type,
+			$ci->db->select( 'ai.*, c.cat_description AS category_name, c.category_type,
 					i.item_name, i.item_description, i.item_class, i.teller_allocatable, i.machine_allocatable,
 					ip.iprice_currency, ip.iprice_unit_price,
 					s.shift_num AS cashier_shift_num' );
@@ -121,7 +121,7 @@ class Allocation extends Base_model {
 		if( !isset( $this->remittances ) || $force )
 		{
 			$ci->load->library( 'allocation_item' );
-			$ci->db->select( 'ai.*, c.category AS category_name, c.category_type,
+			$ci->db->select( 'ai.*, c.cat_description AS category_name, c.category_type,
 					i.item_name, i.item_description,i.item_class, i.teller_remittable, i.machine_remittable,
 					s.shift_num AS cashier_shift_num' );
 			$ci->db->where( 'allocation_id', $this->id );
@@ -144,7 +144,7 @@ class Allocation extends Base_model {
 		if( !isset( $this->cash_remittances ) || $force )
 		{
 			$ci->load->library( 'allocation_item' );
-			$ci->db->select( 'ai.*, c.category AS category_name, c.category_type,
+			$ci->db->select( 'ai.*, c.cat_description AS category_name, c.category_type,
 					i.item_name, i.item_description,i.item_class, i.teller_remittable, i.machine_remittable,
 					ip.iprice_currency, ip.iprice_unit_price,
 					s.shift_num AS cashier_shift_num' );
@@ -169,7 +169,7 @@ class Allocation extends Base_model {
 		if( !isset( $this->ticket_sales ) || $force )
 		{
 			$ci->load->library( 'allocation_item' );
-			$ci->db->select( 'ai.*, c.category AS category_name, c.category_type,
+			$ci->db->select( 'ai.*, c.cat_description AS category_name, c.category_type,
 					i.item_name, i.item_description,i.item_class, i.teller_remittable, i.machine_remittable,
 					s.shift_num AS cashier_shift_num' );
 			$ci->db->where( 'allocation_id', $this->id );

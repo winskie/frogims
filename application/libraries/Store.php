@@ -927,7 +927,7 @@ class Store extends Base_model
 					ON ti.transfer_item_allocation_item_id = ai.id AND ti.transfer_item_status NOT IN ( '.implode( ', ', $transfer_item_statuses).' )
 
 				WHERE
-					c.category_type = 2
+					c.cat_module = "Remittance"
 					AND i.turnover_item = 1';
 
 		if( $business_date )

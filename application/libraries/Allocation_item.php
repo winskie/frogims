@@ -5,12 +5,12 @@ class Allocation_item extends Base_model {
 
 	protected $allocation_id;
 	protected $cashier_shift_id;
-    protected $cashier_id;
+	protected $cashier_id;
 	protected $allocated_item_id;
-    protected $allocated_quantity;
-    protected $allocation_category_id;
-    protected $allocation_datetime;
-    protected $allocation_item_status;
+	protected $allocated_quantity;
+	protected $allocation_category_id;
+	protected $allocation_datetime;
+	protected $allocation_item_status;
 	protected $allocation_item_type;
 
 	protected $category = NULL;
@@ -21,8 +21,8 @@ class Allocation_item extends Base_model {
 	protected $created_by_field = 'created_by';
 	protected $modified_by_field = 'modified_by';
 
-    protected $previousStatus;
-    protected $parentAllocation;
+	protected $previousStatus;
+	protected $parentAllocation;
 
 	public function __construct()
 	{
@@ -31,17 +31,17 @@ class Allocation_item extends Base_model {
 		$this->db_fields = array(
 				'allocation_id' => array( 'type' => 'integer' ),
 				'cashier_shift_id' => array( 'type' => 'integer' ),
-                'cashier_id' => array( 'type' => 'integer' ),
+				'cashier_id' => array( 'type' => 'integer' ),
 				'allocated_item_id' => array( 'type' => 'integer' ),
-                'allocated_quantity' => array( 'type' => 'integer' ),
-                'allocation_category_id' => array( 'type' => 'integer' ),
-                'allocation_datetime' => array( 'type' => 'datetime' ),
+				'allocated_quantity' => array( 'type' => 'integer' ),
+				'allocation_category_id' => array( 'type' => 'integer' ),
+				'allocation_datetime' => array( 'type' => 'datetime' ),
 				'allocation_item_status' => array( 'type' => 'integer' ),
 				'allocation_item_type' => array( 'type' => 'integer' )
 			);
 	}
 
-    public function set_parent( &$parent )
+		public function set_parent( &$parent )
 	{
 		$this->parentAllocation = $parent;
 	}
@@ -98,7 +98,7 @@ class Allocation_item extends Base_model {
 		return $this->item;
 	}
 
-    public function set( $property, $value )
+	public function set( $property, $value )
 	{
 		if( $property == 'id' )
 		{
@@ -107,13 +107,14 @@ class Allocation_item extends Base_model {
 
 		if( property_exists( $this, $property ) )
 		{
-            if( $property == 'allocation_item_status' )
-            {
-                if( ! isset( $this->previousStatus ) )
-                {
-                    $this->previousStatus = $this->allocation_item_status;
-                }
-            }
+			if( $property == 'allocation_item_status' )
+			{
+				if( ! isset( $this->previousStatus ) )
+				{
+					$this->previousStatus = $this->allocation_item_status;
+				}
+			}
+
 			if( $this->$property !== $value )
 			{
 				$this->$property = $value;
@@ -128,7 +129,7 @@ class Allocation_item extends Base_model {
 		return TRUE;
 	}
 
-    public function db_save()
+	public function db_save()
 	{
 		// There are no pending changes, just return the record
 		if( ! $this->db_changes )
@@ -141,21 +142,21 @@ class Allocation_item extends Base_model {
 		$result = NULL;
 		$ci->db->trans_start();
 
-        // Check for required default values
-        $this->_set_defaults();
+		// Check for required default values
+		$this->_set_defaults();
 
 		if( isset( $this->id ) )
 		{
-            // Set fields and update record metadata
-            $this->_update_timestamps( FALSE );
+			// Set fields and update record metadata
+			$this->_update_timestamps( FALSE );
 
 			$ci->db->set( $this->db_changes );
 			$result = $this->_db_update();
 		}
 		else
 		{
-            // Set fields and update record metadata
-            $this->_update_timestamps( TRUE );
+			// Set fields and update record metadata
+			$this->_update_timestamps( TRUE );
 			$ci->db->set( $this->db_changes );
 			$result = $this->_db_insert();
 		}
@@ -164,7 +165,7 @@ class Allocation_item extends Base_model {
 		if( $ci->db->trans_status() )
 		{
 			$this->_reset_db_changes();
-            $this->previousStatus = NULL;
+			$this->previousStatus = NULL;
 
 			return $result;
 		}
@@ -174,43 +175,43 @@ class Allocation_item extends Base_model {
 		}
 	}
 
-    public function _set_defaults()
-    {
-        $ci =& get_instance();
+	public function _set_defaults()
+	{
+		$ci =& get_instance();
 
-        if( ! isset( $this->allocation_datetime ) )
-        {
-            $this->set( 'allocation_datetime', date( TIMESTAMP_FORMAT ) );
-        }
+		if( ! isset( $this->allocation_datetime ) )
+		{
+			$this->set( 'allocation_datetime', date( TIMESTAMP_FORMAT ) );
+		}
 
-        if( ! isset( $this->cashier_id ) )
-        {
-            $this->set( 'cashier_id', $ci->session->current_user_id );
-        }
+		if( ! isset( $this->cashier_id ) )
+		{
+			$this->set( 'cashier_id', $ci->session->current_user_id );
+		}
 
-        if( ! isset( $this->allocation_item_status ) )
-        {
+		if( ! isset( $this->allocation_item_status ) )
+		{
 			$category = $this->get_category();
-			switch( $category->get( 'category_type' ) )
+			switch( $category->get( 'cat_module' ) )
 			{
-				case 1:
-            		$this->set( 'allocation_item_status', ALLOCATION_ITEM_SCHEDULED );
+				case 'Allocation':
+					$this->set( 'allocation_item_status', ALLOCATION_ITEM_SCHEDULED );
 					break;
 
-				case 2:
+				case 'Remittance':
 					$this->set( 'allocation_item_status',  REMITTANCE_ITEM_PENDING );
 					break;
 
 				default:
 					die( 'Invalid allocation category type' );
 			}
-        }
+		}
 
 		if( ! isset( $this->cashier_shift_id ) )
 		{
 			$this->set( 'cashier_shift_id', current_shift( TRUE ) );
 		}
 
-        return TRUE;
-    }
+		return TRUE;
+	}
 }

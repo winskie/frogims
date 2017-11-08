@@ -113,7 +113,7 @@
 									}">
 							<td class="text-center">{{ $index + 1 }}</td>
 							<td class="text-left">{{ row.cashier_shift_num }}</td>
-							<td class="text-left">{{ row.category_name }}</td>
+							<td class="text-left">{{ row.cat_description }}</td>
 							<td class="text-left">{{ row.item_name }}</td>
 							<td class="text-center">{{ row.allocated_quantity | number }}</td>
 							<td class="text-right"></td>
@@ -147,7 +147,7 @@
 									}">
 							<td class="text-center">{{ $index + 1 }}</td>
 							<td class="text-left">{{ row.cashier_shift_num }}</td>
-							<td class="text-left">{{ row.category_name }}</td>
+							<td class="text-left">{{ row.cat_description }}</td>
 							<td class="text-left">{{ row.item_name }}</td>
 							<td class="text-center">{{ row.allocated_quantity | number }}</td>
 							<td class="text-right">{{ ( row.iprice_unit_price * row.allocated_quantity ) | number: 2 }}</td>
@@ -209,7 +209,7 @@
 									}">
 							<td class="text-center">{{ $index + 1 }}</td>
 							<td class="text-left">{{ row.cashier_shift_num }}</td>
-							<td class="text-left">{{ row.category_name }}</td>
+							<td class="text-left">{{ row.cat_description }}</td>
 							<td class="text-left">{{ row.item_name }}</td>
 							<td class="text-center">{{ row.allocated_quantity | number }}</td>
 							<td class="text-right"></td>
@@ -243,7 +243,7 @@
 									}">
 							<td class="text-center">{{ $index + 1 }}</td>
 							<td class="text-left">{{ row.cashier_shift_num }}</td>
-							<td class="text-left">{{ row.category_name }}</td>
+							<td class="text-left">{{ row.cat_description }}</td>
 							<td class="text-left">{{ row.item_name }}</td>
 							<td class="text-center">{{ row.allocated_quantity | number }}</td>
 							<td class="text-right">{{ ( row.iprice_unit_price * row.allocated_quantity ) | number: 2  }}</td>
@@ -301,7 +301,7 @@
 									}">
 							<td class="text-center">{{ $index + 1 }}</td>
 							<td class="text-left">{{ row.cashier_shift_num }}</td>
-							<td class="text-left">{{ row.category_name }}</td>
+							<td class="text-left">{{ row.cat_description }}</td>
 							<td class="text-left">{{ row.item_name }}</td>
 							<td class="text-center">{{ row.allocated_quantity | number }}</td>
 							<td class="text-center">{{ row.get( 'allocationItemStatus' ) }}</td>
