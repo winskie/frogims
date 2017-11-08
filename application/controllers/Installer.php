@@ -1762,8 +1762,8 @@ class Installer extends CI_Controller {
 						'cat_status'      => 1
 					),
 					array(
-						'cat_name'        => 'DefectDecl',
-						'cat_description' => 'Defect Declaration',
+						'cat_name'        => 'Conversion',
+						'cat_description' => 'Item Conversion',
 						'cat_module'      => 'Conversion',
 						'cat_ticket'      => 1,
 						'cat_cash'        => 0,
@@ -1802,7 +1802,7 @@ class Installer extends CI_Controller {
 					array( 'L2 SJT', 'SaleFrExt' ),
 					array( 'L2 SJT', 'SaleUncfrm' ),
 					array( 'L2 SJT', 'Pack' ),
-					array( 'L2 SJT', 'DefectDecl' ),
+					array( 'L2 SJT', 'Conversion' ),
 
 					array( 'L2 SJT - Rigid Box', 'IntTrans' ),
 					array( 'L2 SJT - Rigid Box', 'StockRep' ),
@@ -1823,14 +1823,14 @@ class Installer extends CI_Controller {
 					array( 'L2 SJT - Defective', 'TCERF' ),
 					array( 'L2 SJT - Defective', 'RejectBin' ),
 					array( 'L2 SJT - Defective', 'Blackbox' ),
-					array( 'L2 SJT - Defective', 'DefectDecl' ),
+					array( 'L2 SJT - Defective', 'Conversion' ),
 
 					array( 'L2 SJT - Damaged', 'IntTrans' ),
 					array( 'L2 SJT - Damaged', 'ExtTrans' ),
 					array( 'L2 SJT - Damaged', 'TCERF' ),
 					array( 'L2 SJT - Damaged', 'RejectBin' ),
 					array( 'L2 SJT - Damaged', 'Blackbox' ),
-					array( 'L2 SJT - Damaged', 'DefectDecl' ),
+					array( 'L2 SJT - Damaged', 'Conversion' ),
 
 					array( 'SVC', 'IntTrans' ),
 					array( 'SVC', 'ExtTrans' ),
@@ -1841,7 +1841,7 @@ class Installer extends CI_Controller {
 					array( 'SVC', 'RejectBin' ),
 					array( 'SVC', 'TktSales' ),
 					array( 'SVC', 'Pack' ),
-					array( 'SVC', 'DefectDecl' ),
+					array( 'SVC', 'Conversion' ),
 
 					array( 'SVC - Rigid Box', 'IntTrans' ),
 					array( 'SVC - Rigid Box', 'StockRep' ),
@@ -1870,14 +1870,14 @@ class Installer extends CI_Controller {
 					array( 'SVC - Defective', 'Adjust' ),
 					array( 'SVC - Defective', 'RejectBin' ),
 					array( 'SVC - Defective', 'Blackbox' ),
-					array( 'SVC - Defective', 'DefectDecl' ),
+					array( 'SVC - Defective', 'Conversion' ),
 
 					array( 'SVC - Damaged', 'IntTrans' ),
 					array( 'SVC - Damaged', 'ExtTrans' ),
 					array( 'SVC - Damaged', 'Adjust' ),
 					array( 'SVC - Damaged', 'RejectBin' ),
 					array( 'SVC - Damaged', 'Blackbox' ),
-					array( 'SVC - Damaged', 'DefectDecl' ),
+					array( 'SVC - Damaged', 'Conversion' ),
 
 					array( 'Senior', 'IntTrans' ),
 					array( 'Senior', 'ExtTrans' ),
@@ -1906,21 +1906,25 @@ class Installer extends CI_Controller {
 					array( 'Others', 'ExtTrans' ),
 					array( 'Others', 'Adjust' ),
 					array( 'Others', 'Blackbox' ),
+					array( 'Others', 'Conversion' ),
 
 					array( 'L1 SJT', 'IntTrans' ),
 					array( 'L1 SJT', 'ExtTrans' ),
 					array( 'L1 SJT', 'Adjust' ),
 					array( 'L1 SJT', 'Blackbox' ),
+					array( 'L1 SJT', 'Conversion' ),
 
 					array( 'MRT SJT', 'IntTrans' ),
 					array( 'MRT SJT', 'ExtTrans' ),
 					array( 'MRT SJT', 'Adjust' ),
 					array( 'MRT SJT', 'Blackbox' ),
+					array( 'MRT SJT', 'Conversion' ),
 
 					array( 'Staff Card', 'IntTrans' ),
 					array( 'Staff Card', 'ExtTrans' ),
 					array( 'Staff Card', 'Adjust' ),
 					array( 'Staff Card', 'Blackbox' ),
+					array( 'Staff Card', 'Conversion' ),
 
 					array( 'Php1 Coin', 'IntTrans' ),
 					array( 'Php1 Coin', 'ExtTrans' ),
@@ -2040,7 +2044,7 @@ class Installer extends CI_Controller {
 			$Category = new Category();
 			foreach( $values as $value )
 			{
-				//echo $value[0].' === '.$value[1].'<br/>';
+				echo $value[0].' === '.$value[1].'<br/>';
 				$item = $Item->get_by_name( $value[0] );
 				$category = $Category->get_by_name( $value[1] );
 				$this->db->set( 'ic_item_id', $item->get( 'id' ) );

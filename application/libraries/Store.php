@@ -389,10 +389,11 @@ class Store extends Base_model
 			$ci->db->order_by( $order );
 		}
 
-		$ci->db->select( 't.*, i.id AS item_id, i.item_name, i.item_description, s.shift_num' );
+		$ci->db->select( 't.*, i.id AS item_id, i.item_name, i.item_description, s.shift_num, c.cat_description' );
 		$ci->db->join( 'store_inventory si', 'si.id = t.store_inventory_id' );
 		$ci->db->join( 'items i', 'i.id = si.item_id' );
 		$ci->db->join( 'shifts s', 's.id = t.transaction_shift' );
+		$ci->db->join( 'categories c', 'c.id = t.transaction_category_id' );
 		$ci->db->where( 'si.store_id', intval( $this->id ) );
 
 		// Do not include transactions of subinventories
@@ -909,7 +910,7 @@ class Store extends Base_model
 					s.shift_num,
 					a.id AS source_id, a.assignee_type, a.assignee,
 					i.id AS item_id, i.item_name, i.item_description,
-					c.id AS transfer_item_category_id, c.category,
+					c.id AS transfer_item_category_id, c.cat_description,
 					ai.allocated_quantity AS quantity,
 					ai.id AS allocation_item_id,
 					NULL AS transfer_item_id,
@@ -942,7 +943,7 @@ class Store extends Base_model
 					s.shift_num,
 					t.id, NULL, t.origin_name,
 					i.id, i.item_name, i.item_description,
-					c.id, c.category,
+					c.id, c.cat_description,
 					ti.quantity_received,
 					NULL,
 					ti.id,

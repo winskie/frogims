@@ -1,10 +1,10 @@
 <div ng-if="checkPermissions( 'transfers', 'view' )">
 	<div class="panel panel-default">
-		<div class="panel-heading clearfix" ng-switch on="data.editMode">
+		<div class="panel-heading clearfix" ng-switch on="data.editMode != 'view' && ! transferItem.id && transferItem.items.length == 0">
 			<div class="pull-left">
 				<span class="panel-title">{{ data.title }}</span>
 			</div>
-			<div class="pull-right" ng-switch-when="view">
+			<div class="pull-right" ng-switch-when="false">
 				<span class="panel-title">Category: <span style="font-weight: bold;">{{ data.selectedCategory.categoryName }}</span></span>
 			</div>
 			<div class="pull-right" uib-dropdown ng-switch-default>

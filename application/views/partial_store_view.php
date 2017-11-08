@@ -143,7 +143,7 @@ $current_user = current_user();
 								<th class="text-left">Date / Time</th>
 								<th class="text-left">Item</th>
 								<th class="text-left">Transaction Type</th>
-								<th class="text-center">Transaction ID</th>
+								<th class="text-left">Category</th>
 								<th class="text-center">Shift</th>
 								<th class="text-right">Quantity</th>
 								<th class="text-right">Balance</th>
@@ -154,7 +154,7 @@ $current_user = current_user();
 								<td>{{ transaction.transaction_datetime }}</td>
 								<td>{{ transaction.item_name }}</td>
 								<td>{{ lookup( 'transactionTypes', '' + transaction.transaction_type ) }}</td>
-								<td class="text-center">{{ transaction.transaction_id }}</td>
+								<td class="text-left">{{ transaction.cat_description }}</td>
 								<td class="text-center">{{ transaction.shift_num }}</td>
 								<td class="text-right">{{ transaction.transaction_quantity | number }}</td>
 								<td class="text-right">{{ transaction.current_quantity | number }}</td>
