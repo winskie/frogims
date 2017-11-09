@@ -2997,7 +2997,7 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 						description: 'TGM Shift 1'
 					},
 				moppedSource: angular.copy( appData.data.stations ),
-				moppedItems: angular.copy( appData.data.items ),
+				moppedItems: $filter( 'itemsWithCategory' )( angular.copy( appData.data.items ), ['TktCollect','TktIssue'] ),
 				packAsItems: packingData,
 				editMode: $stateParams.editMode || 'new'
 			};

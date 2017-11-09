@@ -1783,6 +1783,16 @@ class Installer extends CI_Controller {
 						'cat_machine'     => NULL,
 						'cat_status'      => 1
 					),
+					array(
+						'cat_name'        => 'TktIssue',
+						'cat_description' => 'Card Issuance from Stock',
+						'cat_module'      => 'Collection',
+						'cat_ticket'      => 1,
+						'cat_cash'        => 0,
+						'cat_teller'      => NULL,
+						'cat_machine'     => NULL,
+						'cat_status'      => 1
+					),
 			);
 
 			foreach( $values as $value )
@@ -1816,6 +1826,7 @@ class Installer extends CI_Controller {
 					array( 'L2 SJT', 'Pack' ),
 					array( 'L2 SJT', 'Conversion' ),
 					array( 'L2 SJT', 'TktCollect' ),
+					array( 'L2 SJT', 'TktIssue' ),
 
 					array( 'L2 SJT - Rigid Box', 'IntTrans' ),
 					array( 'L2 SJT - Rigid Box', 'StockRep' ),
@@ -1824,12 +1835,14 @@ class Installer extends CI_Controller {
 					array( 'L2 SJT - Rigid Box', 'AddAlloc' ),
 					array( 'L2 SJT - Rigid Box', 'Unsold' ),
 					array( 'L2 SJT - Rigid Box', 'Unpack' ),
+					array( 'L2 SJT - Rigid Box', 'TktCollect' ),
 
 					array( 'L2 SJT - Ticket Magazine', 'IntTrans' ),
 					array( 'L2 SJT - Ticket Magazine', 'StockRep' ),
 					array( 'L2 SJT - Ticket Magazine', 'Adjust' ),
 					array( 'L2 SJT - Ticket Magazine', 'TVMAlloc' ),
 					array( 'L2 SJT - Ticket Magazine', 'Unpack' ),
+					array( 'L2 SJT - Ticket Magazine', 'TktCollect' ),
 
 					array( 'L2 SJT - Defective', 'IntTrans' ),
 					array( 'L2 SJT - Defective', 'ExtTrans' ),
@@ -1855,6 +1868,7 @@ class Installer extends CI_Controller {
 					array( 'SVC', 'TktSales' ),
 					array( 'SVC', 'Pack' ),
 					array( 'SVC', 'Conversion' ),
+					array( 'SVC', 'TktIssue' ),
 
 					array( 'SVC - Rigid Box', 'IntTrans' ),
 					array( 'SVC - Rigid Box', 'StockRep' ),

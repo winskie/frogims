@@ -475,6 +475,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 						{ id: 30, typeName: 'Collection', module: 'Collections' },
 						{ id: 31, typeName: 'Void Collection', module: 'Collections' },
 						{ id: 32, typeName: 'Issuance to Production', module: 'Collections' },
+						{ id: 32, typeName: 'Void Issuance', module: 'Collections' },
 						{ id: 40, typeName: 'Adjustment', module: 'Adjustments' },
 						{ id: 50, typeName: 'Conversion From', module: 'Conversions' },
 						{ id: 51, typeName: 'Conversion To', module: 'Conversions' }
@@ -2319,6 +2320,7 @@ angular.module( 'appServices' ).service( 'lookup',
 				'30': 'Mopping Collection',
 				'31': 'Void Collection',
 				'32': 'Issuance to Production',
+				'33': 'Void Issuance',
 
 				'40': 'Adjustment',
 

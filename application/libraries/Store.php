@@ -390,10 +390,10 @@ class Store extends Base_model
 		}
 
 		$ci->db->select( 't.*, i.id AS item_id, i.item_name, i.item_description, s.shift_num, c.cat_description' );
-		$ci->db->join( 'store_inventory si', 'si.id = t.store_inventory_id' );
-		$ci->db->join( 'items i', 'i.id = si.item_id' );
-		$ci->db->join( 'shifts s', 's.id = t.transaction_shift' );
-		$ci->db->join( 'categories c', 'c.id = t.transaction_category_id' );
+		$ci->db->join( 'store_inventory si', 'si.id = t.store_inventory_id', 'left' );
+		$ci->db->join( 'items i', 'i.id = si.item_id', 'left' );
+		$ci->db->join( 'shifts s', 's.id = t.transaction_shift', 'left' );
+		$ci->db->join( 'categories c', 'c.id = t.transaction_category_id', 'left' );
 		$ci->db->where( 'si.store_id', intval( $this->id ) );
 
 		// Do not include transactions of subinventories
@@ -1182,10 +1182,13 @@ class Store extends Base_model
 		$transaction_type = param( $params, 'type' );
 
 		$ci->db->select( 't.id' );
-		$ci->db->join( 'store_inventory si', 'si.id = t.store_inventory_id' );
-		$ci->db->join( 'items i', 'i.id = si.item_id' );
-		$ci->db->join( 'shifts s', 's.id = t.transaction_shift' );
+		$ci->db->join( 'store_inventory si', 'si.id = t.store_inventory_id', 'left' );
+		$ci->db->join( 'items i', 'i.id = si.item_id', 'left' );
+		$ci->db->join( 'shifts s', 's.id = t.transaction_shift', 'left' );
 		$ci->db->where( 'si.store_id', intval( $this->id ) );
+
+		// Do not include transactions of subinventories
+		$ci->db->where( 'si.parent_item_id IS NULL' );
 
 		if( $business_date )
 		{
