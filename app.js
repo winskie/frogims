@@ -71,10 +71,21 @@ app.filter('itemsWithCategory', function()
 				for( var j = 0, n = item.categories.length; j < n; j++ )
 				{
 					var category = item.categories[j];
-					if( category.cat_name == categoryName )
-					{
-						filteredItems.push( item );
-						break;
+					if( categoryName.constructor == Array )
+					{ // Array of categories
+						if( categoryName.indexOf( category.cat_name ) != -1 )
+						{
+							filteredItems.push( item );
+							break;
+						}
+					}
+					else
+					{ // Single category
+						if( category.cat_name == categoryName )
+						{
+							filteredItems.push( item );
+							break;
+						}
 					}
 				}
 			}

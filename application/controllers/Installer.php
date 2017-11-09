@@ -1771,6 +1771,18 @@ class Installer extends CI_Controller {
 						'cat_machine'     => NULL,
 						'cat_status'      => 1
 					),
+
+					// Mopping collection categories
+					array(
+						'cat_name'        => 'TktCollect',
+						'cat_description' => 'Mopping Collection',
+						'cat_module'      => 'Collection',
+						'cat_ticket'      => 1,
+						'cat_cash'        => 0,
+						'cat_teller'      => NULL,
+						'cat_machine'     => NULL,
+						'cat_status'      => 1
+					),
 			);
 
 			foreach( $values as $value )
@@ -1803,6 +1815,7 @@ class Installer extends CI_Controller {
 					array( 'L2 SJT', 'SaleUncfrm' ),
 					array( 'L2 SJT', 'Pack' ),
 					array( 'L2 SJT', 'Conversion' ),
+					array( 'L2 SJT', 'TktCollect' ),
 
 					array( 'L2 SJT - Rigid Box', 'IntTrans' ),
 					array( 'L2 SJT - Rigid Box', 'StockRep' ),

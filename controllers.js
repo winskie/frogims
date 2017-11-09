@@ -2506,7 +2506,7 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
 
 		$scope.data = {
 				editMode: $stateParams.editMode || 'auto',
-				inventoryItems: angular.copy( appData.data.items ),
+				inventoryItems: $filter( 'itemsWithCategory' )( angular.copy( appData.data.items ), 'Adjust' ),
 				selectedItem: appData.data.items[0],
 				transactionTypes: angular.copy( transactionTypes )
 			};
@@ -2661,8 +2661,8 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 		$scope.data = {
 				editMode: $stateParams.editMode || 'auto',
 				conversionDatepicker: { format: 'yyyy-MM-dd HH:mm:ss', opened: false },
-				sourceItems: items,
-				targetItems: items,
+				sourceItems: $filter( 'itemsWithCategory' )( items, ['Pack','Unpack','Conversion'] ),
+				targetItems: $filter( 'itemsWithCategory' )( items, ['Pack','Unpack','Conversion'] ),
 				sourceInventory: items[0],
 				targetInventory: items[1],
 				input: { min: 1, step: 1 },
@@ -2703,11 +2703,13 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 					$scope.data.messages.push( 'Input quantity and output quantity cannot be non-integer values.' );
 				}
 
+				/* We allow negative inventory
 				if( $scope.conversionItem.source_quantity > $scope.data.sourceInventory.quantity )
 				{
 					$scope.data.valid_conversion = false;
 					$scope.data.messages.push( 'Insufficient inventory for input item to convert.' );
 				}
+				*/
 
 				if( $scope.conversionItem.target_quantity % 1 !== 0 )
 				{

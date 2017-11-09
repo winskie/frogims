@@ -35,7 +35,7 @@ class Adjustment extends Base_model {
 		$this->primary_table = 'adjustments';
 		$this->db_fields = array(
 				'store_inventory_id' => array( 'type' => 'integer' ),
-                'adjustment_shift' => array( 'type' => 'integer' ),
+				'adjustment_shift' => array( 'type' => 'integer' ),
 				'adjustment_type' => array( 'type' => 'integer' ),
 				'adjusted_quantity' => array( 'type' => 'integer' ),
 				'previous_quantity' => array( 'type' => 'integer' ),
@@ -318,10 +318,14 @@ class Adjustment extends Base_model {
 		$inventory = new Inventory();
 		$inventory = $inventory->get_by_id( $this->store_inventory_id );
 
+		$ci->load->library( 'category' );
+		$Category = new Category();
+		$adjustment_category = $Category->get_by_name( 'Adjust' );
+
 		if( $inventory )
 		{
 			$quantity = $this->adjusted_quantity - $inventory->get( 'quantity' );
-			$inventory->transact( TRANSACTION_ADJUSTMENT, $quantity, $timestamp, $this->id );
+			$inventory->transact( TRANSACTION_ADJUSTMENT, $quantity, $timestamp, $this->id, NULL, $adjustment_category->get( 'id' ) );
 		}
 		else
 		{

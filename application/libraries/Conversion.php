@@ -328,11 +328,13 @@ class Conversion extends Base_model {
 
 			if( $source_inventory )
 			{
+				/* We allow negative inventory
 				if( $source_inventory->get( 'quantity' ) < $this->source_quantity )
 				{
 					set_message( 'Insufficient inventory for input item to convert', 'error', 200 );
 					return FALSE;
 				}
+				*/
 			}
 			else
 			{
