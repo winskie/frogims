@@ -34,7 +34,7 @@ $current_user = current_user();
 					<tbody>
 						<tr ng-repeat="item in appData.items"
 							ng-class="{ info: currentItem == item }">
-							<td>{{ item.item_name }}</td>
+							<td>{{ item.item_name }} <span ng-if="item.parent_item_name" class="label label-info">{{ item.parent_item_name }}</span></td>
 							<td>{{ item.item_group }}</td>
 							<td>{{ item.item_description }}</td>
 							<td class="text-center">{{ item.item_unit }}</td>
@@ -152,7 +152,7 @@ $current_user = current_user();
 						<tbody>
 							<tr ng-repeat="transaction in appData.transactions">
 								<td>{{ transaction.transaction_datetime }}</td>
-								<td>{{ transaction.item_name }}</td>
+								<td>{{ transaction.item_name }} <span class="label label-info" ng-if="transaction.parent_item_name">{{ transaction.parent_item_name }}</span></td>
 								<td>{{ lookup( 'transactionTypes', '' + transaction.transaction_type ) }}</td>
 								<td class="text-left">{{ transaction.cat_description }}</td>
 								<td class="text-center">{{ transaction.shift_num }}</td>

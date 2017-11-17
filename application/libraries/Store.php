@@ -233,10 +233,13 @@ class Store extends Base_model
 					i.teller_allocatable, i.teller_remittable, i.teller_saleable,
 					i.machine_allocatable, i.machine_remittable, i.machine_saleable,
 					ip.iprice_currency, ip.iprice_unit_price,
-					ts.movement, sts.sti_beginning_balance, sts.sti_ending_balance
+					ts.movement, sts.sti_beginning_balance, sts.sti_ending_balance,
+					pi.item_name AS parent_item_name
 				FROM store_inventory AS si
 				LEFT JOIN items AS i
 					ON i.id = si.item_id
+				LEFT JOIN items AS pi
+					ON pi.id = si.parent_item_id
 				LEFT JOIN item_prices AS ip
 					ON ip.iprice_item_id = i.id
 				LEFT JOIN (';
@@ -292,7 +295,7 @@ class Store extends Base_model
 					store_id = ?';
 
 		// Do not show subinventories
-		$sql .= ' AND parent_item_id IS NULL';
+		//$sql .= ' AND parent_item_id IS NULL';
 
 		$query_params[] = $this->id;
 
@@ -389,15 +392,16 @@ class Store extends Base_model
 			$ci->db->order_by( $order );
 		}
 
-		$ci->db->select( 't.*, i.id AS item_id, i.item_name, i.item_description, s.shift_num, c.cat_description' );
+		$ci->db->select( 't.*, i.id AS item_id, i.item_name, i.item_description, s.shift_num, c.cat_description, pi.item_name AS parent_item_name' );
 		$ci->db->join( 'store_inventory si', 'si.id = t.store_inventory_id', 'left' );
 		$ci->db->join( 'items i', 'i.id = si.item_id', 'left' );
+		$ci->db->join( 'items pi', 'pi.id = si.parent_item_id', 'left' );
 		$ci->db->join( 'shifts s', 's.id = t.transaction_shift', 'left' );
 		$ci->db->join( 'categories c', 'c.id = t.transaction_category_id', 'left' );
 		$ci->db->where( 'si.store_id', intval( $this->id ) );
 
 		// Do not include transactions of subinventories
-		$ci->db->where( 'si.parent_item_id IS NULL' );
+		//$ci->db->where( 'si.parent_item_id IS NULL' );
 
 		if( $business_date )
 		{
@@ -1188,7 +1192,7 @@ class Store extends Base_model
 		$ci->db->where( 'si.store_id', intval( $this->id ) );
 
 		// Do not include transactions of subinventories
-		$ci->db->where( 'si.parent_item_id IS NULL' );
+		//$ci->db->where( 'si.parent_item_id IS NULL' );
 
 		if( $business_date )
 		{

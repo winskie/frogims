@@ -852,8 +852,8 @@ class Allocation extends Base_model {
 		$ci->load->library( 'category' );
 		$ci->load->library( 'item' );
 
-		$pre_allocation_categories = array( 'Initial Allocation', 'Magazine Load', 'Initial Change Fund' );
-		$post_allocation_categories = array( 'Additional Allocation', 'Magazine Load', 'Aditional Change Fund' );
+		$pre_allocation_categories = array( 'InitAlloc', 'TVMAlloc', 'InitCFund' );
+		$post_allocation_categories = array( 'AddAlloc', 'TVMAlloc', 'AddCFund' );
 
 		$categories_cache = array();
 		$items_cache = array();
@@ -913,14 +913,14 @@ class Allocation extends Base_model {
 			{
 				case ALLOCATION_SCHEDULED:
 					// Not an allocation category
-					if( ! $category->get( 'is_allocation_category' ) )
+					if( ! $category->get( 'cat_module' ) == 'Allocation' )
 					{
 						set_message( 'Not an allocation category', 'error' );
 						return FALSE;
 					}
 
 					// Not included in pre-allocation categories
-					if( ! in_array( $category->get( 'category' ), $pre_allocation_categories ) )
+					if( ! in_array( $category->get( 'cat_name' ), $pre_allocation_categories ) )
 					{
 						set_message( 'Not included in pre-allocation categories', 'error' );
 						return FALSE;
@@ -945,7 +945,7 @@ class Allocation extends Base_model {
 				case ALLOCATION_REMITTED:
 				case ALLOCATION_CANCELLED:
 					// Not an allocation category
-					if( ! $category->get( 'is_allocation_category' ) )
+					if( ! $category->get( 'cat_module' ) == 'Allocation' )
 					{
 						set_message( 'Not an allocation category', 'error' );
 						return FALSE;
@@ -1020,14 +1020,14 @@ class Allocation extends Base_model {
 			{
 				case ALLOCATION_SCHEDULED:
 					// Not an allocation category
-					if( ! $category->get( 'is_allocation_category' ) )
+					if( ! $category->get( 'cat_module' ) == 'Allocation' )
 					{
 						set_message( 'Not an allocation category', 'error' );
 						return FALSE;
 					}
 
 					// Not included in pre-allocation categories
-					if( ! in_array( $category->get( 'category' ), $pre_allocation_categories ) )
+					if( ! in_array( $category->get( 'cat_name' ), $pre_allocation_categories ) )
 					{
 						set_message( 'Not included in pre-allocation categories', 'error' );
 						return FALSE;
@@ -1052,7 +1052,7 @@ class Allocation extends Base_model {
 				case ALLOCATION_REMITTED:
 				case ALLOCATION_CANCELLED:
 					// Not an allocation category
-					if( ! $category->get( 'is_allocation_category' ) )
+					if( ! $category->get( 'cat_module' ) == 'Allocation' )
 					{
 						set_message( 'Not an allocation category', 'error' );
 						return FALSE;
@@ -1136,7 +1136,7 @@ class Allocation extends Base_model {
 				case ALLOCATION_REMITTED:
 				case ALLOCATION_CANCELLED:
 					// Not a remittance category
-					if( ! $category->get( 'is_remittance_category' ) )
+					if( $category->get( 'cat_module' ) != 'Remittance' )
 					{
 						set_message( 'Not a remittance category', 'error' );
 						return FALSE;
@@ -1217,7 +1217,7 @@ class Allocation extends Base_model {
 				case ALLOCATION_REMITTED:
 				case ALLOCATION_CANCELLED:
 					// Not a remittance category
-					if( ! $category->get( 'is_remittance_category' ) )
+					if( $category->get( 'cat_module' ) != 'Remittance' )
 					{
 						set_message( 'Not a remittance category', 'error' );
 						return FALSE;
@@ -1289,6 +1289,7 @@ class Allocation extends Base_model {
 		$transaction_datetime = date( TIMESTAMP_FORMAT );
 
 		$ci->db->trans_start();
+		// Ticket items
 		foreach( $allocations as $allocation )
 		{
 			if( $allocation->get( 'allocation_item_status' ) == ALLOCATION_ITEM_SCHEDULED
@@ -1298,7 +1299,7 @@ class Allocation extends Base_model {
 				if ( $inventory )
 				{
 					$quantity = $allocation->get( 'allocated_quantity' ) * -1; // Item will be removed from inventory
-					$inventory->transact( TRANSACTION_ALLOCATION, $quantity, $transaction_datetime, $this->id, $allocation->get( 'id' ) );
+					$inventory->transact( TRANSACTION_ALLOCATION, $quantity, $transaction_datetime, $this->id, $allocation->get( 'id' ), $allocation->get( 'allocation_category_id' ) );
 
 					$allocation->set( 'cashier_shift_id', $ci->session->current_shift_id );
 					$allocation->set( 'allocation_item_status', ALLOCATION_ITEM_ALLOCATED );
@@ -1311,9 +1312,11 @@ class Allocation extends Base_model {
 			}
 		}
 
+		// Cash items
 		$change_fund = $Inventory->get_by_store_item_name( $this->store_id, FUND_CHANGE_FUND );
 		$ca_fund = $Inventory->get_by_store_item_name( $this->store_id, FUND_COIN_ACCEPTOR );
-		$change_fund_categories = array( 'Initial Change Fund', 'Additional Change Fund', 'Coin Replenishment', 'Coin Acceptor Replenishment' );
+		//$change_fund_categories = array( 'Initial Change Fund', 'Additional Change Fund', 'Coin Replenishment', 'Coin Acceptor Replenishment' );
+		$change_fund_categories = array( 'InitCFund', 'AddCFund', 'HopAlloc', 'CAAlloc');
 
 		foreach( $cash_allocations as $allocation )
 		{
@@ -1330,18 +1333,18 @@ class Allocation extends Base_model {
 					{
 						$amount = $allocation->get( 'allocated_quantity' ) * $item->get( 'iprice_unit_price' );
 
-						if( $ca_fund && $allocation_category->get( 'category' ) == 'Coin Acceptor Replenishment' )
+						if( $ca_fund && $allocation_category->get( 'cat_name' ) == 'CAAlloc' )
 						{ // Add to Coin Acceptor Fund
-							$ca_fund->transact( TRANSACTION_ALLOCATION, $amount, $transaction_datetime, $this->id, $allocation->get( 'id' ) );
+							$ca_fund->transact( TRANSACTION_ALLOCATION, $amount, $transaction_datetime, $this->id, $allocation->get( 'id' ), $allocation->get( 'allocation_category_id' ) );
 							$ca_fund_sub = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ), $ca_fund->get( 'item_id' ), TRUE );
-							$ca_fund_sub->transact( TRANSACTION_ALLOCATION, $quantity, $transaction_datetime, $this->id, $allocation->get( 'id' ) );
+							$ca_fund_sub->transact( TRANSACTION_ALLOCATION, $quantity, $transaction_datetime, $this->id, $allocation->get( 'id' ), $allocation->get( 'allocation_category_id' ) );
 						}
 
-						if( $change_fund && in_array( $allocation_category->get( 'category' ), $change_fund_categories ) )
+						if( $change_fund && in_array( $allocation_category->get( 'cat_name' ), $change_fund_categories ) )
 						{ // Deduct from Change Fund
-							$change_fund->transact( TRANSACTION_ALLOCATION, $amount * -1, $transaction_datetime, $this->id, $allocation->get( 'id' ) );
+							$change_fund->transact( TRANSACTION_ALLOCATION, $amount * -1, $transaction_datetime, $this->id, $allocation->get( 'id' ), $allocation->get( 'allocation_category_id' ) );
 							$change_fund_sub = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ), $change_fund->get( 'item_id' ), TRUE );
-							$change_fund_sub->transact( TRANSACTION_ALLOCATION, $quantity, $transaction_datetime, $this->id, $allocation->get( 'id' ) );
+							$change_fund_sub->transact( TRANSACTION_ALLOCATION, $quantity, $transaction_datetime, $this->id, $allocation->get( 'id' ), $allocation->get( 'allocation_category_id' ) );
 						}
 					}
 				}
@@ -1349,7 +1352,7 @@ class Allocation extends Base_model {
 				$inventory = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ) );
 				if ( $inventory )
 				{
-					$inventory->transact( TRANSACTION_ALLOCATION, $quantity, $transaction_datetime, $this->id, $allocation->get( 'id' ) );
+					$inventory->transact( TRANSACTION_ALLOCATION, $quantity, $transaction_datetime, $this->id, $allocation->get( 'id' ), $allocation->get( 'allocation_category_id' ) );
 
 					$allocation->set( 'cashier_shift_id', $ci->session->current_shift_id );
 					$allocation->set( 'allocation_item_status', ALLOCATION_ITEM_ALLOCATED );
@@ -1383,15 +1386,16 @@ class Allocation extends Base_model {
 		$transaction_datetime = date( TIMESTAMP_FORMAT );
 
 		$ci->db->trans_start();
+		// Ticket items
 		foreach( $remittances as $remittance )
 		{
 			if( $remittance->get( 'allocation_item_status' ) == REMITTANCE_ITEM_PENDING )
 			{
-				$inventory = $Inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ) );
+				$inventory = $Inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ), NULL, TRUE );
 				if( $inventory )
 				{
 					$quantity = $remittance->get( 'allocated_quantity' );
-					$inventory->transact( TRANSACTION_REMITTANCE, $quantity, $transaction_datetime, $this->id, $remittance->get( 'id' ) );
+					$inventory->transact( TRANSACTION_REMITTANCE, $quantity, $transaction_datetime, $this->id, $remittance->get( 'id' ), $remittance->get( 'allocation_category_id' ) );
 
 					$remittance->set( 'cashier_shift_id', $ci->session->current_shift_id );
 					$remittance->set( 'allocation_item_status', REMITTANCE_ITEM_REMITTED );
@@ -1404,10 +1408,11 @@ class Allocation extends Base_model {
 			}
 		}
 
+		// Cash items
 		$change_fund = $Inventory->get_by_store_item_name( $this->store_id, FUND_CHANGE_FUND );
 		$sales_fund = $Inventory->get_by_store_item_name( $this->store_id, FUND_SALES );
-		$change_fund_categories = array( 'Change Fund Return', 'Hopper Pullout' );
-		$sales_fund_categories = array( 'Sales Collection' );
+		$change_fund_categories = array( 'CFundRet', 'HopPullout', 'CAPullout' );
+		$sales_fund_categories = array( 'SalesColl' );
 
 		foreach( $cash_remittances as $remittance )
 		{
@@ -1423,26 +1428,25 @@ class Allocation extends Base_model {
 
 					if( $remittance_category )
 					{
-						if( $change_fund && in_array( $remittance_category->get( 'category' ), $change_fund_categories ) )
+						if( $change_fund && in_array( $remittance_category->get( 'cat_name' ), $change_fund_categories ) )
 						{
-							$change_fund->transact( TRANSACTION_REMITTANCE, $amount, $transaction_datetime, $this->id, $remittance->get( 'id' ) );
+							$change_fund->transact( TRANSACTION_REMITTANCE, $amount, $transaction_datetime, $this->id, $remittance->get( 'id' ), $remittance->get( 'allocation_category_id' ) );
 							$change_fund_sub = $Inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ), $change_fund->get( 'item_id' ), TRUE );
-							$change_fund_sub->transact( TRANSACTION_REMITTANCE, $quantity, $transaction_datetime, $this->id, $remittance->get( 'id' ) );
+							$change_fund_sub->transact( TRANSACTION_REMITTANCE, $quantity, $transaction_datetime, $this->id, $remittance->get( 'id' ), $remittance->get( 'allocation_category_id' ) );
 						}
-
-						if( $sales_fund && in_array( $remittance_category->get( 'category' ), $sales_fund_categories ) )
+						elseif( $sales_fund && in_array( $remittance_category->get( 'cat_name' ), $sales_fund_categories ) )
 						{
-							$sales_fund->transact( TRANSACTION_REMITTANCE, $amount, $transaction_datetime, $this->id, $remittance->get( 'id' ) );
+							$sales_fund->transact( TRANSACTION_REMITTANCE, $amount, $transaction_datetime, $this->id, $remittance->get( 'id' ), $remittance->get( 'allocation_category_id' ) );
 							$sales_fund_sub = $Inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ), $sales_fund->get( 'item_id' ), TRUE );
-							$sales_fund_sub->transact( TRANSACTION_REMITTANCE, $quantity, $transaction_datetime, $this->id, $remittance->get( 'id' ) );
+							$sales_fund_sub->transact( TRANSACTION_REMITTANCE, $quantity, $transaction_datetime, $this->id, $remittance->get( 'id' ), $remittance->get( 'allocation_category_id' ) );
 						}
 					}
 				}
 
-				$inventory = $Inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ) );
+				$inventory = $Inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ), NULL, TRUE );
 				if( $inventory )
 				{
-					$inventory->transact( TRANSACTION_REMITTANCE, $quantity, $transaction_datetime, $this->id, $remittance->get( 'id' ) );
+					$inventory->transact( TRANSACTION_REMITTANCE, $quantity, $transaction_datetime, $this->id, $remittance->get( 'id' ), $remittance->get( 'allocation_category_id' ) );
 
 					$remittance->set( 'cashier_shift_id', $ci->session->current_shift_id );
 					$remittance->set( 'allocation_item_status', REMITTANCE_ITEM_REMITTED );
@@ -1466,6 +1470,7 @@ class Allocation extends Base_model {
 		$ticket_sales = $this->get_ticket_sales();
 
 		$ci->db->trans_start();
+		// Ticket items
 		foreach( $ticket_sales as $ticket_sale )
 		{
 			if( $ticket_sale->get( 'allocation_item_status' ) == TICKET_SALE_ITEM_PENDING )
@@ -1518,11 +1523,11 @@ class Allocation extends Base_model {
 			foreach( $this->voided_allocations as $allocation )
 			{
 				$quantity = $allocation->get( 'allocated_quantity' );
-				$inventory = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ) );
+				$inventory = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ), NULL, TRUE );
 
 				if( $inventory )
 				{
-					$inventory->transact( TRANSACTION_ALLOCATION_VOID, $quantity, $transaction_datetime, $this->id, $allocation->get( 'id' ) );
+					$inventory->transact( TRANSACTION_ALLOCATION_VOID, $quantity, $transaction_datetime, $this->id, $allocation->get( 'id' ), $allocation->get( 'allocation_category_id' ) );
 				}
 			}
 		}
@@ -1530,18 +1535,18 @@ class Allocation extends Base_model {
 		// Cash Allocations
 		$change_fund = $Inventory->get_by_store_item_name( $this->store_id, FUND_CHANGE_FUND );
 		$ca_fund = $Inventory->get_by_store_item_name( $this->store_id, FUND_COIN_ACCEPTOR );
-		$change_fund_categories = array( 'Initial Change Fund', 'Additional Change Fund', 'Coin Replenishment', 'Coin Acceptor Replenishment' );
+		$change_fund_categories = array( 'InitCFund', 'AddCFund', 'HopAlloc', 'CAAlloc' );
 
 		if( isset( $this->voided_cash_allocations ) && $this->voided_cash_allocations )
 		{
 			foreach( $this->voided_cash_allocations as $allocation )
 			{
 				$quantity = $allocation->get( 'allocated_quantity' );
-				$inventory = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ) );
+				$inventory = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ), NULL, TRUE );
 
 				if( $inventory )
 				{
-					$inventory->transact( TRANSACTION_ALLOCATION_VOID, $quantity, $transaction_datetime, $this->id, $allocation->get( 'id' ) );
+					$inventory->transact( TRANSACTION_ALLOCATION_VOID, $quantity, $transaction_datetime, $this->id, $allocation->get( 'id' ), $allocation->get( 'allocation_category_id' ) );
 				}
 
 				$item = $allocation->get_item();
@@ -1553,18 +1558,18 @@ class Allocation extends Base_model {
 					{
 						$amount = $quantity * $item->get( 'iprice_unit_price' );
 
-						if( $ca_fund && $allocation_category->get( 'category' ) == 'Coin Acceptor Replenishment' )
+						if( $ca_fund && $allocation_category->get( 'cat_name' ) == 'CAAlloc' )
 						{ // Deduct from Coin Acceptor Fund
-							$ca_fund->transact( TRANSACTION_ALLOCATION_VOID, $amount * -1, $transaction_datetime, $this->id, $allocation->get( 'id' ) );
+							$ca_fund->transact( TRANSACTION_ALLOCATION_VOID, $amount * -1, $transaction_datetime, $this->id, $allocation->get( 'id' ), $allocation->get( 'allocation_category_id' ) );
 							$ca_fund_sub = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ), $ca_fund->get( 'item_id' ), TRUE );
-							$ca_fund_sub->transact( TRANSACTION_ALLOCATION_VOID, $quantity * -1, $transaction_datetime, $this->id, $allocation->get( 'id' ) );
+							$ca_fund_sub->transact( TRANSACTION_ALLOCATION_VOID, $quantity * -1, $transaction_datetime, $this->id, $allocation->get( 'id' ), $allocation->get( 'allocation_category_id' ) );
 						}
 
-						if( $change_fund && in_array( $allocation_category->get( 'category' ), $change_fund_categories ) )
+						if( $change_fund && in_array( $allocation_category->get( 'cat_name' ), $change_fund_categories ) )
 						{ // Return to Change Fund
-							$change_fund->transact( TRANSACTION_ALLOCATION_VOID, $amount, $transaction_datetime, $this->id, $allocation->get( 'id' ) );
+							$change_fund->transact( TRANSACTION_ALLOCATION_VOID, $amount, $transaction_datetime, $this->id, $allocation->get( 'id' ), $allocation->get( 'allocation_category_id' ) );
 							$change_fund_sub = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ), $change_fund->get( 'item_id' ), TRUE );
-							$change_fund_sub->transact( TRANSACTION_ALLOCATION_VOID, $quantity, $transaction_datetime, $this->id, $allocation->get( 'id' ) );
+							$change_fund_sub->transact( TRANSACTION_ALLOCATION_VOID, $quantity, $transaction_datetime, $this->id, $allocation->get( 'id' ), $allocation->get( 'allocation_category_id' ) );
 						}
 					}
 				}
@@ -1577,11 +1582,11 @@ class Allocation extends Base_model {
 			foreach( $this->voided_remittances as $remittance )
 			{
 				$quantity = $remittance->get( 'allocated_quantity' ) * -1;
-				$inventory = $Inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ) );
+				$inventory = $Inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ), NULL, TRUE );
 
 				if( $inventory )
 				{
-					$inventory->transact( TRANSACTION_REMITTANCE_VOID, $quantity, $transaction_datetime, $this->id, $remittance->get( 'id' ) );
+					$inventory->transact( TRANSACTION_REMITTANCE_VOID, $quantity, $transaction_datetime, $this->id, $remittance->get( 'id' ), $remittance->get( 'allocation_category_id' ) );
 				}
 			}
 		}
@@ -1592,17 +1597,17 @@ class Allocation extends Base_model {
 		{
 			$change_fund = $Inventory->get_by_store_item_name( $this->store_id, FUND_CHANGE_FUND );
 			$sales_fund = $Inventory->get_by_store_item_name( $this->store_id, FUND_SALES );
-			$change_fund_categories = array( 'Change Fund Return', 'Hopper Pullout' );
-			$sales_fund_categories = array( 'Sales Collection' );
+			$change_fund_categories = array( 'CFundRet', 'HopPullout', 'CAPullout' );
+			$sales_fund_categories = array( 'SalesColl' );
 
 			foreach( $this->voided_cash_remittances as $remittance )
 			{
 				$quantity = $remittance->get( 'allocated_quantity' ) * -1;
-				$inventory = $Inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ) );
+				$inventory = $Inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ), NULL, TRUE );
 
 				if( $inventory )
 				{ // Deduct from Inventory
-					$inventory->transact( TRANSACTION_REMITTANCE_VOID, $quantity, $transaction_datetime, $this->id, $remittance->get( 'id' ) );
+					$inventory->transact( TRANSACTION_REMITTANCE_VOID, $quantity, $transaction_datetime, $this->id, $remittance->get( 'id' ), $remittance->get( 'allocation_category_id' ) );
 				}
 
 				$item = $remittance->get_item();
@@ -1616,18 +1621,18 @@ class Allocation extends Base_model {
 
 						if( $remittance_category )
 						{
-							if( $change_fund && in_array( $remittance_category->get( 'category' ), $change_fund_categories ) )
+							if( $change_fund && in_array( $remittance_category->get( 'cat_name' ), $change_fund_categories ) )
 							{ // Deduct from Change Fund
-								$change_fund->transact( TRANSACTION_REMITTANCE, $amount, $transaction_datetime, $this->id, $remittance->get( 'id' ) );
+								$change_fund->transact( TRANSACTION_REMITTANCE, $amount, $transaction_datetime, $this->id, $remittance->get( 'id' ), $remittance->get( 'allocation_category_id' ) );
 								$change_fund_sub = $Inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ), $change_fund->get( 'item_id' ), TRUE );
-								$change_fund_sub->transact( TRANSACTION_REMITTANCE, $quantity, $transaction_datetime, $this->id, $remittance->get( 'id' ) );
+								$change_fund_sub->transact( TRANSACTION_REMITTANCE, $quantity, $transaction_datetime, $this->id, $remittance->get( 'id' ), $remittance->get( 'allocation_category_id' ) );
 							}
 
-							if( $sales_fund && in_array( $remittance_category->get( 'category' ), $sales_fund_categories ) )
+							if( $sales_fund && in_array( $remittance_category->get( 'cat_name' ), $sales_fund_categories ) )
 							{ // Deduct from Sales
-								$sales_fund->transact( TRANSACTION_REMITTANCE, $amount, $transaction_datetime, $this->id, $remittance->get( 'id' ) );
+								$sales_fund->transact( TRANSACTION_REMITTANCE, $amount, $transaction_datetime, $this->id, $remittance->get( 'id' ), $remittance->get( 'allocation_category_id' ) );
 								$sales_fund_sub = $Inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ), $sales_fund->get( 'item_id' ), TRUE );
-								$sales_fund_sub->transact( TRANSACTION_REMITTANCE, $quantity, $transaction_datetime, $this->id, $remittance->get( 'id' ) );
+								$sales_fund_sub->transact( TRANSACTION_REMITTANCE, $quantity, $transaction_datetime, $this->id, $remittance->get( 'id' ), $remittance->get( 'allocation_category_id' ) );
 							}
 						}
 					}

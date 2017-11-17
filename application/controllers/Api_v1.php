@@ -2057,6 +2057,7 @@ class Api_v1 extends MY_Controller {
 										'movement' => array( 'type' => 'integer' ),
 										'sti_beginning_balance' => array( 'type' => 'integer' ),
 										'sti_ending_balance' => array( 'type' => 'integer' ),
+										'parent_item_name' => array( 'type' => 'string' ),
 									);
 									foreach( $items as $item )
 									{
@@ -2355,7 +2356,8 @@ class Api_v1 extends MY_Controller {
 											'item_name' => array( 'type' => 'string' ),
 											'item_description' => array( 'type' => 'string' ),
 											'shift_num' => array( 'type' => 'string' ),
-											'cat_description' => array( 'type' => 'string' )
+											'cat_description' => array( 'type' => 'string' ),
+											'parent_item_name' => array( 'type' => 'string' )
 										);
 
 										foreach( $transactions as $transaction )

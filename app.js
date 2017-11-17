@@ -57,12 +57,12 @@ angular.module( 'coreModels', [] );
 
 app.constant( 'baseUrl', baseUrl );
 
-app.filter('itemsWithCategory', function()
+app.filter('itemsWithProps', function()
 {
 	return function( items, categoryName )
 	{
 		var filteredItems = [];
-		var validProps = [ 'cash', 'ticket', 'teller', 'machine' ];
+
 		for( var i = 0, m = items.length; i < m; i++ )
 		{
 			if( items[i].categories )
@@ -71,7 +71,7 @@ app.filter('itemsWithCategory', function()
 				for( var j = 0, n = item.categories.length; j < n; j++ )
 				{
 					var category = item.categories[j];
-					if( categoryName.constructor == Array )
+					if( categoryName && categoryName.constructor == Array )
 					{ // Array of categories
 						if( categoryName.indexOf( category.cat_name ) != -1 )
 						{
@@ -79,7 +79,7 @@ app.filter('itemsWithCategory', function()
 							break;
 						}
 					}
-					else
+					else if( categoryName && categoryName.constructor == String )
 					{ // Single category
 						if( category.cat_name == categoryName )
 						{

@@ -455,7 +455,7 @@
 				<label class="control-label">Category</label>
 				<select class="form-control"
 						ng-model="input.category"
-						ng-options="category as category.category for category in data.categories track by category.id">
+						ng-options="category as category.cat_description for category in data.categories track by category.id">
 				</select>
 			</div>
 

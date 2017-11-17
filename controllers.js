@@ -1869,7 +1869,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.changeEditMode();
 
 						var filteredItems;
-						filteredItems = $filter( 'itemsWithCategory' )( appData.data.items, 'ExtTrans' );
+						filteredItems = $filter( 'itemsWithProps' )( appData.data.items, 'ExtTrans' );
 						if( filteredItems.length > 0 )
 						{
 							$scope.data.inventoryItems = filteredItems;
@@ -1900,7 +1900,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.changeEditMode();
 
 						var filteredItems;
-						filteredItems = $filter( 'itemsWithCategory' )( appData.data.items, 'IntTrans' );
+						filteredItems = $filter( 'itemsWithProps' )( appData.data.items, 'IntTrans' );
 						if( filteredItems.length > 0 )
 						{
 							$scope.data.inventoryItems = filteredItems;
@@ -1918,7 +1918,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.changeEditMode( 'transfer' );
 
 						var filteredItems;
-						filteredItems = $filter( 'itemsWithCategory' )( appData.data.items, 'TktTurn' );
+						filteredItems = $filter( 'itemsWithProps' )( appData.data.items, 'TktTurn' );
 						if( filteredItems.length > 0 )
 						{
 							$scope.data.inventoryItems = filteredItems;
@@ -1936,7 +1936,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.changeEditMode( 'transfer' );
 
 						var filteredItems;
-						filteredItems = $filter( 'itemsWithCategory' )( appData.data.items, 'StockRep' );
+						filteredItems = $filter( 'itemsWithProps' )( appData.data.items, 'StockRep' );
 						if( filteredItems.length > 0 )
 						{
 							$scope.data.inventoryItems = filteredItems;
@@ -1952,7 +1952,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.changeEditMode( 'externalReceipt' );
 
 						var filteredItems;
-						filteredItems = $filter( 'itemsWithCategory' )( appData.data.items, 'Blackbox' );
+						filteredItems = $filter( 'itemsWithProps' )( appData.data.items, 'Blackbox' );
 						if( filteredItems.length > 0 )
 						{
 							$scope.data.inventoryItems = filteredItems;
@@ -1982,7 +1982,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.changeEditMode();
 
 						var filteredItems;
-						filteredItems = $filter( 'itemsWithCategory' )( appData.data.items, 'BillToCoin' );
+						filteredItems = $filter( 'itemsWithProps' )( appData.data.items, 'BillToCoin' );
 						if( filteredItems.length > 0 )
 						{
 							$scope.data.inventoryItems = filteredItems;
@@ -2010,7 +2010,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 								break;
 						}
 						var filteredItems;
-						filteredItems = $filter( 'itemsWithCategory' )( appData.data.items, 'CSCApp' );
+						filteredItems = $filter( 'itemsWithProps' )( appData.data.items, 'CSCApp' );
 						if( filteredItems.length > 0 )
 						{
 							$scope.data.inventoryItems = filteredItems;
@@ -2026,7 +2026,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.changeEditMode( 'externalTransfer' );
 
 						var filteredItems;
-						filteredItems = $filter( 'itemsWithCategory' )( appData.data.items, 'BankDep' );
+						filteredItems = $filter( 'itemsWithProps' )( appData.data.items, 'BankDep' );
 						if( filteredItems.length > 0 )
 						{
 							$scope.data.inventoryItems = filteredItems;
@@ -2506,7 +2506,7 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
 
 		$scope.data = {
 				editMode: $stateParams.editMode || 'auto',
-				inventoryItems: $filter( 'itemsWithCategory' )( angular.copy( appData.data.items ), 'Adjust' ),
+				inventoryItems: $filter( 'itemsWithProps' )( angular.copy( appData.data.items ), 'Adjust' ),
 				selectedItem: appData.data.items[0],
 				transactionTypes: angular.copy( transactionTypes )
 			};
@@ -2661,8 +2661,8 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 		$scope.data = {
 				editMode: $stateParams.editMode || 'auto',
 				conversionDatepicker: { format: 'yyyy-MM-dd HH:mm:ss', opened: false },
-				sourceItems: $filter( 'itemsWithCategory' )( items, ['Pack','Unpack','Conversion'] ),
-				targetItems: $filter( 'itemsWithCategory' )( items, ['Pack','Unpack','Conversion'] ),
+				sourceItems: $filter( 'itemsWithProps' )( items, ['Pack','Unpack','Conversion'] ),
+				targetItems: $filter( 'itemsWithProps' )( items, ['Pack','Unpack','Conversion'] ),
 				sourceInventory: items[0],
 				targetInventory: items[1],
 				input: { min: 1, step: 1 },
@@ -2997,7 +2997,7 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 						description: 'TGM Shift 1'
 					},
 				moppedSource: angular.copy( appData.data.stations ),
-				moppedItems: $filter( 'itemsWithCategory' )( angular.copy( appData.data.items ), ['TktCollect','TktIssue'] ),
+				moppedItems: $filter( 'itemsWithProps' )( angular.copy( appData.data.items ), ['TktCollect','TktIssue'] ),
 				packAsItems: packingData,
 				editMode: $stateParams.editMode || 'new'
 			};
@@ -3244,6 +3244,7 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'assigneeShifts', 'Allocation', 'AllocationItem', 'AllocationSalesItem',
 	function( $scope, $filter, $state, $stateParams, session, appData, notifications, assigneeShifts, Allocation, AllocationItem, AllocationSalesItem )
 	{
+		/*
 		function category_filter( value, index, array )
 		{
 			var result = true;
@@ -3308,11 +3309,75 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 
 			return true;
 		}
+		*/
 
-		function empty_category_filter( value, index, array )
+		function category_filter( value, index, array )
 		{
-			//console.log( value );
-			return value.categories.length > 0;
+			var result = true;
+			var assigneeType = $scope.data.selectedAssigneeType;
+			var phase = $scope.data.allocationPhase;
+			var status = $scope.allocationItem ? $scope.allocationItem.allocation_status : 1; // ALLOCATION_SCHEDULED
+			var preAllocationCategories = [ 'InitAlloc', 'TVMAlloc', 'InitCFund', 'HopAlloc', 'CAAlloc' ];
+			var postAllocationCategories = [ 'AddAlloc', 'TVMAlloc', 'AddCFund', 'HopAlloc', 'CAAlloc' ];
+			/*
+			var preAllocationCategories, postAllocationCategories;
+			switch( assigneeType )
+			{
+				case 1: // Station Teller
+					preAllocationCategories = [ 'InitAlloc', 'InitCFund' ];
+					postAllocationCategories = [ 'AddAlloc', 'AddCFund' ];
+					break;
+
+				case 2: // TVM
+					preAllocationCategories = [ 'TVMAlloc', 'HopAlloc', 'CAAlloc' ];
+					postAllocationCategories = [ 'TVMAlloc', 'HopAlloc', 'CAAlloc' ];
+					break;
+			}
+			*/
+
+			switch( assigneeType.id )
+			{
+				case 1: // Station Teller
+					if( value.cat_teller != true ) return false;
+					break;
+
+				case 2: // TVM
+					if( value.cat_machine != true ) return false;
+					break;
+
+				default:
+					return false;
+			}
+
+			switch( phase )
+			{
+				case 'allocation':
+					if( value.cat_module != 'Allocation' ) return false;
+					switch( status )
+					{
+						case 1: // ALLOCATION_SCHEDULED
+							if( preAllocationCategories.indexOf( value.cat_name ) == -1 )	return false;
+							break;
+
+						default:
+							if( postAllocationCategories.indexOf( value.cat_name ) == -1 ) return false;
+					}
+					break;
+
+				case 'remittance':
+					if( value.cat_module != 'Remittance' ) return false;
+					break;
+
+				case 'ticket_sales':
+					if( value.cat_module != 'Sales' ) return false;
+					break;
+
+				case 'sales':
+				default:
+					return false;
+			}
+
+			return true;
 		}
 
 		$scope.pendingAction = false;
@@ -3417,54 +3482,69 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 		$scope.updateAllocatableItems = function()
 			{
 				var filter = {};
+				var categoryFilter, assigneeFilter = {};
+				var assignee = $scope.data.selectedAssigneeType.id == 2 ? 'machine' : 'teller';
+				var allocationStatus = $scope.allocationItem ? $scope.allocationItem.allocation_status : 1;
 
-				if( $scope.data.selectedAssigneeType.id == 1 )
-				{ // Teller
-					if( $scope.data.allocationPhase == 'allocation' )
+				if( $scope.data.allocationPhase == 'allocation' )
+				{
+					if( assignee == 'teller' )
 					{
-						filter['teller_allocatable'] = true;
+						if( allocationStatus == 1 )
+						{
+							categoryFilter = ['InitAlloc', 'InitCFund'];
+						}
+						else
+						{
+							categoryFilter = ['AddAlloc', 'AddCFund'];
+						}
 					}
-					else if( $scope.data.allocationPhase == 'remittance' )
+					else
 					{
-						filter['teller_remittable'] = true;
+						categoryFilter = ['TVMAlloc', 'HopAlloc', 'CAAlloc'];
 					}
-					else if( $scope.data.allocationPhase == 'ticket_sales' )
-					{
-						filter['teller_saleable'] = true;
-					}
-					else if( $scope.data.allocationPhase == 'sales' )
-					{
-						// do nothing
-					}
+					assigneeFilter[assignee + '_allocatable'] = true;
 				}
-				else if( $scope.data.selectedAssigneeType.id == 2 )
-				{ // Ticket Vending Machine
-					if( $scope.data.allocationPhase == 'allocation' )
+				else if( $scope.data.allocationPhase == 'remittance' )
+				{
+					if( assignee == 'teller' )
 					{
-						filter['machine_allocatable'] = true;
+						categoryFilter = ['Unsold', 'RemFreeExt', 'Expired', 'CodeRed', 'Unconfirmd', 'TCERF', 'SalesColl', 'CFundRet'];
 					}
-					else if( $scope.data.allocationPhase == 'remittance' )
+					else
 					{
-						filter['machine_remittable'] = true;
+						categoryFilter = ['Unsold', 'RejectBin', 'SalesColl', 'HopPullout'];
 					}
-					else if( $scope.data.allocationPhase == 'ticket_sales' )
+					assigneeFilter[assignee + '_remittable'] = true;
+				}
+				else if( $scope.data.allocationPhase == 'ticket_sales' )
+				{
+					if( assignee == 'teller' )
 					{
-						filter['machine_saleable'] = true;
+						categoryFilter = ['TktSales', 'CSCIssue', 'SalePdExt', 'SaleFrExt', 'SaleUncnfrm'];
 					}
-					else if( $scope.data.allocationPhase == 'sales' )
+					else
 					{
-						// do nothing
+						categoryFilter = [];
 					}
+					assigneeFilter[assignee + '_saleable'] = true;
+				}
+				else if( $scope.data.allocationPhase == 'sales' )
+				{
+					// do nothing
 				}
 
 				if( $scope.data.allocationPhase != 'sales' )
 				{
-					$scope.data.inventoryItems = $filter( 'filter' )( appData.data.items, filter, true );
-					$scope.data.inventoryItems = $filter( 'filter' )( $scope.data.inventoryItems, empty_category_filter );
+					//$scope.data.inventoryItems = $filter( 'filter' )( appData.data.items, filter, true );
+					$scope.data.inventoryItems = $filter( 'itemsWithProps' )( appData.data.items, categoryFilter );
+					$scope.data.inventoryItems = $filter( 'filter' )( $scope.data.inventoryItems, assigneeFilter, true );
+
 					if( $scope.data.inventoryItems.length )
 					{
 						$scope.input.item = $scope.data.inventoryItems[0];
 					}
+
 					$scope.updateCategories();
 				}
 			};
@@ -3621,7 +3701,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 						{
 							var data = {
 									cashier_shift_num: session.data.currentShift.shift_num,
-									category_name: $scope.input.category.cat_description,
+									cat_description: $scope.input.category.cat_description,
 									item_name: $scope.input.item.item_name,
 									item_class: $scope.input.item.item_class,
 
@@ -3831,6 +3911,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 						$scope.onAssigneeShiftChange();
 						$scope.updateSaveButton();
 						$scope.getItemQuantities();
+						$scope.updateCategories();
 					}
 					else
 					{
@@ -3851,6 +3932,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 			$scope.onAssigneeShiftChange();
 			$scope.updateSaveButton();
 			$scope.getItemQuantities();
+			$scope.updateCategories();
 		}
 	}
 ]);

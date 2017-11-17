@@ -1687,6 +1687,16 @@ class Installer extends CI_Controller {
 						'cat_machine'     => 1,
 						'cat_status'      => 1
 					),
+					array(
+						'cat_name'        => 'CAPullout',
+						'cat_description' => 'Coin Acceptor Pullout',
+						'cat_module'      => 'Remittance',
+						'cat_ticket'      => 0,
+						'cat_cash'        => 1,
+						'cat_teller'      => 0,
+						'cat_machine'     => 1,
+						'cat_status'      => 1
+					),
 
 					// Sales Categories
 					array(
@@ -1963,6 +1973,7 @@ class Installer extends CI_Controller {
 					array( 'Php1 Coin', 'SalesColl' ),
 					array( 'Php1 Coin', 'CFundRet' ),
 					array( 'Php1 Coin', 'HopPullout' ),
+					array( 'Php1 Coin', 'CAPullout' ),
 					array( 'Php1 Coin', 'Pack' ),
 
 					array( 'Php0.25 Coin', 'IntTrans' ),
@@ -1984,6 +1995,7 @@ class Installer extends CI_Controller {
 					array( 'Php5 Coin', 'SalesColl' ),
 					array( 'Php5 Coin', 'CFundRet' ),
 					array( 'Php5 Coin', 'HopPullout' ),
+					array( 'Php5 Coin', 'CAPullout' ),
 					array( 'Php5 Coin', 'Pack' ),
 
 					array( 'Php10 Coin', 'IntTrans' ),
@@ -1996,6 +2008,7 @@ class Installer extends CI_Controller {
 					array( 'Php10 Coin', 'SalesColl' ),
 					array( 'Php10 Coin', 'CFundRet' ),
 					array( 'Php10 Coin', 'HopPullout' ),
+					array( 'Php10 Coin', 'CAPullout' ),
 
 					array( 'Php20 Bill', 'IntTrans' ),
 					array( 'Php20 Bill', 'ExtTrans' ),
