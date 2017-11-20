@@ -236,16 +236,6 @@ class Mopping extends Base_model {
 			{
 				$source_item_id = $item->get( 'mopped_item_id' );
 				$void_items[] = $item;
-				/*
-				if( isset( $void_items[$source_item_id] ) )
-				{
-					$void_items[$source_item_id] += $item->get( 'mopped_quantity' );
-				}
-				else
-				{
-					$void_items[$source_item_id] = $item->get( 'mopped_quantity' );
-				}
-				*/
 			}
 		}
 
@@ -262,16 +252,6 @@ class Mopping extends Base_model {
 			if( intval( $item['status'] ) == 2 )
 			{
 				$void_items[] = $item;
-				/*
-				if( isset( $void_items[$item['target_item_id']] ) )
-				{
-					$void_items[$item['target_item_id']] += ( $item['quantity'] / $item['conversion_factor'] );
-				}
-				else
-				{
-					$void_items[$item['target_item_id']] = ( $item['quantity'] / $item['conversion_factor'] );
-				}
-				*/
 			}
 		}
 
@@ -298,6 +278,7 @@ class Mopping extends Base_model {
 		$ci->load->library( 'inventory' );
 		$ci->load->library( 'category' );
 		$Category = new Category();
+		$Inventory = new Inventory();
 
 		$items = $this->get_items();
 		$ticket_issue_category = $Category->get_by_name( 'TktIssue' );
@@ -308,8 +289,7 @@ class Mopping extends Base_model {
 
 		foreach( $items as $item )
 		{
-			$inventory = new Inventory();
-			$inventory = $inventory->get_by_store_item( $this->store_id, $item->get( 'mopped_item_id' ) );
+			$inventory = $Inventory->get_by_store_item( $this->store_id, $item->get( 'mopped_item_id' ), NULL, TRUE );
 
 			//$transaction_datetime = $this->processing_datetime;
 			$transaction_datetime = date( TIMESTAMP_FORMAT );
@@ -346,7 +326,8 @@ class Mopping extends Base_model {
 		$ci->load->library( 'inventory' );
 		$Inventory = new Inventory();
 
-		$timestamp = date( TIMESTAMP_FORMAT );
+		//$timestamp = date( TIMESTAMP_FORMAT );
+		$timestamp = date( TIMESTAMP_FORMAT, $this->processing_datetime );
 
 		if( isset( $this->packed_items ) && $this->packed_items )
 		{
@@ -354,8 +335,8 @@ class Mopping extends Base_model {
 
 			foreach( $this->packed_items as $item )
 			{
-				$source_inventory = $Inventory->get_by_store_item( $this->store_id, $item['source_item_id'] );
-				$target_inventory = $Inventory->get_by_store_item( $this->store_id, $item['target_item_id'] );
+				$source_inventory = $Inventory->get_by_store_item( $this->store_id, $item['source_item_id'], NULL, TRUE );
+				$target_inventory = $Inventory->get_by_store_item( $this->store_id, $item['target_item_id'], NULL, TRUE );
 
 				if( $source_inventory && $target_inventory )
 				{
@@ -406,14 +387,13 @@ class Mopping extends Base_model {
 		$Inventory = new Inventory();
 		$Category = new Category();
 
-		//$transaction_datetime = $this->processing_datetime;
-		$transaction_datetime = date( TIMESTAMP_FORMAT );
+		$transaction_datetime = date( TIMESTAMP_FORMAT, $this->processing_datetime );
+		//$transaction_datetime = date( TIMESTAMP_FORMAT );
 		$collection_category = $Category->get_by_name( 'TktCollect' );
 		$ticket_issue_category = $Category->get_by_name( 'TktIssue' );
 
 		if( isset( $this->void_items ) && $this->void_items )
 		{
-			//die( var_dump( $this->void_items ) );
 			$ci->db->trans_start();
 			foreach( $this->void_items as $item )
 			{
