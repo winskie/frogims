@@ -97,7 +97,7 @@ class Inventory extends Base_model
 				return NULL;
 			}
 
-			return $store->add_item( $new_item, 0, $parent_item_id );
+			return $store->add_item( $new_item, $parent_item_id );
 		}
 
 		return NULL;

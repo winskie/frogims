@@ -55,7 +55,6 @@
 			<tr>
 				<th class="vert-middle" rowspan="2">Item</th>
 				<th class="text-center vert-middle" rowspan="2">Group</th>
-				<th class="vert-middle" rowspan="2">Description</th>
 				<th rowspan="2" class="text-center vert-middle">Unit</th>
 				<th colspan="2" class="text-center">Beginning Balance</th>
 				<th rowspan="2" class="text-center vert-middle" style="width: 100px;">Movement</th>
@@ -71,9 +70,8 @@
 		<tbody>
 			<tr ng-repeat="item in shiftTurnover.items"
 				ng-class="{'bg-danger': shiftTurnover.st_status == 2 && ( item.sti_ending_balance != item.sti_beginning_balance + item.movement ) }">
-				<td>{{ item.item_name }}</td>
+				<td>{{ item.item_name }} <span class="label label-info" ng-if="item.parent_item_name">{{ item.parent_item_name }}</span></td>
 				<td class="text-center">{{ item.item_group }}</td>
-				<td>{{ item.item_description }}</td>
 				<td class="text-center">{{ item.item_unit }}</td>
 				<td class="text-center">{{ item.previous_balance ? ( item.previous_balance | number ) : '---' }}</td>
 				<td class="text-right" ng-switch on="shiftTurnover.st_status != 2 && data.editMode != 'view' && checkPermissions( 'shiftTurnovers', 'edit' )">
@@ -93,7 +91,7 @@
 				</td>
 			</tr>
 			<tr ng-if="!shiftTurnover.items.length">
-				<td colspan="7" class="text-center">No inventory items available</td>
+				<td colspan="8" class="text-center">No inventory items available</td>
 			</tr>
 		</tbody>
 	</table>

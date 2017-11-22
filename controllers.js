@@ -2648,9 +2648,26 @@ app.controller( 'AdjustmentController', [ '$scope', '$filter', '$state', '$state
 app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'conversionTable', 'Conversion',
 	function( $scope, $filter, $state, $stateParams, session, appData, notifications, conversionTable, Conversion )
 	{
+		function inputItemFilter( value, index, array )
+		{
+			for( var i = 0, n = value.categories.length; i < n; i++ )
+			{
+				if( ['Pack', 'Unpack', 'Conversion'].indexOf( value.categories[i].cat_name ) != -1 )
+				{
+					if( value.item_class == 'cash' && value.parent_item_name != 'Change Fund' )
+					{
+						continue;
+					}
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		function outputItemFilter( value, index, array )
 		{
-			return convertibleItems.indexOf( value.item_id ) !== -1;
+			return convertibleItems.indexOf( value.item_id ) !== -1 && value.parent_item_id == $scope.data.sourceInventory.parent_item_id;
 		}
 
 		var items = angular.copy( appData.data.items );
@@ -2661,7 +2678,7 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 		$scope.data = {
 				editMode: $stateParams.editMode || 'auto',
 				conversionDatepicker: { format: 'yyyy-MM-dd HH:mm:ss', opened: false },
-				sourceItems: $filter( 'itemsWithProps' )( items, ['Pack','Unpack','Conversion'] ),
+				sourceItems: $filter( 'filter' )( items, inputItemFilter ),
 				targetItems: $filter( 'itemsWithProps' )( items, ['Pack','Unpack','Conversion'] ),
 				sourceInventory: items[0],
 				targetInventory: items[1],
@@ -2961,7 +2978,7 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 		else
 		{
 			$scope.conversionItem = new Conversion();
-			$scope.onInputItemChange();
+			//$scope.onInputItemChange();
 		}
 	}
 ]);
@@ -3937,17 +3954,27 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 	}
 ]);
 
-app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'cashierShifts', 'UserServices', 'TVMReading', 'TVMReadingItem',
-	function( $scope, $filter, $state, $stateParams, session, appData, notifications, cashierShifts,  UserServices, TVMReading, TVMReadingItem )
+app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'cashierShifts', 'UserServices', 'TVMReading',
+	function( $scope, $filter, $state, $stateParams, session, appData, notifications, cashierShifts,  UserServices, TVMReading )
 	{
 		$scope.pendingAction = false;
 
 		$scope.data = {
 				editMode: $stateParams.editMode || 'auto',
 				cashierShifts: angular.copy( cashierShifts ),
+				readingTypes: [
+					{ id: 'magazine_sjt', typeName: 'SJT in Magazine', hasReference: false, decimalPlace: 0 },
+					{ id: 'magazine_svc', typeName: 'SVC in Magazine', hasReference: false, decimalPlace: 0 },
+					{ id: 'coin_box', typeName: 'Coin Box', hasReference: true, decimalPlace: 2 },
+					{ id: 'note_box', typeName: 'Note Box', hasReference: true, decimalPlace: 2 },
+					{ id: 'hopper_php1', typeName: 'Hopper Type (Php1)', hasReference: false, decimalPlace: 0 },
+					{ id: 'hopper_php5', typeName: 'Hopper Type (Php5)', hasReference: false, decimalPlace: 0 },
+				],
 				selectedCashierShift: angular.copy( session.data.currentShift ),
+				selectedType: { id: 'magazine_sjt', typeName: 'SJT in Magazine', hasReference: false, decimalPlace: 0 },
 				datepicker: { format: 'yyyy-MM-dd', opened: false },
 				title: 'TVM Reading',
+				showReference: false,
 				tvms: angular.copy( appData.data.tvms ),
 				selectedTVM: angular.copy( appData.data.tvms[0] )
 			};
@@ -3975,6 +4002,12 @@ app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$state
 				$scope.TVMReading.set( 'tvmr_shift_id', $scope.data.selectedCashierShift.id );
 				$scope.loadPreviousReading();
 			};
+
+		$scope.onTypeChange = function()
+			{
+				$scope.TVMReading.set( 'tvmr_type', $scope.data.selectedType.id );
+				$scope.loadPreviousReading();
+			}
 
 		$scope.loadPreviousReading = function()
 			{
@@ -4057,6 +4090,7 @@ app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$state
 		else
 		{
 			$scope.TVMReading = new TVMReading( { tmvr_machine_ID: $scope.data.tvms[0].id } );
+			$scope.onTypeChange();
 			$scope.onTVMChange();
 			$scope.onShiftChange();
 		}

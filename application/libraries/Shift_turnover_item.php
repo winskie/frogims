@@ -21,6 +21,7 @@ class Shift_turnover_item extends Base_model
 	protected $previous_balance;
 	protected $movement;
 	protected $quantity;
+	protected $parent_item_name;
 
 	protected $parentTurnover;
 

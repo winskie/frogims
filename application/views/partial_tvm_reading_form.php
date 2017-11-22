@@ -9,9 +9,9 @@
 				<div class="row">
 
 					<!-- Machine ID -->
-					<div class="form-group col-sm-6">
-						<label class="control-label col-sm-2">TVM #</label>
-						<div class="col-sm-6" ng-switch on="data.editMode">
+					<div class="form-group col-sm-4">
+						<label class="control-label col-sm-4">TVM #</label>
+						<div class="col-sm-7" ng-switch on="data.editMode">
 							<select class="form-control"
 									ng-model="data.selectedTVM" ng-switch-when="edit" ng-change="onTVMChange()"
 									ng-options="tvm as tvm.description for tvm in data.tvms track by tvm.description">
@@ -20,36 +20,10 @@
 						</div>
 					</div>
 
-					<!-- Date -->
-					<div class="form-group col-sm-6">
-						<label class="control-label col-sm-4">Reading Date</label>
-						<div class="col-sm-7" ng-switch on="data.editMode">
-							<input type="datetime-local" class="form-control" ng-model="TVMReading.tvmr_datetime" ng-switch-when="edit"
-									ng-required="true" ng-change="loadPreviousReading()">
-							<p class="form-control-static" ng-switch-default>{{ TVMReading.tvmr_datetime | parseDate | date: 'yyyy-MM-dd HH:mm:ss' }}</p>
-						</div>
-					</div>
-				</div>
-
-				<div class="row">
-					<!-- Shift ID -->
-					<div class="form-group col-sm-6">
-						<label class="control-label col-sm-2">Shift</label>
-						<div class="col-sm-6" ng-switch on="data.editMode">
-							<select class="form-control"
-									ng-switch-when="edit"
-									ng-model="data.selectedCashierShift"
-									ng-options="shift.shift_num for shift in data.cashierShifts track by shift.id"
-									ng-change="onShiftChange()">
-							</select>
-							<p class="form-control-static" ng-switch-default>{{ TVMReading.shift_num }}</p>
-						</div>
-					</div>
-
 					<!-- Cashier -->
-					<div class="form-group col-sm-6">
+					<div class="form-group col-sm-4">
 						<label class="control-label col-sm-4">Cashier</label>
-						<div class="col-sm-7" ng-switch on="data.editMode">
+						<div class="col-sm-8" ng-switch on="data.editMode">
 							<input type="text" class="form-control"
 									ng-switch-when="edit"
 									ng-model="TVMReading.tvmr_cashier_name"
@@ -61,174 +35,120 @@
 							<p class="form-control-static" ng-switch-default>{{ TVMReading.tvmr_cashier_name }}</p>
 						</div>
 					</div>
+
+					<!-- Date -->
+					<div class="form-group col-sm-4">
+						<label class="control-label col-sm-4">Date</label>
+						<div class="col-sm-8" ng-if="data.editMode == 'edit'">
+							<input type="date" class="form-control" ng-model="TVMReading.tvmr_date" ng-required="true" ng-change="loadPreviousReading()">
+						</div>
+						<div class="col-sm-8" ng-if="data.editMode != 'edit'">
+							<p class="form-control-static">{{ TVMReading.tvmr_date | date: 'yyyy-MM-dd' }}</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="form-group col-sm-4">
+					</div>
+					<!-- Shift ID -->
+					<div class="form-group col-sm-4">
+						<label class="control-label col-sm-4">Shift</label>
+						<div class="col-sm-8" ng-switch on="data.editMode">
+							<select class="form-control"
+									ng-switch-when="edit"
+									ng-model="data.	selectedCashierShift"
+									ng-options="shift.shift_num for shift in data.cashierShifts track by shift.id"
+									ng-change="onShiftChange()">
+							</select>
+							<p class="form-control-static" ng-switch-default>{{ TVMReading.shift_num }}</p>
+						</div>
+					</div>
+
+					<!-- Time -->
+					<div class="form-group col-sm-4">
+						<label class="control-label col-sm-4">Time</label>
+						<div class="col-sm-8" ng-if="data.editMode == 'edit'">
+							<input type="time" class="form-control" ng-model="TVMReading.tvmr_time" ng-required="true">
+						</div>
+						<div class="col-sm-8" ng-if="data.editMode != 'edit'">
+							<p class="form-control-static">{{ TVMReading.tvmr_time | date: 'HH:mm:ss' }}</p>
+						</div>
+					</div>
 				</div>
 			</form>
 		</div>
 
 	</div>
 
-	<div class="row">
-		<div class="col-sm-6">
-			<div class="panel panel-default">
-				<div class="panel-heading clearfix">
-					<span class="panel-title">Current Reading</span>
-				</div>
-				<div class="panel-body">
-					<form class="form-horizontal">
-						<!-- SJT in Magazine -->
-						<div class="form-group row" ng-switch on="data.editMode">
-							<label class="control-label col-sm-4">SJT in Magazine</label>
-							<div class="col-sm-4">
-								<input type="number" class="form-control" placeholder="Ticket Count"
-										ng-switch-when="edit"
-										ng-model="TVMReading.magazine_sjt_reading.tvmri_quantity">
-								<p class="form-control-static" ng-switch-default>{{ TVMReading.magazine_sjt_reading.tvmri_quantity |  number }}</p>
-							</div>
-						</div>
-
-						<!-- SVC in Magazine -->
-						<div class="form-group row" ng-switch on="data.editMode">
-							<label class="control-label col-sm-4">SVC in Magazine</label>
-							<div class="col-sm-4" >
-								<input type="number" class="form-control" placeholder="Ticket Count"
-										ng-switch-when="edit"
-										ng-model="TVMReading.magazine_svc_reading.tvmri_quantity">
-								<p class="form-control-static" ng-switch-default>{{ TVMReading.magazine_svc_reading.tvmri_quantity |  number }}</p>
-							</div>
-						</div>
-
-						<!-- Coin Box -->
-						<div class="form-group row">
-							<label class="control-label col-sm-4">Coin Box</label>
-							<div class="col-sm-4" ng-if="data.editMode == 'edit'">
-								<input type="number" class="form-control" placeholder="Total Value"
-										ng-model="TVMReading.coin_box_reading.tvmri_quantity">
-							</div>
-							<div class="col-sm-4" ng-if="data.editMode == 'edit'">
-								<input type="text" class="form-control" placeholder="Coin Box ID"
-										ng-model="TVMReading.coin_box_reading.tvmri_reference_num">
-							</div>
-							<div class="col-sm-4" ng-if="data.editMode != 'edit'">
-								<p class="form-control-static">{{ ( TVMReading.coin_box_reading.tvmri_quantity ? ( TVMReading.coin_box_reading.tvmri_quantity |  number: 2 ) : '' )
-										+ ( TVMReading.coin_box_reading.tvmri_reference_num ? ' #' + TVMReading.coin_box_reading.tvmri_reference_num : '' ) }}
-								</p>
-							</div>
-						</div>
-
-						<!-- BNA Box -->
-						<div class="form-group row">
-							<label class="control-label col-sm-4">BNA Box</label>
-							<div class="col-sm-4" ng-if="data.editMode == 'edit'">
-								<input type="number" class="form-control" placeholder="Total Value"
-										ng-model="TVMReading.note_box_reading.tvmri_quantity">
-							</div>
-							<div class="col-sm-4" ng-if="data.editMode == 'edit'">
-								<input type="text" class="form-control" placeholder="Note Box ID"
-										ng-model="TVMReading.note_box_reading.tvmri_reference_num">
-							</div>
-							<div class="col-sm-4" ng-if="data.editMode != 'edit'">
-								<p class="form-control-static">{{ ( TVMReading.note_box_reading.tvmri_quantity ? ( TVMReading.note_box_reading.tvmri_quantity |  number: 2 ) : '' )
-										+ ( TVMReading.note_box_reading.tvmri_reference_num ? ' #' + TVMReading.note_box_reading.tvmri_reference_num : '' ) }}
-								</p>
-							</div>
-						</div>
-
-						<!-- Hopper -->
-						<div class="form-group row" ng-switch on="data.editMode">
-							<label class="control-label col-sm-4">Php5 Hopper</label>
-							<div class="col-sm-4">
-								<input type="number" class="form-control" placeholder="Coin Count"
-										ng-switch-when="edit"
-										ng-model="TVMReading.hopper_php5_reading.tvmri_quantity">
-								<p class="form-control-static" ng-switch-default>{{ TVMReading.hopper_php5_reading.tvmri_quantity |  number }}</p>
-							</div>
-						</div>
-
-						<!-- Hopper -->
-						<div class="form-group row" ng-switch on="data.editMode">
-							<label class="control-label col-sm-4">Php1 Hopper</label>
-							<div class="col-sm-4">
-								<input type="number" class="form-control" placeholder="Coin Count"
-										ng-switch-when="edit"
-										ng-model="TVMReading.hopper_php1_reading.tvmri_quantity">
-								<p class="form-control-static" ng-switch-default>{{ TVMReading.hopper_php1_reading.tvmri_quantity |  number }}</p>
-							</div>
-						</div>
-					</form>
-				</div>
-			</div>
+	<div class="panel panel-default">
+		<div class="panel-heading clearfix">
+			<span class="panel-title">Reading</span>
 		</div>
-
-		<div class="col-sm-6">
-			<div class="panel panel-default">
-				<div class="panel-heading clearfix">
-					<span class="panel-title">Previous Reading </span>&nbsp;
-					<span ng-if="TVMReading.previous_reading.id">{{ TVMReading.previous_reading.tvmr_datetime | date: 'yyyy-MM-dd HH:mm:ss' }} - {{ TVMReading.previous_reading.shift_num }}</span>
+		<div class="panel-body">
+			<form class="form-horizontal">
+				<div class="row">
+					<!-- Type -->
+					<div class="form-group col-sm-4">
+						<label class="control-label col-sm-4">Type</label>
+						<div class="col-sm-7" ng-switch on="data.editMode">
+							<select class="form-control"
+									ng-switch-when="edit"
+									ng-model="data.selectedType"
+									ng-options="type.typeName for type in data.readingTypes track by type.id"
+									ng-change="onTypeChange()">
+							</select>
+							<p class="form-control-static" ng-switch-default>{{ data.selectedType.typeName }}</p>
+						</div>
+					</div>
 				</div>
-				<div class="panel-body">
-					<form class="form-horizontal">
-						<!-- SJT in Magazine -->
-						<div class="form-group row">
-							<label class="control-label col-sm-4">SJT in Magazine</label>
-							<div class="col-sm-4">
-								<p class="form-control-static">{{ TVMReading.previous_reading.magazine_sjt_reading.tvmri_quantity | number }}</p>
-							</div>
-						</div>
 
-						<!-- SVC in Magazine -->
-						<div class="form-group row">
-							<label class="control-label col-sm-4">SVC in Magazine</label>
-							<div class="col-sm-4">
-								<p class="form-control-static">{{ TVMReading.previous_reading.magazine_svc_reading.tvmri_quantity | number }}</p>
-							</div>
+				<div class="row">
+					<!-- Previous Reading -->
+					<div class="form-group col-sm-4">
+						<label class="control-label col-sm-4">Previous</label>
+						<div class="col-sm-7" ng-if="data.editMode == 'edit'">
+							<input type="number" class="form-control" placeholder="Previous Reading"
+									ng-model="TVMReading.tvmr_previous_reading">
 						</div>
+						<div class="col-sm-7" ng-if="data.editMode != 'edit'">
+							<p class="form-control-static">{{ TVMReading.tvmr_previous_reading | number: data.selectedType.decimalPlace }}</p>
+						</div>
+					</div>
 
-						<!-- Coin Box -->
-						<div class="form-group row">
-							<label class="control-label col-sm-4">Coin Box</label>
-							<div class="col-sm-4">
-								<p class="form-control-static">{{ ( TVMReading.previous_reading.coin_box_reading.tvmri_quantity ? ( TVMReading.previous_reading.coin_box_reading.tvmri_quantity |  number: 2 ) : '' )
-										+ ( TVMReading.previous_reading.coin_box_reading.tvmri_reference_num ? ' #' + TVMReading.previous_reading.coin_box_reading.tvmri_reference_num : '' ) }}
-								</p>
-							</div>
+					<!-- Current Reading -->
+					<div class="form-group col-sm-4">
+						<label class="control-label col-sm-4">Reading</label>
+						<div class="col-sm-7" ng-if="data.editMode == 'edit'">
+							<input type="number" class="form-control" placeholder="Current Reading"
+									ng-model="TVMReading.tvmr_reading">
 						</div>
+						<div class="col-sm-4" ng-if="data.editMode != 'edit'">
+							<p class="form-control-static">{{ TVMReading.tvmr_reading }}</p>
+						</div>
+					</div>
 
-						<!-- BNA Box -->
-						<div class="form-group row">
-							<label class="control-label col-sm-4">BNA Box</label>
-							<div class="col-sm-4">
-								<p class="form-control-static">{{ ( TVMReading.previous_reading.note_box_reading.tvmri_quantity ? ( TVMReading.previous_reading.note_box_reading.tvmri_quantity |  number: 2 ) : '' )
-										+ ( TVMReading.previous_reading.note_box_reading.tvmri_reference_num ? ' #' + TVMReading.previous_reading.note_box_reading.tvmri_reference_num : '' ) }}
-								</p>
-							</div>
+					<!-- Reference Number -->
+					<div class="form-group col-sm-4" ng-hide="!data.selectedType.hasReference">
+						<label class="control-label col-sm-4">Reference #</label>
+						<div class="col-sm-7" ng-if="data.editMode == 'edit'">
+							<input type="text" class="form-control" placeholder="Reference ID"
+									ng-model="TVMReading.tvmr_reference_num">
 						</div>
+						<div class="col-sm-4" ng-if="data.editMode != 'edit'">
+							<p class="form-control-static">{{ TVMReading.tvmr_reference_num | number: data.selectedType.decimalPlace }}</p>
+						</div>
+					</div>
 
-						<!-- Hopper -->
-						<div class="form-group row">
-							<label class="control-label col-sm-4">Php5 Hopper</label>
-							<div class="col-sm-4">
-								<p class="form-control-static">{{ TVMReading.previous_reading.hopper_php5_reading.tvmri_quantity | number }}</p>
-							</div>
-						</div>
-
-						<!-- Hopper -->
-						<div class="form-group row">
-							<label class="control-label col-sm-4">Php1 Hopper</label>
-							<div class="col-sm-4">
-								<p class="form-control-static">{{ TVMReading.previous_reading.hopper_php1_reading.tvmri_quantity | number }}</p>
-							</div>
-						</div>
-					</form>
 				</div>
-			</div>
+			</form>
 		</div>
-
 	</div>
 
 	<div class="text-right">
-    <button class="btn btn-primary" ng-click="saveTVMReading()"
-            ng-if="data.editMode != 'view' && checkPermissions( 'allocations', 'edit' )">Save</button>
-    <button class="btn btn-default" ui-sref="main.store({ activeTab: 'tvmReadings' })">Close</button>
+		<button class="btn btn-primary" ng-click="saveTVMReading()"
+				ng-if="data.editMode != 'view' && checkPermissions( 'allocations', 'edit' )">Save</button>
+		<button class="btn btn-default" ui-sref="main.store({ activeTab: 'tvmReadings' })">Close</button>
 	</div>
 </div>
 

@@ -86,7 +86,9 @@ defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest auto
 
 // Date/Time formats
 defined('TIMESTAMP_FORMAT')	OR define('TIMESTAMP_FORMAT', 'Y-m-d H:i:s');
-defined('DATE_FORMAT')		OR define('DATE_FORMAT', 'Y-m-d');
+defined('DATE_FORMAT')			OR define('DATE_FORMAT', 'Y-m-d');
+defined('TIME_FORMAT')			OR define('TIME_FORMAT', 'H:i:s');
+
 
 // User roles
 defined('USER_ROLE_ADMIN')	OR define('USER_ROLE_ADMIN', 1);
@@ -232,8 +234,9 @@ defined('ITEM_REUSABLE')			OR define('ITEM_REUSABLE', 1);
 
 
 // Funds
-defined('FUND_CHANGE_FUND')		OR define('FUND_CHANGE_FUND', 'Change Fund');
-defined('FUND_SALES')			OR define('FUND_SALES', 'Sales');
-defined('FUND_IN_TRANSIT')		OR define('FUND_IN_TRANSIT', 'In Transit');
-defined('FUND_COIN_ACCEPTOR')	OR define('FUND_COIN_ACCEPTOR', 'CA Fund');
-defined('FUND_CSC_CARD_FEE')	OR define('FUND_CSC_CARD_FEE', 'CSC Card Fee');
+defined('FUND_CHANGE_FUND')   OR define('FUND_CHANGE_FUND', 'Change Fund');
+defined('FUND_SALES')         OR define('FUND_SALES', 'Sales');
+defined('FUND_IN_TRANSIT')    OR define('FUND_IN_TRANSIT', 'In Transit');
+defined('FUND_COIN_ACCEPTOR') OR define('FUND_COIN_ACCEPTOR', 'CA Fund');
+defined('FUND_TVM_HOPPER')    OR define('FUND_TVM_HOPPER', 'TVM Hopper');
+defined('FUND_CSC_CARD_FEE')  OR define('FUND_CSC_CARD_FEE', 'CSC Card Fee');

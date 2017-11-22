@@ -10,7 +10,7 @@
 				<div class="col-sm-5" ng-switch-when="edit">
 					<select name="items" class="form-control"
 						ng-model="data.selectedItem" ng-change="changeItem()"
-						ng-options="i.item_description for i in data.inventoryItems track by i.id">
+						ng-options="i.item_description + ( i.parent_item_name ? ' &laquo;' + i.parent_item_name + '&raquo;' : '' ) for i in data.inventoryItems track by i.id">
 					</select>
 				</div>
 

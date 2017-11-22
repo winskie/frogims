@@ -722,11 +722,15 @@ CREATE TABLE IF NOT EXISTS tvm_readings
 	id INTEGER AUTO_INCREMENT NOT NULL,
 	tvmr_store_id INTEGER NOT NULL,
 	tvmr_machine_id VARCHAR(50) NOT NULL,
-	tvmr_datetime DATETIME NOT NULL,
+	tvmr_date DATE NOT NULL,
+	tvmr_time TIME NOT NULL,
 	tvmr_shift_id INTEGER NOT NULL,
 	tvmr_cashier_id INTEGER NOT NULL,
 	tvmr_cashier_name VARCHAR(100) NOT NULL,
-	tvmr_last_reading BOOLEAN NOT NULL DEFAULT 0,
+	tvmr_type VARCHAR(100) NOT NULL,
+	tvmr_reference_num VARCHAR(15) NULL,
+	tvmr_reading DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+	tvmr_previous_reading DECIMAL(15,2) NOT NULL DEFAULT 0.00,
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,
 	created_by INTEGER NOT NULL,
@@ -740,26 +744,8 @@ CREATE TABLE IF NOT EXISTS tvm_readings
 		ON DELETE RESTRICT,
 	FOREIGN KEY tvmr_cashier_fk (tvmr_cashier_id) REFERENCES users (id)
 		ON UPDATE CASCADE
-		ON DELETE RESTRICT
-)
-ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS tvm_reading_items
-(
-	id INTEGER AUTO_INCREMENT NOT NULL,
-	tvmri_reading_id INTEGER NOT NULL,
-	tvmri_name VARCHAR(100) NOT NULL,
-	tvmri_reference_num VARCHAR(15) NULL,
-	tvmri_quantity DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-	date_created DATETIME NOT NULL,
-	date_modified TIMESTAMP NOT NULL,
-	created_by INTEGER NOT NULL,
-	modified_by INTEGER NOT NULL,
-	PRIMARY KEY (id),
-	UNIQUE tvmri_reading_udx (tvmri_reading_id, tvmri_name),
-	FOREIGN KEY tvmri_reading_fk (tvmri_reading_id) REFERENCES tvm_readings (id)
-		ON UPDATE CASCADE
-		ON DELETE CASACADE
+		ON DELETE RESTRICT,
+	INDEX tvm_readings_ndx ( tvmr_store_id, tvmr_date, tvmr_shift_id, tvmr_machine_id, tvmr_type )
 )
 ENGINE=InnoDB;
 

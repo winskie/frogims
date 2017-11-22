@@ -788,11 +788,15 @@ class Installer extends CI_Controller {
 					id INTEGER AUTO_INCREMENT NOT NULL,
 					tvmr_store_id INTEGER NOT NULL,
 					tvmr_machine_id VARCHAR(50) NOT NULL,
-					tvmr_datetime DATETIME NOT NULL,
+					tvmr_date DATE NOT NULL,
+					tvmr_time TIME NOT NULL,
 					tvmr_shift_id INTEGER NOT NULL,
 					tvmr_cashier_id INTEGER NOT NULL,
 					tvmr_cashier_name VARCHAR(100) NOT NULL,
-					tvmr_last_reading BOOLEAN NOT NULL DEFAULT 0,
+					tvmr_type VARCHAR(100) NOT NULL,
+					tvmr_reference_num VARCHAR(15) NULL,
+					tvmr_reading DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+					tvmr_previous_reading DECIMAL(15,2) NOT NULL DEFAULT 0.00,
 					date_created DATETIME NOT NULL,
 					date_modified TIMESTAMP NOT NULL,
 					created_by INTEGER NOT NULL,
@@ -806,28 +810,8 @@ class Installer extends CI_Controller {
 						ON DELETE RESTRICT,
 					FOREIGN KEY tvmr_cashier_fk (tvmr_cashier_id) REFERENCES users (id)
 						ON UPDATE CASCADE
-						ON DELETE RESTRICT
-				)
-				ENGINE=InnoDB" );
-
-		echo 'Creating TVM reading items table...<br />';
-		$this->db->query( "
-				CREATE TABLE IF NOT EXISTS tvm_reading_items
-				(
-					id INTEGER AUTO_INCREMENT NOT NULL,
-					tvmri_reading_id INTEGER NOT NULL,
-					tvmri_name VARCHAR(100) NOT NULL,
-					tvmri_reference_num VARCHAR(15) NULL,
-					tvmri_quantity DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-					date_created DATETIME NOT NULL,
-					date_modified TIMESTAMP NOT NULL,
-					created_by INTEGER NOT NULL,
-					modified_by INTEGER NOT NULL,
-					PRIMARY KEY (id),
-					UNIQUE tvmri_reading_udx (tvmri_reading_id, tvmri_name),
-					FOREIGN KEY tvmri_reading_fk (tvmri_reading_id) REFERENCES tvm_readings (id)
-						ON UPDATE CASCADE
-						ON DELETE CASCADE
+						ON DELETE RESTRICT,
+					INDEX tvm_readings_ndx ( tvmr_store_id, tvmr_date, tvmr_shift_id, tvmr_machine_id, tvmr_type )
 				)
 				ENGINE=InnoDB" );
 
@@ -1321,6 +1305,41 @@ class Installer extends CI_Controller {
 			$stores = $stores->get_stores();
 			$items = new Item();
 			$items = $items->get_items();
+
+			$fund_items = array(
+					'Change Fund' => array(
+						'Php1 Coin', 'Php0.25 Coin', 'Php5 Coin', 'Php10 Coin',
+						'Php20 Bill', 'Php50 Bill', 'Php100 Bill', 'Php200 Bill', 'Php500 Bill', 'Php1000 Bill',
+						'Bag Php5@100', 'Bag Php1@100'
+					),
+					'Sales' => array(
+						'Php1 Coin', 'Php0.25 Coin', 'Php5 Coin', 'Php10 Coin',
+						'Php20 Bill', 'Php50 Bill', 'Php100 Bill', 'Php200 Bill', 'Php500 Bill', 'Php1000 Bill',
+						'Bag Php5@100', 'Bag Php1@100'
+					),
+					'CA Fund' => array(
+						'Php1 Coin', 'Php5 Coin', 'Php10 Coin',
+					),
+					'TVM Hopper' => array(
+						'Php1 Coin', 'Php5 Coin',
+						'Bag Php5@100', 'Bag Php1@100'
+					),
+					'In Transit' => array(
+						'Php1 Coin', 'Php0.25 Coin', 'Php5 Coin', 'Php10 Coin',
+						'Php20 Bill', 'Php50 Bill', 'Php100 Bill', 'Php200 Bill', 'Php500 Bill', 'Php1000 Bill',
+						'Bag Php5@100', 'Bag Php1@100'
+					),
+					'CSC Card Fee' => array(
+						'Php1 Coin', 'Php5 Coin', 'Php10 Coin',
+						'Php20 Bill', 'Php50 Bill', 'Php100 Bill', 'Php200 Bill', 'Php500 Bill', 'Php1000 Bill',
+					),
+					'TVMIR' => array(
+						'Php1 Coin', 'Php5 Coin', 'Php10 Coin',
+						'Php20 Bill', 'Php50 Bill', 'Php100 Bill', 'Php200 Bill', 'Php500 Bill', 'Php1000 Bill',
+						'Bag Php5@100', 'Bag Php1@100'
+					)
+				);
+
 			foreach( $stores as $store )
 			{
 				foreach( $items as $item )
@@ -1364,6 +1383,21 @@ class Installer extends CI_Controller {
 							}
 					}
 					$inventory->transact( TRANSACTION_INIT, $quantity, date( TIMESTAMP_FORMAT ), 0 );
+
+					if( $item->get( 'item_class' ) == 'fund' && $store->get( 'store_type' ) == STORE_TYPE_CASHROOM )
+					{
+						foreach( $items as $subitem )
+						{
+							if( $subitem->get( 'item_class' ) == 'cash' )
+							{
+								if( in_array( $subitem->get( 'item_name' ), $fund_items[$item->get( 'item_name' )] ) )
+								{
+									$subinventory = $store->add_item( $subitem, $item->get( 'id' ) );
+									$subinventory->transact( TRANSACTION_INIT, $quantity, date( TIMESTAMP_FORMAT ), 0 );
+								}
+							}
+						}
+					}
 				}
 			}
 			echo 'OK<br />';
@@ -2229,7 +2263,6 @@ class Installer extends CI_Controller {
 		$this->db->query( "TRUNCATE TABLE conversion_status_log" );
 		$this->db->query( "TRUNCATE TABLE allocation_status_log" );
 		$this->db->query( "TRUNCATE TABLE tvm_readings" );
-		$this->db->query( "TRUNCATE TABLE tvm_reading_items" );
 		$this->db->query( "TRUNCATE TABLE shift_detail_cash_reports" );
 		$this->db->query( "TRUNCATE TABLE shift_detail_cash_report_items" );
 

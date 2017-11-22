@@ -292,7 +292,8 @@ class Store extends Base_model
 				) AS ts
 					ON ts.store_inventory_id = si.id
 				WHERE
-					store_id = ?';
+					store_id = ?
+				ORDER BY si.parent_item_id, si.id';
 
 		// Do not show subinventories
 		//$sql .= ' AND parent_item_id IS NULL';
@@ -321,7 +322,7 @@ class Store extends Base_model
 	}
 
 
-	public function add_item( $item, $buffer_level = 0, $parent_item_id = NULL )
+	public function add_item( $item, $parent_item_id = NULL )
 	{
 		$ci =& get_instance();
 
@@ -332,7 +333,7 @@ class Store extends Base_model
 			'parent_item_id' => $parent_item_id,
 			'quantity' => 0,
 			'quantity_timestamp' => date( TIMESTAMP_FORMAT ),
-			'buffer_level' => $buffer_level,
+			'buffer_level' => 0,
 			'reserved' => 0
 		);
 
@@ -1052,7 +1053,7 @@ class Store extends Base_model
 	{
 		$limit = param( $params, 'limit' );
 		$page = param( $params, 'page', 1 );
-		$order = param( $params, 'order', 'tvmr.tvmr_datetime DESC, tvmr.tvmr_shift_id DESC' );
+		$order = param( $params, 'order', 'tvmr.tvmr_date DESC, tvmr.tvmr_time DESC, tvmr.tvmr_shift_id DESC' );
 		$format = param( $params, 'format', 'object' );
 
 		$business_date = param( $params, 'date' );
@@ -1074,7 +1075,7 @@ class Store extends Base_model
 
 		if( $business_date )
 		{
-			$ci->db->where( 'DATE(tvmr.tvmr_datetime)', $business_date );
+			$ci->db->where( 'tvmr.tvmr_date', $business_date );
 		}
 
 		if( $shift )
@@ -1593,7 +1594,7 @@ class Store extends Base_model
 
 		if( $business_date )
 		{
-			$ci->db->where( 'DATE(tvmr.tvmr_datetime)', $business_date );
+			$ci->db->where( 'tvmr.tvmr_date', $business_date );
 		}
 
 		if( $shift )

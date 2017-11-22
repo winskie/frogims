@@ -1439,6 +1439,7 @@ class Api_v1 extends MY_Controller {
 													'item_description' => array( 'type' => 'string' ),
 													'item_group' => array( 'type' => 'string' ),
 													'item_unit' => array( 'type' => 'string' ),
+													'parent_item_name' => array( 'type' => 'string' ),
 													'previous_balance' => array( 'type' => 'integer' ),
 													'movement' => array( 'type' => 'integer' )
 												)
@@ -2385,7 +2386,7 @@ class Api_v1 extends MY_Controller {
 											'machine_id' => param( $this->input->get(), 'machine_id' ),
 											'page' => param( $this->input->get(), 'page' ),
 											'limit' => param( $this->input->get(), 'limit' ),
-											'order' => 'tvmr_datetime DESC, id DESC'
+											'order' => 'tvmr_date DESC, tvmr_time DESC, id DESC'
 										);
 										$readings = $store->get_tvm_readings( $params );
 										$total_tvm_readings = $store->count_tvm_readings( $params );
@@ -2912,13 +2913,6 @@ class Api_v1 extends MY_Controller {
 							{
 								$tvm_reading_data = $tvm_reading->as_array( array(
 									'shift_num' => array( 'type' => 'string' ) ) );
-								$tvm_reading_items = $tvm_reading->get_readings();
-								$tvm_reading_items_data = array();
-								foreach( $tvm_reading_items as $item )
-								{
-									$tvm_reading_items_data[] = $item->as_array();
-								}
-								$tvm_reading_data['readings'] = $tvm_reading_items_data;
 
 								$previous_tvm_reading = $tvm_reading->get_previous_shift_last_reading();
 								$previous_tvm_reading_data = array();

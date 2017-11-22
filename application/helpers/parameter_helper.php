@@ -25,10 +25,10 @@ if( ! function_exists( 'param' ) )
 
 	function param_type( $param, $type = 'raw', $default = NULL )
 	{
-        if( is_null( $param ) && is_null( $default ) )
-        {
-            return NULL;
-        }
+		if( is_null( $param ) && is_null( $default ) )
+		{
+			return NULL;
+		}
 
 		switch( $type )
 		{
@@ -51,48 +51,48 @@ if( ! function_exists( 'param' ) )
 				}
 				else
 				{
-                    if( is_null( $param) )
-                    {
-                        $v = ( bool ) $default;
-                    }
-                    else
-                    {
-					    $v = ( bool ) $param;
-                    }
+					if( is_null( $param) )
+					{
+						$v = ( bool ) $default;
+					}
+					else
+					{
+						$v = ( bool ) $param;
+					}
 				}
 				break;
 
 			case 'integer':
-                if( is_null( $param ) )
-                {
-                    $v = intval( $default );
-                }
-                else
-                {
-                    $v = intval( $param );
-                }
+				if( is_null( $param ) )
+				{
+					$v = intval( $default );
+				}
+				else
+				{
+					$v = intval( $param );
+				}
 				break;
 
 			case 'decimal':
-                if( is_null( $param ) )
-                {
-                    $v = floatval( $default );
-                }
-                else
-                {
-                    $v = floatval( $param );
-                }
+				if( is_null( $param ) )
+				{
+					$v = floatval( $default );
+				}
+				else
+				{
+					$v = floatval( $param );
+				}
 				break;
 
 			case 'string':
-                if( is_null( $param ) )
-                {
-                    $v = ( string ) $default;
-                }
-                else
-                {
-				    $v = ( string ) $param;
-                }
+				if( is_null( $param ) )
+				{
+					$v = ( string ) $default;
+				}
+				else
+				{
+					$v = ( string ) $param;
+				}
 				break;
 
 			case 'datetime': // this is a datetime string
@@ -117,16 +117,16 @@ if( ! function_exists( 'param' ) )
 				}
 				break;
 
-            case 'time':
-                if( is_null( $param ) )
-                {
-                    $v = date( 'H:i:s', $default );
-                }
-                else
-                {
-                    $v = date( 'H:i:s', strtotime( $param ) );
-                }
-                break;
+			case 'time':
+				if( is_null( $param ) )
+				{
+					$v = date( 'H:i:s', $default );
+				}
+				else
+				{
+					$v = date( 'H:i:s', strtotime( $param ) );
+				}
+				break;
 
 			default:
 				$v = $param;

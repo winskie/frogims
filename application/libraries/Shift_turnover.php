@@ -277,6 +277,9 @@ class Shift_turnover extends Base_model
 					$new_item->set( 'item_group', $store_item->get( 'item_group' ) );
 					$new_item->set( 'item_unit', $store_item->get( 'item_unit' ) );
 					$new_item->set( 'movement', $store_item->get( 'movement' ) );
+					$new_item->set( 'parent_item_name', $store_item->get( 'parent_item_name' ) );
+
+
 					$this->items[$inv_id] = $new_item;
 				}
 			}

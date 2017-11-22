@@ -1529,19 +1529,19 @@ $current_user = current_user();
 								<th class="text-left">Date / Time</th>
 								<th class="text-left">Shift</th>
 								<th class="text-center">TVM</th>
-								<th class="text-left">Cashier</th>
-								<th class="text-center">Last Reading</th>
+								<th class="text-left">Type</th>
+								<th class="text-center">Reading</th>
 								<th></th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr ng-repeat="reading in appData.tvmReadings">
 								<td class="text-center">{{ reading.id }}</td>
-								<td class="text-left">{{ reading.tvmr_datetime | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
+								<td class="text-left">{{ reading.tvmr_date | date: 'yyyy-MM-dd' }}</td>
 								<td class="text-left">{{ reading.shift_num }}</td>
 								<td class="text-center">{{ reading.tvmr_machine_id }}</td>
-								<td class="text-left">{{ reading.cashier_name }}</td>
-								<td class="text-center">{{ reading.tvmr_last_reading }}</td>
+								<td class="text-left">{{ reading.tvmr_type }}</td>
+								<td class="text-center">{{ reading.tvmr_reading }}</td>
 								<td class="text-right">
 									<div class="btn-group" uib-dropdown>
 										<button type="button" class="btn btn-default" ui-sref="main.tvmReading({ TVMReading: reading, editMode: 'view' })">View details...</button>

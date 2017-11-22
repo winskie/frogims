@@ -42,7 +42,7 @@
 
                         <select class="form-control"
                                 ng-model="data.sourceInventory"
-                                ng-options="inventory.item_name for inventory in data.sourceItems track by inventory.id"
+                                ng-options="inventory.item_name + ( inventory.parent_item_name ? ' &laquo;' + inventory.parent_item_name + '&raquo;' : '' ) for inventory in data.sourceItems track by inventory.id"
                                 ng-change="onInputItemChange()"
                                 ng-switch-when="edit">
                         </select>
@@ -55,7 +55,7 @@
                         <label class="control-label">Output item</label>
                         <select class="form-control"
                                 ng-model="data.targetInventory"
-                                ng-options="inventory.item_name for inventory in data.targetItems track by inventory.id"
+                                ng-options="inventory.item_name + ( inventory.parent_item_name ? ' &laquo;' + inventory.parent_item_name + '&raquo;' : '' ) for inventory in data.targetItems track by inventory.id"
                                 ng-change="onOutputItemChange()"
                                 ng-switch-when="edit">
                         </select>
