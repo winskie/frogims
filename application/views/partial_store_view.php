@@ -1530,7 +1530,8 @@ $current_user = current_user();
 								<th class="text-left">Shift</th>
 								<th class="text-center">TVM</th>
 								<th class="text-left">Type</th>
-								<th class="text-center">Reading</th>
+								<th class="text-center">Previous</th>
+								<th class="text-center">Current</th>
 								<th></th>
 							</tr>
 						</thead>
@@ -1541,6 +1542,7 @@ $current_user = current_user();
 								<td class="text-left">{{ reading.shift_num }}</td>
 								<td class="text-center">{{ reading.tvmr_machine_id }}</td>
 								<td class="text-left">{{ reading.tvmr_type }}</td>
+								<td class="text-center">{{ reading.tvmr_previous_reading }}</td>
 								<td class="text-center">{{ reading.tvmr_reading }}</td>
 								<td class="text-right">
 									<div class="btn-group" uib-dropdown>

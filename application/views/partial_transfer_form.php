@@ -189,7 +189,7 @@
 				<select class="form-control"
 						ng-model="input.inventoryItem"
 						ng-change="onItemChange()"
-						ng-options="item as item.item_name for item in data.inventoryItems track by item.id">
+						ng-options="item as ( item.item_name + ( item.parent_item_name ? ( ' &laquo' + item.parent_item_name + ' &raquo' ) : '' ) )  for item in data.inventoryItems track by item.id">
 				</select>
 			</div>
 			<div class="form-group col-sm-6 col-md-3 col-lg-1" ng-if="data.mode == 'transfer'">

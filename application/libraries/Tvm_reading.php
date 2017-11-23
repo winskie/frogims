@@ -173,12 +173,6 @@ class Tvm_reading extends Base_model
 				$this->_update_timestamps( FALSE );
 				$ci->db->set( $this->db_changes );
 				$result = $this->_db_update();
-
-				// Update reading items
-				foreach( $this->readings as $reading )
-				{
-					$reading->db_save();
-				}
 			}
 			else
 			{

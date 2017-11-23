@@ -73,16 +73,16 @@ defined('FOPEN_READ_WRITE_CREATE_STRICT')       OR define('FOPEN_READ_WRITE_CREA
 |       http://tldp.org/LDP/abs/html/exitcodes.html
 |
 */
-defined('EXIT_SUCCESS')        OR define('EXIT_SUCCESS', 0); // no errors
-defined('EXIT_ERROR')          OR define('EXIT_ERROR', 1); // generic error
-defined('EXIT_CONFIG')         OR define('EXIT_CONFIG', 3); // configuration error
-defined('EXIT_UNKNOWN_FILE')   OR define('EXIT_UNKNOWN_FILE', 4); // file not found
-defined('EXIT_UNKNOWN_CLASS')  OR define('EXIT_UNKNOWN_CLASS', 5); // unknown class
-defined('EXIT_UNKNOWN_METHOD') OR define('EXIT_UNKNOWN_METHOD', 6); // unknown class member
-defined('EXIT_USER_INPUT')     OR define('EXIT_USER_INPUT', 7); // invalid user input
-defined('EXIT_DATABASE')       OR define('EXIT_DATABASE', 8); // database error
-defined('EXIT__AUTO_MIN')      OR define('EXIT__AUTO_MIN', 9); // lowest automatically-assigned error code
-defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
+defined('EXIT_SUCCESS')					OR define('EXIT_SUCCESS', 0); // no errors
+defined('EXIT_ERROR')						OR define('EXIT_ERROR', 1); // generic error
+defined('EXIT_CONFIG')					OR define('EXIT_CONFIG', 3); // configuration error
+defined('EXIT_UNKNOWN_FILE')		OR define('EXIT_UNKNOWN_FILE', 4); // file not found
+defined('EXIT_UNKNOWN_CLASS') 	OR define('EXIT_UNKNOWN_CLASS', 5); // unknown class
+defined('EXIT_UNKNOWN_METHOD')	OR define('EXIT_UNKNOWN_METHOD', 6); // unknown class member
+defined('EXIT_USER_INPUT')			OR define('EXIT_USER_INPUT', 7); // invalid user input
+defined('EXIT_DATABASE')				OR define('EXIT_DATABASE', 8); // database error
+defined('EXIT__AUTO_MIN')				OR define('EXIT__AUTO_MIN', 9); // lowest automatically-assigned error code
+defined('EXIT__AUTO_MAX')				OR define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
 
 // Date/Time formats
 defined('TIMESTAMP_FORMAT')	OR define('TIMESTAMP_FORMAT', 'Y-m-d H:i:s');
@@ -92,17 +92,17 @@ defined('TIME_FORMAT')			OR define('TIME_FORMAT', 'H:i:s');
 
 // User roles
 defined('USER_ROLE_ADMIN')	OR define('USER_ROLE_ADMIN', 1);
-defined('USER_ROLE_USER')	OR define('USER_ROLE_USER', 2);
+defined('USER_ROLE_USER')		OR define('USER_ROLE_USER', 2);
 
 // User status
 defined('USER_STATUS_ACTIVE')	OR define('USER_STATUS_ACTIVE', 1);
 defined('USER_STATUS_LOCKED')	OR define('USER_STATUS_LOCKED', 2);
 
 // Store Types
-defined('STORE_TYPE_GENERAL')       OR define('STORE_TYPE_GENERAL', 1);
-defined('STORE_TYPE_PRODUCTION')    OR define('STORE_TYPE_PRODUCTION', 2);
-defined('STORE_TYPE_TRANSPORT')     OR define('STORE_TYPE_TRANSPORT', 3);
-defined('STORE_TYPE_CASHROOM')      OR define('STORE_TYPE_CASHROOM', 4);
+defined('STORE_TYPE_GENERAL')			OR define('STORE_TYPE_GENERAL', 1);
+defined('STORE_TYPE_PRODUCTION')	OR define('STORE_TYPE_PRODUCTION', 2);
+defined('STORE_TYPE_TRANSPORT')		OR define('STORE_TYPE_TRANSPORT', 3);
+defined('STORE_TYPE_CASHROOM')		OR define('STORE_TYPE_CASHROOM', 4);
 
 // Transaction types
 defined('TRANSACTION_INIT')											OR define('TRANSACTION_INIT', 0 );
@@ -136,58 +136,58 @@ defined('TRANSFER_VALIDATION_TRANSFER_VALIDATED')	OR define('TRANSFER_VALIDATION
 defined('TRANSFER_VALIDATION_TRANSFER_DISPUTED')	OR define('TRANSFER_VALIDATION_TRANSFER_DISPUTED', 2);
 
 // Transfer status
-defined('TRANSFER_PENDING')		OR define('TRANSFER_PENDING', 1);
-defined('TRANSFER_APPROVED')	OR define('TRANSFER_APPROVED', 2);
-defined('TRANSFER_RECEIVED')	OR define('TRANSFER_RECEIVED', 3);
-defined('TRANSFER_PENDING_CANCELLED')	OR define('TRANSFER_PENDING_CANCELLED', 4);
+defined('TRANSFER_PENDING')							OR define('TRANSFER_PENDING', 1);
+defined('TRANSFER_APPROVED')						OR define('TRANSFER_APPROVED', 2);
+defined('TRANSFER_RECEIVED')						OR define('TRANSFER_RECEIVED', 3);
+defined('TRANSFER_PENDING_CANCELLED')		OR define('TRANSFER_PENDING_CANCELLED', 4);
 defined('TRANSFER_APPROVED_CANCELLED')	OR define('TRANSFER_APPROVED_CANCELLED', 5);
 
 // Transfer item status
-defined('TRANSFER_ITEM_SCHEDULED')  OR define('TRANSFER_ITEM_SCHEDULED', 1);
-defined('TRANSFER_ITEM_APPROVED')   OR define('TRANSFER_ITEM_APPROVED', 2);
-defined('TRANSFER_ITEM_RECEIVED')   OR define('TRANSFER_ITEM_RECEIVED', 3);
-defined('TRANSFER_ITEM_CANCELLED')  OR define('TRANSFER_ITEM_CANCELLED', 4);
-defined('TRANSFER_ITEM_VOIDED')     OR define('TRANSFER_ITEM_VOIDED', 5);
+defined('TRANSFER_ITEM_SCHEDULED')	OR define('TRANSFER_ITEM_SCHEDULED', 1);
+defined('TRANSFER_ITEM_APPROVED')		OR define('TRANSFER_ITEM_APPROVED', 2);
+defined('TRANSFER_ITEM_RECEIVED')		OR define('TRANSFER_ITEM_RECEIVED', 3);
+defined('TRANSFER_ITEM_CANCELLED')	OR define('TRANSFER_ITEM_CANCELLED', 4);
+defined('TRANSFER_ITEM_VOIDED')			OR define('TRANSFER_ITEM_VOIDED', 5);
 
 // Adjustment status
-defined('ADJUSTMENT_PENDING')	OR define('ADJUSTMENT_PENDING', 1);
+defined('ADJUSTMENT_PENDING')		OR define('ADJUSTMENT_PENDING', 1);
 defined('ADJUSTMENT_APPROVED')	OR define('ADJUSTMENT_APPROVED', 2);
 defined('ADJUSTMENT_CANCELLED')	OR define('ADJUSTMENT_CANCELLED', 3);
 
 // Mopping item status
-defined('MOPPING_ITEM_COLLECTED')   OR define('MOPPING_ITEM_COLLECTED', 1);
-defined('MOPPING_ITEM_VOIDED')      OR define('MOPPING_ITEM_VOIDED', 2);
+defined('MOPPING_ITEM_COLLECTED')	OR define('MOPPING_ITEM_COLLECTED', 1);
+defined('MOPPING_ITEM_VOIDED')		OR define('MOPPING_ITEM_VOIDED', 2);
 
 // User status
-defined('USER_STATUS_ACTIVE')	OR define('USER_STATUS_ACTIVE', 1);
-defined('USER_STATUS_LOCKED')	OR define('USER_STATUS_LOCKED', 2);
+defined('USER_STATUS_ACTIVE')		OR define('USER_STATUS_ACTIVE', 1);
+defined('USER_STATUS_LOCKED')		OR define('USER_STATUS_LOCKED', 2);
 defined('USER_STATUS_DELETED')	OR define('USER_STATUS_DELETED', 3);
 
 // Conversion status
-defined('CONVERSION_PENDING')	OR define('CONVERSION_PENDING', 1);
+defined('CONVERSION_PENDING')		OR define('CONVERSION_PENDING', 1);
 defined('CONVERSION_APPROVED')	OR define('CONVERSION_APPROVED', 2);
 defined('CONVERSION_CANCELLED')	OR define('CONVERSION_CANCELLED', 3);
 
 // Allocation status
 defined('ALLOCATION_SCHEDULED')	OR define('ALLOCATION_SCHEDULED', 1);
 defined('ALLOCATION_ALLOCATED')	OR define('ALLOCATION_ALLOCATED', 2);
-defined('ALLOCATION_REMITTED') OR define('ALLOCATION_REMITTED', 3);
+defined('ALLOCATION_REMITTED')	OR define('ALLOCATION_REMITTED', 3);
 defined('ALLOCATION_CANCELLED') OR define('ALLOCATION_CANCELLED', 4);
 
 // Categories
-defined('CATEGORY_TRANSFER')   OR define('CATEGORY_ALLOCATION', 10);
-defined('CATEGORY_ALLOCATION')   OR define('CATEGORY_ALLOCATION', 20);
-defined('CATEGORY_REMITTANCE')   OR define('CATEGORY_REMITTANCE', 30);
+defined('CATEGORY_TRANSFER')		OR define('CATEGORY_ALLOCATION', 10);
+defined('CATEGORY_ALLOCATION')	OR define('CATEGORY_ALLOCATION', 20);
+defined('CATEGORY_REMITTANCE')	OR define('CATEGORY_REMITTANCE', 30);
 
 // Allocation item status
-defined('ALLOCATION_ITEM_SCHEDULED')    OR define('ALLOCATION_ITEM_SCHEDULED', 10);
-defined('ALLOCATION_ITEM_ALLOCATED')    OR define('ALLOCATION_ITEM_ALLOCATED', 11);
-defined('ALLOCATION_ITEM_CANCELLED')    OR define('ALLOCATION_ITEM_CANCELLED', 12);
-defined('ALLOCATION_ITEM_VOIDED')         OR define('ALLOCATION_ITEM_VOIDED', 13);
+defined('ALLOCATION_ITEM_SCHEDULED')	OR define('ALLOCATION_ITEM_SCHEDULED', 10);
+defined('ALLOCATION_ITEM_ALLOCATED')	OR define('ALLOCATION_ITEM_ALLOCATED', 11);
+defined('ALLOCATION_ITEM_CANCELLED')	OR define('ALLOCATION_ITEM_CANCELLED', 12);
+defined('ALLOCATION_ITEM_VOIDED')			OR define('ALLOCATION_ITEM_VOIDED', 13);
 
-defined('REMITTANCE_ITEM_PENDING')      OR define('REMITTANCE_ITEM_PENDING', 20);
-defined('REMITTANCE_ITEM_REMITTED')     OR define('REMITTANCE_ITEM_REMITTED', 21);
-defined('REMITTANCE_ITEM_VOIDED')         OR define('REMITTANCE_ITEM_VOIDED', 22);
+defined('REMITTANCE_ITEM_PENDING')	OR define('REMITTANCE_ITEM_PENDING', 20);
+defined('REMITTANCE_ITEM_REMITTED')	OR define('REMITTANCE_ITEM_REMITTED', 21);
+defined('REMITTANCE_ITEM_VOIDED')		OR define('REMITTANCE_ITEM_VOIDED', 22);
 
 defined('TICKET_SALE_ITEM_PENDING')	OR define('TICKET_SALE_ITEM_PENDING', 30);
 defined('TICKET_SALE_ITEM_RECORDED')	OR define('TICKET_SALE_ITEM_RECORDED', 31);
@@ -202,11 +202,11 @@ defined('SALES_ITEM_VOIDED')		OR define('SALES_ITEM_VOIDED', 12);
 defined('ADJUSTMENT_TYPE_ACTUAL')	OR define('ADJUSTMENT_TYPE_ACTUAL', 1);
 
 // Mopped item status
-defined('MOPPED_ITEM_OK')       OR define('MOPPED_ITEM_OK', 1);
-defined('MOPPED_ITEM_VOID')     OR define('MOPPED_ITEM_VOID', 2);
+defined('MOPPED_ITEM_OK')		OR define('MOPPED_ITEM_OK', 1);
+defined('MOPPED_ITEM_VOID')	OR define('MOPPED_ITEM_VOID', 2);
 
 // Allocation assignee types
-defined('ALLOCATION_ASSIGNEE_TELLER')	OR define('ALLOCATION_ASSIGNEE_TELLER', 1);
+defined('ALLOCATION_ASSIGNEE_TELLER')		OR define('ALLOCATION_ASSIGNEE_TELLER', 1);
 defined('ALLOCATION_ASSIGNEE_MACHINE')	OR define('ALLOCATION_ASSIGNEE_MACHINE', 2);
 
 // Allocation item types
@@ -225,8 +225,8 @@ defined('TRANSFER_CATEGORY_CSC_APPLICATION') OR define('TRANSFER_CATEGORY_CSC_AP
 defined('TRANSFER_CATEGORY_BANK_DEPOSIT')    OR define('TRANSFER_CATEGORY_BANK_DEPOSIT', 8);
 
 // Shift turnover status
-defined('SHIFT_TURNOVER_OPEN')	OR define('SHIFT_TURNOVER_OPEN', 1);
-defined('SHIFT_TURNOVER_CLOSED') OR define('SHIFT_TURNOVER_CLOSED', 2);
+defined('SHIFT_TURNOVER_OPEN')		OR define('SHIFT_TURNOVER_OPEN', 1);
+defined('SHIFT_TURNOVER_CLOSED')	OR define('SHIFT_TURNOVER_CLOSED', 2);
 
 // Item types
 defined('ITEM_NON_REUSABLE')	OR define('ITEM_NON_REUSABLE', 0);

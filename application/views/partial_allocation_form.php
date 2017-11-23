@@ -440,7 +440,7 @@
 				<select class="form-control ng-animate-disabled"
 						ng-model="input.item"
 						ng-change="onItemChange()"
-						ng-options="item as item.item_name for item in data.inventoryItems track by item.id"
+						ng-options="item as ( item.item_name + ( item.parent_item_name ? ( ' &laquo' + item.parent_item_name + ' &raquo' ) : '' ) ) for item in data.inventoryItems track by item.id"
 						ng-hide="data.allocationPhase == 'sales'">
 				</select>
 				<select class="form-control ng-animate-disabled"

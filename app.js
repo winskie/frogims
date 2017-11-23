@@ -95,6 +95,26 @@ app.filter('itemsWithProps', function()
 	}
 });
 
+app.filter('cashFilter', function()
+{
+	return function( items, parentItem )
+	{
+		var filteredItems = [];
+
+		for( var i =0, n = items.length; i < n; i++ )
+		{
+			if( items[i].item_class == 'cash' && items[i].parent_item_name != parentItem )
+			{
+				continue;
+			}
+
+			filteredItems.push( items[i] );
+		}
+
+		return filteredItems;
+	}
+})
+
 app.filter('parseDate', function()
 {
 	return function( input )

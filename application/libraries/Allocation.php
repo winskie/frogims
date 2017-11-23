@@ -1279,6 +1279,7 @@ class Allocation extends Base_model {
 
 		$ci->load->library( 'inventory' );
 		$ci->load->library( 'category' );
+		$ci->load->library( 'conversion' );
 
 		$Inventory = new Inventory();
 		$Category = new Category();
@@ -1320,7 +1321,7 @@ class Allocation extends Base_model {
 
 		foreach( $cash_allocations as $allocation )
 		{
-			$quantity = $allocation->get( 'allocated_quantity' ) * -1; // Item will be removed from inventory
+			$quantity = $allocation->get( 'allocated_quantity' );
 			if( $allocation->get( 'allocation_item_status' ) == ALLOCATION_ITEM_SCHEDULED
 					&& in_array( $this->allocation_status, array( ALLOCATION_ALLOCATED, ALLOCATION_REMITTED ) ) )
 			{
@@ -1361,10 +1362,40 @@ class Allocation extends Base_model {
 								$hopper_fund_sub = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ), $hopper_fund->get( 'item_id' ), TRUE );
 								$hopper_fund_sub->transact( TRANSACTION_ALLOCATION, $quantity, $transaction_datetime, $this->id, $allocation->get( 'id' ), $allocation->get( 'allocation_category_id' ) );
 
+								// Automatically unpack bags of coins to base item
+								if( $conversion_factor = $item->get_base_quantity() )
+								{
+									$source_inventory = $hopper_fund_sub;
+									$target_inventory = $Inventory->get_by_store_item( $this->store_id, $item->get( 'base_item_id' ), $hopper_fund->get( 'item_id' ), TRUE );
+
+									if( $source_inventory && $target_inventory )
+									{
+										$conversion = new Conversion();
+										$conversion->set( 'store_id', $ci->session->current_store_id );
+										$conversion->set( 'conversion_datetime', $transaction_datetime );
+										$conversion->set( 'conversion_shift', $ci->session->current_shift_id );
+										$conversion->set( 'source_inventory_id', $source_inventory->get( 'id' ) );
+										$conversion->set( 'target_inventory_id', $target_inventory->get( 'id' ) );
+										$conversion->set( 'source_quantity', $quantity );
+										$conversion->set( 'target_quantity', $quantity * $conversion_factor );
+										$conversion->set( 'remarks', sprintf( 'Auto unpacking for hopper replenishment for TVM# %s', $this->assignee ) );
+										$conversion->set( 'conversion_status', CONVERSION_APPROVED );
+
+										$conversion->setAutoApproval( TRUE );
+										$result = $conversion->db_save();
+									}
+									else
+									{
+										// Unable to load source/target inventory records
+										set_message( 'Unable to load source/target inventory records' );
+										return FALSE;
+									}
+								}
+
 								// Deduct from Change Fund
 								$change_fund->transact( TRANSACTION_ALLOCATION, $amount * -1, $transaction_datetime, $this->id, $allocation->get( 'id' ), $allocation->get( 'allocation_category_id' ) );
 								$change_fund_sub = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ), $change_fund->get( 'item_id' ), TRUE );
-								$change_fund_sub->transact( TRANSACTION_ALLOCATION, $quantity, $transaction_datetime, $this->id, $allocation->get( 'id' ), $allocation->get( 'allocation_category_id' ) );
+								$change_fund_sub->transact( TRANSACTION_ALLOCATION, $quantity * -1, $transaction_datetime, $this->id, $allocation->get( 'id' ), $allocation->get( 'allocation_category_id' ) );
 								break;
 
 							default:
@@ -1376,7 +1407,7 @@ class Allocation extends Base_model {
 				$inventory = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ) );
 				if ( $inventory )
 				{
-					$inventory->transact( TRANSACTION_ALLOCATION, $quantity, $transaction_datetime, $this->id, $allocation->get( 'id' ), $allocation->get( 'allocation_category_id' ) );
+					$inventory->transact( TRANSACTION_ALLOCATION, $quantity * -1, $transaction_datetime, $this->id, $allocation->get( 'id' ), $allocation->get( 'allocation_category_id' ) );
 
 					$allocation->set( 'cashier_shift_id', $ci->session->current_shift_id );
 					$allocation->set( 'allocation_item_status', ALLOCATION_ITEM_ALLOCATED );

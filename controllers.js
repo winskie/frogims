@@ -1499,21 +1499,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			return null;
 		}
 
-		function filterCashItems( items )
-		{
-			var n = items.length;
-			var filteredItems = [];
-			for( var i = 0; i < n; i++ )
-			{
-				if( items[i].item_class == 'cash' )
-				{
-					filteredItems.push( items[i] );
-				}
-			}
-
-			return filteredItems;
-		}
-
 		function filterTransferCategories( category, index, array )
 		{
 			return category.store_types.indexOf( session.data.currentStore.store_type ) != -1;
@@ -1571,39 +1556,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.data.title = 'Transfer';
 						$scope.isExternalSource = false;
 						$scope.isExternalDestination = false;
-
-						/*
-						$scope.data.sources = [ $scope.currentStore ];
-						if( $scope.transferItem.origin_id )
-						{
-							$scope.data.selectedSource = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.origin_id }, true )[0];
-						}
-						else
-						{
-							$scope.data.selectedSource = session.data.currentStore;
-						}
-
-						$scope.data.destinations = $filter( 'filter' )( appData.data.stores, { id: '!' + session.data.currentStore.id }, function(a, e) { return angular.equals( parseInt(a), parseInt(e) ) } );
-						if( $scope.transferItem.destination_id )
-						{
-							$scope.data.selectedDestination = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.destination_id }, true )[0];
-						}
-						else if( $scope.transferItem.destination_name )
-						{ // External transfer
-							$scope.isExternalDestination = true;
-						}
-						else if( $scope.data.destinations.length )
-						{
-							$scope.data.selectedDestination = $scope.data.destinations[0];
-						}
-						else
-						{
-							console.error( 'Unable to load destination stores' );
-						}
-
-						// Set applicable transfer categories
-						$scope.data.transferCategories = angular.copy( appData.data.transferCategories );
-						*/
 						break;
 
 					case 'receipt':
@@ -1611,34 +1563,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.data.title = 'Receipt';
 						$scope.isExternalSource = false;
 						$scope.isExternalDestination = false;
-						/*
-						$scope.data.sources = $filter( 'filter' )( appData.data.stores, { id: '!' + session.data.currentStore.id }, function(a, e) { return angular.equals( parseInt( a ), parseInt( e ) ) } );
-						if( $scope.transferItem.origin_id )
-						{
-							$scope.data.selectedSource = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.origin_id }, true )[0];
-						}
-						else if( $scope.data.sources.length )
-						{
-							$scope.data.selectedSource = $scope.data.sources[0];
-						}
-						else
-						{
-							console.error( 'Unable to load source stores' );
-						}
-
-						$scope.data.destinations = [ session.data.currentStore ];
-						if( $scope.transferItem.destination_id )
-						{
-							$scope.data.selectedDestination = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.destination_id }, true )[0];
-						}
-						else
-						{
-							$scope.data.selectedDestination = session.data.currentStore;
-						}
-
-						// Set applicable transfer categories
-						$scope.data.transferCategories = angular.copy( appData.data.transferCategories );
-						*/
 						break;
 
 					case 'externalTransfer':
@@ -1646,22 +1570,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.data.title = 'External Transfer';
 						$scope.isExternalSource = false;
 						$scope.isExternalDestination = true;
-						/*
-						$scope.data.sources = [ session.data.currentStore ];
-						if( $scope.transferItem.origin_id )
-						{
-							$scope.data.selectedSource = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.origin_id }, true )[0];
-						}
-						else
-						{
-							$scope.data.selectedSource = session.data.currentStore;
-						}
-
-						// Set applicable transfer categories
-						$scope.data.transferCategories = angular.copy( appData.data.transferCategories );
-
-						$scope.data.destinations = []; // why do we need to clear this?
-						*/
 						break;
 
 					case 'externalReceipt':
@@ -1669,22 +1577,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.data.title = 'External Receipt';
 						$scope.isExternalSource = true;
 						$scope.isExternalDestination = false;
-						/*
-						// $scope.data.sources = []; // why do we need to clear this?
-
-						$scope.data.destinations = [ session.data.currentStore ];
-						if( $scope.transferItem.destination_id )
-						{
-							$scope.data.selectedDestination = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.destination_id }, true )[0];
-						}
-						else
-						{
-							$scope.data.selectedDestination = session.data.currentStore;
-						}
-
-						// Set applicable transfer categories
-						$scope.data.transferCategories = $filter( 'filter' )( appData.data.transferCategories, { categoryName: '!Internal Transfer' }, true );
-						*/
 						break;
 
 					case 'view':
@@ -1870,6 +1762,14 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 						var filteredItems;
 						filteredItems = $filter( 'itemsWithProps' )( appData.data.items, 'ExtTrans' );
+						if( session.data.currentStore.store_type == 4 )
+						{
+							filteredItems = $filter( 'cashFilter' )( filteredItems, 'Change Fund' );
+						}
+						else
+						{
+							filteredItems = $filter( 'cashFilter' )( filteredItems, undefined );
+						}
 						if( filteredItems.length > 0 )
 						{
 							$scope.data.inventoryItems = filteredItems;
@@ -1901,6 +1801,15 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 						var filteredItems;
 						filteredItems = $filter( 'itemsWithProps' )( appData.data.items, 'IntTrans' );
+						if( session.data.currentStore.store_type == 4 )
+						{
+							filteredItems = $filter( 'cashFilter' )( filteredItems, 'Change Fund' );
+						}
+						else
+						{
+							filteredItems = $filter( 'cashFilter' )( filteredItems, undefined );
+						}
+
 						if( filteredItems.length > 0 )
 						{
 							$scope.data.inventoryItems = filteredItems;
@@ -1983,6 +1892,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 						var filteredItems;
 						filteredItems = $filter( 'itemsWithProps' )( appData.data.items, 'BillToCoin' );
+						filteredItems = $filter( 'cashFilter' )( filteredItems, 'Change Fund' );
 						if( filteredItems.length > 0 )
 						{
 							$scope.data.inventoryItems = filteredItems;
@@ -2011,6 +1921,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						}
 						var filteredItems;
 						filteredItems = $filter( 'itemsWithProps' )( appData.data.items, 'CSCApp' );
+						filteredItems = $filter( 'cashFilter' )( filteredItems, 'CSC Card Fee' );
 						if( filteredItems.length > 0 )
 						{
 							$scope.data.inventoryItems = filteredItems;
@@ -2027,6 +1938,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 						var filteredItems;
 						filteredItems = $filter( 'itemsWithProps' )( appData.data.items, 'BankDep' );
+						filteredItems = $filter( 'cashFilter' )( filteredItems, 'Sales' );
 						if( filteredItems.length > 0 )
 						{
 							$scope.data.inventoryItems = filteredItems;
@@ -3261,73 +3173,6 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'notifications', 'assigneeShifts', 'Allocation', 'AllocationItem', 'AllocationSalesItem',
 	function( $scope, $filter, $state, $stateParams, session, appData, notifications, assigneeShifts, Allocation, AllocationItem, AllocationSalesItem )
 	{
-		/*
-		function category_filter( value, index, array )
-		{
-			var result = true;
-			var assigneeType = $scope.data.selectedAssigneeType;
-			var phase = $scope.data.allocationPhase;
-			var status = $scope.allocationItem ? $scope.allocationItem.allocation_status : 1; // ALLOCATION_SCHEDULED
-			var preAllocationCategories = [ 'Initial Allocation', 'Magazine Load', 'Initial Change Fund', 'Coin Replenishment', 'Coin Acceptor Replenishment' ];
-			var postAllocationCategories = [ 'Additional Allocation', 'Magazine Load', 'Additional Change Fund', 'Coin Replenishment', 'Coin Acceptor Replenishment' ];
-
-			switch( assigneeType.id )
-			{
-				case 1: // teller
-					if( value.is_teller != true )
-						return false;
-					break;
-
-				case 2: // machine
-					if( value.is_machine != true )
-						return false;
-					break;
-
-				default:
-					return false;
-			}
-
-			switch( phase )
-			{
-				case 'allocation':
-					if( ! value.is_allocation_category )
-						return false;
-
-					switch( status )
-					{
-						case 1: // ALLOCATION_SCHEDULED
-							if( preAllocationCategories.indexOf( value.category ) == -1 )
-								return false;
-							break;
-
-						default:
-							if( postAllocationCategories.indexOf( value.category ) == -1 )
-								return false;
-							// do nothing
-					}
-					break;
-
-				case 'remittance':
-					if( ! value.is_remittance_category )
-						return false;
-					break;
-
-				case 'ticket_sales':
-					if( ! value.is_ticket_sales_category )
-						return false;
-					break;
-
-				case 'sales':
-					break;
-
-				default:
-					return false;
-			}
-
-			return true;
-		}
-		*/
-
 		function category_filter( value, index, array )
 		{
 			var result = true;
@@ -3336,21 +3181,6 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 			var status = $scope.allocationItem ? $scope.allocationItem.allocation_status : 1; // ALLOCATION_SCHEDULED
 			var preAllocationCategories = [ 'InitAlloc', 'TVMAlloc', 'InitCFund', 'HopAlloc', 'CAAlloc' ];
 			var postAllocationCategories = [ 'AddAlloc', 'TVMAlloc', 'AddCFund', 'HopAlloc', 'CAAlloc' ];
-			/*
-			var preAllocationCategories, postAllocationCategories;
-			switch( assigneeType )
-			{
-				case 1: // Station Teller
-					preAllocationCategories = [ 'InitAlloc', 'InitCFund' ];
-					postAllocationCategories = [ 'AddAlloc', 'AddCFund' ];
-					break;
-
-				case 2: // TVM
-					preAllocationCategories = [ 'TVMAlloc', 'HopAlloc', 'CAAlloc' ];
-					postAllocationCategories = [ 'TVMAlloc', 'HopAlloc', 'CAAlloc' ];
-					break;
-			}
-			*/
 
 			switch( assigneeType.id )
 			{
@@ -3499,7 +3329,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 		$scope.updateAllocatableItems = function()
 			{
 				var filter = {};
-				var categoryFilter, assigneeFilter = {};
+				var categoryFilter, cashFilter, assigneeFilter = {};
 				var assignee = $scope.data.selectedAssigneeType.id == 2 ? 'machine' : 'teller';
 				var allocationStatus = $scope.allocationItem ? $scope.allocationItem.allocation_status : 1;
 
@@ -3520,6 +3350,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					{
 						categoryFilter = ['TVMAlloc', 'HopAlloc', 'CAAlloc'];
 					}
+					cashFilter = 'Change Fund';
 					assigneeFilter[assignee + '_allocatable'] = true;
 				}
 				else if( $scope.data.allocationPhase == 'remittance' )
@@ -3532,6 +3363,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					{
 						categoryFilter = ['Unsold', 'RejectBin', 'SalesColl', 'HopPullout'];
 					}
+					cashFilter = undefined;
 					assigneeFilter[assignee + '_remittable'] = true;
 				}
 				else if( $scope.data.allocationPhase == 'ticket_sales' )
@@ -3556,6 +3388,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					//$scope.data.inventoryItems = $filter( 'filter' )( appData.data.items, filter, true );
 					$scope.data.inventoryItems = $filter( 'itemsWithProps' )( appData.data.items, categoryFilter );
 					$scope.data.inventoryItems = $filter( 'filter' )( $scope.data.inventoryItems, assigneeFilter, true );
+					$scope.data.inventoryItems = $filter( 'cashFilter' )( $scope.data.inventoryItems, cashFilter );
 
 					if( $scope.data.inventoryItems.length )
 					{
