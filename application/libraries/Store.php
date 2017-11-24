@@ -33,6 +33,7 @@ class Store extends Base_model
 		parent::__construct();
 	}
 
+
 	public function get_stores( $params = array() )
 	{
 		$ci =& get_instance();
@@ -293,6 +294,112 @@ class Store extends Base_model
 					ON ts.store_inventory_id = si.id
 				WHERE
 					store_id = ?
+				ORDER BY si.parent_item_id, si.id';
+
+		// Do not show subinventories
+		//$sql .= ' AND parent_item_id IS NULL';
+
+		$query_params[] = $this->id;
+
+		$query = $ci->db->query( $sql, $query_params );
+
+		if( $format == 'object')
+		{
+			$items = array();
+			$store_items = $query->result( 'Inventory' );
+			foreach( $store_items as $store_item )
+			{
+				$items[$store_item->get( 'id' )] = $store_item;
+			}
+
+			return $items;
+		}
+		elseif( $format == 'array' )
+		{
+			return $query->result_array();
+		}
+
+		return NULL;
+	}
+
+
+	public function get_shift_turnover_items( $params = array() )
+	{
+		$business_date = param( $params, 'date', date( DATE_FORMAT ) );
+		$shift = param( $params, 'shift', current_shift( TRUE ) );
+		$format = param( $params, 'format', 'object' );
+
+		$ci =& get_instance();
+		$ci->load->library( 'inventory' );
+
+		$query_params = array();
+		$sql = 'SELECT
+					si.*,
+					i.item_name, i.item_description, i.item_class, i.item_group, i.item_unit,
+					i.teller_allocatable, i.teller_remittable, i.teller_saleable,
+					i.machine_allocatable, i.machine_remittable, i.machine_saleable,
+					ip.iprice_currency, ip.iprice_unit_price,
+					ts.movement, sts.sti_beginning_balance, sts.sti_ending_balance,
+					pi.item_name AS parent_item_name
+				FROM store_inventory AS si
+				LEFT JOIN items AS i
+					ON i.id = si.item_id
+				LEFT JOIN items AS pi
+					ON pi.id = si.parent_item_id
+				LEFT JOIN item_prices AS ip
+					ON ip.iprice_item_id = i.id
+				LEFT JOIN (';
+
+		if( $shift )
+		{
+			$sql .= ' SELECT
+						sti.sti_item_id,
+						sti.sti_beginning_balance,
+						sti.sti_ending_balance
+					FROM shift_turnover_items AS sti
+					LEFT JOIN shift_turnovers AS st
+						ON st.id = sti.sti_turnover_id
+					WHERE
+						st.st_store_id = ?
+						AND st.st_from_date = ?
+						AND st.st_from_shift_id = ?
+				) AS sts
+					ON sts.sti_item_id = i.id';
+
+			// TODO: Add index for st_store_id, st_from_date, st_from_shift_id
+			$query_params[] = $this->id;
+			$query_params[] = $business_date;
+			$query_params[] = $shift;
+		}
+
+		$sql .= ' LEFT JOIN (
+					SELECT
+						t.store_inventory_id,
+						SUM( transaction_quantity ) AS movement
+					FROM transactions AS t
+					LEFT JOIN store_inventory AS si
+						ON si.id = t.store_inventory_id
+					WHERE
+						si.store_id = ?
+						AND t.transaction_datetime >= ?
+						AND t.transaction_datetime <= ?';
+		$query_params[] = $this->id;
+		$query_params[] = $business_date.' 00:00:00';
+		$query_params[] = $business_date.' 23:59:59';
+
+		if( $shift )
+		{
+			$sql .= ' AND t.transaction_shift = ?';
+			$query_params[] = $shift;
+		}
+
+		$sql .= ' GROUP BY
+					t.store_inventory_id
+				) AS ts
+					ON ts.store_inventory_id = si.id
+				WHERE
+					store_id = ?
+					AND ( si.parent_item_id IS NULL OR pi.item_name != "In Transit" )
 				ORDER BY si.parent_item_id, si.id';
 
 		// Do not show subinventories
@@ -1221,6 +1328,7 @@ class Store extends Base_model
 		return $count;
 	}
 
+
 	public function count_transfers( $params = array() )
 	{
 		$ci =& get_instance();
@@ -1258,6 +1366,7 @@ class Store extends Base_model
 
 		return $count;
 	}
+
 
 	public function count_receipts( $params = array() )
 	{
@@ -1304,6 +1413,7 @@ class Store extends Base_model
 		return $count;
 	}
 
+
 	public function count_adjustments( $params = array() )
 	{
 		$adjustment_date = param( $params, 'date' );
@@ -1334,6 +1444,7 @@ class Store extends Base_model
 		return $count;
 	}
 
+
 	public function count_collections( $params = array() )
 	{
 		$processing_date = param( $params, 'processing_date' );
@@ -1357,6 +1468,7 @@ class Store extends Base_model
 
 		return $count;
 	}
+
 
 	public function count_allocations( $params = array() )
 	{
@@ -1387,6 +1499,7 @@ class Store extends Base_model
 
 		return $count;
 	}
+
 
 	public function count_conversions( $params = array() )
 	{
@@ -1424,6 +1537,7 @@ class Store extends Base_model
 		return $count;
 	}
 
+
 	public function count_pending_transfers( $params = array() )
 	{
 		$business_date = param( $params, 'date' );
@@ -1456,6 +1570,7 @@ class Store extends Base_model
 
 		return $count;
 	}
+
 
 	public function count_pending_receipts( $params = array() )
 	{
@@ -1496,6 +1611,7 @@ class Store extends Base_model
 		return $count;
 	}
 
+
 	public function count_pending_adjustments( $params = array() )
 	{
 		$adjustment_date = param( $params, 'date' );
@@ -1521,6 +1637,7 @@ class Store extends Base_model
 
 		return $count;
 	}
+
 
 	public function count_pending_allocations( $params = array() )
 	{
@@ -1582,6 +1699,7 @@ class Store extends Base_model
 
 		return $count;
 	}
+
 
 	public function count_tvm_readings( $params = array() )
 	{
@@ -1701,6 +1819,7 @@ class Store extends Base_model
 		return $data->result_array();
 	}
 
+
 	public function get_shift_balance( $date = NULL, $shift_id = NULL )
 	{
 		$ci =& get_instance();
@@ -1732,6 +1851,7 @@ class Store extends Base_model
 			return NULL;
 		}
 	}
+
 
 	public function get_inventory_movement( $date = NULL, $shift = NULL )
 	{
@@ -1772,6 +1892,7 @@ class Store extends Base_model
 
 		return $inventory_movement;
 	}
+
 
 	public function get_shift_turnovers( $params = array() )
 	{
@@ -1886,6 +2007,7 @@ class Store extends Base_model
 
 		return $query->result_array();
 	}
+
 
 	public function count_shift_turnovers( $params = array() )
 	{
@@ -2011,6 +2133,7 @@ class Store extends Base_model
 		return $query->result_array();
 	}
 
+
 	// Transfer Outs and Ticket Turnovers
 	public function get_transfer_summary( $date = NULL, $shift = NULL )
 	{
@@ -2052,6 +2175,7 @@ class Store extends Base_model
 
 		return $query->result_array();
 	}
+
 
 	public function get_ticket_breakdown( $date = NULL, $shift_id = NULL )
 	{
@@ -2115,6 +2239,7 @@ class Store extends Base_model
 			return FALSE;
 		}
 	}
+
 
 	public function get_turnover_summary( $date = NULL, $shift_id = NULL )
 	{

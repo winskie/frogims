@@ -1381,6 +1381,7 @@ class Api_v1 extends MY_Controller {
 												'item_description' => array( 'type' => 'string' ),
 												'item_group' => array( 'type' => 'string' ),
 												'item_unit' => array( 'type' => 'string' ),
+												'parent_item_name' => array( 'type' => 'string' ),
 												'previous_balance' => array( 'type' => 'integer' ),
 												'movement' => array( 'type' => 'integer' )
 											)

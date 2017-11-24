@@ -175,6 +175,7 @@ class Shift_turnover extends Base_model
 			$sql = 'SELECT
 								sti.*,
 								i.item_name, i.item_description, i.item_group, i.item_type, i.item_unit,
+								pi.item_name AS parent_item_name,
 								ts.movement,
 								IF( ct.conversion_factor IS NULL, sti.sti_beginning_balance, sti.sti_beginning_balance * ct.conversion_factor ) AS base_beginning_balance,
 								IF( ct.conversion_factor IS NULL, sti.sti_ending_balance, sti.sti_ending_balance * ct.conversion_factor ) AS base_ending_balance,
@@ -184,6 +185,10 @@ class Shift_turnover extends Base_model
 								ON i.id = sti.sti_item_id
 							LEFT JOIN items AS bi
 								ON bi.id = i.base_item_id
+							LEFT JOIN store_inventory AS si
+								ON si.id = sti.sti_inventory_id
+							LEFT JOIN items AS pi
+								ON pi.id = si.parent_item_id
 							LEFT JOIN conversion_table AS ct
 								ON ct.source_item_id = i.base_item_id AND ct.target_item_id = i.id
 							LEFT JOIN (
@@ -260,7 +265,7 @@ class Shift_turnover extends Base_model
 				'date' => $this->st_from_date,
 				'shift' => $this->st_from_shift_id );
 
-			$store_items = $store->get_items( $params );
+			$store_items = $store->get_shift_turnover_items( $params );
 			foreach( $store_items as $inv_id => $store_item )
 			{
 				if( !isset( $this->items[$inv_id] ) )
@@ -289,7 +294,7 @@ class Shift_turnover extends Base_model
 		$prev_turnover = $this->get_previous_turnover();
 		if( $prev_turnover )
 		{
-			$prev_items = $prev_turnover->get_items();
+			$prev_items = $prev_turnover->get_shift_turnover_items();
 			foreach( $prev_items as $inv_id => $prev_item )
 			{
 				if( isset( $this->items[$inv_id] ) )
