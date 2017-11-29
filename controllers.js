@@ -1947,6 +1947,40 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 							$scope.input.category = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_name: 'BankDep' }, true )[0];
 						}
 						break;
+
+					case 'Add TVMIR Refund':
+						$scope.data.selectedSource = session.data.currentStore;
+						$scope.data.selectedDestination = null;
+						$scope.changeEditMode( 'externalTransfer' );
+
+						var filteredItems;
+						filteredItems = $filter( 'itemsWithProps' )( appData.data.items, 'AddTVMIR' );
+						filteredItems = $filter( 'cashFilter' )( filteredItems, 'Sales' );
+						if( filteredItems.length > 0 )
+						{
+							$scope.data.inventoryItems = filteredItems;
+							$scope.input.inventoryItem = $scope.data.inventoryItems[0];
+							$scope.onItemChange();
+							$scope.input.category = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_name: 'AddTVMIR' }, true )[0];
+						}
+						break;
+
+					case 'Issue TVMIR Refund':
+						$scope.data.selectedSource = session.data.currentStore;
+						$scope.data.selectedDestination = null;
+						$scope.changeEditMode( 'externalTransfer' );
+
+						var filteredItems;
+						filteredItems = $filter( 'itemsWithProps' )( appData.data.items, 'IssueTVMIR' );
+						filteredItems = $filter( 'cashFilter' )( filteredItems, 'TVMIR' );
+						if( filteredItems.length > 0 )
+						{
+							$scope.data.inventoryItems = filteredItems;
+							$scope.input.inventoryItem = $scope.data.inventoryItems[0];
+							$scope.onItemChange();
+							$scope.input.category = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_name: 'IssueTVMIR' }, true )[0];
+						}
+						break;
 				}
 
 				// Apply changes to source and destination

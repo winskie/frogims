@@ -478,16 +478,6 @@ class Transfer extends Base_model {
 			{
 				$item_id = $item->get( 'item_id' );
 				$voided_items[] = $item;
-				/*
-				if( isset( $voided_items[$item_id] ) )
-				{
-					$voided_items[$item_id] += $item->get( 'quantity' );
-				}
-				else
-				{
-					$voided_items[$item_id] = $item->get( 'quantity' );
-				}
-				*/
 			}
 		}
 		if( ! $has_valid_transfer_item )
@@ -512,7 +502,51 @@ class Transfer extends Base_model {
 		$result = NULL;
 		$ci->db->trans_start();
 
-		$no_reservation_categories = array( TRANSFER_CATEGORY_CSC_APPLICATION );
+		$no_reservation_categories = array();
+
+
+		$parent_item_id = NULL;
+		$current_store = current_store();
+		if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM )
+		{
+			$change_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_CHANGE_FUND );
+			$in_transit_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_IN_TRANSIT );
+			$csc_card_fee_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_CSC_CARD_FEE );
+			$sales_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_SALES );
+			$tvmir_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_TVMIR );
+
+			switch( $this->transfer_category )
+			{
+				case TRANSFER_CATEGORY_BILLS_TO_COINS:
+					// Deduct from Change Fund
+					$parent_item_id = $change_fund->get( 'item_id' );
+					break;
+
+				case TRANSFER_CATEGORY_CSC_APPLICATION:
+					// Deduct from CSC Card Fee Fund
+					$parent_item_id =  $csc_card_fee_fund->get( 'item_id' );
+					break;
+
+				case TRANSFER_CATEGORY_BANK_DEPOSIT:
+					// Deduct from Sales Collection Fund
+					$parent_item_id =  $sales_fund->get( 'item_id' );
+					break;
+
+				case TRANSFER_CATEGORY_ADD_TVMIR:
+					// Deduct from Sales Collection Fund
+					$parent_item_id =  $sales_fund->get( 'item_id' );
+					break;
+
+				case TRANSFER_CATEGORY_ISSUE_TVMIR:
+					// Deduct from TVMIR Fund
+					$parent_item_id = $tvmir_fund->get( 'item_id' );
+					break;
+
+				default:
+					// Deduct from Change Fund
+					$parent_item_id = $change_fund->get( 'item_id' );
+			}
+		}
 
 		if( isset( $this->id ) )
 		{ // Update transfer record
@@ -531,6 +565,11 @@ class Transfer extends Base_model {
 						{
 							$inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
 							$inventory->reserve( $item->get( 'quantity' ) );
+							if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $item->get( 'item_class' ) == 'cash' && ! empty( $parent_item_id ) )
+							{
+								$sub_inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ), $parent_item_id );
+								$sub_inventory->reserve( $item->get( 'quantity' ) );
+							}
 						}
 						elseif( in_array( $item->db_changes['transfer_item_status'], array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ) )
 						{
@@ -538,7 +577,13 @@ class Transfer extends Base_model {
 							{
 								$inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
 								$inventory->reserve( $item->get( 'quantity' ) * -1 );
+								if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $item->get( 'item_class' ) == 'cash' && ! empty( $parent_item_id ) )
+								{
+									$sub_inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ), $parent_item_id );
+									$sub_inventory->reserve( $item->get( 'quantity' ) * -1 );
+								}
 							}
+
 						}
 					}
 
@@ -550,6 +595,11 @@ class Transfer extends Base_model {
 						{ // do not unreserved items that are already cancelled or voided
 							$inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
 							$inventory->reserve( $item->get( 'quantity' ) * -1 );
+							if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $item->get( 'item_class' ) == 'cash' && ! empty( $parent_item_id ) )
+							{
+								$sub_inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ), $parent_item_id );
+								$sub_inventory->reserve( $item->get( 'quantity' ) * -1 );
+							}
 						}
 					}
 
@@ -635,11 +685,15 @@ class Transfer extends Base_model {
 							continue;
 						}
 
-						$inventory = new Inventory();
-						$inventory = $inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
+						$inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
 						if( $inventory )
 						{
 							$inventory->reserve( $item->get( 'quantity' ) );
+							if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $item->get( 'item_class' ) == 'cash' && ! empty( $parent_item_id ) )
+							{
+								$sub_inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ), $parent_item_id );
+								$sub_inventory->reserve( $item->get( 'quantity' ) );
+							}
 						}
 					}
 				}
@@ -813,6 +867,7 @@ class Transfer extends Base_model {
 		$in_transit_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_IN_TRANSIT );
 		$csc_card_fee_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_CSC_CARD_FEE );
 		$sales_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_SALES );
+		$tvmir_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_TVMIR );
 
 		$transaction_datetime = $this->transfer_datetime;
 		//$transaction_datetime = date( TIMESTAMP_FORMAT );
@@ -824,6 +879,7 @@ class Transfer extends Base_model {
 			{
 				$item = $transfer_item->get_item();
 				$quantity = $transfer_item->get( 'quantity' );
+				$skip_inventory = false;
 
 				if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $item->get( 'item_class' ) == 'cash' && ! empty( $item->get( 'iprice_unit_price' ) ) )
 				{
@@ -841,6 +897,9 @@ class Transfer extends Base_model {
 							$change_fund->transact( TRANSACTION_TRANSFER_OUT, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
 							$change_fund_sub = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), $change_fund->get( 'item_id' ), TRUE );
 							$change_fund_sub->transact( TRANSACTION_TRANSFER_OUT, $quantity * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+
+							$skip_inventory = true;
+							$sub_parent_id = $change_fund->get( 'item_id' );
 							break;
 
 						case TRANSFER_CATEGORY_CSC_APPLICATION:
@@ -848,6 +907,7 @@ class Transfer extends Base_model {
 							$csc_card_fee_fund->transact( TRANSACTION_TRANSFER_OUT, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
 							$csc_card_fee_fund_sub = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), $csc_card_fee_fund->get( 'item_id' ), TRUE );
 							$csc_card_fee_fund_sub->transact( TRANSACTION_TRANSFER_OUT, $quantity * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+							$sub_parent_id = $csc_card_fee_fund->get( 'item_id' );
 							break;
 
 						case TRANSFER_CATEGORY_BANK_DEPOSIT:
@@ -855,6 +915,30 @@ class Transfer extends Base_model {
 							$sales_fund->transact( TRANSACTION_TRANSFER_OUT, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
 							$sales_fund_sub = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), $sales_fund->get( 'item_id' ), TRUE );
 							$sales_fund_sub->transact( TRANSACTION_TRANSFER_OUT, $quantity * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+							$sub_parent_id = $sales_fund->get( 'item_id' );
+							break;
+
+						case TRANSFER_CATEGORY_ADD_TVMIR:
+							// Deduct from Sales Collection Fund
+							$sales_fund->transact( TRANSACTION_TRANSFER_OUT, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+							$sales_fund_sub = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), $sales_fund->get( 'item_id' ), TRUE );
+							$sales_fund_sub->transact( TRANSACTION_TRANSFER_OUT, $quantity * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+							$sub_parent_id = $sales_fund->get( 'item_id' );
+
+							// Transfer to TVMIR Fund
+							$tvmir_fund->transact( TRANSACTION_TRANSFER_OUT, $amount, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+							$tvmir_fund_sub = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), $tvmir_fund->get( 'item_id' ), TRUE );
+							$tvmir_fund_sub->transact( TRANSACTION_TRANSFER_OUT, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+
+							$skip_inventory = true;
+							break;
+
+						case TRANSFER_CATEGORY_ISSUE_TVMIR:
+							// Deduct from TVMIR Fund
+							$tvmir_fund->transact( TRANSACTION_TRANSFER_OUT, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+							$tvmir_fund_sub = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), $tvmir_fund->get( 'item_id' ), TRUE );
+							$tvmir_fund_sub->transact( TRANSACTION_TRANSFER_OUT, $quantity * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+							$sub_parent_id = $tvmir_fund->get( 'item_id' );
 							break;
 
 						default:
@@ -862,14 +946,20 @@ class Transfer extends Base_model {
 							$change_fund->transact( TRANSACTION_TRANSFER_OUT, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
 							$change_fund_sub = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), $change_fund->get( 'item_id' ), TRUE );
 							$change_fund_sub->transact( TRANSACTION_TRANSFER_OUT, $quantity * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+							$sub_parent_id = $change_fund->get( 'item_id' );
 					}
 				}
 
 				$inventory = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), NULL, TRUE );
-				if( $inventory )
+				if( $inventory && ! $skip_inventory )
 				{ // Deduct from inventory
 					$inventory->reserve( $quantity * -1 );
 					$inventory->transact( TRANSACTION_TRANSFER_OUT, $quantity * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+					if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $item->get( 'item_class' ) == 'cash' && ! empty( $sub_parent_item_id ) )
+					{
+						$sub_inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ), $sub_parent_item_id );
+						$sub_inventory->reserve( $quantity * -1 );
+					}
 				}
 
 				$transfer_item->set( 'transfer_item_status', TRANSFER_ITEM_APPROVED );

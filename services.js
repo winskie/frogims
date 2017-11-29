@@ -498,6 +498,8 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 						{ id: 6, categoryName: 'Bills to Coins Exchange', store_types: [4] },
 						{ id: 7, categoryName: 'CSC Application', store_types: [4] },
 						{ id: 8, categoryName: 'Bank Deposit', store_types: [4] },
+						{ id: 9, categoryName: 'Add TVMIR Refund', store_types: [4] },
+						{ id: 10, categoryName: 'Issue TVMIR Refund', store_types: [4] },
 					],
 				transferStatus: [
 						{ id: 1, statusName: 'Scheduled' },

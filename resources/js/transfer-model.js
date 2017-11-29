@@ -49,6 +49,8 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 				'6': 'Bills to Coins Exchange',
 				'7': 'CSC Application',
 				'8': 'Bank Deposit',
+				'9': 'Add TVMIR Refund',
+				'10': 'Issue TVMIR Refund',
 			};
 
 		var transferValidationReceiptStatus = {
