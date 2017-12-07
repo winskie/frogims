@@ -524,7 +524,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 				allocationStatus: [
 						{ id: 1, statusName: 'Scheduled' },
 						{ id: 2, statusName: 'Allocated' },
-						{ id: 3, statusName: 'Remitted' },
+						{ id: 3, statusName: 'Completed' },
 						{ id: 4, statusName: 'Cancelled' }
 					],
 

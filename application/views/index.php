@@ -5,7 +5,7 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 
-		<title>FROG Ticket Management Inventory System</title>
+		<title>FROG Ticket Inventory and Cash Management System</title>
 
 		<link rel="stylesheet" type="text/css" href="<?php echo base_url( 'resources/css/bootstrap.min.css' );?>" />
 		<link rel="stylesheet" type="text/css" href="<?php echo base_url( 'resources/css/animate.css' );?>" />

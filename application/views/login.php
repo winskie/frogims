@@ -13,7 +13,7 @@
     <body>
         <div class="container">
             <div class="jumbotron app-title">
-                <h2>FROG Ticket Management Inventory System</h2>
+                <h2>FROG Ticket Inventory and Cash Management System</h2>
             </div>
             <div class="panel panel-default form-sign-in">
                 <div class="panel-body">

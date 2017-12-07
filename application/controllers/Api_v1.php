@@ -215,6 +215,7 @@ class Api_v1 extends MY_Controller {
 										'item_name' => array( 'type' => 'string' ),
 										'item_description' => array( 'type' => 'string' ),
 										'item_class' => array( 'type' => 'string' ),
+										'item_group' => array( 'type' => 'string' ),
 										'teller_allocatable' => array( 'type' => 'boolean' ),
 										'machine_allocatable' => array( 'type' => 'boolean' ),
 										'cashier_shift_num' => array( 'type' => 'string' ),
@@ -231,6 +232,7 @@ class Api_v1 extends MY_Controller {
 										'item_name' => array( 'type' => 'string' ),
 										'item_description' => array( 'type' => 'string' ),
 										'item_class' => array( 'type' => 'string' ),
+										'item_group' => array( 'type' => 'string' ),
 										'iprice_currency' => array( 'type' => 'string' ),
 										'iprice_unit_price' => array( 'type' => 'decimal' ),
 										'teller_allocatable' => array( 'type' => 'boolean' ),
@@ -248,9 +250,11 @@ class Api_v1 extends MY_Controller {
 										'item_name' => array( 'type' => 'string' ),
 										'item_description' => array( 'type' => 'string' ),
 										'item_class' => array( 'type' => 'string' ),
+										'item_group' => array( 'type' => 'string' ),
 										'teller_remittable' => array( 'type' => 'boolean' ),
 										'machine_remittable' => array( 'type' => 'boolean' ),
-										'cashier_shift_num' => array( 'type' => 'string' ) ) );
+										'cashier_shift_num' => array( 'type' => 'string' ),
+										'base_quantity' => array( 'type' => 'integer' ) ) );
 								}
 								$allocation_data['remittances'] = $remittance_items_data;
 
@@ -263,6 +267,7 @@ class Api_v1 extends MY_Controller {
 										'item_name' => array( 'type' => 'string' ),
 										'item_description' => array( 'type' => 'string' ),
 										'item_class' => array( 'type' => 'string' ),
+										'item_group' => array( 'type' => 'string' ),
 										'iprice_currency' => array( 'type' => 'string' ),
 										'iprice_unit_price' => array( 'type' => 'decimal' ),
 										'teller_remittable' => array( 'type' => 'boolean' ),
@@ -280,9 +285,11 @@ class Api_v1 extends MY_Controller {
 										'item_name' => array( 'type' => 'string' ),
 										'item_description' => array( 'type' => 'string' ),
 										'item_class' => array( 'type' => 'string' ),
+										'item_group' => array( 'type' => 'string' ),
 										'teller_saleable' => array( 'type' => 'boolean' ),
 										'machine_saleable' => array( 'type' => 'boolean' ),
-										'cashier_shift_num' => array( 'type' => 'string' ) ) );
+										'cashier_shift_num' => array( 'type' => 'string' ),
+										'base_quantity' => array( 'type' => 'integer' ) ) );
 								}
 								$allocation_data['ticket_sales'] = $ticket_sale_items_data;
 
@@ -1697,6 +1704,7 @@ class Api_v1 extends MY_Controller {
 														'item_name' => array( 'type' => 'string' ),
 														'item_description' => array( 'type' => 'string' ),
 														'item_class' => array( 'type' => 'string' ),
+														'item_group' => array( 'type' => 'string' ),
 														'teller_allocatable' => array( 'type' => 'boolean' ),
 														'machine_allocatable' => array( 'type' => 'boolean' ),
 														'cashier_shift_num' => array( 'type' => 'string' ),
@@ -1711,6 +1719,7 @@ class Api_v1 extends MY_Controller {
 														'item_name' => array( 'type' => 'string' ),
 														'item_description' => array( 'type' => 'string' ),
 														'item_class' => array( 'type' => 'string' ),
+														'item_group' => array( 'type' => 'string' ),
 														'iprice_currency' => array( 'type' => 'string' ),
 														'iprice_unit_price' => array( 'type' => 'decimal' ),
 														'teller_allocatable' => array( 'type' => 'boolean' ),
@@ -1726,6 +1735,7 @@ class Api_v1 extends MY_Controller {
 														'item_name' => array( 'type' => 'string' ),
 														'item_description' => array( 'type' => 'string' ),
 														'item_class' => array( 'type' => 'string' ),
+														'item_group' => array( 'type' => 'string' ),
 														'teller_remittable' => array( 'type' => 'boolean' ),
 														'machine_remittable' => array( 'type' => 'boolean' ),
 														'cashier_shift_num' => array( 'type' => 'string' ) ) );
@@ -1739,6 +1749,7 @@ class Api_v1 extends MY_Controller {
 														'item_name' => array( 'type' => 'string' ),
 														'item_description' => array( 'type' => 'string' ),
 														'item_class' => array( 'type' => 'string' ),
+														'item_group' => array( 'type' => 'string' ),
 														'iprice_currency' => array( 'type' => 'string' ),
 														'iprice_unit_price' => array( 'type' => 'decimal' ),
 														'teller_remittable' => array( 'type' => 'boolean' ),
@@ -1754,6 +1765,7 @@ class Api_v1 extends MY_Controller {
 														'item_name' => array( 'type' => 'string' ),
 														'item_description' => array( 'type' => 'string' ),
 														'item_class' => array( 'type' => 'string' ),
+														'item_group' => array( 'type' => 'string' ),
 														'teller_saleable' => array( 'type' => 'boolean' ),
 														'machine_saleable' => array( 'type' => 'boolean' ),
 														'cashier_shift_num' => array( 'type' => 'string' ) ) );

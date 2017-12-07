@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<title>TICMS - Shift Collection Report</title>
+		<link rel="stylesheet" type="text/css" href="<?php echo base_url( 'resources/css/bootstrap.min.css' );?>" />
+	</head>
+	<body class="container-fluid">
+		<div class="report-header">
+			<h1 class="report-title">Shift Collection Report</h1>
+			<div>{store_name} / {shift_name} / {business_date}</div>
+		</div>
+		<div class="report-body">
+			<div class="panel panel-default">
+				<table class="table table-bordered table-condensed">
+					<thead>
+						<tr>
+							<td colspan="21"><h4>Sales from TVM</h4></td>
+						</tr>
+					</thead>
+					<thead>
+						<tr>
+							<th rowspan="3">TVM No.</th>
+							<th colspan="6">No. of Tickets Sold</th>
+							<th rowspan="3">BNA Box</th>
+							<th rowspan="3">Coin Box</th>
+							<th rowspan="3">CA</th>
+							<th rowspan="3">Gross Sales</th>
+							<th rowspan="3">CA Reading</th>
+							<th colspan="5">Deductions</th>
+							<th rowspan="3">Over/<br/>(Short)</th>
+							<th rowspan="3">Net Sales</th>
+							<th rowspan="3"></th>
+							<th rowspan="3">Total Cash Collection</th>
+						</tr>
+						<tr>
+							<th rowspan="2">SJT</th>
+							<th rowspan="2">SVC</th>
+							<th colspan="4" rowspan="2"></th>
+							<th colspan="3">Hopper Reading</th>
+							<th rowspan="2">Hopper/<br/>Change Fund</th>
+							<th rowspan="2">Refunded<br />TVMIR</th>
+						</tr>
+						<tr>
+							<th>Previous</th>
+							<th>Replenish</th>
+							<th>Present</th>
+						</tr>
+					</thead>
+					<tbody>
+						{tvm_sales}
+						<tr>
+							<td>{tvm_num}</td>
+							<td>{sjt_sold_ticket}</td>
+							<td>{svc_sold_ticket}</td>
+							<td colspan="4"></td>
+							<td>{coin_box_sales}</td>
+							<td>{note_box_sales}</td>
+							<td>{sjt_sold_ticket}</td>
+							<td></td>
+							<td>{gross_sales}</td>
+							<td>{previous_reading}</td>
+							<td>{total_replenishment}</td>
+							<td>{reading}</td>
+							<td>{change_fund}</td>
+							<td>{refunded_tvmir}</td>
+							<td>{over_short}</td>
+							<td>{net_sales}</td>
+							<td></td>
+							<td>{total_collection}</td>
+						</tr>
+						{/tvm_sales}
+						<?php if( empty( $tvm_sales ) ):?>
+						<tr>
+							<td colspan="16">No TVM sales data</td>
+						</tr>
+						<?php endif;?>
+					</tbody>
+					<tr>
+						<th>Total Ticket Sold</th>
+						<td></td>
+						<td></td>
+						<td colspan="4"></td>
+						<td colspan="5"></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td colspan="3"></td>
+						<td></td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr>
+						<th colspan="7">Total amount from TVM</th>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td colspan="4"></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr>
+						<td colspan="15"></td>
+						<th colspan="3">Add: Unclaimed TVMIR/Overage</th>
+						<td></td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr>
+					<td colspan="15"></td>
+						<th colspan="3">TOTAL</th>
+						<td></td>
+						<td></td>
+						<td></td>
+					</tr>
+					<thead>
+						<tr>
+							<td colspan="21"><h4>Sales from Station Teller</h4></td>
+						</tr>
+					</thead>
+					<thead>
+						<tr>
+							<th rowspan="2">Teller Name</th>
+							<th colspan="6">Number of Tickets Sold</th>
+							<th colspan="3" rowspan="2"></th>
+							<th rowspan="2">Gross Sales</th>
+							<th colspan="4">Deductions</th>
+							<th colspan="2" rowspan="2"></th>
+							<th rowspan="2">Over/<br/>(Short)</th>
+							<th rowspan="2">Net Sales</th>
+							<th rowspan="2">Add:Change Fund</th>
+							<th rowspan="2">Total Cash Collection</th>
+						</tr>
+						<tr>
+							<th>SJT</th>
+							<th>SVC</th>
+							<th>SVC/CC</th>
+							<th>Free Exit</th>
+							<th>Paid Exit</th>
+							<th>Unconfirmed</th>
+
+							<th>TCERF</th>
+							<th></th>
+							<th></th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						{teller_sales}
+						<tr>
+							<td>{assignee}</td>
+							<td>{sold_sjt}</td>
+							<td>{sold_svc}</td>
+							<td>{issued_csc}</td>
+							<td>{free_exit}</td>
+							<td>{paid_exit}</td>
+							<td>{unconfirmed}</td>
+							<td colspan="3"></td>
+							<td>{gross_sales}</td>
+							<td>{tcerf}</td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td colspan="2"></td>
+							<td>{short_over}</td>
+							<td>{net_sales}</td>
+							<td>{change_fund}</td>
+							<td>{total_cash_collection}</td>
+						</tr>
+						{/teller_sales}
+					</tbody>
+					<tr>
+						<th>Total tickets sold</th>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td colspan="10"></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr>
+						<th colspan="7">Total amount from teller</th>
+						<td colspan="3">
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td colspan="2"></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+					</tr>
+					<thead>
+						<tr>
+							<td colspan="21"><h4>Grand Total</h4></td>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td colspan="3">
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</body>
+</html>

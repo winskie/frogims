@@ -495,7 +495,6 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 										item_name: this.allocations[i].item_name,
 										item_description: this.allocations[i].item_description,
 										item_class: this.allocations[i].item_class,
-										scheduled: 0,
 										initial: 0,
 										additional: 0,
 										remitted: 0
@@ -516,7 +515,6 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 							}
 						}
 
-
 						// Cash allocations
 						for( var i = 0; i < cn; i++ )
 						{
@@ -525,35 +523,43 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 								continue;
 							}
 
-							if( !tempObj[this.cash_allocations[i].allocated_item_id] )
+							var rowObject;
+
+							if( ['Initial Change Fund', 'Additional Change Fund'].indexOf( this.cash_allocations[i].cat_description ) != -1 )
 							{
-								tempObj[this.cash_allocations[i].allocated_item_id] = {
-										item_name: this.cash_allocations[i].item_name,
-										item_description: this.cash_allocations[i].item_description,
+								rowObject = 'Change Fund';
+							}
+							else if( ['Sales Collection'].indexOf( this.cash_allocations[i].cat_description ) != -1 )
+							{
+								rowObject = 'Sales Collection';
+							}
+
+							if( !tempObj[rowObject] )
+							{
+								tempObj[rowObject] = {
+										item_name: rowObject,
+										item_description: rowObject,
 										item_class: this.cash_allocations[i].item_class,
 										scheduled: 0,
 										initial: 0,
 										additional: 0,
-										remitted: 0
+										remitted: 0,
+										item_type: 'ticket'
 									};
 							}
 
-							if( this.cash_allocations[i].allocation_item_status == 10 )
+							if( this.cash_allocations[i].cat_description == 'Initial Change Fund' )
 							{
-								tempObj[this.cash_allocations[i].allocated_item_id].scheduled += this.cash_allocations[i].allocated_quantity;
-							}
-							else if( this.cash_allocations[i].cat_description == 'Initial Change Fund' )
-							{
-								tempObj[this.cash_allocations[i].allocated_item_id].initial += this.cash_allocations[i].allocated_quantity * this.cash_allocations[i].iprice_unit_price;
+								tempObj[rowObject].initial += this.cash_allocations[i].allocated_quantity * this.cash_allocations[i].iprice_unit_price;
 							}
 							else if( this.cash_allocations[i].cat_description == 'Additional Change Fund' )
 							{
-								tempObj[this.cash_allocations[i].allocated_item_id].additional += this.cash_allocations[i].allocated_quantity;
+								tempObj[rowObject].additional += this.cash_allocations[i].allocated_quantity * this.cash_allocations[i].iprice_unit_price;
 							}
 						}
 
-
-						for( var i = 0; i < m; i ++ )
+						// Ticket remittances
+						for( var i = 0; i < m; i++ )
 						{
 							if( ignoredStatus.indexOf( this.remittances[i].allocation_item_status ) != -1 )
 							{
@@ -568,38 +574,59 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 										scheduled: 0,
 										initial: 0,
 										additional: 0,
-										remitted: 0
+										remitted: 0,
+										item_type: 'ticket'
 									};
 							}
 
 							tempObj[this.remittances[i].allocated_item_id].remitted += this.remittances[i].allocated_quantity;
 						}
 
-						for( var i = 0; i < cm; i ++ )
+						// Cash remittances
+						for( var i = 0; i < cm; i++ )
 						{
 							if( ignoredStatus.indexOf( this.cash_remittances[i].allocation_item_status ) != -1 )
 							{
 								continue;
 							}
 
-							if( !tempObj[this.cash_remittances[i].allocated_item_id] )
+							var rowObject;
+
+							if( ['Change Fund Return'].indexOf( this.cash_remittances[i].cat_description ) != -1 )
 							{
-								tempObj[this.cash_remittances[i].allocated_item_id] = {
-										item_name: this.cash_remittances[i].item_name,
-										item_description: this.cash_remittances[i].item_description,
+								rowObject = 'Change Fund';
+							}
+							else if( ['Sales Collection'].indexOf( this.cash_remittances[i].cat_description ) != -1 )
+							{
+								rowObject = 'Sales Collection';
+							}
+
+							if( !tempObj[rowObject] )
+							{
+								tempObj[rowObject] = {
+										item_name: rowObject,
+										item_description: rowObject,
 										scheduled: 0,
 										initial: 0,
 										additional: 0,
-										remitted: 0
+										remitted: 0,
+										item_type: 'cash'
 									};
 							}
 
-							tempObj[this.cash_remittances[i].allocated_item_id].remitted += this.cash_remittances[i].allocated_quantity * this.cash_remittances[i].iprice_unit_price;
+							if( this.cash_remittances[i].cat_description == 'Change Fund Return' )
+							{
+								tempObj[rowObject].remitted += this.cash_remittances[i].allocated_quantity * this.cash_remittances[i].iprice_unit_price;
+							}
+							else if( this.cash_remittances[i].cat_description == 'Sales Collection' )
+							{
+								tempObj[rowObject].remitted += this.cash_remittances[i].allocated_quantity * this.cash_remittances[i].iprice_unit_price;
+							}
 						}
 						break;
 
 					case 2: //
-						// Ticket remittances
+						// Ticket allocations
 						for( var i = 0; i < n; i++ )
 						{
 							if( ignoredStatus.indexOf( this.allocations[i].allocation_item_status ) != -1 )
@@ -607,54 +634,183 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 								continue;
 							}
 
-							if( !tempObj[this.allocations[i].allocated_item_id] )
+							var rowObject;
+
+							rowObject = this.allocations[i].item_group;
+							/*
+							switch( this.allocations[i].cat_description )
 							{
-								tempObj[this.allocations[i].allocated_item_id] = {
-										item_name: this.allocations[i].item_name,
-										item_description: this.allocations[i].item_description,
+								case 'TVM Replenishment':
+									rowObject = 'Magazine: ' + this.allocations[i].item_name;
+									break;
+							}
+							*/
+
+							if( !tempObj[rowObject] )
+							{
+								tempObj[rowObject] = {
+										item_name: rowObject,
+										item_description: rowObject,
 										scheduled: 0,
-										loaded: 0,
-										unsold: 0,
-										rejected: 0
+										replenish: 0,
+										pullout: 0,
+										rejected: 0,
+										item_type: 'ticket'
 									};
 							}
 
 							if( this.allocations[i].allocation_item_status == 10 )
 							{
-								tempObj[this.allocations[i].allocated_item_id].scheduled += this.allocations[i].allocated_quantity;
+								tempObj[rowObject].scheduled += this.allocations[i].base_quantity;
 							}
 							else
 							{
-								tempObj[this.allocations[i].allocated_item_id].loaded += this.allocations[i].allocated_quantity;
+								tempObj[rowObject].replenish += this.allocations[i].base_quantity;
 							}
 						}
 
-						for( var i = 0; i < m; i ++ )
+						// Coin replenishments
+						for( var i = 0; i < cn; i++ )
+						{
+							if( ignoredStatus.indexOf( this.cash_allocations[i].allocation_item_status ) != -1 || this.cash_allocations[i].markedVoid )
+							{
+								continue;
+							}
+
+							var rowObject;
+
+							switch( this.cash_allocations[i].cat_description )
+							{
+								case 'Hopper Replenishment':
+									switch( this.cash_allocations[i].item_name )
+									{
+										case 'Bag Php5@100':
+										case 'Php5 Coin':
+											rowObject = 'Hopper Php5';
+											break;
+
+										case 'Bag Php1@100':
+										case 'Php1 Coin':
+											rowObject = 'Hopper Php1';
+											break;
+									}
+									break;
+
+								case 'Coin Acceptor Replenishment':
+									rowObject = 'CA: ' + this.cash_allocations[i].item_name;
+									break;
+							}
+
+							if( !tempObj[rowObject] )
+							{
+								tempObj[rowObject] = {
+										item_name: rowObject,
+										item_description: rowObject,
+										item_class: this.cash_allocations[i].item_class,
+										scheduled: 0,
+										replenish: 0,
+										pullout: 0,
+										rejected: 0,
+										item_type: 'cash'
+									};
+							}
+
+							if( [ 'Hopper Replenishment', 'Coin Acceptor Replenishment'].indexOf( this.cash_allocations[i].cat_description ) != -1 )
+							{
+								tempObj[rowObject].replenish += this.cash_allocations[i].allocated_quantity * this.cash_allocations[i].iprice_unit_price;
+							}
+						}
+
+						// Ticket pullout
+						for( var i = 0; i < m; i++ )
 						{
 							if( ignoredStatus.indexOf( this.remittances[i].allocation_item_status ) != -1 )
 							{
 								continue;
 							}
 
-							if( !tempObj[this.remittances[i].allocated_item_id] )
+							var rowObject = this.remittances[i].item_group;
+
+							if( !tempObj[rowObject] )
 							{
-								tempObj[this.remittances[i].allocated_item_id] = {
+								tempObj[rowObject] = {
 										item_name: this.remittances[i].item_name,
 										item_description: this.remittances[i].item_description,
 										scheduled: 0,
-										loaded: 0,
-										unsold: 0,
-										rejected: 0
+										replenish: 0,
+										pullout: 0,
+										rejected: 0,
+										item_type: 'ticket'
 									};
 							}
 
 							if( this.remittances[i].cat_description == 'Unsold / Loose' )
 							{
-								tempObj[this.remittances[i].allocated_item_id].unsold += this.remittances[i].allocated_quantity;
+								tempObj[rowObject].pullout += this.remittances[i].allocated_quantity;
 							}
 							else if( this.remittances[i].cat_description == 'Reject Bin' )
 							{
-								tempObj[this.remittances[i].allocated_item_id].rejected += this.remittances[i].allocated_quantity;
+								tempObj[rowObject].rejected += this.remittances[i].allocated_quantity;
+							}
+						}
+
+						// Coin and note pullout
+						for( var i = 0; i < cm; i++ )
+						{
+							if( ignoredStatus.indexOf( this.cash_remittances[i].allocation_item_status ) != -1 || this.cash_remittances[i].markedVoid )
+							{
+								continue;
+							}
+
+							var rowObject;
+
+							switch( this.cash_remittances[i].cat_description )
+							{
+								case 'Sales Collection':
+									console.log( this.cash_remittances[i].item_group );
+									if( this.cash_remittances[i].item_group == 'coin' )
+									{
+										rowObject = 'Coin box';
+									}
+									else if( this.cash_remittances[i].item_group == 'bill' )
+									{
+										rowObject = 'BNA box';
+									}
+									break;
+
+								case 'Hopper Pullout':
+									if( this.cash_remittances[i].item_name == 'Php1 Coin' )
+									{
+										rowObject = 'Hopper Php1';
+									}
+									else if( this.cash_remittances[i].item_name == 'Php5 Coin' )
+									{
+										rowObject = 'Hopper Php5';
+									}
+									break;
+
+								case 'Coin Acceptor Pullout':
+									rowObject = 'CA: ' + this.cash_remittances[i].item_name;
+									break;
+							}
+
+							if( !tempObj[rowObject] )
+							{
+								tempObj[rowObject] = {
+										item_name: rowObject,
+										item_description: rowObject,
+										item_class: this.cash_remittances[i].item_class,
+										scheduled: 0,
+										replenish: 0,
+										pullout: 0,
+										rejected: 0,
+										item_type: 'cash'
+									};
+							}
+
+							if( [ 'Sales Collection', 'Hopper Pullout', 'Coin Acceptor Pullout'].indexOf( this.cash_remittances[i].cat_description ) != -1 )
+							{
+								tempObj[rowObject].pullout += this.cash_remittances[i].allocated_quantity * this.cash_remittances[i].iprice_unit_price;
 							}
 						}
 						break;

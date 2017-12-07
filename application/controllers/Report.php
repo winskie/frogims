@@ -283,16 +283,18 @@ class Report extends MY_Controller {
 		$this->load->library( 'parser' );
 		$this->load->library( 'store' );
 		$this->load->library( 'shift' );
+		$this->load->library( 'category' );
 		$Store = new Store();
 		$Shift = new Shift();
+		$Category = new Category();
 
 		$business_date = param_type( $this->input->get( 'date' ), 'date', time() );
 		$store_id = param_type( $this->input->get( 'store' ), 'integer', current_store( TRUE ) );
 		$shift_id = param_type( $this->input->get( 'shift' ), 'integer', current_shift( TRUE ) );
 
 		$business_date = '2017-07-23';
-		$store_id = 7;
-		$shift_id = 8;
+		$store_id = 11;
+		$shift_id = 6;
 
 		$store = $Store->get_by_id( $store_id );
 		$shift = $Shift->get_by_id( $shift_id );
@@ -425,7 +427,8 @@ class Report extends MY_Controller {
 		$note_box_entries = array_values( $note_box_data );
 
 		// Hopper Pullout
-		$hopper_category_id = 15; // TODO: Get ID from DB
+		$hopper_category = $Category->get_by_name( 'HopAlloc' );
+
 		$sql = "SELECT
 					CONCAT( 'T', LPAD( ints.i, 2, '0' ) ) AS tvm_num,
 					allocation.php1_amount, allocation.php5_amount, allocation.allocation_time, allocation.total_replenishment
@@ -459,8 +462,9 @@ class Report extends MY_Controller {
 					AND allocation.assignee IS NOT NULL
 				ORDER BY allocation.assignee ASC, allocation.allocation_time ASC";
 
-		$query = $this->db->query( $sql, array( $business_date, $store_id, $shift_id, $hopper_category_id ) );
+		$query = $this->db->query( $sql, array( $business_date, $store_id, $shift_id, $hopper_category->get( 'id' ) ) );
 		$hopper_replenishments = $query->result_array();
+
 		$hopper_data = array();
 		foreach( $hopper_replenishments as $row )
 		{
@@ -469,12 +473,16 @@ class Report extends MY_Controller {
 				$hopper_data[$row['tvm_num']]['others'][] = $row;
 				$hopper_data[$row['tvm_num']]['rows']++;
 				$hopper_data[$row['tvm_num']]['total_replenishment'] += $row['total_replenishment'];
+				$hopper_data[$row['tvm_num']]['php1_reading'] = NULL;
+				$hopper_data[$row['tvm_num']]['php5_reading'] = NULL;
 			}
 			else
 			{
 				$hopper_data[$row['tvm_num']] = $row;
 				$hopper_data[$row['tvm_num']]['rows'] = 1;
 				$hopper_data[$row['tvm_num']]['others'] = array();
+				$hopper_data[$row['tvm_num']]['php1_reading'] = NULL;
+				$hopper_data[$row['tvm_num']]['php5_reading'] = NULL;
 			}
 		}
 
@@ -534,5 +542,254 @@ class Report extends MY_Controller {
 		);
 
 		$this->parser->parse( 'reports/container_replacement_report', $data );
+	}
+
+	function shift_collection()
+	{
+		$this->load->library( 'parser' );
+		$this->load->library( 'store' );
+		$this->load->library( 'shift' );
+		$this->load->library( 'category' );
+		$Store = new Store();
+		$Shift = new Shift();
+		$Category = new Category();
+
+		$business_date = param_type( $this->input->get( 'date' ), 'date', time() );
+		$store_id = param_type( $this->input->get( 'store' ), 'integer', current_store( TRUE ) );
+		$shift_id = param_type( $this->input->get( 'shift' ), 'integer', current_shift( TRUE ) );
+
+		$business_date = '2017-07-23';
+		$store_id = 11;
+		$shift_id = 6;
+
+		$store = $Store->get_by_id( $store_id );
+		$shift = $Shift->get_by_id( $shift_id );
+
+		// Hopper Pullout
+		$hopper_category = $Category->get_by_name( 'HopAlloc' );
+
+		// Sales from TVM
+		$sql = "SELECT CONCAT( 'T', LPAD( ints.i, 2, '0' ) ) AS tvm_num,
+							(reading.sjt_previous_reading + COALESCE(tkt_sales.sjt_replenishment, 0) - COALESCE(tkt_sales.sjt_reject_bin, 0) - COALESCE(tkt_sales.sjt_excess, 0) - reading.sjt_reading) AS sjt_sold_ticket,
+							(reading.svc_previous_reading + COALESCE(tkt_sales.svc_replenishment, 0) - COALESCE(tkt_sales.svc_reject_bin, 0) - COALESCE(tkt_sales.svc_excess, 0) - reading.svc_reading) AS svc_sold_ticket,
+							sales.coin_box_sales, sales.note_box_sales,
+							(COALESCE(sales.coin_box_sales, 0) + COALESCE(sales.note_box_sales, 0)) AS gross_sales,
+							hopper.previous_reading, hopper_alloc.total_replenishment, hopper.reading,
+							(COALESCE(hopper.previous_reading, 0) + COALESCE(hopper_alloc.total_replenishment, 0) - COALESCE(hopper.reading, 0)) AS change_fund
+						FROM ints
+						LEFT JOIN
+						(
+							SELECT tvmr_machine_id,
+								SUM(IF(tvmr_type = 'magazine_sjt', tvmr_reading, NULL)) AS sjt_reading,
+								SUM(IF(tvmr_type = 'magazine_svc', tvmr_reading, NULL)) AS svc_reading,
+								SUM(IF(tvmr_type = 'magazine_sjt', tvmr_previous_reading, NULL)) AS sjt_previous_reading,
+								SUM(IF(tvmr_type = 'magazine_svc', tvmr_previous_reading, NULL)) AS svc_previous_reading
+							FROM tvm_readings
+							WHERE
+								tvmr_type IN ('magazine_sjt', 'magazine_svc')
+								AND tvmr_date = ?
+								AND tvmr_store_id = ?
+								AND tvmr_shift_id = ?
+							GROUP BY tvmr_machine_id
+						) AS reading
+							ON reading.tvmr_machine_id = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
+						LEFT JOIN
+						(
+							SELECT a.assignee,
+								SUM( IF( ai.allocation_item_type = 1 AND i.item_group = 'SJT', IF( ct.id IS NULL, ai.allocated_quantity, ai.allocated_quantity * ct.conversion_factor), 0 ) ) AS sjt_replenishment,
+								SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SJT' AND i.item_type = 0, ai.allocated_quantity, 0 ) ) AS sjt_reject_bin,
+								SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SJT' AND i.item_type = 1, ai.allocated_quantity, 0 ) ) AS sjt_excess,
+								SUM( IF( ai.allocation_item_type = 3 AND i.item_group = 'SJT', ai.allocated_quantity, 0 ) ) AS sjt_allocation_sold_ticket,
+								SUM( IF( ai.allocation_item_type = 1 AND i.item_group = 'SVC', IF( ct.id IS NULL, ai.allocated_quantity, ai.allocated_quantity * ct.conversion_factor), 0 ) ) AS svc_replenishment,
+								SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SVC' AND i.item_type = 0, ai.allocated_quantity, 0 ) ) AS svc_reject_bin,
+								SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SVC' AND i.item_type = 1, ai.allocated_quantity, 0 ) ) AS svc_excess,
+								SUM( IF( ai.allocation_item_type = 3 AND i.item_group = 'SVC', ai.allocated_quantity, 0 ) ) AS svc_allocation_sold_ticket
+							FROM allocations a
+							LEFT JOIN allocation_items ai ON ai.allocation_id = a.id
+							LEFT JOIN items i ON i.id = ai.allocated_item_id
+							LEFT JOIN conversion_table ct ON ct.target_item_id = ai.allocated_item_id
+							WHERE
+								business_date = ?
+								AND a.store_id = ?
+								AND ai.cashier_shift_id = ?
+								AND i.item_class = 'ticket'
+								AND i.item_group IN ('SJT', 'SVC')
+							GROUP BY a.assignee, ai.allocated_quantity
+						) AS tkt_sales
+							ON tkt_sales.assignee = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
+
+						LEFT JOIN
+						(
+							SELECT
+								tvmr_machine_id,
+								SUM(IF(tvmr_type = 'coin_box', tvmr_reading, 0)) AS coin_box_sales,
+								SUM(IF(tvmr_type = 'note_box', tvmr_reading, 0)) AS note_box_sales
+							FROM tvm_readings
+							WHERE
+								tvmr_type IN ('coin_box', 'note_box')
+								AND tvmr_date = ?
+								AND tvmr_store_id = ?
+								AND tvmr_shift_id = ?
+							GROUP BY tvmr_machine_id
+						) AS sales
+							ON sales.tvmr_machine_id = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
+
+						LEFT JOIN
+						(
+							SELECT tvmr_machine_id,
+								SUM(IF(tvmr_type = 'hopper_php5', tvmr_reading * 5, tvmr_reading)) AS reading,
+								SUM(IF(tvmr_type = 'hopper_php5', tvmr_previous_reading * 5, tvmr_previous_reading)) AS previous_reading
+							FROM tvm_readings
+							WHERE
+								tvmr_type IN ('hopper_php1', 'hopper_php5')
+								AND tvmr_date = ?
+								AND tvmr_store_id = ?
+								AND tvmr_shift_id = ?
+							GROUP BY tvmr_machine_id
+						) AS hopper
+							ON hopper.tvmr_machine_id = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
+
+						LEFT JOIN
+						(
+							SELECT a.assignee,
+								SUM( IF( ai.allocated_item_id IN (21, 23, 31, 32) AND ai.allocation_item_type = 1, ip.iprice_unit_price * ai.allocated_quantity, 0 ) ) AS total_replenishment
+							FROM allocations a
+							LEFT JOIN allocation_items ai
+								ON ai.allocation_id = a.id
+							LEFT JOIN items i
+								ON i.id = ai.allocated_item_id
+							LEFT JOIN item_prices ip
+								ON ip.iprice_item_id = i.id
+							WHERE
+								business_date = ?
+								AND a.store_id = ?
+								AND ai.cashier_shift_id = ?
+								AND i.item_class = 'cash'
+								AND ai.allocation_category_id = ?
+							GROUP BY a.assignee
+						) AS hopper_alloc
+							ON hopper_alloc.assignee = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
+						WHERE ints.i < 17";
+
+		$query = $this->db->query( $sql, array( $business_date, $store_id, $shift_id,
+				$business_date, $store_id, $shift_id,
+				$business_date, $store_id, $shift_id,
+				$business_date, $store_id, $shift_id,
+				$business_date, $store_id, $shift_id, $hopper_category->get( 'id' ) ) );
+		$tvm_sales = $query->result_array();
+		$tvm_sales_entries = array();
+		foreach( $tvm_sales as $row )
+		{
+			$tvm_sales_entries[] = $row;
+		}
+
+		$sql = "SELECT
+							a.id AS allocation_id,
+							a.assignee,
+							alloc_items.sold_sjt,
+							alloc_items.sold_svc,
+							alloc_items.issued_csc,
+							alloc_items.free_exit,
+							alloc_items.paid_exit,
+							alloc_items.unconfirmed,
+							alloc_items.change_fund,
+							alloc_sales.gross_sales, alloc_sales.excess_time, alloc_sales.mismatch, alloc_sales.lost_ticket_payment, alloc_sales.other_penalties,
+							alloc_sales.tcerf, alloc_sales.other_deductions, alloc_sales.change_fund, alloc_sales.shortage, alloc_sales.overage,
+							alloc_sales.short_over,
+							COALESCE(alloc_sales.gross_sales, 0) - (COALESCE(alloc_sales.tcerf, 0)) AS net_sales,
+							COALESCE(alloc_sales.gross_sales, 0) - (COALESCE(alloc_sales.tcerf, 0)) + COALESCE(alloc_items.change_fund,0) AS total_cash_collection,
+							afcs.afcs_total_sales
+						FROM allocations AS a
+
+						LEFT JOIN
+						(
+							SELECT a.id AS allocation_id,
+								SUM(IF(ai.allocated_item_id = 1 AND ai.allocation_category_id = 30, ai.allocated_quantity, NULL)) AS sold_sjt,
+								SUM(IF(ai.allocated_item_id = 6 AND ai.allocation_category_id = 30, ai.allocated_quantity, NULL)) AS sold_svc,
+								SUM(IF(ai.allocated_item_id IN (12,13) AND ai.allocation_category_id = 31, ai.allocated_quantity, NULL)) AS issued_csc,
+								SUM(IF(ai.allocated_item_id = 1 AND ai.allocation_category_id = 33, ai.allocated_quantity, NULL)) AS free_exit,
+								SUM(IF(ai.allocated_item_id = 1 AND ai.allocation_category_id = 32, ai.allocated_quantity, NULL)) AS paid_exit,
+								SUM(IF(ai.allocated_item_id = 1 AND ai.allocation_category_id = 34, ai.allocated_quantity, NULL)) AS unconfirmed,
+								SUM(IF(i.item_class = 'cash' AND ai.allocation_category_id = 27, ai.allocated_quantity * ip.iprice_unit_price, NULL )) AS change_fund
+							FROM allocations AS a
+							LEFT JOIN allocation_items AS ai
+								ON ai.allocation_id = a.id
+							LEFT JOIN items AS i
+								ON i.id = ai.allocated_item_id
+							LEFT JOIN item_prices AS ip
+								ON ip.iprice_item_id = i.id
+							WHERE
+								a.business_date = ?
+								AND a.store_id = ?
+								AND a.assignee_type = 1
+								AND ai.cashier_shift_id = ?
+								AND ai.allocation_item_type IN (2,3)
+							GROUP BY a.id
+						) AS alloc_items
+							ON alloc_items.allocation_id = a.id
+
+						LEFT JOIN
+						(
+							SELECT a.id AS allocation_id,
+								SUM(IF(asi.alsale_sales_item_id = 1, asi.alsale_amount, NULL)) AS gross_sales,
+								SUM(IF(asi.alsale_sales_item_id = 2, asi.alsale_amount, NULL)) AS excess_time,
+								SUM(IF(asi.alsale_sales_item_id = 3, asi.alsale_amount, NULL)) AS mismatch,
+								SUM(IF(asi.alsale_sales_item_id = 4, asi.alsale_amount, NULL)) AS lost_ticket_payment,
+								SUM(IF(asi.alsale_sales_item_id = 5, asi.alsale_amount, NULL)) AS other_penalties,
+								SUM(IF(asi.alsale_sales_item_id = 6, asi.alsale_amount, NULL)) AS tcerf,
+								SUM(IF(asi.alsale_sales_item_id = 7, asi.alsale_amount, NULL)) AS other_deductions,
+								SUM(IF(asi.alsale_sales_item_id = 8, asi.alsale_amount, NULL)) AS change_fund,
+								SUM(IF(asi.alsale_sales_item_id = 9, asi.alsale_amount, NULL)) AS shortage,
+								SUM(IF(asi.alsale_sales_item_id = 10, asi.alsale_amount, NULL)) AS overage,
+								SUM(CASE asi.alsale_sales_item_id WHEN 9 THEN asi.alsale_amount*-1 WHEN 10 THEN asi.alsale_amount ELSE NULL END) AS short_over
+							FROM allocations AS a
+							LEFT JOIN allocation_sales_items AS asi
+								ON asi.alsale_allocation_id = a.id
+							WHERE
+								a.business_date = ?
+								AND a.store_id = ?
+								AND a.assignee_type = 1
+								AND asi.alsale_shift_id = ?
+							GROUP BY a.id
+						) AS alloc_sales
+							ON alloc_sales.allocation_id = a.id
+
+						LEFT JOIN
+						(
+							SELECT sdcr.sdcr_allocation_id AS allocation_id,
+								SUM( sdcri.sdcri_amount) AS afcs_total_sales
+							FROM shift_detail_cash_reports AS sdcr
+							LEFT JOIN shift_detail_cash_report_items AS sdcri
+								ON sdcri.sdcri_sdcr_id = sdcr.id
+							GROUP BY sdcr.sdcr_allocation_id
+						) AS afcs
+							ON afcs.allocation_id = a.id
+						WHERE a.business_date = ?
+							AND a.store_id = ?
+							AND a.assignee_type = 1
+						GROUP BY
+							a.id, a.assignee";
+
+		$query = $this->db->query( $sql, array(
+				$business_date, $store_id, $shift_id,
+				$business_date, $store_id, $shift_id,
+				$business_date, $store_id ) );
+
+		$teller_sales = $query->result_array();
+		$teller_sales_entries = array();
+		foreach( $teller_sales as $row )
+		{
+			$teller_sales_entries[] = $row;
+		}
+
+		$data = array(
+			'business_date' => date( 'l, d F Y', strtotime( $business_date ) ),
+			'store_name'   => $store->get( 'store_name' ),
+			'shift_name'   => $shift->get( 'description' ),
+			'tvm_sales'    => $tvm_sales_entries,
+			'teller_sales' => $teller_sales_entries
+		);
+
+		$this->parser->parse( 'reports/shift_collection_report', $data );
 	}
 }

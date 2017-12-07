@@ -3261,6 +3261,19 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 			return true;
 		}
 
+		$scope.salesTotalFilter = function( v, i, a )
+			{
+				return [10,11].indexOf( v.alsale_sales_item_status ) != -1;
+			};
+		$scope.remittanceTotalFilter = function( v, i, a )
+			{
+				return [20,21].indexOf( v.allocation_item_status ) != -1;
+			};
+		$scope.allocationTotalFilter = function( v, i, a )
+			{
+				return [10,11].indexOf( v.allocation_item_status ) != -1;
+			};
+
 		$scope.pendingAction = false;
 
 		$scope.data = {
@@ -3572,7 +3585,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 								alsale_shift_id: session.data.currentShift.id,
 								alsale_sales_item_id: $scope.input.salesItem.id,
 								alsale_remarks: $scope.input.remarks,
-								alsale_amount: $scope.input.quantity
+								alsale_amount: $scope.input.salesItem.slitem_mode == 1 ? $scope.input.quantity : $scope.input.quantity * -1
 						}
 
 						$scope.allocationItem.addSalesItem( new AllocationSalesItem( data ) );
@@ -3799,7 +3812,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					}
 					else
 					{
-						console.error( 'Unable to load mopping collection record' );
+						console.error( 'Unable to load allocation record' );
 					}
 
 					$scope.data.title = 'Allocation Information #' + $scope.allocationItem.id;

@@ -116,7 +116,7 @@
 							<td class="text-left">{{ row.cat_description }}</td>
 							<td class="text-left">{{ row.item_name }}</td>
 							<td class="text-center">{{ row.allocated_quantity | number }}</td>
-							<td class="text-right"></td>
+							<td class="text-right">{{ row.base_quantity | number }}</td>
 							<td class="text-center">{{ row.get( 'allocationItemStatus' ) }}</td>
 							<td class="text-center" ng-if="data.editMode != 'view'" ng-switch on="row.allocation_item_status">
 								<a href
@@ -166,7 +166,7 @@
 						</tr>
 						<tr ng-if="allocationItem.cash_allocations.length">
 							<th colspan="5" class="text-right">Total Amount</th>
-							<td class="text-right">{{ allocationItem.cash_allocations | sumItemPrice: 'iprice_unit_price':'allocated_quantity' | number: 2 }}</td>
+							<td class="text-right">{{ allocationItem.cash_allocations | filter: allocationTotalFilter | sumItemPrice: 'iprice_unit_price':'allocated_quantity' | number: 2 }}</td>
 							<td></td>
 							<td></td>
 						</tr>
@@ -212,7 +212,7 @@
 							<td class="text-left">{{ row.cat_description }}</td>
 							<td class="text-left">{{ row.item_name }}</td>
 							<td class="text-center">{{ row.allocated_quantity | number }}</td>
-							<td class="text-right"></td>
+							<td class="text-right">{{ row.base_quantity | number }}</td>
 							<td class="text-center">{{ row.get( 'allocationItemStatus' ) }}</td>
 							<td class="text-center" ng-if="data.editMode != 'view'" ng-switch on="row.allocation_item_status">
 								<a href
@@ -262,7 +262,7 @@
 						</tr>
 						<tr ng-if="allocationItem.cash_remittances.length">
 							<th colspan="5" class="text-right">Total Amount</th>
-							<td class="text-right">{{ allocationItem.cash_remittances | sumItemPrice: 'iprice_unit_price':'allocated_quantity' | number: 2 }}</td>
+							<td class="text-right">{{ allocationItem.cash_remittances | filter : remittanceTotalFilter | sumItemPrice: 'iprice_unit_price':'allocated_quantity' | number: 2 }}</td>
 							<td></td>
 							<td></td>
 						</tr>
@@ -276,7 +276,7 @@
 			</div>
 		</uib-tab>
 		<!-- Ticket Sales -->
-		<uib-tab heading="Ticket Sales" select="updatePhase( 'ticket_sales' )" index="2" disable="allocationItem.allocation_status == 1 && allocationItem.assignee_type == 1">
+		<uib-tab heading="Ticket Sales" select="updatePhase( 'ticket_sales' )" index="2" disable="allocationItem.allocation_status == 1 && allocationItem.assignee_type == 1" ng-if="allocationItem.assignee_type == 1">
 			<div class="panel panel-default" style="margin: 20px 0; height: 300px; overflow-y: auto;">
 				<table class="table table-condensed">
 					<thead>
@@ -286,6 +286,7 @@
 							<th class="text-left">Category</th>
 							<th class="text-left">Item Description</th>
 							<th class="text-center">Quantity</th>
+							<th class="text-center">Total</th>
 							<th class="text-center">Status</th>
 							<th class="text-center" ng-if="data.editMode != 'view'">Void</th>
 						</tr>
@@ -304,6 +305,7 @@
 							<td class="text-left">{{ row.cat_description }}</td>
 							<td class="text-left">{{ row.item_name }}</td>
 							<td class="text-center">{{ row.allocated_quantity | number }}</td>
+							<td class="text-center">{{ row.base_quantity | number }}</td>
 							<td class="text-center">{{ row.get( 'allocationItemStatus' ) }}</td>
 							<td class="text-center" ng-if="data.editMode != 'view'" ng-switch on="row.allocation_item_status">
 								<a href
@@ -318,7 +320,7 @@
 						</tr>
 
 						<tr ng-if="!allocationItem.ticket_sales.length">
-							<td colspan="7" class="text-center bg-warning">
+							<td colspan="8" class="text-center bg-warning">
 								No ticket sales items
 							</td>
 						</tr>
@@ -350,7 +352,7 @@
 							<td class="text-center">{{ $index + 1 }}</td>
 							<td class="text-left">{{ row.cashier_shift_num }}</td>
 							<td class="text-left">{{ row.slitem_name + ( row.alsale_remarks ? ( ' / ' + row.alsale_remarks ) : '' ) }}</td>
-							<td class="text-right">{{ ( row.slitem_mode === 1 ? row.alsale_amount : row.alsale_amount * -1 ) | number: 2 }}</td>
+							<td class="text-right">{{ row.alsale_amount | number: 2 }}</td>
 							<td class="text-center">{{ row.get( 'allocationSalesItemStatus' ) }}</td>
 							<td class="text-center" ng-if="data.editMode != 'view'" ng-switch on="row.alsale_sales_item_status">
 								<a href
@@ -367,7 +369,7 @@
 							<td></td>
 							<td></td>
 							<th class="text-right">Total Amount</th>
-							<td class="text-right">{{ allocationItem.sales | sumByColumn: 'alsale_amount':'float' | number: 2 }}</td>
+							<td class="text-right">{{ allocationItem.sales | filter : salesTotalFilter | sumByColumn: 'alsale_amount':'float' | number: 2 }}</td>
 							<td></td>
 						</tr>
 						<tr ng-if="!allocationItem.sales.length">

@@ -50,6 +50,11 @@
 									<td>{sold_ticket}</td>
 								</tr>
 								{/sjt}
+								<?php if( empty( $sjt ) ):?>
+								<tr>
+									<td colspan="8">No SJT replenishment and reading data</td>
+								</tr>
+								<?php endif;?>
 							</tbody>
 						</table>
 					</div>
@@ -90,6 +95,11 @@
 									<td>{sold_ticket}</td>
 								</tr>
 								{/svc}
+								<?php if( empty( $svc ) ):?>
+								<tr>
+									<td colspan="8">No SVC replenishment and reading data</td>
+								</tr>
+								<?php endif;?>
 							</tbody>
 						</table>
 					</div>
@@ -131,6 +141,11 @@
 								</tr>
 								{/others}
 								{/coin_box}
+								<?php if( empty( $coin_box ) ):?>
+								<tr>
+									<td colspan="4">No coin box reading data</td>
+								</tr>
+								<?php endif;?>
 							</tbody>
 						</table>
 					</div>
@@ -170,6 +185,11 @@
 								</tr>
 								{/others}
 								{/note_box}
+								<?php if( empty( $note_box ) ):?>
+								<tr>
+									<td colspan="4">No BNA box reading data</td>
+								</tr>
+								<?php endif;?>
 							</tbody>
 						</table>
 					</div>
@@ -218,6 +238,11 @@
 								</tr>
 								{/others}
 								{/hopper}
+								<?php if( empty( $hopper ) ):?>
+								<tr>
+									<td colspan="4">No hopper replenishment and reading data</td>
+								</tr>
+								<?php endif;?>
 							</tbody>
 						</table>
 					</div>

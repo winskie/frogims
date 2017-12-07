@@ -879,6 +879,9 @@ class Store extends Base_model
 		$ci =& get_instance();
 
 		$ci->load->library( 'allocation' );
+		$date = param( $params, 'date' );
+		$assignee_type = param( $params, 'assignee_type' );
+		$status = param( $params, 'status' );
 		$limit = param( $params, 'limit' );
 		$offset = param( $params, 'offset' );
 		$order = param( $params, 'order', 'a.business_date DESC, a.id DESC' );
@@ -891,6 +894,18 @@ class Store extends Base_model
 		if( $order )
 		{
 				$ci->db->order_by( $order );
+		}
+		if( $date )
+		{
+			$ci->db->where( 'a.business_date', $date );
+		}
+		if( $assignee_type )
+		{
+			$ci->db->where( 'a.assignee_type', $assignee_type );
+		}
+		if( $status )
+		{
+			$ci->db->where( 'a.allocation_status', $status );
 		}
 
 		$ci->db->select( 'a.*, s.shift_num, s.description AS shift_description' );

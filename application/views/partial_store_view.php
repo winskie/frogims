@@ -1113,7 +1113,7 @@ $current_user = current_user();
 											<tbody>
 												<tr ng-repeat="item in row.allocationSummary">
 													<td>{{ item.item_description }}</td>
-													<td class="text-right">{{ ( item.initial === 0 ? '---' : ( item.item_class == 'cash' ? ( item.initial | number: 2 ) : ( item.initial | number ) ) ) + ( item.scheduled !== 0 ? ' (' + item.scheduled + ')' : '' ) }}</td>
+													<td class="text-right">{{ ( item.initial === 0 ? '---' : ( item.item_class == 'cash' ? ( item.initial | number: 2 ) : ( item.initial | number ) ) ) + ( item.scheduled ? ' (' + item.scheduled + ')' : '' ) }}</td>
 													<td class="text-right">{{ item.additional === 0 ? '---' : ( item.item_class == 'cash' ? ( item.additional | number: 2 ) : ( item.additional | number ) ) }}</td>
 													<td class="text-right">{{ item.remitted === 0 ? '---' : ( item.item_class == 'cash' ? ( item.remitted | number : 2 ) : ( item.remitted | number ) ) }}</td>
 												</tr>
@@ -1125,17 +1125,17 @@ $current_user = current_user();
 											<thead>
 												<tr class="active">
 													<th>Item Description</th>
-													<th style="width: 70px;">Loaded</th>
-													<th style="width: 70px;">Loose</th>
+													<th style="width: 70px;">Replenish</th>
+													<th style="width: 70px;">Pullout</th>
 													<th style="width: 70px;">Reject</th>
 												</tr>
 											</thead>
 											<tbody>
 												<tr ng-repeat="item in row.allocationSummary">
 													<td>{{ item.item_description }}</td>
-													<td class="text-right">{{ ( item.loaded === 0 ? '---' : ( item.loaded | number ) ) + ( item.scheduled !== 0 ? ' (' + item.scheduled + ')' : '' ) }}</td>
-													<td class="text-right">{{ item.unsold === 0 ? '---' : ( item.unsold | number ) }}</td>
-													<td class="text-right">{{ item.rejected === 0 ? '---' : ( item.rejected | number ) }}</td>
+													<td class="text-right">{{ ( item.replenish === 0 ? '---' : ( item.item_class == 'cash' ? ( item.replenish | number: 2 ) : ( item.replenish | number ) ) ) + ( item.scheduled !== 0 ? ' (' + item.scheduled + ')' : '' ) }}</td>
+													<td class="text-right">{{ item.pullout === 0 ? '---' : ( item.item_class == 'cash' ? ( item.pullout | number: 2 ) : ( item.pullout | number ) ) }}</td>
+													<td class="text-right">{{ item.rejected === 0 ? '---' : ( item.item_class == 'cash' ? ( item.rejected | number ) : ( item.rejected | number ) ) }}</td>
 												</tr>
 											</tbody>
 										</table>
