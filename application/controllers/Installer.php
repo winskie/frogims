@@ -1349,6 +1349,11 @@ class Installer extends CI_Controller {
 						continue;
 					}
 
+					if( $item->get( 'item_class' ) == 'cash' && $store->get( 'store_type' ) == 4 )
+					{
+						continue;
+					}
+
 					$inventory = $store->add_item( $item );
 					$quantity = 0;
 
@@ -2018,8 +2023,8 @@ class Installer extends CI_Controller {
 					array( 'Staff Card', 'Blackbox' ),
 					array( 'Staff Card', 'Conversion' ),
 
-					array( 'Php1 Coin', 'IntTrans' ),
-					array( 'Php1 Coin', 'ExtTrans' ),
+					//array( 'Php1 Coin', 'IntTrans' ),
+					//array( 'Php1 Coin', 'ExtTrans' ),
 					array( 'Php1 Coin', 'BillToCoin' ),
 					array( 'Php1 Coin', 'CSCApp' ),
 					array( 'Php1 Coin', 'BankDep' ),
@@ -2033,8 +2038,8 @@ class Installer extends CI_Controller {
 					array( 'Php1 Coin', 'CAPullout' ),
 					array( 'Php1 Coin', 'Pack' ),
 
-					array( 'Php0.25 Coin', 'IntTrans' ),
-					array( 'Php0.25 Coin', 'ExtTrans' ),
+					//array( 'Php0.25 Coin', 'IntTrans' ),
+					//array( 'Php0.25 Coin', 'ExtTrans' ),
 					array( 'Php0.25 Coin', 'BillToCoin' ),
 					array( 'Php0.25 Coin', 'CSCApp' ),
 					array( 'Php0.25 Coin', 'BankDep' ),
@@ -2044,8 +2049,8 @@ class Installer extends CI_Controller {
 					array( 'Php0.25 Coin', 'SalesColl' ),
 					array( 'Php0.25 Coin', 'CFundRet' ),
 
-					array( 'Php5 Coin', 'IntTrans' ),
-					array( 'Php5 Coin', 'ExtTrans' ),
+					//array( 'Php5 Coin', 'IntTrans' ),
+					//array( 'Php5 Coin', 'ExtTrans' ),
 					array( 'Php5 Coin', 'BillToCoin' ),
 					array( 'Php5 Coin', 'CSCApp' ),
 					array( 'Php5 Coin', 'BankDep' ),
@@ -2059,8 +2064,8 @@ class Installer extends CI_Controller {
 					array( 'Php5 Coin', 'CAPullout' ),
 					array( 'Php5 Coin', 'Pack' ),
 
-					array( 'Php10 Coin', 'IntTrans' ),
-					array( 'Php10 Coin', 'ExtTrans' ),
+					//array( 'Php10 Coin', 'IntTrans' ),
+					//array( 'Php10 Coin', 'ExtTrans' ),
 					array( 'Php10 Coin', 'BillToCoin' ),
 					array( 'Php10 Coin', 'CSCApp' ),
 					array( 'Php10 Coin', 'BankDep' ),
@@ -2073,8 +2078,8 @@ class Installer extends CI_Controller {
 					array( 'Php10 Coin', 'HopPullout' ),
 					array( 'Php10 Coin', 'CAPullout' ),
 
-					array( 'Php20 Bill', 'IntTrans' ),
-					array( 'Php20 Bill', 'ExtTrans' ),
+					//array( 'Php20 Bill', 'IntTrans' ),
+					//array( 'Php20 Bill', 'ExtTrans' ),
 					array( 'Php20 Bill', 'BillToCoin' ),
 					array( 'Php20 Bill', 'BankDep' ),
 					array( 'Php20 Bill', 'AddTVMIR' ),
@@ -2084,8 +2089,8 @@ class Installer extends CI_Controller {
 					array( 'Php20 Bill', 'SalesColl' ),
 					array( 'Php20 Bill', 'CFundRet' ),
 
-					array( 'Php50 Bill', 'IntTrans' ),
-					array( 'Php50 Bill', 'ExtTrans' ),
+					//array( 'Php50 Bill', 'IntTrans' ),
+					//array( 'Php50 Bill', 'ExtTrans' ),
 					array( 'Php50 Bill', 'BillToCoin' ),
 					array( 'Php50 Bill', 'BankDep' ),
 					array( 'Php50 Bill', 'AddTVMIR' ),
@@ -2094,8 +2099,8 @@ class Installer extends CI_Controller {
 					array( 'Php50 Bill', 'SalesColl' ),
 					array( 'Php50 Bill', 'CFundRet' ),
 
-					array( 'Php100 Bill', 'IntTrans' ),
-					array( 'Php100 Bill', 'ExtTrans' ),
+					//array( 'Php100 Bill', 'IntTrans' ),
+					//array( 'Php100 Bill', 'ExtTrans' ),
 					array( 'Php100 Bill', 'BillToCoin' ),
 					array( 'Php100 Bill', 'BankDep' ),
 					array( 'Php100 Bill', 'AddTVMIR' ),
@@ -2104,8 +2109,8 @@ class Installer extends CI_Controller {
 					array( 'Php100 Bill', 'SalesColl' ),
 					array( 'Php100 Bill', 'CFundRet' ),
 
-					array( 'Php200 Bill', 'IntTrans' ),
-					array( 'Php200 Bill', 'ExtTrans' ),
+					//array( 'Php200 Bill', 'IntTrans' ),
+					//array( 'Php200 Bill', 'ExtTrans' ),
 					array( 'Php200 Bill', 'BillToCoin' ),
 					array( 'Php200 Bill', 'BankDep' ),
 					array( 'Php200 Bill', 'AddTVMIR' ),
@@ -2114,8 +2119,8 @@ class Installer extends CI_Controller {
 					array( 'Php200 Bill', 'SalesColl' ),
 					array( 'Php200 Bill', 'CFundRet' ),
 
-					array( 'Php500 Bill', 'IntTrans' ),
-					array( 'Php500 Bill', 'ExtTrans' ),
+					//array( 'Php500 Bill', 'IntTrans' ),
+					//array( 'Php500 Bill', 'ExtTrans' ),
 					array( 'Php500 Bill', 'BillToCoin' ),
 					array( 'Php500 Bill', 'BankDep' ),
 					array( 'Php500 Bill', 'AddTVMIR' ),
@@ -2124,8 +2129,8 @@ class Installer extends CI_Controller {
 					array( 'Php500 Bill', 'SalesColl' ),
 					array( 'Php500 Bill', 'CFundRet' ),
 
-					array( 'Php1000 Bill', 'IntTrans' ),
-					array( 'Php1000 Bill', 'ExtTrans' ),
+					//array( 'Php1000 Bill', 'IntTrans' ),
+					//array( 'Php1000 Bill', 'ExtTrans' ),
 					array( 'Php1000 Bill', 'BillToCoin' ),
 					array( 'Php1000 Bill', 'BankDep' ),
 					array( 'Php1000 Bill', 'AddTVMIR' ),
@@ -2134,8 +2139,8 @@ class Installer extends CI_Controller {
 					array( 'Php1000 Bill', 'SalesColl' ),
 					array( 'Php1000 Bill', 'CFundRet' ),
 
-					array( 'Bag Php1@100', 'IntTrans' ),
-					array( 'Bag Php1@100', 'ExtTrans' ),
+					//array( 'Bag Php1@100', 'IntTrans' ),
+					//array( 'Bag Php1@100', 'ExtTrans' ),
 					array( 'Bag Php1@100', 'Adjust' ),
 					array( 'Bag Php1@100', 'InitCFund' ),
 					array( 'Bag Php1@100', 'AddCFund' ),
@@ -2143,8 +2148,8 @@ class Installer extends CI_Controller {
 					array( 'Bag Php1@100', 'CFundRet' ),
 					array( 'Bag Php1@100', 'Unpack' ),
 
-					array( 'Bag Php5@100', 'IntTrans' ),
-					array( 'Bag Php5@100', 'ExtTrans' ),
+					//array( 'Bag Php5@100', 'IntTrans' ),
+					//array( 'Bag Php5@100', 'ExtTrans' ),
 					array( 'Bag Php5@100', 'Adjust' ),
 					array( 'Bag Php5@100', 'InitCFund' ),
 					array( 'Bag Php5@100', 'AddCFund' ),

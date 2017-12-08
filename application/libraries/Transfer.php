@@ -881,9 +881,17 @@ class Transfer extends Base_model {
 				$quantity = $transfer_item->get( 'quantity' );
 				$skip_inventory = false;
 
-				if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $item->get( 'item_class' ) == 'cash' && ! empty( $item->get( 'iprice_unit_price' ) ) )
+				if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $item->get( 'item_class' ) == 'cash' )
 				{
-					$amount = $quantity * $item->get( 'iprice_unit_price' );
+					$item_unit_price = $item->get( 'iprice_unit_price' );
+					if( empty( $item_unit_price ) )
+					{
+						die( 'Empty item unit price. Please contact the system administrator' );
+					}
+					$amount = $quantity * $item_unit_price;
+
+					// Skip inventory for cashroom
+					$skip_inventory = true;
 
 					switch( intval( $this->transfer_category ) )
 					{
@@ -950,9 +958,9 @@ class Transfer extends Base_model {
 					}
 				}
 
-				$inventory = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), NULL, TRUE );
-				if( $inventory && ! $skip_inventory )
+				if( ! $skip_inventory )
 				{ // Deduct from inventory
+					$inventory = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), NULL, TRUE );
 					$inventory->reserve( $quantity * -1 );
 					$inventory->transact( TRANSACTION_TRANSFER_OUT, $quantity * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
 					if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $item->get( 'item_class' ) == 'cash' && ! empty( $sub_parent_item_id ) )
@@ -996,12 +1004,21 @@ class Transfer extends Base_model {
 		{
 			$item = $transfer_item->get_item();
 			$quantity = $transfer_item->get( 'quantity' );
+			$skip_inventory = false;
 
 			if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM
-					&& $item->get( 'item_class' ) == 'cash'	&& ! empty( $item->get( 'iprice_unit_price' ) )
+					&& $item->get( 'item_class' ) == 'cash'
 					&& $transfer_item->get( 'transfer_item_status' ) == TRANSFER_ITEM_APPROVED )
 			{
-				$amount = $quantity * $item->get( 'iprice_unit_price' );
+				$item_unit_price = $item->get( 'iprice_unit_price' );
+				if( empty( $item_unit_price ) )
+				{
+					die( 'Empty item unit price. Please contact the system administrator' );
+				}
+				$amount = $quantity * $item_unit_price;
+
+				// Skip inventory for cashroom
+				$skip_inventory = true;
 
 				switch( intval( $this->transfer_category ) )
 				{
@@ -1039,10 +1056,13 @@ class Transfer extends Base_model {
 				}
 			}
 
-			$inventory = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), NULL, TRUE );
-			if( $transfer_item->get( 'transfer_item_status' ) == TRANSFER_ITEM_APPROVED )
+			if( ! $skip_inventory )
 			{
-				$inventory->transact( TRANSACTION_TRANSFER_CANCEL, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+				$inventory = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), NULL, TRUE );
+				if( $transfer_item->get( 'transfer_item_status' ) == TRANSFER_ITEM_APPROVED )
+				{
+					$inventory->transact( TRANSACTION_TRANSFER_CANCEL, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+				}
 			}
 
 			if( in_array( $transfer_item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_SCHEDULED, TRANSFER_ITEM_APPROVED ) ) )
@@ -1090,10 +1110,19 @@ class Transfer extends Base_model {
 				{
 					$quantity = $transfer_item->get( 'quantity_received' ); // Item will be added to the inventory
 				}
+				$skip_inventory = false;
 
-				if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $item->get( 'item_class' ) == 'cash' && ! empty( $item->get( 'iprice_unit_price' ) ) )
+				if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $item->get( 'item_class' ) == 'cash' )
 				{
-					$amount = $quantity * $item->get( 'iprice_unit_price' );
+					$item_unit_price = $item->get( 'iprice_unit_price' );
+					if( empty( $item_unit_price ) )
+					{
+						die( 'Empty item unit price. Please contact the system administrator' );
+					}
+					$amount = $quantity * $item_unit_price;
+
+					// Skip inventory for cashroom
+					$skip_inventory = true;
 
 					switch( intval( $this->transfer_category ) )
 					{
@@ -1124,10 +1153,13 @@ class Transfer extends Base_model {
 					}
 				}
 
-				$inventory = $Inventory->get_by_store_item( $this->destination_id, $transfer_item->get( 'item_id' ), NULL, TRUE );
-				if( $inventory )
+				if( ! $skip_inventory )
 				{
-					$inventory->transact( TRANSACTION_TRANSFER_IN, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+					$inventory = $Inventory->get_by_store_item( $this->destination_id, $transfer_item->get( 'item_id' ), NULL, TRUE );
+					if( $inventory )
+					{
+						$inventory->transact( TRANSACTION_TRANSFER_IN, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+					}
 				}
 
 				$transfer_item->set( 'transfer_item_status', TRANSFER_ITEM_RECEIVED );
@@ -1159,12 +1191,21 @@ class Transfer extends Base_model {
 			{
 				$item = $transfer_item->get_item();
 				$quantity = $transfer_item->get( 'quantity' );
+				$skip_inventory = false;
 
 				if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM
-						&& $item->get( 'item_class' ) == 'cash'	&& ! empty( $item->get( 'iprice_unit_price' ) )
+						&& $item->get( 'item_class' ) == 'cash'
 						&& $transfer_item->get( 'transfer_item_status' ) == TRANSFER_ITEM_APPROVED )
 				{
-					$amount = $quantity * $item->get( 'iprice_unit_price' );
+					$item_unit_price = $item->get( 'iprice_unit_price' );
+					if( empty( $item_unit_price ) )
+					{
+						die( 'Empty item unit price. Please contact the system administrator' );
+					}
+					$amount = $quantity * $item_unit_price;
+
+					// Skip inventory for cashroom
+					$skip_inventory = true;
 
 					switch( intval( $this->transfer_category ) )
 					{
@@ -1202,10 +1243,13 @@ class Transfer extends Base_model {
 					}
 				}
 
-				$inventory = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), NULL, TRUE );
-				if( $transfer_item->get( 'transfer_item_status' ) == TRANSFER_ITEM_APPROVED )
+				if( ! $skip_inventory )
 				{
-					$inventory->transact( TRANSACTION_TRANSFER_VOID, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+					$inventory = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), NULL, TRUE );
+					if( $transfer_item->get( 'transfer_item_status' ) == TRANSFER_ITEM_APPROVED )
+					{
+						$inventory->transact( TRANSACTION_TRANSFER_VOID, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+					}
 				}
 
 				if( in_array( $transfer_item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_SCHEDULED, TRANSFER_ITEM_APPROVED ) ) )
