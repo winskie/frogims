@@ -3853,7 +3853,6 @@ app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$state
 				selectedCashierShift: angular.copy( session.data.currentShift ),
 				selectedType: { id: 'magazine_sjt', typeName: 'SJT in Magazine', hasReference: false, decimalPlace: 0 },
 				datepicker: { format: 'yyyy-MM-dd', opened: false },
-				title: 'TVM Reading',
 				showReference: false,
 				tvms: angular.copy( appData.data.tvms ),
 				selectedTVM: angular.copy( appData.data.tvms[0] )
@@ -3871,38 +3870,54 @@ app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$state
 				$scope.TVMReading.set( 'tvmr_cashier_name', $scope.TVMReading.tvmr_cashier_name );
 			};
 
-		$scope.onTVMChange = function()
+		$scope.onTVMChange = function( init )
 			{
 				$scope.TVMReading.set( 'tvmr_machine_id', $scope.data.selectedTVM.description );
-				$scope.loadPreviousReading();
+				if( ! init )
+				{
+					$scope.loadPreviousReading();
+				}
 			};
 
-		$scope.onShiftChange = function()
+		$scope.onShiftChange = function( init )
 			{
 				$scope.TVMReading.set( 'tvmr_shift_id', $scope.data.selectedCashierShift.id );
-				$scope.loadPreviousReading();
+				if( ! init )
+				{
+					$scope.loadPreviousReading();
+				}
 			};
 
-		$scope.onTypeChange = function()
+		$scope.onTypeChange = function( init )
 			{
 				$scope.TVMReading.set( 'tvmr_type', $scope.data.selectedType.id );
-				$scope.loadPreviousReading();
+				if( ! init )
+				{
+					$scope.loadPreviousReading();
+				}
 			}
 
 		$scope.loadPreviousReading = function()
 			{
-				/*
-				if( $scope.TVMReading.tvmr_machine_id && $scope.TVMReading.tvmr_datetime && $scope.data.selectedCashierShift.id )
+				if( $scope.TVMReading.id == null
+						&& $scope.TVMReading.tvmr_machine_id && $scope.TVMReading.tvmr_date && $scope.data.selectedCashierShift.id )
 				{
-					var previousShiftData = appData.getPreviousShift( $scope.TVMReading.tvmr_datetime, $scope.data.selectedCashierShift.id );
-					appData.getTVMReadingLastReading( {
+					var previousShiftData = appData.getPreviousShift( $scope.TVMReading.tvmr_date, $scope.data.selectedCashierShift.id );
+					appData.getReadingByTVMShift( {
 						machine: $scope.TVMReading.tvmr_machine_id,
 						date: $filter( 'date' )( previousShiftData.date, 'yyyy-MM-dd' ),
 						shift: previousShiftData.shift.id
 					}).then(
 						function( response )
 						{
-							$scope.TVMReading.previous_reading = new TVMReading( response.data );
+							if( response.status == 'ok' )
+							{
+								$scope.TVMReading.tvmr_previous_reading = response.data.tvmr_reading;
+							}
+							else
+							{
+								$scope.TVMReading.tvmr_previous_reading = null;
+							}
 						},
 						function( reason )
 						{
@@ -3913,7 +3928,6 @@ app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$state
 				{
 					$scope.TVMReading.previous_reading = null;
 				}
-				*/
 			};
 
 
@@ -3969,10 +3983,14 @@ app.controller( 'TVMReadingController', [ '$scope', '$filter', '$state', '$state
 		}
 		else
 		{
-			$scope.TVMReading = new TVMReading( { tmvr_machine_ID: $scope.data.tvms[0].id } );
-			$scope.onTypeChange();
-			$scope.onTVMChange();
-			$scope.onShiftChange();
+			$scope.TVMReading = new TVMReading( {
+					tmvr_machine_id: $scope.data.tvms[0].id,
+					tvmr_cashier_id: session.data.currentUser.id,
+					tvmr_cashier_name: session.data.currentUser.full_name } );
+			$scope.onTypeChange( true );
+			$scope.onTVMChange( true );
+			$scope.onShiftChange( true );
+			$scope.loadPreviousReading();
 		}
 	}
 ]);

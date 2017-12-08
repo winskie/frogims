@@ -77,7 +77,7 @@ class Tvm_reading extends Base_model
 	}
 
 
-	public function get_by_shift_last_reading( $params )
+	public function get_by_tvm_shift( $params )
 	{
 		$ci =& get_instance();
 
@@ -85,7 +85,6 @@ class Tvm_reading extends Base_model
 		$business_date = param( $params, 'date', NULL, 'date' );
 		$shift_id = param( $params, 'shift', NULL, 'integer' );
 		$limit = param( $params, 'limit', 1, 'integer' );
-		//$last = param( $params, 'last', 1, 'integer' );
 		$order = 'tvmr_date DESC, tvmr_time DESC, id DESC';
 
 		$select = array( $this->primary_table.'.*' );

@@ -63,7 +63,7 @@ angular.module( 'coreModels' ).factory( 'TVMReading', [ '$http', '$q', '$filter'
 				me.tvmr_type = null;
 				me.tvmr_reference_num = null;
 				me.tvmr_reading = 0;
-				me.tvmr_previous_reading = 0;
+				me.tvmr_previous_reading = null;
 
 				me.previous_reading = null;
 

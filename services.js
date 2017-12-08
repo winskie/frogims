@@ -1878,13 +1878,13 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 				return deferred.promise;
 			};
 
-		me.getTVMReadingLastReading = function( params )
+		me.getReadingByTVMShift = function( params )
 			{
 				var deferred = $q.defer();
 				$http({
 					method: 'GET',
 					params: params,
-					url: baseUrl + 'index.php/api/v1/tvm_readings/last_reading'
+					url: baseUrl + 'index.php/api/v1/tvm_readings/tvm_shift'
 				}).then(
 					function( response )
 					{
@@ -2029,9 +2029,10 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 					if( index != -1 )
 					{
 						var currentShift = me.data.shifts[index];
+						var newDate = new Date();
 						if( currentShift.shift_order === 1 )
 						{ // previous date
-							previousShiftData.date = date.setDate( date.getDate() - 1 );
+							previousShiftData.date = newDate.setDate( date.getDate() - 1 );
 						}
 
 						return previousShiftData;

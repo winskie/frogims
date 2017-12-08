@@ -441,18 +441,6 @@ class Transfer extends Base_model {
 			return FALSE;
 		}
 
-		// In case of approval, check if delivery person is specified
-		if( array_key_exists( 'transfer_status', $this->db_changes )
-			&& $this->db_changes['transfer_status'] == TRANSFER_APPROVED
-			&& is_null( $this->destination_id ) )
-		{
-			if( ! $this->recipient_name )
-			{
-				set_message( 'Approval requires name of person to deliver the items to', 'error', 202 );
-				return FALSE;
-			}
-		}
-
 		// Check if transer has items to transfer
 		if( ! $items )
 		{

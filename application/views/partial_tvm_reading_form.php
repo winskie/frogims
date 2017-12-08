@@ -1,7 +1,7 @@
 <div ng-if="checkPermissions( 'allocations', 'view' )">
 	<div class="panel panel-default">
 		<div class="panel-heading clearfix">
-			<span class="panel-title">{{ data.title }}</span>
+			<span class="panel-title">TVM and Reading Information</span>
 		</div>
 
 		<div class="panel-body">
@@ -83,7 +83,7 @@
 
 	<div class="panel panel-default">
 		<div class="panel-heading clearfix">
-			<span class="panel-title">Reading</span>
+			<span class="panel-title">Reading Data</span>
 		</div>
 		<div class="panel-body">
 			<form class="form-horizontal">
