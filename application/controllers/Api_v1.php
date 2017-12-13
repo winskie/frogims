@@ -836,22 +836,32 @@ class Api_v1 extends MY_Controller {
 					{
 						case 'system':
 							// TODO: Add transfer_datetime in the WHERE clause of the subquery, probably limit to transfers within a month or week
-							$sql = "SELECT s.store_name, s.store_code, i.item_name, si.quantity, COALESCE( it.in_transit_quantity, 0 ) AS in_transit_quantity
+							$sql = "SELECT s.store_name, s.store_code, i.item_name,
+												IF( i.base_item_id IS NULL, si.quantity, ( si.quantity * ct.conversion_factor ) ) AS quantity,
+												COALESCE( it.in_transit_quantity, 0 ) AS in_transit_quantity
 											FROM store_inventory si
 											LEFT JOIN stores s
 												ON s.id = si.store_id
 											LEFT JOIN items i
 												ON i.id = si.item_id
+											LEFT JOIN conversion_table ct
+												ON ct.target_item_id = i.id AND ct.source_item_id = i.base_item_id
 											LEFT JOIN (
-												SELECT t.destination_id, ti.item_id, SUM( ti.quantity ) AS in_transit_quantity
+												SELECT t.destination_id, ti.item_id,
+													SUM( IF( i.base_item_id IS NULL, ti.quantity, ( ti.quantity * ct.conversion_factor ) ) ) AS in_transit_quantity
 												FROM transfers t
 												LEFT JOIN transfer_items ti
 													ON ti.transfer_id = t.id
+												LEFT JOIN items i
+													ON i.id = ti.item_id
+												LEFT JOIN conversion_table ct
+													ON ct.target_item_id = i.id AND ct.source_item_id = i.base_item_id
 												WHERE
 													t.transfer_status = 2
 												GROUP BY t.destination_id, ti.item_id
 											) AS it
 												ON it.destination_id = si.store_id AND it.item_id = si.item_id
+											WHERE i.item_class = 'ticket'
 											ORDER BY si.store_id ASC, si.item_id ASC";
 
 							$data = $this->db->query( $sql );
@@ -888,12 +898,13 @@ class Api_v1 extends MY_Controller {
 							break;
 
 						case 'distribution':
-							$this->db->select( 'i.item_group, s.store_code, s.id,
-									SUM( IF( ct.conversion_factor IS NULL, si.quantity, si.quantity * ct.conversion_factor ) ) AS quantity' );
+							$this->db->select( 'CASE i.item_group WHEN "concessionary" THEN "CSC" ELSE i.item_group END AS item_group, s.store_code, s.id,
+									SUM( IF( ct.conversion_factor IS NULL, si.quantity, si.quantity * ct.conversion_factor ) ) AS quantity', FALSE );
 							$this->db->join( 'items i', 'i.id = si.item_id', 'left' );
 							$this->db->join( 'conversion_table ct', 'ct.source_item_id = i.base_item_id AND ct.target_item_id = i.id', 'left' );
 							$this->db->join( 'stores s', 's.id = si.store_id', 'left' );
 							$this->db->where( 'i.item_group IS NOT NULL' );
+							$this->db->where( 'i.item_class = "ticket"' );
 							$this->db->group_by( 'i.item_group, s.store_code, s.id' );
 							$this->db->order_by( 'i.item_group DESC, s.id DESC' );
 							$data = $this->db->get( 'store_inventory si' );
@@ -2526,15 +2537,25 @@ class Api_v1 extends MY_Controller {
 									case NULL:
 										$transfer_data = $transfer->as_array();
 										$items = $transfer->get_items( TRUE );
+										$query = $this->db->last_query();
 										$items_data = array();
+
+										$item_data_fields = array(
+											'item_name' => array( 'type', 'string' ),
+											'item_description' => array( 'type', 'string' ),
+											'cat_description' => array( 'type', 'string' ) );
+										if( $transfer->get( 'transfer_category' ) == TRANSFER_CATEGORY_TURNOVER )
+										{
+											$item_data_fields['allocation_cat_description'] = array( 'type', 'string' );
+											$item_data_fields['transfer_cat_description'] = array( 'type', 'string' );
+										}
+
 										foreach( $items as $item )
 										{
-											$items_data[] = $item->as_array( array(
-												'item_name' => array( 'type', 'string' ),
-												'item_description' => array( 'type', 'string' ),
-												'cat_description' => array( 'type', 'string' ) ) );
+											$items_data[] = $item->as_array( $item_data_fields );
 										}
 										$transfer_data['items'] = $items_data;
+										$transfer_data['query'] = $query;
 
 										if( in_array( 'validation', $includes ) )
 										{

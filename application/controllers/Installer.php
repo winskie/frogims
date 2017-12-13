@@ -1887,7 +1887,6 @@ class Installer extends CI_Controller {
 					array( 'L2 SJT', 'CodeRed' ),
 					array( 'L2 SJT', 'Unconfirmd' ),
 					array( 'L2 SJT', 'TCERF' ),
-					array( 'L2 SJT', 'RejectBin' ),
 					array( 'L2 SJT', 'TktSales' ),
 					array( 'L2 SJT', 'SalePdExt' ),
 					array( 'L2 SJT', 'SaleFrExt' ),

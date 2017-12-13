@@ -292,12 +292,15 @@ class Report extends MY_Controller {
 		$store_id = param_type( $this->input->get( 'store' ), 'integer', current_store( TRUE ) );
 		$shift_id = param_type( $this->input->get( 'shift' ), 'integer', current_shift( TRUE ) );
 
-		$business_date = '2017-07-23';
-		$store_id = 11;
-		$shift_id = 6;
+		if( empty( $business_date ) ) $business_date = '2017-07-23';
+		if( empty( $store_id ) ) $store_id = 11;
+		if( empty( $shift_id ) ) $shift_id = 6;
 
 		$store = $Store->get_by_id( $store_id );
 		$shift = $Shift->get_by_id( $shift_id );
+
+		$reject_bin_category = $Category->get_by_name( 'RejectBin' )->get( 'id' );
+		$unsold_category = $Category->get_by_name( 'Unsold' )->get( 'id' );
 
 		// SJT and SVC Replenishment / Pullout
 		$sql = "SELECT
@@ -322,8 +325,8 @@ class Report extends MY_Controller {
 				(
 					SELECT a.assignee,
 						SUM( IF( ai.allocation_item_type = 1, IF( ct.id IS NULL, ai.allocated_quantity, ai.allocated_quantity * ct.conversion_factor), 0 ) ) AS replenishment,
-						SUM( IF( ai.allocation_item_type = 2 AND i.item_type = 0, ai.allocated_quantity, 0 ) ) AS reject_bin,
-						SUM( IF( ai.allocation_item_type = 2 AND i.item_type = 1, ai.allocated_quantity, 0 ) ) AS excess,
+						SUM( IF( ai.allocation_item_type = 2 AND i.item_type = 0 AND ai.allocation_category_id = ".$reject_bin_category.", ai.allocated_quantity, 0 ) ) AS reject_bin,
+						SUM( IF( ai.allocation_item_type = 2 AND i.item_type = 1 AND ai.allocation_category_id = ".$unsold_category.", ai.allocated_quantity, 0 ) ) AS excess,
 						SUM( IF( ai.allocation_item_type = 3, ai.allocated_quantity, 0 ) ) AS allocation_sold_ticket
 					FROM allocations a
 					LEFT JOIN allocation_items ai
@@ -558,9 +561,9 @@ class Report extends MY_Controller {
 		$store_id = param_type( $this->input->get( 'store' ), 'integer', current_store( TRUE ) );
 		$shift_id = param_type( $this->input->get( 'shift' ), 'integer', current_shift( TRUE ) );
 
-		$business_date = '2017-07-23';
-		$store_id = 11;
-		$shift_id = 6;
+		if( empty( $business_date ) ) $business_date = '2017-07-23';
+		if( empty( $store_id ) ) $store_id = 11;
+		if( empty( $shift_id ) ) $shift_id = 6;
 
 		$store = $Store->get_by_id( $store_id );
 		$shift = $Shift->get_by_id( $shift_id );
@@ -614,7 +617,7 @@ class Report extends MY_Controller {
 								AND ai.cashier_shift_id = ?
 								AND i.item_class = 'ticket'
 								AND i.item_group IN ('SJT', 'SVC')
-							GROUP BY a.assignee, ai.allocated_quantity
+							GROUP BY a.assignee
 						) AS tkt_sales
 							ON tkt_sales.assignee = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
 

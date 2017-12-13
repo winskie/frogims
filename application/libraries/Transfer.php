@@ -34,6 +34,7 @@ class Transfer extends Base_model {
 	protected $transfer_validation;
 
 	protected $_quick_receipt = FALSE;
+	protected $_save_action = NULL;
 
 	protected $status_log = array(
 			'table' => 'transfer_status_log',
@@ -361,12 +362,25 @@ class Transfer extends Base_model {
 		else
 		{
 			$ci->load->library( 'transfer_item' );
-			$ci->db->select( 'ti.*, i.item_name, i.item_description, i.item_unit,
-					c.cat_description, c.cat_module, ip.iprice_unit_price' );
-			$ci->db->where( 'transfer_id', $this->id );
+			$select = 'ti.*, i.item_name, i.item_description, i.item_unit, c.cat_description, c.cat_module, ip.iprice_unit_price';
+			if( $this->transfer_category == TRANSFER_CATEGORY_TURNOVER )
+			{
+				$select .= ', ac.cat_description AS allocation_cat_description, tc.cat_description AS transfer_cat_description';
+			}
+
+			$ci->db->select( $select );
+			$ci->db->where( 'ti.transfer_id', $this->id );
 			$ci->db->join( 'items i', 'i.id = ti.item_id', 'left' );
 			$ci->db->join( 'categories c', 'c.id = ti.transfer_item_category_id', 'left' );
 			$ci->db->join( 'item_prices ip', 'ip.iprice_item_id = ti.item_id', 'left' );
+
+			if( $this->transfer_category == TRANSFER_CATEGORY_TURNOVER )
+			{
+				$ci->db->join( 'allocation_items AS ai', 'ai.id = ti.transfer_item_allocation_item_id', 'left' );
+				$ci->db->join( 'categories AS ac', 'ac.id = ai.allocation_category_id', 'left' );
+				$ci->db->join( 'transfer_items AS ti2', 'ti2.id = ti.transfer_item_transfer_item_id', 'left' );
+				$ci->db->join( 'categories AS tc', 'tc.id = ti2.transfer_item_category_id', 'left' );
+			}
 			$query = $ci->db->get( 'transfer_items ti' );
 			$this->items = $query->result( 'Transfer_item' );
 		}
@@ -492,46 +506,71 @@ class Transfer extends Base_model {
 
 		$no_reservation_categories = array();
 
-
 		$parent_item_id = NULL;
 		$current_store = current_store();
+
 		if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM )
 		{
-			$change_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_CHANGE_FUND );
-			$in_transit_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_IN_TRANSIT );
-			$csc_card_fee_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_CSC_CARD_FEE );
-			$sales_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_SALES );
-			$tvmir_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_TVMIR );
-
 			switch( $this->transfer_category )
 			{
 				case TRANSFER_CATEGORY_BILLS_TO_COINS:
 					// Deduct from Change Fund
+					if( $this->_save_action == 'transfer_approve' )
+					{
+						$change_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_CHANGE_FUND );
+					}
+					elseif( $this->_save_action == 'receipt' )
+					{
+						$change_fund = $Inventory->get_by_store_item_name( $this->destination_id, FUND_CHANGE_FUND );
+					}
 					$parent_item_id = $change_fund->get( 'item_id' );
 					break;
 
 				case TRANSFER_CATEGORY_CSC_APPLICATION:
 					// Deduct from CSC Card Fee Fund
+					if( $this->_save_action == 'transfer_approve' )
+					{
+						$csc_card_fee_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_CSC_CARD_FEE );
+					}
+					elseif( $this->_save_action == 'receipt' )
+					{
+						$csc_card_fee_fund = $Inventory->get_by_store_item_name( $this->destination_id, FUND_CSC_CARD_FEE );
+					}
 					$parent_item_id =  $csc_card_fee_fund->get( 'item_id' );
 					break;
 
 				case TRANSFER_CATEGORY_BANK_DEPOSIT:
 					// Deduct from Sales Collection Fund
+					$sales_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_SALES );
 					$parent_item_id =  $sales_fund->get( 'item_id' );
 					break;
 
 				case TRANSFER_CATEGORY_ADD_TVMIR:
 					// Deduct from Sales Collection Fund
+					$sales_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_SALES );
 					$parent_item_id =  $sales_fund->get( 'item_id' );
 					break;
 
 				case TRANSFER_CATEGORY_ISSUE_TVMIR:
 					// Deduct from TVMIR Fund
+					$tvmir_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_TVMIR );
 					$parent_item_id = $tvmir_fund->get( 'item_id' );
 					break;
 
 				default:
 					// Deduct from Change Fund
+					if( $this->_save_action == 'transfer_approve' )
+					{
+						$change_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_CHANGE_FUND );
+					}
+					elseif( $this->_save_action == 'receipt' || $this->_save_action == 'quick_receipt' )
+					{
+						$change_fund = $Inventory->get_by_store_item_name( $this->destination_id, FUND_CHANGE_FUND );
+					}
+					else
+					{
+						$change_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_CHANGE_FUND );
+					}
 					$parent_item_id = $change_fund->get( 'item_id' );
 			}
 		}
@@ -1273,6 +1312,7 @@ class Transfer extends Base_model {
 		$ci->db->trans_start();
 		$this->set( 'transfer_status', TRANSFER_APPROVED );
 		$this->set( 'transfer_datetime', date( TIMESTAMP_FORMAT ) );
+		$this->_save_action = 'transfer_approve';
 		$result = $this->db_save();
 		if( $result )
 		{
@@ -1337,6 +1377,7 @@ class Transfer extends Base_model {
 		{
 			$this->set( 'transfer_status', TRANSFER_APPROVED_CANCELLED );
 		}
+		$this->_save_action = 'cancel';
 		$result = $this->db_save();
 		if( $result )
 		{
@@ -1376,6 +1417,7 @@ class Transfer extends Base_model {
 		$ci->db->trans_start();
 		$this->set( 'transfer_status', TRANSFER_RECEIVED );
 		$this->_quick_receipt = $quick_receipt;
+		$this->_save_action = $quick_receipt ? 'quick_receipt' : 'receipt';
 		$result = $this->db_save();
 		$this->_quick_receipt = FALSE;
 		if( $result )

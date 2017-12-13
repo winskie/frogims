@@ -118,10 +118,12 @@ class Conversion extends Base_model {
 
 		// Convert source quantity to target quantity
 		$ci->load->library( 'inventory' );
-		$inventory = new Inventory();
-		$source_inventory = $inventory->get_by_id( $this->source_inventory_id );
-		$target_inventory = $inventory->get_by_id( $this->target_inventory_id );
-		$target_quantity = $this->convert( $source_inventory->get( 'item_id' ), $target_inventory->get( 'item_id' ), $this->source_quantity );
+		$Inventory = new Inventory();
+		$source_inventory = $Inventory->get_by_id( $this->source_inventory_id );
+		$target_inventory = $Inventory->get_by_id( $this->target_inventory_id );
+		$source_item_id = $source_inventory->get( 'item_id' );
+		$target_item_id = $target_inventory->get( 'item_id' );
+		$target_quantity = $this->convert( $source_item_id, $target_item_id, $this->source_quantity );
 		$target_quantity = $target_quantity[$target_inventory->get( 'item_id' )];
 
 		if( $target_quantity )

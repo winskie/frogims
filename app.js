@@ -101,14 +101,29 @@ app.filter('cashFilter', function()
 	{
 		var filteredItems = [];
 
-		for( var i =0, n = items.length; i < n; i++ )
+		if( parentItem && parentItem.constructor == Array )
 		{
-			if( items[i].item_class == 'cash' && items[i].parent_item_name != parentItem )
+			for( var i =0, n = items.length; i < n; i++ )
 			{
-				continue;
-			}
+				if( items[i].item_class == 'cash' && parentItem.indexOf( items[i].parent_item_name ) == -1 )
+				{
+					continue;
+				}
 
-			filteredItems.push( items[i] );
+				filteredItems.push( items[i] );
+			}
+		}
+		else
+		{
+			for( var i =0, n = items.length; i < n; i++ )
+			{
+				if( items[i].item_class == 'cash' && items[i].parent_item_name != parentItem )
+				{
+					continue;
+				}
+
+				filteredItems.push( items[i] );
+			}
 		}
 
 		return filteredItems;

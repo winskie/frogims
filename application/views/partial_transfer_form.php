@@ -158,7 +158,8 @@
 							{{ row.quantity_received == null ? '---' : ( row.quantity_received | number ) }}
 						</span>
 					</td>
-					<td class="text-left">{{ row.cat_description }}</td>
+					<td class="text-left">{{ row.cat_description + ( row.allocation_cat_description ? ' - ' + row.allocation_cat_description : '' )
+							+ ( row.transfer_cat_description ? ' - ' + row.transfer_cat_description : '' ) }}</td>
 					<td class="text-left">{{ row.remarks }}</td>
 					<td class="text-center" ng-if="[ 'view', 'receipt' ].indexOf( data.editMode ) == -1">
 						<a href

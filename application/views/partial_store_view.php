@@ -1135,7 +1135,7 @@ $current_user = current_user();
 													<td>{{ item.item_description }}</td>
 													<td class="text-right">{{ ( item.replenish === 0 ? '---' : ( item.item_class == 'cash' ? ( item.replenish | number: 2 ) : ( item.replenish | number ) ) ) + ( item.scheduled !== 0 ? ' (' + item.scheduled + ')' : '' ) }}</td>
 													<td class="text-right">{{ item.pullout === 0 ? '---' : ( item.item_class == 'cash' ? ( item.pullout | number: 2 ) : ( item.pullout | number ) ) }}</td>
-													<td class="text-right">{{ item.rejected === 0 ? '---' : ( item.item_class == 'cash' ? ( item.rejected | number ) : ( item.rejected | number ) ) }}</td>
+													<td class="text-right">{{ item.rejected === 0 ? '---' : ( item.item_class == 'cash' ? ( item.rejected | number: 2 ) : ( item.rejected | number ) ) }}</td>
 												</tr>
 											</tbody>
 										</table>

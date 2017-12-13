@@ -294,7 +294,7 @@ class Shift_turnover extends Base_model
 		$prev_turnover = $this->get_previous_turnover();
 		if( $prev_turnover )
 		{
-			$prev_items = $prev_turnover->get_shift_turnover_items();
+			$prev_items = $prev_turnover->get_shift_turnovers();
 			foreach( $prev_items as $inv_id => $prev_item )
 			{
 				if( isset( $this->items[$inv_id] ) )

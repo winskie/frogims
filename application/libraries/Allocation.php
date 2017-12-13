@@ -1338,7 +1338,7 @@ class Allocation extends Base_model {
 		$this->voided_sales = $voided_sales;
 
 
-		if( $this->allocation_status == ALLOCATION_REMITTED )
+		if( $this->allocation_status == ALLOCATION_REMITTED && $this->assignee_type == 1 )
 		{
 			// Change fund
 			if( $allocated_change_fund != $returned_change_fund )
@@ -1469,7 +1469,7 @@ class Allocation extends Base_model {
 								$conversion->set( 'target_inventory_id', $target_inventory->get( 'id' ) );
 								$conversion->set( 'source_quantity', $quantity );
 								$conversion->set( 'target_quantity', $quantity * $conversion_factor );
-								$conversion->set( 'remarks', sprintf( 'Auto unpacking for hopper replenishment for TVM# %s', $this->assignee ) );
+								$conversion->set( 'remarks', sprintf( 'Auto unpack for hopper replenishment of TVM# %s', $this->assignee ) );
 								$conversion->set( 'conversion_status', CONVERSION_APPROVED );
 
 								$conversion->setAutoApproval( TRUE );

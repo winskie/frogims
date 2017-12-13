@@ -524,7 +524,7 @@ CREATE TABLE IF NOT EXISTS conversion_status_log
 )
 ENGINE=InnoDB;
 
--- assignee_type: 1 - station teller, 2- TVM
+-- assignee_type: 1 - station teller, 2 - TVM
 -- allocation_status: 1 - pending, 2 - allocated, 3 - remitted, 4 - cancelled
 CREATE TABLE IF NOT EXISTS allocations
 (

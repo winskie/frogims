@@ -2082,15 +2082,17 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 					var data = {
 						item_name: items[i].item_name,
-						category_name: items[i].category,
+						category_name: items[i].cat_name,
+						cat_description: $scope.input.category.cat_description + ' - ' + $items[i].cat_description,
 
 						item_id: items[i].item_id,
-						transfer_item_category_id: items[i].transfer_item_category_id,
+						transfer_item_category_id: $scope.input.category.id,
 						quantity: items[i].quantity,
 						remarks: itemRemarks,
 						transfer_item_status: 1, // TRANSFER_ITEM_SCHEDULED
 						transfer_item_allocation_item_id: items[i].allocation_item_id,
-						transfer_item_transfer_item_id: items[i].transfer_item_id
+						transfer_item_transfer_item_id: items[i].transfer_item_id,
+						transfer_item_turnover_category_id: items[i].transfer_item_category_id,
 					}
 
 					$scope.transferItem.addItem( new TransferItem( data ) );
@@ -2682,6 +2684,7 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 
 				if( ! $scope.data.factor )
 				{
+					console.log( $scope.data.sourceInventory, $scope.data.targetInventory, $scope.data.factor );
 					$scope.data.valid_conversion = false;
 					$scope.data.messages.push( 'Cannot convert input item to output item.' );
 				}
@@ -2924,7 +2927,7 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 		else
 		{
 			$scope.conversionItem = new Conversion();
-			//$scope.onInputItemChange();
+			$scope.onInputItemChange();
 		}
 	}
 ]);
@@ -3410,7 +3413,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					{
 						categoryFilter = ['Unsold', 'RejectBin', 'SalesColl', 'HopPullout'];
 					}
-					cashFilter = undefined;
+					cashFilter = ['Sales Collection','Change Fund'];
 					assigneeFilter[assignee + '_remittable'] = true;
 				}
 				else if( $scope.data.allocationPhase == 'ticket_sales' )
@@ -3435,7 +3438,10 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					//$scope.data.inventoryItems = $filter( 'filter' )( appData.data.items, filter, true );
 					$scope.data.inventoryItems = $filter( 'itemsWithProps' )( appData.data.items, categoryFilter );
 					$scope.data.inventoryItems = $filter( 'filter' )( $scope.data.inventoryItems, assigneeFilter, true );
-					$scope.data.inventoryItems = $filter( 'cashFilter' )( $scope.data.inventoryItems, cashFilter );
+					if( cashFilter )
+					{
+						$scope.data.inventoryItems = $filter( 'cashFilter' )( $scope.data.inventoryItems, cashFilter );
+					}
 
 					if( $scope.data.inventoryItems.length )
 					{

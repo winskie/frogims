@@ -539,12 +539,12 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 								tempObj[rowObject] = {
 										item_name: rowObject,
 										item_description: rowObject,
-										item_class: this.cash_allocations[i].item_class,
+										//item_class: this.cash_allocations[i].item_class,
 										scheduled: 0,
 										initial: 0,
 										additional: 0,
 										remitted: 0,
-										item_type: 'ticket'
+										item_class: 'cash'
 									};
 							}
 
@@ -571,11 +571,12 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 								tempObj[this.remittances[i].allocated_item_id] = {
 										item_name: this.remittances[i].item_name,
 										item_description: this.remittances[i].item_description,
+										item_class: this.remittances[i].item_class,
 										scheduled: 0,
 										initial: 0,
 										additional: 0,
 										remitted: 0,
-										item_type: 'ticket'
+										//item_class: 'ticket'
 									};
 							}
 
@@ -610,7 +611,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 										initial: 0,
 										additional: 0,
 										remitted: 0,
-										item_type: 'cash'
+										item_class: 'cash'
 									};
 							}
 
@@ -655,7 +656,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 										replenish: 0,
 										pullout: 0,
 										rejected: 0,
-										item_type: 'ticket'
+										item_class: 'ticket'
 									};
 							}
 
@@ -706,12 +707,12 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 								tempObj[rowObject] = {
 										item_name: rowObject,
 										item_description: rowObject,
-										item_class: this.cash_allocations[i].item_class,
+										//item_class: this.cash_allocations[i].item_class,
 										scheduled: 0,
 										replenish: 0,
 										pullout: 0,
 										rejected: 0,
-										item_type: 'cash'
+										item_class: 'cash'
 									};
 							}
 
@@ -740,7 +741,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 										replenish: 0,
 										pullout: 0,
 										rejected: 0,
-										item_type: 'ticket'
+										item_class: 'ticket'
 									};
 							}
 
@@ -767,7 +768,6 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 							switch( this.cash_remittances[i].cat_description )
 							{
 								case 'Sales Collection':
-									console.log( this.cash_remittances[i].item_group );
 									if( this.cash_remittances[i].item_group == 'coin' )
 									{
 										rowObject = 'Coin box';
@@ -799,12 +799,12 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 								tempObj[rowObject] = {
 										item_name: rowObject,
 										item_description: rowObject,
-										item_class: this.cash_remittances[i].item_class,
+										//item_class: this.cash_remittances[i].item_class,
 										scheduled: 0,
 										replenish: 0,
 										pullout: 0,
 										rejected: 0,
-										item_type: 'cash'
+										item_class: 'cash'
 									};
 							}
 
