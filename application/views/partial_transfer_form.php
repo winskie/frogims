@@ -73,18 +73,24 @@
 
 						<!-- Recipient -->
 						<div class="form-group">
-							<label class="control-label col-sm-4">{{ data.mode == 'transfer' ? 'Deliver to' : 'Delivered by' }}</label>
-							<div class="col-sm-7" ng-if="data.editMode != 'view'">
-								<input type="text" class="form-control"
+							<label class="control-label col-sm-4">{{ data.isTVMIRTransfer ? 'TVM #' : ( data.mode == 'transfer' ? 'Deliver to' : 'Delivered by' ) }}</label>
+							<div class="col-sm-7" ng-if="data.editMode != 'view'" ng-switch on="data.isTVMIRTransfer">
+								<input type="text" class="form-control ng-animate-disabled"
+										ng-switch-default
 										ng-model="transferItem[ data.mode == 'transfer' ? 'recipient_name' : 'sender_name']"
 										ng-model-options="{ debounce: 500 }"
 										ng-change="onDeliveryPersonChange()"
 										typeahead-editable="true"
 										typeahead-on-select="onDeliveryPersonChange()"
 										uib-typeahead="user as user.full_name for user in findUser( $viewValue )">
+								<select class="form-control ng-animate-disabled"
+										ng-switch-when="true"
+										ng-model="data.selectedTVM" ng-change="onTVMChange()"
+										ng-options="tvm as tvm.description for tvm in data.tvms track by tvm.id">
+								</select>
 							</div>
 							<div class="col-sm-7" ng-if="data.editMode == 'view'">
-								<p class="form-control-static">{{ data.mode == 'transfer' ? transferItem.recipient_name : transferItem.sender_name }}</p>
+								<p class="form-control-static">{{ data.isTVMIRTransfer ? transferItem.transfer_tvm_id : ( data.mode == 'transfer' ? transferItem.recipient_name : transferItem.sender_name ) }}</p>
 							</div>
 						</div>
 					</div>

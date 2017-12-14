@@ -1515,6 +1515,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			selectedDestination: null,
 			isExternalSource: false,
 			isExternalDestination: false,
+			isTVMIRTransfer: false,
 			inventoryItems: angular.copy( appData.data.items ),
 			categories: [],
 			sweepers: [],
@@ -1524,7 +1525,9 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			transferDatepicker: { format: 'yyyy-MM-dd', opened: false },
 			receiptDatepicker: { format: 'yyyy-MM-dd HH:mm:ss', opened: false },
 			showCategory: ( session.data.currentStore.store_type == 4 ),
-			showAllocationItemEntry: ( session.data.currentStore.store_type == 4 && $scope.checkPermissions( 'allocations', 'view' ) )
+			showAllocationItemEntry: ( session.data.currentStore.store_type == 4 && $scope.checkPermissions( 'allocations', 'view' ) ),
+			tvms: angular.copy( appData.data.tvms ),
+			selectedTVM: angular.copy( appData.data.tvms[0] ),
 		};
 
 		$scope.data.selectedCategory = getCategoryById( 2 );
@@ -1983,6 +1986,17 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						break;
 				}
 
+				$scope.data.isTVMIRTransfer = ( category.categoryName == 'Add TVMIR Refund' || category.categoryName == 'Issue TVMIR Refund' );
+				console.log( $scope.data.isTVMIRTransfer );
+				if( ! $scope.data.isTVMIRTransfer )
+				{
+					$scope.transferItem.transfer_tvm_id = null;
+				}
+				else
+				{
+					$scope.transferItem.transfer_tvm_id = $scope.data.selectedTVM.description;
+				}
+
 				// Apply changes to source and destination
 				$scope.changeSource();
 				$scope.changeDestination();
@@ -2011,6 +2025,10 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				$scope.transferItem.set( 'recipient_name', $scope.transferItem.recipient_name );
 			};
 
+		$scope.onTVMChange = function()
+			{
+				$scope.transferItem.set( 'transfer_tvm_id', $scope.data.selectedTVM.description );
+			};
 
 		// Modals
 		$scope.showTurnoverItems = function()
@@ -2366,7 +2384,9 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						}
 
 						// Set transfer category
-						$scope.data.selectedCategory = getCategoryById( $scope.transferItem.transfer_category );
+						var category = getCategoryById( $scope.transferItem.transfer_category );
+						$scope.data.selectedCategory = category;
+						$scope.data.isTVMIRTransfer = ( category.categoryName == 'Add TVMIR Refund' || category.categoryName == 'Issue TVMIR Refund' );
 
 						$scope.changeEditMode();
 						$scope.data.autoCategory = true;
@@ -2437,6 +2457,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						}
 				}
 			}
+
 			if( defaultCategory )
 			{
 				$scope.changeTransferCategory( defaultCategory );

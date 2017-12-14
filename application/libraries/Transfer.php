@@ -19,6 +19,7 @@ class Transfer extends Base_model {
 	protected $recipient_shift;
 	protected $receipt_datetime;
 	protected $receipt_user_id;
+	protected $transfer_tvm_id;
 	protected $transfer_status;
 
 	protected $date_created_field = 'date_created';
@@ -64,6 +65,7 @@ class Transfer extends Base_model {
 				'recipient_shift' => array( 'type' => 'integer' ),
 				'receipt_datetime' => array( 'type' => 'datetime' ),
 				'receipt_user_id' => array( 'type' => 'integer' ),
+				'transfer_tvm_id' => array( 'type' => 'string' ),
 				'transfer_status' => array( 'type' => 'integer' )
 			);
 		$this->children = array(
@@ -455,7 +457,7 @@ class Transfer extends Base_model {
 			return FALSE;
 		}
 
-		// Check if transer has items to transfer
+		// Check if transfer has items to transfer
 		if( ! $items )
 		{
 			set_message( 'Transfer does not contain any items', 'error' );
@@ -489,6 +491,14 @@ class Transfer extends Base_model {
 		}
 
 		$this->voided_items = $voided_items;
+
+		// Add TVMIR Refund and Issue TMVIR Refund must have transfer_trm_id value
+		$tvmir_categories = array( TRANSFER_CATEGORY_ADD_TVMIR, TRANSFER_CATEGORY_ISSUE_TVMIR );
+		if( in_array( $this->transfer_category, $tvmir_categories ) && empty( $this->transfer_tvm_id ) )
+		{
+			set_message( 'Transfer category requires TVM ID to be specified', 'error' );
+			return FALSE;
+		}
 
 		return TRUE;
 	}
@@ -824,6 +834,13 @@ class Transfer extends Base_model {
 					if( ! $this->transfer_datetime )
 					{
 						$this->set( 'transfer_datetime', $date( TIMESTAMP_FORMAT ) );
+					}
+
+					// Make sure TVM ID is only used in TVMIR related transfers
+					$tvmir_categories = array( TRANSFER_CATEGORY_ADD_TVMIR, TRANSFER_CATEGORY_ISSUE_TVMIR );
+					if( ! in_array( $this->transfer_category, $tvmir_categories ) )
+					{
+						$this->set( 'transfer_tvm_id', NULL );
 					}
 
 					break;

@@ -570,120 +570,202 @@ class Report extends MY_Controller {
 
 		// Hopper Pullout
 		$hopper_category = $Category->get_by_name( 'HopAlloc' );
+		$sales_collection_category = $Category->get_by_name( 'SalesColl' );
 
 		// Sales from TVM
-		$sql = "SELECT CONCAT( 'T', LPAD( ints.i, 2, '0' ) ) AS tvm_num,
-							(reading.sjt_previous_reading + COALESCE(tkt_sales.sjt_replenishment, 0) - COALESCE(tkt_sales.sjt_reject_bin, 0) - COALESCE(tkt_sales.sjt_excess, 0) - reading.sjt_reading) AS sjt_sold_ticket,
-							(reading.svc_previous_reading + COALESCE(tkt_sales.svc_replenishment, 0) - COALESCE(tkt_sales.svc_reject_bin, 0) - COALESCE(tkt_sales.svc_excess, 0) - reading.svc_reading) AS svc_sold_ticket,
-							sales.coin_box_sales, sales.note_box_sales,
-							(COALESCE(sales.coin_box_sales, 0) + COALESCE(sales.note_box_sales, 0)) AS gross_sales,
-							hopper.previous_reading, hopper_alloc.total_replenishment, hopper.reading,
-							(COALESCE(hopper.previous_reading, 0) + COALESCE(hopper_alloc.total_replenishment, 0) - COALESCE(hopper.reading, 0)) AS change_fund
-						FROM ints
-						LEFT JOIN
-						(
-							SELECT tvmr_machine_id,
-								SUM(IF(tvmr_type = 'magazine_sjt', tvmr_reading, NULL)) AS sjt_reading,
-								SUM(IF(tvmr_type = 'magazine_svc', tvmr_reading, NULL)) AS svc_reading,
-								SUM(IF(tvmr_type = 'magazine_sjt', tvmr_previous_reading, NULL)) AS sjt_previous_reading,
-								SUM(IF(tvmr_type = 'magazine_svc', tvmr_previous_reading, NULL)) AS svc_previous_reading
-							FROM tvm_readings
-							WHERE
-								tvmr_type IN ('magazine_sjt', 'magazine_svc')
-								AND tvmr_date = ?
-								AND tvmr_store_id = ?
-								AND tvmr_shift_id = ?
-							GROUP BY tvmr_machine_id
-						) AS reading
-							ON reading.tvmr_machine_id = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
-						LEFT JOIN
-						(
-							SELECT a.assignee,
-								SUM( IF( ai.allocation_item_type = 1 AND i.item_group = 'SJT', IF( ct.id IS NULL, ai.allocated_quantity, ai.allocated_quantity * ct.conversion_factor), 0 ) ) AS sjt_replenishment,
-								SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SJT' AND i.item_type = 0, ai.allocated_quantity, 0 ) ) AS sjt_reject_bin,
-								SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SJT' AND i.item_type = 1, ai.allocated_quantity, 0 ) ) AS sjt_excess,
-								SUM( IF( ai.allocation_item_type = 3 AND i.item_group = 'SJT', ai.allocated_quantity, 0 ) ) AS sjt_allocation_sold_ticket,
-								SUM( IF( ai.allocation_item_type = 1 AND i.item_group = 'SVC', IF( ct.id IS NULL, ai.allocated_quantity, ai.allocated_quantity * ct.conversion_factor), 0 ) ) AS svc_replenishment,
-								SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SVC' AND i.item_type = 0, ai.allocated_quantity, 0 ) ) AS svc_reject_bin,
-								SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SVC' AND i.item_type = 1, ai.allocated_quantity, 0 ) ) AS svc_excess,
-								SUM( IF( ai.allocation_item_type = 3 AND i.item_group = 'SVC', ai.allocated_quantity, 0 ) ) AS svc_allocation_sold_ticket
-							FROM allocations a
-							LEFT JOIN allocation_items ai ON ai.allocation_id = a.id
-							LEFT JOIN items i ON i.id = ai.allocated_item_id
-							LEFT JOIN conversion_table ct ON ct.target_item_id = ai.allocated_item_id
-							WHERE
-								business_date = ?
-								AND a.store_id = ?
-								AND ai.cashier_shift_id = ?
-								AND i.item_class = 'ticket'
-								AND i.item_group IN ('SJT', 'SVC')
-							GROUP BY a.assignee
-						) AS tkt_sales
-							ON tkt_sales.assignee = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
+		$sql = "SELECT x.*,
+							x.gross_sales - x.afcs_gross_sales AS short_over,
+							x.gross_sales - x.change_fund - x.refunded_tvmir + (x.gross_sales - x.afcs_gross_sales) AS net_sales,
+							x.gross_sales - x.change_fund - x.refunded_tvmir + (x.gross_sales - x.afcs_gross_sales) AS cash_collection
+						FROM (
+							SELECT CONCAT( 'T', LPAD( ints.i, 2, '0' ) ) AS tvm_num,
 
-						LEFT JOIN
-						(
-							SELECT
-								tvmr_machine_id,
-								SUM(IF(tvmr_type = 'coin_box', tvmr_reading, 0)) AS coin_box_sales,
-								SUM(IF(tvmr_type = 'note_box', tvmr_reading, 0)) AS note_box_sales
-							FROM tvm_readings
-							WHERE
-								tvmr_type IN ('coin_box', 'note_box')
-								AND tvmr_date = ?
-								AND tvmr_store_id = ?
-								AND tvmr_shift_id = ?
-							GROUP BY tvmr_machine_id
-						) AS sales
-							ON sales.tvmr_machine_id = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
+								(reading.sjt_previous_reading + COALESCE(tkt_sales.sjt_replenishment, 0) - COALESCE(tkt_sales.sjt_reject_bin, 0) - COALESCE(tkt_sales.sjt_excess, 0) - reading.sjt_reading) AS sjt_sold_ticket,
+								(reading.svc_previous_reading + COALESCE(tkt_sales.svc_replenishment, 0) - COALESCE(tkt_sales.svc_reject_bin, 0) - COALESCE(tkt_sales.svc_excess, 0) - reading.svc_reading) AS svc_sold_ticket,
+								actual_sales.actual_coin_sales,	actual_sales.actual_bill_sales,
+								sales.coin_box_sales, sales.note_box_sales,
+								(COALESCE(actual_sales.actual_coin_sales, 0) + COALESCE(actual_sales.actual_bill_sales, 0)) AS gross_sales,
+								(COALESCE(sales.coin_box_sales, 0) + COALESCE(sales.note_box_sales, 0)) AS afcs_gross_sales,
+								hopper.previous_reading, hopper_alloc.total_replenishment, hopper.reading,
+								(COALESCE(hopper.previous_reading, 0) + COALESCE(hopper_alloc.total_replenishment, 0) - COALESCE(hopper.reading, 0)) AS change_fund,
+								tvmir.refunded_tvmir
+							FROM ints
+							LEFT JOIN
+							(
+								SELECT tvmr_machine_id,
+									SUM(IF(tvmr_type = 'magazine_sjt', tvmr_reading, NULL)) AS sjt_reading,
+									SUM(IF(tvmr_type = 'magazine_svc', tvmr_reading, NULL)) AS svc_reading,
+									SUM(IF(tvmr_type = 'magazine_sjt', tvmr_previous_reading, NULL)) AS sjt_previous_reading,
+									SUM(IF(tvmr_type = 'magazine_svc', tvmr_previous_reading, NULL)) AS svc_previous_reading
+								FROM tvm_readings
+								WHERE
+									tvmr_type IN ('magazine_sjt', 'magazine_svc')
+									AND tvmr_date = ?
+									AND tvmr_store_id = ?
+									AND tvmr_shift_id = ?
+								GROUP BY tvmr_machine_id
+							) AS reading
+								ON reading.tvmr_machine_id = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
 
-						LEFT JOIN
-						(
-							SELECT tvmr_machine_id,
-								SUM(IF(tvmr_type = 'hopper_php5', tvmr_reading * 5, tvmr_reading)) AS reading,
-								SUM(IF(tvmr_type = 'hopper_php5', tvmr_previous_reading * 5, tvmr_previous_reading)) AS previous_reading
-							FROM tvm_readings
-							WHERE
-								tvmr_type IN ('hopper_php1', 'hopper_php5')
-								AND tvmr_date = ?
-								AND tvmr_store_id = ?
-								AND tvmr_shift_id = ?
-							GROUP BY tvmr_machine_id
-						) AS hopper
-							ON hopper.tvmr_machine_id = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
+							LEFT JOIN
+							(
+								SELECT a.assignee,
+									SUM( IF( ai.allocation_item_type = 1 AND i.item_group = 'SJT', IF( ct.id IS NULL, ai.allocated_quantity, ai.allocated_quantity * ct.conversion_factor), 0 ) ) AS sjt_replenishment,
+									SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SJT' AND i.item_type = 0, ai.allocated_quantity, 0 ) ) AS sjt_reject_bin,
+									SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SJT' AND i.item_type = 1, ai.allocated_quantity, 0 ) ) AS sjt_excess,
+									SUM( IF( ai.allocation_item_type = 3 AND i.item_group = 'SJT', ai.allocated_quantity, 0 ) ) AS sjt_allocation_sold_ticket,
+									SUM( IF( ai.allocation_item_type = 1 AND i.item_group = 'SVC', IF( ct.id IS NULL, ai.allocated_quantity, ai.allocated_quantity * ct.conversion_factor), 0 ) ) AS svc_replenishment,
+									SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SVC' AND i.item_type = 0, ai.allocated_quantity, 0 ) ) AS svc_reject_bin,
+									SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SVC' AND i.item_type = 1, ai.allocated_quantity, 0 ) ) AS svc_excess,
+									SUM( IF( ai.allocation_item_type = 3 AND i.item_group = 'SVC', ai.allocated_quantity, 0 ) ) AS svc_allocation_sold_ticket
+								FROM allocations a
+								LEFT JOIN allocation_items ai ON ai.allocation_id = a.id
+								LEFT JOIN items i ON i.id = ai.allocated_item_id
+								LEFT JOIN item_prices ip ON ip.iprice_item_id = i.id
+								LEFT JOIN conversion_table ct ON ct.target_item_id = ai.allocated_item_id
+								WHERE
+									business_date = ?
+									AND a.store_id = ?
+									AND ai.cashier_shift_id = ?
+									AND i.item_class = 'ticket'
+									AND i.item_group IN ('SJT', 'SVC')
+								GROUP BY a.assignee
+							) AS tkt_sales
+								ON tkt_sales.assignee = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
 
-						LEFT JOIN
-						(
-							SELECT a.assignee,
-								SUM( IF( ai.allocated_item_id IN (21, 23, 31, 32) AND ai.allocation_item_type = 1, ip.iprice_unit_price * ai.allocated_quantity, 0 ) ) AS total_replenishment
-							FROM allocations a
-							LEFT JOIN allocation_items ai
-								ON ai.allocation_id = a.id
-							LEFT JOIN items i
-								ON i.id = ai.allocated_item_id
-							LEFT JOIN item_prices ip
-								ON ip.iprice_item_id = i.id
-							WHERE
-								business_date = ?
-								AND a.store_id = ?
-								AND ai.cashier_shift_id = ?
-								AND i.item_class = 'cash'
-								AND ai.allocation_category_id = ?
-							GROUP BY a.assignee
-						) AS hopper_alloc
-							ON hopper_alloc.assignee = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
-						WHERE ints.i < 17";
+								LEFT JOIN
+								(
+									SELECT a.assignee,
+										SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'coin' AND ai.allocation_category_id = ".$sales_collection_category->get( 'id' ).", ai.allocated_quantity * ip.iprice_unit_price, 0 ) ) AS actual_coin_sales,
+										SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'bill' AND ai.allocation_category_id = ".$sales_collection_category->get( 'id' ).", ai.allocated_quantity * ip.iprice_unit_price, 0 ) ) AS actual_bill_sales
+									FROM allocations a
+									LEFT JOIN allocation_items ai ON ai.allocation_id = a.id
+									LEFT JOIN items i ON i.id = ai.allocated_item_id
+									LEFT JOIN item_prices ip ON ip.iprice_item_id = i.id
+									LEFT JOIN conversion_table ct ON ct.target_item_id = ai.allocated_item_id
+									WHERE
+										business_date = ?
+										AND a.store_id = ?
+										AND ai.cashier_shift_id = ?
+										AND i.item_class = 'cash'
+									GROUP BY a.assignee
+								) AS actual_sales
+									ON actual_sales.assignee = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
 
-		$query = $this->db->query( $sql, array( $business_date, $store_id, $shift_id,
-				$business_date, $store_id, $shift_id,
-				$business_date, $store_id, $shift_id,
-				$business_date, $store_id, $shift_id,
-				$business_date, $store_id, $shift_id, $hopper_category->get( 'id' ) ) );
+							LEFT JOIN
+							(
+								SELECT
+									tvmr_machine_id,
+									SUM(IF(tvmr_type = 'coin_box', tvmr_reading, 0)) AS coin_box_sales,
+									SUM(IF(tvmr_type = 'note_box', tvmr_reading, 0)) AS note_box_sales
+								FROM tvm_readings
+								WHERE
+									tvmr_type IN ('coin_box', 'note_box')
+									AND tvmr_date = ?
+									AND tvmr_store_id = ?
+									AND tvmr_shift_id = ?
+								GROUP BY tvmr_machine_id
+							) AS sales
+								ON sales.tvmr_machine_id = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
+
+							LEFT JOIN
+							(
+								SELECT tvmr_machine_id,
+									SUM(IF(tvmr_type = 'hopper_php5', tvmr_reading * 5, tvmr_reading)) AS reading,
+									SUM(IF(tvmr_type = 'hopper_php5', tvmr_previous_reading * 5, tvmr_previous_reading)) AS previous_reading
+								FROM tvm_readings
+								WHERE
+									tvmr_type IN ('hopper_php1', 'hopper_php5')
+									AND tvmr_date = ?
+									AND tvmr_store_id = ?
+									AND tvmr_shift_id = ?
+								GROUP BY tvmr_machine_id
+							) AS hopper
+								ON hopper.tvmr_machine_id = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
+
+							LEFT JOIN
+							(
+								SELECT a.assignee,
+									SUM( IF( ai.allocated_item_id IN (21, 23, 31, 32) AND ai.allocation_item_type = 1, ip.iprice_unit_price * ai.allocated_quantity, 0 ) ) AS total_replenishment
+								FROM allocations a
+								LEFT JOIN allocation_items ai
+									ON ai.allocation_id = a.id
+								LEFT JOIN items i
+									ON i.id = ai.allocated_item_id
+								LEFT JOIN item_prices ip
+									ON ip.iprice_item_id = i.id
+								WHERE
+									business_date = ?
+									AND a.store_id = ?
+									AND ai.cashier_shift_id = ?
+									AND i.item_class = 'cash'
+									AND ai.allocation_category_id = ?
+								GROUP BY a.assignee
+							) AS hopper_alloc
+								ON hopper_alloc.assignee = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
+
+							LEFT JOIN
+							(
+								SELECT t.transfer_tvm_id AS tvm_num,
+									SUM( ti.quantity * ip.iprice_unit_price ) AS refunded_tvmir
+								FROM transfers t
+								LEFT JOIN transfer_items ti
+									ON ti.transfer_id = t.id
+								LEFT JOIN items i
+									ON i.id = ti.item_id
+								LEFT JOIN item_prices ip
+									ON ip.iprice_item_id = i.id
+								WHERE
+									t.transfer_datetime BETWEEN ? AND ?
+									AND t.origin_id = ?
+									AND t.sender_shift = ?
+									AND t.transfer_category = ".TRANSFER_CATEGORY_ADD_TVMIR."
+								GROUP BY t.transfer_tvm_id
+							) AS tvmir
+								ON tvmir.tvm_num = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
+							WHERE ints.i < 17
+						) AS x";
+
+		$query = $this->db->query( $sql, array(
+				/* reading */ $business_date, $store_id, $shift_id,
+				/* tkt_sales */ $business_date, $store_id, $shift_id,
+				/* actual_sales */ $business_date, $store_id, $shift_id,
+				/* sales */ $business_date, $store_id, $shift_id,
+				/* hopper */ $business_date, $store_id, $shift_id,
+				/* hopper_alloc */ $business_date, $store_id, $shift_id, $hopper_category->get( 'id' ),
+				/* tmvir */ $business_date.' 00:00:00', $business_date.' 23:59:59', $store_id, $shift_id ) );
 		$tvm_sales = $query->result_array();
 		$tvm_sales_entries = array();
+
+		$tvm_totals = array(
+			'sjt_sold' => 0,
+			'svc_sold' => 0,
+			'bna_box' => 0.00,
+			'coin_box' => 0.00,
+			'ca' => 0.00,
+			'gross_sales' => 0.00,
+			'ca_reading' => 0.00,
+			'replenishment' => 0.00,
+			'hopper_fund' => 0.00,
+			'refunded_tvmir' => 0.00,
+			'short_over' => 0.00,
+			'net_sales' => 0.00,
+			'cash_collection' => 0.00
+		);
+
 		foreach( $tvm_sales as $row )
 		{
 			$tvm_sales_entries[] = $row;
+			$tvm_totals['sjt_sold'] += $row['sjt_sold_ticket'];
+			$tvm_totals['svc_sold'] += $row['svc_sold_ticket'];
+			$tvm_totals['bna_box'] += $row['note_box_sales'];
+			$tvm_totals['coin_box'] += $row['coin_box_sales'];
+			$tvm_totals['gross_sales'] += $row['gross_sales'];
+			$tvm_totals['replenishment'] += $row['total_replenishment'];
+			$tvm_totals['hopper_fund'] += $row['change_fund'];
+			$tvm_totals['short_over'] += 0;
+			$tvm_totals['net_sales'] += 0;
+			$tvm_totals['cash_collection'] += 0;
 		}
 
 		$sql = "SELECT

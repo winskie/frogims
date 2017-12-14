@@ -57,20 +57,20 @@
 							<td>{sjt_sold_ticket}</td>
 							<td>{svc_sold_ticket}</td>
 							<td colspan="4"></td>
-							<td>{coin_box_sales}</td>
-							<td>{note_box_sales}</td>
-							<td>{sjt_sold_ticket}</td>
-							<td></td>
+							<td>{actual_bill_sales}</td>
+							<td>{actual_coin_sales}</td>
+							<td>{coin_acceptor_fund}</td>
 							<td>{gross_sales}</td>
+							<td></td>
 							<td>{previous_reading}</td>
 							<td>{total_replenishment}</td>
 							<td>{reading}</td>
 							<td>{change_fund}</td>
 							<td>{refunded_tvmir}</td>
-							<td>{over_short}</td>
+							<td>{short_over}</td>
 							<td>{net_sales}</td>
 							<td></td>
-							<td>{total_collection}</td>
+							<td>{cash_collection}</td>
 						</tr>
 						{/tvm_sales}
 						<?php if( empty( $tvm_sales ) ):?>
@@ -173,7 +173,7 @@
 							<td>{short_over}</td>
 							<td>{net_sales}</td>
 							<td>{change_fund}</td>
-							<td>{total_cash_collection}</td>
+							<td>{cash_collection}</td>
 						</tr>
 						{/teller_sales}
 					</tbody>

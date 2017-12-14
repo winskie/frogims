@@ -18,6 +18,7 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 		var recipient_shift;
 		var receipt_datetime;
 		var receipt_user_id;
+		var transfer_tvm_id;
 		var transfer_status;
 
 		var items;
@@ -161,6 +162,7 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 				me.recipient_shift = null;
 				me.receipt_datetime = null;
 				me.receipt_user_id = null;
+				me.transfer_tvm_id = null;
 				me.transfer_status = 1;
 				me.items = [];
 				me.transfer_validation = null;
@@ -591,6 +593,7 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 						recipient_name: this.recipient_name,
 						receipt_datetime: this.receipt_datetime ? $filter( 'date' )( this.receipt_datetime, 'yyyy-MM-dd HH:mm:ss' ) : null,
 						receipt_user_id: this.receipt_user_id,
+						transfer_tvm_id: this.transfer_tvm_id,
 						transfer_status: this.transfer_status,
 						items: []
 					};

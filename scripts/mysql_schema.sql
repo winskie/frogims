@@ -371,6 +371,7 @@ CREATE TABLE IF NOT EXISTS transfers
 	recipient_shift INTEGER NULL,
 	receipt_datetime DATETIME NULL,
 	receipt_user_id INTEGER NULL,
+	transfer_tvm_id VARCHAR(50) NULL,
 	transfer_status SMALLINT NOT NULL DEFAULT 1,
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,
