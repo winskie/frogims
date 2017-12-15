@@ -575,10 +575,10 @@ class Report extends MY_Controller {
 		// Sales from TVM
 		$sql = "SELECT x.*,
 							x.gross_sales - x.afcs_gross_sales AS short_over,
-							x.gross_sales - x.change_fund - x.refunded_tvmir + (x.gross_sales - x.afcs_gross_sales) AS net_sales,
-							x.gross_sales - x.change_fund - x.refunded_tvmir + (x.gross_sales - x.afcs_gross_sales) AS cash_collection
+							x.gross_sales - x.hopper_change_fund - x.refunded_tvmir + (x.gross_sales - x.afcs_gross_sales) AS net_sales,
+							x.gross_sales - x.hopper_change_fund - x.refunded_tvmir + (x.gross_sales - x.afcs_gross_sales) AS cash_collection
 						FROM (
-							SELECT CONCAT( 'T', LPAD( ints.i, 2, '0' ) ) AS tvm_num,
+							SELECT CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) ) AS tvm_num,
 
 								(reading.sjt_previous_reading + COALESCE(tkt_sales.sjt_replenishment, 0) - COALESCE(tkt_sales.sjt_reject_bin, 0) - COALESCE(tkt_sales.sjt_excess, 0) - reading.sjt_reading) AS sjt_sold_ticket,
 								(reading.svc_previous_reading + COALESCE(tkt_sales.svc_replenishment, 0) - COALESCE(tkt_sales.svc_reject_bin, 0) - COALESCE(tkt_sales.svc_excess, 0) - reading.svc_reading) AS svc_sold_ticket,
@@ -587,9 +587,9 @@ class Report extends MY_Controller {
 								(COALESCE(actual_sales.actual_coin_sales, 0) + COALESCE(actual_sales.actual_bill_sales, 0)) AS gross_sales,
 								(COALESCE(sales.coin_box_sales, 0) + COALESCE(sales.note_box_sales, 0)) AS afcs_gross_sales,
 								hopper.previous_reading, hopper_alloc.total_replenishment, hopper.reading,
-								(COALESCE(hopper.previous_reading, 0) + COALESCE(hopper_alloc.total_replenishment, 0) - COALESCE(hopper.reading, 0)) AS change_fund,
+								(COALESCE(hopper.previous_reading, 0) + COALESCE(hopper_alloc.total_replenishment, 0) - COALESCE(hopper.reading, 0)) AS hopper_change_fund,
 								tvmir.refunded_tvmir
-							FROM ints
+							FROM ints a JOIN ints b
 							LEFT JOIN
 							(
 								SELECT tvmr_machine_id,
@@ -605,7 +605,7 @@ class Report extends MY_Controller {
 									AND tvmr_shift_id = ?
 								GROUP BY tvmr_machine_id
 							) AS reading
-								ON reading.tvmr_machine_id = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
+								ON reading.tvmr_machine_id = CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) )
 
 							LEFT JOIN
 							(
@@ -631,7 +631,7 @@ class Report extends MY_Controller {
 									AND i.item_group IN ('SJT', 'SVC')
 								GROUP BY a.assignee
 							) AS tkt_sales
-								ON tkt_sales.assignee = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
+								ON tkt_sales.assignee = CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) )
 
 								LEFT JOIN
 								(
@@ -650,7 +650,7 @@ class Report extends MY_Controller {
 										AND i.item_class = 'cash'
 									GROUP BY a.assignee
 								) AS actual_sales
-									ON actual_sales.assignee = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
+									ON actual_sales.assignee = CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) )
 
 							LEFT JOIN
 							(
@@ -666,7 +666,7 @@ class Report extends MY_Controller {
 									AND tvmr_shift_id = ?
 								GROUP BY tvmr_machine_id
 							) AS sales
-								ON sales.tvmr_machine_id = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
+								ON sales.tvmr_machine_id = CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) )
 
 							LEFT JOIN
 							(
@@ -681,7 +681,7 @@ class Report extends MY_Controller {
 									AND tvmr_shift_id = ?
 								GROUP BY tvmr_machine_id
 							) AS hopper
-								ON hopper.tvmr_machine_id = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
+								ON hopper.tvmr_machine_id = CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) )
 
 							LEFT JOIN
 							(
@@ -702,7 +702,7 @@ class Report extends MY_Controller {
 									AND ai.allocation_category_id = ?
 								GROUP BY a.assignee
 							) AS hopper_alloc
-								ON hopper_alloc.assignee = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
+								ON hopper_alloc.assignee = CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) )
 
 							LEFT JOIN
 							(
@@ -722,9 +722,11 @@ class Report extends MY_Controller {
 									AND t.transfer_category = ".TRANSFER_CATEGORY_ADD_TVMIR."
 								GROUP BY t.transfer_tvm_id
 							) AS tvmir
-								ON tvmir.tvm_num = CONCAT( 'T', LPAD( ints.i, 2, '0' ) )
-							WHERE ints.i < 17
-						) AS x";
+								ON tvmir.tvm_num = CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) )
+							WHERE
+								a.i * 10 + b.i > 0 AND a.i * 10 + b.i <= 16
+						) AS x
+						ORDER BY 1";
 
 		$query = $this->db->query( $sql, array(
 				/* reading */ $business_date, $store_id, $shift_id,
@@ -745,8 +747,10 @@ class Report extends MY_Controller {
 			'ca' => 0.00,
 			'gross_sales' => 0.00,
 			'ca_reading' => 0.00,
+			'previous_reading' => 0.00,
 			'replenishment' => 0.00,
-			'hopper_fund' => 0.00,
+			'reading' => 0.00,
+			'hopper_change_fund' => 0.00,
 			'refunded_tvmir' => 0.00,
 			'short_over' => 0.00,
 			'net_sales' => 0.00,
@@ -761,11 +765,14 @@ class Report extends MY_Controller {
 			$tvm_totals['bna_box'] += $row['note_box_sales'];
 			$tvm_totals['coin_box'] += $row['coin_box_sales'];
 			$tvm_totals['gross_sales'] += $row['gross_sales'];
+			$tvm_totals['previous_reading'] += $row['previous_reading'];
 			$tvm_totals['replenishment'] += $row['total_replenishment'];
-			$tvm_totals['hopper_fund'] += $row['change_fund'];
-			$tvm_totals['short_over'] += 0;
-			$tvm_totals['net_sales'] += 0;
-			$tvm_totals['cash_collection'] += 0;
+			$tvm_totals['reading'] += $row['reading'];
+			$tvm_totals['hopper_change_fund'] += $row['hopper_change_fund'];
+			$tvm_totals['refunded_tvmir'] += $row['refunded_tvmir'];
+			$tvm_totals['short_over'] += $row['short_over'];
+			$tvm_totals['net_sales'] += $row['net_sales'];
+			$tvm_totals['cash_collection'] += $row['cash_collection'];
 		}
 
 		$sql = "SELECT
@@ -782,7 +789,7 @@ class Report extends MY_Controller {
 							alloc_sales.tcerf, alloc_sales.other_deductions, alloc_sales.change_fund, alloc_sales.shortage, alloc_sales.overage,
 							alloc_sales.short_over,
 							COALESCE(alloc_sales.gross_sales, 0) - (COALESCE(alloc_sales.tcerf, 0)) AS net_sales,
-							COALESCE(alloc_sales.gross_sales, 0) - (COALESCE(alloc_sales.tcerf, 0)) + COALESCE(alloc_items.change_fund,0) AS total_cash_collection,
+							COALESCE(alloc_sales.gross_sales, 0) - (COALESCE(alloc_sales.tcerf, 0)) + COALESCE(alloc_items.change_fund,0) AS cash_collection,
 							afcs.afcs_total_sales
 						FROM allocations AS a
 
@@ -862,17 +869,65 @@ class Report extends MY_Controller {
 
 		$teller_sales = $query->result_array();
 		$teller_sales_entries = array();
+
+		$teller_totals = array(
+			'sold_sjt' => 0,
+			'sold_svc' => 0,
+			'issued_csc' => 0,
+			'free_exit' => 0,
+			'paid_exit' => 0,
+			'unconfirmed' => 0,
+			'gross_sales' => 0.00,
+			'tcerf' => 0.00,
+			'short_over' => 0.00,
+			'net_sales' => 0.00,
+			'change_fund' => 0.00,
+			'cash_collection' => 0.00,
+		);
+
 		foreach( $teller_sales as $row )
 		{
 			$teller_sales_entries[] = $row;
+			$teller_totals['sold_sjt'] += $row['sold_sjt'];
+			$teller_totals['sold_svc'] += $row['sold_svc'];
+			$teller_totals['issued_csc'] += $row['issued_csc'];
+			$teller_totals['free_exit'] += $row['free_exit'];
+			$teller_totals['paid_exit'] += $row['paid_exit'];
+			$teller_totals['unconfirmed'] += $row['unconfirmed'];
+			$teller_totals['gross_sales'] += $row['gross_sales'];
+			$teller_totals['tcerf'] += $row['tcerf'];
+			$teller_totals['short_over'] += $row['short_over'];
+			$teller_totals['net_sales'] += $row['net_sales'];
+			$teller_totals['change_fund'] += $row['change_fund'];
+			$teller_totals['cash_collection'] += $row['cash_collection'];
 		}
+
+		$grand_totals = array(
+			'sold_sjt' => $tvm_totals['sjt_sold'] + $teller_totals['sold_sjt'],
+			'sold_svc' => $tvm_totals['svc_sold'] + $teller_totals['sold_svc'],
+			'issued_csc' => $teller_totals['issued_csc'],
+			'free_exit' => $teller_totals['free_exit'],
+			'paid_exit' => $teller_totals['paid_exit'],
+			'unconfirmed' => $teller_totals['unconfirmed'],
+			'gross_sales' => $tvm_totals['gross_sales'] + $teller_totals['gross_sales'],
+			'tcerf' => $teller_totals['tcerf'],
+			'hopper_change_fund' => $tvm_totals['hopper_change_fund'],
+			'refunded_tvmir' => $tvm_totals['refunded_tvmir'],
+			'short_over' => $tvm_totals['short_over'] + $teller_totals['short_over'],
+			'net_sales' => $tvm_totals['net_sales'] + $teller_totals['net_sales'],
+			'change_fund' => $teller_totals['change_fund'],
+			'cash_collection' => $tvm_totals['cash_collection'] + $teller_totals['cash_collection'],
+		);
 
 		$data = array(
 			'business_date' => date( 'l, d F Y', strtotime( $business_date ) ),
 			'store_name'   => $store->get( 'store_name' ),
 			'shift_name'   => $shift->get( 'description' ),
 			'tvm_sales'    => $tvm_sales_entries,
-			'teller_sales' => $teller_sales_entries
+			'tvm_totals'   => $tvm_totals,
+			'teller_sales' => $teller_sales_entries,
+			'teller_totals'=> $teller_totals,
+			'grand_totals' => $grand_totals,
 		);
 
 		$this->parser->parse( 'reports/shift_collection_report', $data );

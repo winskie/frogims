@@ -3628,6 +3628,7 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 									cat_description: $scope.input.category.cat_description,
 									item_name: $scope.input.item.item_name,
 									item_class: $scope.input.item.item_class,
+									base_quantity: $scope.input.item.base_item_id ? ( $scope.input.item.base_quantity * $scope.input.quantity ) : $scope.input.quantity,
 
 									iprice_currency: $scope.input.item.iprice_currency,
 									iprice_unit_price: $scope.input.item.iprice_unit_price,

@@ -289,6 +289,12 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 			};
 
 
+		Allocation.prototype.canAddCashReport = function()
+			{
+				return ( this.allocation_status == 1 || this.allocation_status == 2 ) // ALLOCATION_SCHEDULED, ALLOCATION_ALLOCATED
+			};
+
+
 		Allocation.prototype.hasPendingAllocation = function()
 			{
 				var n = this.allocations.length;

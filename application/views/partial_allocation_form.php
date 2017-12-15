@@ -385,7 +385,7 @@
 		<uib-tab heading="Cash Report" select="updatePhase( 'cash_report' )" index="4" disable="allocationItem.allocation_status == 1"
 				ng-if="allocationItem.assignee_type == 1">
 			<div class="panel panel-default" style="margin: 20px 0; height: 300px; overflow-y: auto;">
-				<div class="panel-heading">
+				<div class="panel-heading" ng-if="allocationItem.canAddCashReport() && data.editMode != 'view'">
 					<div class="text-right">
 						<button class="btn btn-primary btn-sm" ui-sref="main.shiftDetailCashReport({ allocation: allocationItem, editMode: 'edit' })">
 							<i class="glyphicon glyphicon-plus"></i> New Cash Report

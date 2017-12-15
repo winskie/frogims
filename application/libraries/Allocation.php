@@ -869,6 +869,17 @@ class Allocation extends Base_model {
 		$voided_ticket_sales = array();
 		$voided_sales = array();
 
+		$allocated_sjt = 0;
+		$allocated_svc = 0;
+		$allocated_csc = 0;
+
+		$remitted_sjt = 0;
+		$remitted_svc = 0;
+
+		$sold_sjt = 0;
+		$sold_svc = 0;
+		$issued_csc = 0;
+
 		$allocated_change_fund = 0;
 		$returned_change_fund = 0;
 		$sales_change_fund = 0;
@@ -980,6 +991,23 @@ class Allocation extends Base_model {
 			{
 				$item_id = $allocation->get( 'allocated_item_id' );
 				$voided_allocations[] = $allocation;
+			}
+			else
+			{
+				switch( $item->get( 'item_group' ) )
+				{
+					case 'SJT':
+						$allocated_sjt += $item->get( 'base_item_id' ) ? $allocation->get( 'allocated_quantity' ) * $item->get( 'conversion_factor' ) : $allocation->get( 'allocated_quantity' );
+						break;
+
+					case 'SVC':
+						$allocated_svc += $item->get( 'base_item_id' ) ? $allocation->get( 'allocated_quantity' ) * $item->get( 'conversion_factor' ) : $allocation->get( 'allocated_quantity' );
+						break;
+
+					case 'Concessionary':
+						$allocated_csc += $item->get( 'base_item_id' ) ? $allocation->get( 'allocated_quantity' ) * $item->get( 'conversion_factor' ) : $allocation->get( 'allocated_quantity' );
+						break;
+				}
 			}
 		}
 
@@ -1184,6 +1212,19 @@ class Allocation extends Base_model {
 				$item_id = $remittance->get( 'allocated_item_id' );
 				$voided_remittances[] = $remittance;
 			}
+			else
+			{
+				switch( $item->get( 'item_group' ) )
+				{
+					case 'SJT':
+						$remitted_sjt += $item->get( 'base_item_id' ) ? $remittance->get( 'allocated_quantity' ) * $item->get( 'conversion_factor' ) : $remittance->get( 'allocated_quantity' );
+						break;
+
+					case 'SVC':
+						$remitted_svc += $item->get( 'base_item_id' ) ? $remittance->get( 'allocated_quantity' ) * $item->get( 'conversion_factor' ) : $remittance->get( 'allocated_quantity' );
+						break;
+				}
+			}
 		}
 
 		foreach( $cash_remittances as $remittance )
@@ -1290,12 +1331,31 @@ class Allocation extends Base_model {
 
 		foreach( $ticket_sales as $ticket_sale )
 		{
+			$item = $ticket_sale->get_item();
+
 			// Check for voided ticket sales
 			if( array_key_exists( 'allocation_item_status', $ticket_sale->db_changes )
 				&& $ticket_sale->db_changes['allocation_item_status'] == TICKET_SALE_ITEM_VOIDED )
 			{
 				$item_id = $ticket_sale->get( 'allocated_item_id' );
 				$voided_ticket_sales[] = $ticket_sale;
+			}
+			else
+			{
+				switch( $item->get( 'item_group' ) )
+				{
+					case 'SJT':
+						$sold_sjt += $item->get( 'base_item_id' ) ? $ticket_sale->get( 'allocated_quantity' ) * $item->get( 'conversion_factor' ) : $ticket_sale->get( 'allocated_quantity' );
+						break;
+
+					case 'SVC':
+						$sold_svc += $item->get( 'base_item_id' ) ? $ticket_sale->get( 'allocated_quantity' ) * $item->get( 'conversion_factor' ) : $ticket_sale->get( 'allocated_quantity' );
+						break;
+
+					case 'Concessionary':
+						$issued_csc += $item->get( 'base_item_id' ) ? $ticket_sale->get( 'allocated_quantity' ) * $item->get( 'conversion_factor' ) : $ticket_sale->get( 'allocated_quantity' );
+						break;
+				}
 			}
 		}
 
@@ -1340,10 +1400,27 @@ class Allocation extends Base_model {
 
 		if( $this->allocation_status == ALLOCATION_REMITTED && $this->assignee_type == 1 )
 		{
-			// Change fund
+			// Allocated cards must match remitted and sold card
+			if( $allocated_sjt != $remitted_sjt + $sold_sjt )
+			{
+				set_message( sprintf( 'The number of allocated SJT cards [%s] does not match the number of remitted [%d] and sold [%d] SJT cards', $allocated_sjt, $remitted_sjt, $sold_sjt ), 'error' );
+				return FALSE;
+			}
+			if( $allocated_svc != $remitted_svc + $sold_svc )
+			{
+				set_message( sprintf( 'The number of allocated SVC cards [%s] does not match the number of remitted [%d] and sold [%d] SVC cards', $allocated_svc, $remitted_svc, $sold_svc ), 'error' );
+				return FALSE;
+			}
+			if( $allocated_csc != $issued_csc ) // TODO: Per item?
+			{
+				set_message( sprintf( 'The number of allocated concesssionary cards [%s] does not match the number of issued [%d] concessionary cards', $allocated_sjt, $remitted_sjt, $sold_sjt ), 'error' );
+				return FALSE;
+			}
+
+			// Returned change fund must match allocated change fund
 			if( $allocated_change_fund != $returned_change_fund )
 			{
-				set_message( sprintf( 'The allocated change fund [%d] does not match the returned change fund [%d]', $allocated_change_fund, $returned_change_fund ), 'error' );
+				set_message( sprintf( 'The returned change fund [%d] does not match the allocated change fund [%d]', $returned_change_fund, $allocated_change_fund ), 'error' );
 				return FALSE;
 			}
 			if( $allocated_change_fund != $sales_change_fund )
@@ -1352,10 +1429,10 @@ class Allocation extends Base_model {
 				return FALSE;
 			}
 
-			// Sales Collection
+			// Remitted sales collection must match declared sales
 			if( ( $sales_collection + $returned_change_fund ) != $declared_sales )
 			{
-				set_message( sprintf( 'The declared sales [%d] does not match the sales cash collection [%d]', $declared_sales, $sales_collection + $returned_change_fund ), 'error' );
+				set_message( sprintf( 'The declared sales [%d] does not match the remitted cash [%d]', $declared_sales, $sales_collection + $returned_change_fund ), 'error' );
 				return FALSE;
 			}
 		}

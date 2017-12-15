@@ -83,9 +83,10 @@ class Allocation_item extends Base_model {
 
 			$ci->load->library( 'item' );
 
-			$ci->db->select( 'i.*, ip.iprice_unit_price' );
+			$ci->db->select( 'i.*, ip.iprice_unit_price, ct.conversion_factor' );
 			$ci->db->where( 'i.id', $this->allocated_item_id );
 			$ci->db->join( 'item_prices ip', 'ip.iprice_item_id = i.id', 'left' );
+			$ci->db->join( 'conversion_table ct', 'ct.target_item_id = i.id AND ct.source_item_id = i.base_item_id', 'left' );
 			$query = $ci->db->get( 'items i' );
 			$row = $query->row( 0, 'Item' );
 

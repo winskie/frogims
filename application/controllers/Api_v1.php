@@ -2070,6 +2070,8 @@ class Api_v1 extends MY_Controller {
 										'item_unit' => array( 'type' => 'string' ),
 										'item_group' => array( 'type' => 'string' ),
 										'item_description' => array( 'type' => 'string' ),
+										'base_item_id' => array( 'type' => 'integer' ),
+										'base_quantity' => array( 'type' => 'integer' ),
 										'iprice_currency' => array( 'type' => 'string' ),
 										'iprice_unit_price' => array( 'type' => 'decimal' ),
 										'teller_allocatable' => array( 'type' => 'boolean' ),

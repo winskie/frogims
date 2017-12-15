@@ -34,7 +34,7 @@
 							<th rowspan="3">Over/<br/>(Short)</th>
 							<th rowspan="3">Net Sales</th>
 							<th rowspan="3"></th>
-							<th rowspan="3">Total Cash Collection</th>
+							<th rowspan="3">Total Cash<br />Collection</th>
 						</tr>
 						<tr>
 							<th rowspan="2">SJT</th>
@@ -57,20 +57,20 @@
 							<td>{sjt_sold_ticket}</td>
 							<td>{svc_sold_ticket}</td>
 							<td colspan="4"></td>
-							<td>{actual_bill_sales}</td>
-							<td>{actual_coin_sales}</td>
-							<td>{coin_acceptor_fund}</td>
-							<td>{gross_sales}</td>
+							<td class="text-right">{actual_bill_sales}</td>
+							<td class="text-right">{actual_coin_sales}</td>
+							<td><!-- coin_acceptor_fund --></td>
+							<td class="text-right">{gross_sales}</td>
+							<td><!-- CA reading --></td>
+							<td class="text-right">{previous_reading}</td>
+							<td class="text-right">{total_replenishment}</td>
+							<td class="text-right">{reading}</td>
+							<td class="text-right">{hopper_change_fund}</td>
+							<td class="text-right">{refunded_tvmir}</td>
+							<td class="text-right">{short_over}</td>
+							<td class="text-right">{net_sales}</td>
 							<td></td>
-							<td>{previous_reading}</td>
-							<td>{total_replenishment}</td>
-							<td>{reading}</td>
-							<td>{change_fund}</td>
-							<td>{refunded_tvmir}</td>
-							<td>{short_over}</td>
-							<td>{net_sales}</td>
-							<td></td>
-							<td>{cash_collection}</td>
+							<td class="text-right">{cash_collection}</td>
 						</tr>
 						{/tvm_sales}
 						<?php if( empty( $tvm_sales ) ):?>
@@ -81,17 +81,17 @@
 					</tbody>
 					<tr>
 						<th>Total Ticket Sold</th>
-						<td></td>
-						<td></td>
+						<td class="text-right"><?php echo number_format( $tvm_totals['sjt_sold'] ); ?></td>
+						<td class="text-right"><?php echo number_format( $tvm_totals['svc_sold'] ); ?></td>
 						<td colspan="4"></td>
 						<td colspan="5"></td>
-						<td></td>
-						<td></td>
-						<td></td>
+						<td class="text-right"><?php echo number_format( $tvm_totals['previous_reading'], 2 ); ?></td>
+						<td class="text-right"><?php echo number_format( $tvm_totals['replenishment'], 2 ); ?></td>
+						<td class="text-right"><?php echo number_format( $tvm_totals['reading'], 2 ); ?></td>
 						<td colspan="3"></td>
+						<td class="text-right"><?php echo number_format( $tvm_totals['net_sales'], 2 ); ?></td>
 						<td></td>
-						<td></td>
-						<td></td>
+						<td class="text-right"><?php echo number_format( $tvm_totals['cash_collection'], 2 ); ?></td>
 					</tr>
 					<tr>
 						<th colspan="7">Total amount from TVM</th>
@@ -142,7 +142,7 @@
 						<tr>
 							<th>SJT</th>
 							<th>SVC</th>
-							<th>SVC/CC</th>
+							<th>CSC</th>
 							<th>Free Exit</th>
 							<th>Paid Exit</th>
 							<th>Unconfirmed</th>
@@ -157,34 +157,34 @@
 						{teller_sales}
 						<tr>
 							<td>{assignee}</td>
-							<td>{sold_sjt}</td>
-							<td>{sold_svc}</td>
-							<td>{issued_csc}</td>
-							<td>{free_exit}</td>
-							<td>{paid_exit}</td>
-							<td>{unconfirmed}</td>
+							<td class="text-right">{sold_sjt}</td>
+							<td class="text-right">{sold_svc}</td>
+							<td class="text-right">{issued_csc}</td>
+							<td class="text-right">{free_exit}</td>
+							<td class="text-right">{paid_exit}</td>
+							<td class="text-right">{unconfirmed}</td>
 							<td colspan="3"></td>
-							<td>{gross_sales}</td>
-							<td>{tcerf}</td>
+							<td class="text-right">{gross_sales}</td>
+							<td class="text-right">{tcerf}</td>
 							<td></td>
 							<td></td>
 							<td></td>
 							<td colspan="2"></td>
-							<td>{short_over}</td>
-							<td>{net_sales}</td>
-							<td>{change_fund}</td>
-							<td>{cash_collection}</td>
+							<td class="text-right">{short_over}</td>
+							<td class="text-right">{net_sales}</td>
+							<td class="text-right">{change_fund}</td>
+							<td class="text-right">{cash_collection}</td>
 						</tr>
 						{/teller_sales}
 					</tbody>
 					<tr>
 						<th>Total tickets sold</th>
-						<td></td>
-						<td></td>
-						<td></td>
-						<td></td>
-						<td></td>
-						<td></td>
+						<td class="text-right"><?php echo number_format( $teller_totals['sold_sjt'] ); ?></td>
+						<td class="text-right"><?php echo number_format( $teller_totals['sold_svc'] ); ?></td>
+						<td class="text-right"><?php echo number_format( $teller_totals['issued_csc'] ); ?></td>
+						<td class="text-right"><?php echo number_format( $teller_totals['free_exit'] ); ?></td>
+						<td class="text-right"><?php echo number_format( $teller_totals['paid_exit'] ); ?></td>
+						<td class="text-right"><?php echo number_format( $teller_totals['unconfirmed'] ); ?></td>
 						<td colspan="10"></td>
 						<td></td>
 						<td></td>
@@ -194,16 +194,16 @@
 					<tr>
 						<th colspan="7">Total amount from teller</th>
 						<td colspan="3">
-						<td></td>
-						<td></td>
+						<td class="text-right"><?php echo number_format( $teller_totals['gross_sales'], 2 ); ?></td>
+						<td class="text-right"><?php echo number_format( $teller_totals['tcerf'], 2 ); ?></td>
 						<td></td>
 						<td></td>
 						<td></td>
 						<td colspan="2"></td>
-						<td></td>
-						<td></td>
-						<td></td>
-						<td></td>
+						<td class="text-right"><?php echo number_format( $teller_totals['short_over'], 2 ); ?></td>
+						<td class="text-right"><?php echo number_format( $teller_totals['net_sales'], 2 ); ?></td>
+						<td class="text-right"><?php echo number_format( $teller_totals['change_fund'], 2 ); ?></td>
+						<td class="text-right"><?php echo number_format( $teller_totals['cash_collection'], 2 ); ?></td>
 					</tr>
 					<thead>
 						<tr>
@@ -213,24 +213,24 @@
 					<tbody>
 						<tr>
 							<td></td>
-							<td></td>
-							<td></td>
-							<td></td>
-							<td></td>
-							<td></td>
-							<td></td>
+							<td class="text-right"><?php echo number_format( $grand_totals['sold_sjt'] ); ?></td>
+							<td class="text-right"><?php echo number_format( $grand_totals['sold_svc'] ); ?></td>
+							<td class="text-right"><?php echo number_format( $grand_totals['issued_csc'] ); ?></td>
+							<td class="text-right"><?php echo number_format( $grand_totals['free_exit'] ); ?></td>
+							<td class="text-right"><?php echo number_format( $grand_totals['paid_exit'] ); ?></td>
+							<td class="text-right"><?php echo number_format( $grand_totals['unconfirmed'] ); ?></td>
 							<td colspan="3">
+							<td class="text-right"><?php echo number_format( $grand_totals['gross_sales'], 2 ); ?></td>
+							<td class="text-right"><?php echo number_format( $grand_totals['tcerf'], 2 ); ?></td>
 							<td></td>
 							<td></td>
 							<td></td>
-							<td></td>
-							<td></td>
-							<td></td>
-							<td></td>
-							<td></td>
-							<td></td>
-							<td></td>
-							<td></td>
+							<td class="text-right"><?php echo number_format( $grand_totals['hopper_change_fund'], 2 ); ?></td>
+							<td class="text-right"><?php echo number_format( $grand_totals['refunded_tvmir'], 2 ); ?></td>
+							<td class="text-right"><?php echo number_format( $grand_totals['short_over'], 2 ); ?></td>
+							<td class="text-right"><?php echo number_format( $grand_totals['net_sales'], 2 ); ?></td>
+							<td class="text-right"><?php echo number_format( $grand_totals['change_fund'], 2 ); ?></td>
+							<td class="text-right"><?php echo number_format( $grand_totals['cash_collection'], 2 ); ?></td>
 						</tr>
 					</tbody>
 				</table>

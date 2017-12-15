@@ -233,6 +233,7 @@ class Store extends Base_model
 					i.item_name, i.item_description, i.item_class, i.item_group, i.item_unit,
 					i.teller_allocatable, i.teller_remittable, i.teller_saleable,
 					i.machine_allocatable, i.machine_remittable, i.machine_saleable,
+					i.base_item_id, ct.conversion_factor AS base_quantity,
 					ip.iprice_currency, ip.iprice_unit_price,
 					ts.movement, sts.sti_beginning_balance, sts.sti_ending_balance,
 					pi.item_name AS parent_item_name
@@ -241,6 +242,8 @@ class Store extends Base_model
 					ON i.id = si.item_id
 				LEFT JOIN items AS pi
 					ON pi.id = si.parent_item_id
+				LEFT JOIN conversion_table AS ct
+					ON ct.target_item_id = i.id AND ct.source_item_id = i.base_item_id
 				LEFT JOIN item_prices AS ip
 					ON ip.iprice_item_id = i.id
 				LEFT JOIN (';
@@ -1104,6 +1107,7 @@ class Store extends Base_model
 		return $remittances->result_array();
 	}
 
+
 	public function get_conversions( $params =array () )
 	{
 		$limit = param( $params, 'limit' );
@@ -1170,6 +1174,7 @@ class Store extends Base_model
 
 		return $conversions;
 	}
+
 
 	public function get_tvm_readings( $params = array() )
 	{
@@ -1677,6 +1682,7 @@ class Store extends Base_model
 
 		return $count;
 	}
+
 
 	public function count_pending_conversions( $params = array() )
 	{
