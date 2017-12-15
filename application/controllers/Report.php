@@ -573,10 +573,11 @@ class Report extends MY_Controller {
 		$sales_collection_category = $Category->get_by_name( 'SalesColl' );
 
 		// Sales from TVM
-		$sql = "SELECT x.*,
+		$sql = "SELECT
+							x.*,
 							x.gross_sales - x.afcs_gross_sales AS short_over,
-							x.gross_sales - x.hopper_change_fund - x.refunded_tvmir + (x.gross_sales - x.afcs_gross_sales) AS net_sales,
-							x.gross_sales - x.hopper_change_fund - x.refunded_tvmir + (x.gross_sales - x.afcs_gross_sales) AS cash_collection
+							x.gross_sales - x.hopper_change_fund - COALESCE(x.refunded_tvmir, 0) + (x.gross_sales - x.afcs_gross_sales) AS net_sales,
+							x.gross_sales - x.hopper_change_fund - COALESCE(x.refunded_tvmir, 0) + (x.gross_sales - x.afcs_gross_sales) AS cash_collection
 						FROM (
 							SELECT CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) ) AS tvm_num,
 
@@ -626,6 +627,7 @@ class Report extends MY_Controller {
 								WHERE
 									business_date = ?
 									AND a.store_id = ?
+									AND a.assignee_type = 2
 									AND ai.cashier_shift_id = ?
 									AND i.item_class = 'ticket'
 									AND i.item_group IN ('SJT', 'SVC')
@@ -646,6 +648,7 @@ class Report extends MY_Controller {
 									WHERE
 										business_date = ?
 										AND a.store_id = ?
+										AND a. assignee_type = 2
 										AND ai.cashier_shift_id = ?
 										AND i.item_class = 'cash'
 									GROUP BY a.assignee
@@ -697,6 +700,7 @@ class Report extends MY_Controller {
 								WHERE
 									business_date = ?
 									AND a.store_id = ?
+									AND a.assignee_type = 2
 									AND ai.cashier_shift_id = ?
 									AND i.item_class = 'cash'
 									AND ai.allocation_category_id = ?
@@ -931,5 +935,40 @@ class Report extends MY_Controller {
 		);
 
 		$this->parser->parse( 'reports/shift_collection_report', $data );
+	}
+
+	function cashroom_turnover()
+	{
+		$this->load->library( 'parser' );
+		$this->load->library( 'shift_turnover' );
+		$this->load->library( 'store' );
+		$this->load->library( 'shift' );
+		$Shift_Turnover = new Shift_turnover();
+		$Store = new Store();
+		$Shift = new Shift();
+
+		$business_date = param_type( $this->input->get( 'date' ), 'date', time() );
+		$store_id = param_type( $this->input->get( 'store' ), 'integer', current_store( TRUE ) );
+		$shift_id = param_type( $this->input->get( 'shift' ), 'integer', current_shift( TRUE ) );
+
+		$store = $Store->get_by_id( $store_id );
+		$shift = $Shift->get_by_id( $shift_id );
+
+		$shift_turnover = $Shift_Turnover->get_by_store_date_shift( $store_id, $business_date, $shift_id );
+
+		if( $shift_turnover )
+		{
+			$data = array(
+					'business_date' => $business_date,
+					'store_name' => $store->get( 'store_name' ),
+					'shift_name' => $shift->get( 'description' ),
+					'cash_vault' => $shift_turnover->cash_in_vault()
+				);
+			$this->parser->parse( 'reports/cashroom_turnover_report', $data );
+		}
+		else
+		{
+			echo 'No Shift Turnover';
+		}
 	}
 }
