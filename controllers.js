@@ -1515,7 +1515,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			selectedDestination: null,
 			isExternalSource: false,
 			isExternalDestination: false,
-			isTVMIRTransfer: false,
+			isTVMTransfer: false,
 			inventoryItems: angular.copy( appData.data.items ),
 			categories: [],
 			sweepers: [],
@@ -1524,7 +1524,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			autoCategory: true,
 			transferDatepicker: { format: 'yyyy-MM-dd', opened: false },
 			receiptDatepicker: { format: 'yyyy-MM-dd HH:mm:ss', opened: false },
-			showCategory: ( session.data.currentStore.store_type == 4 ),
 			showAllocationItemEntry: ( session.data.currentStore.store_type == 4 && $scope.checkPermissions( 'allocations', 'view' ) ),
 			tvms: angular.copy( appData.data.tvms ),
 			selectedTVM: angular.copy( appData.data.tvms[0] ),
@@ -1699,7 +1698,14 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		$scope.updateItemCategories = function()
 			{
-				$scope.data.categories = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_module: 'Transfer' }, true );
+				if( $scope.input.inventoryItem )
+				{
+					$scope.data.categories = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_module: 'Transfer' }, true );
+				}
+				else
+				{
+					$scope.data.categories = [];
+				}
 			};
 
 		$scope.getItemQuantities = function()
@@ -1735,7 +1741,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 		$scope.changeDestination = function()
 			{
 				$scope.transferItem.setDestination( $scope.data.selectedDestination );
-			}
+			};
 
 		$scope.changeTransferCategory = function( category )
 			{
@@ -1984,11 +1990,28 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 							$scope.input.category = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_name: 'IssueTVMIR' }, true )[0];
 						}
 						break;
+
+					case 'Replenish TVM Change Fund':
+						$scope.data.selectedSource = session.data.currentStore;
+						$scope.data.selectedDestination = { id: null, store_name: session.data.currentStore.store_name };
+						$scope.changeEditMode( 'externalTransfer' );
+						$scope.transferItem.destination_name = session.data.currentStore.store_name;
+
+						var filteredItems;
+						filteredItems = $filter( 'itemsWithProps' )( appData.data.items, 'RepCFund' );
+						filteredItems = $filter( 'cashFilter' )( filteredItems, 'Sales' );
+						if( filteredItems.length > 0 )
+						{
+							$scope.data.inventoryItems = filteredItems;
+							$scope.input.inventoryItem = $scope.data.inventoryItems[0];
+							$scope.onItemChange();
+							$scope.input.category = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_name: 'RepCFund' }, true )[0];
+						}
+						break;
 				}
 
-				$scope.data.isTVMIRTransfer = ( category.categoryName == 'Add TVMIR Refund' || category.categoryName == 'Issue TVMIR Refund' );
-				console.log( $scope.data.isTVMIRTransfer );
-				if( ! $scope.data.isTVMIRTransfer )
+				$scope.data.isTVMTransfer = ( ['Add TVMIR Refund', 'Issue TVMIR Refund', 'Replenish TVM Change Fund'].indexOf( category.categoryName ) != -1 );
+				if( ! $scope.data.isTVMTransfer )
 				{
 					$scope.transferItem.transfer_tvm_id = null;
 				}
@@ -2051,6 +2074,30 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 					});
 			};
 
+		$scope.showSalesCollectionItems = function()
+			{
+				var modalInstance = $uibModal.open({
+						templateUrl: baseUrl + 'index.php/main/view/modal_sales_collection_items',
+						controller: 'SalesDepositItemModalController',
+						controllerAs: '$ctrl',
+						size: 'lg',
+						resolve: {
+							businessDate: $scope.transferItem.transfer_datetime,
+							currentShiftId: session.data.currentShift.id
+						}
+					});
+
+				modalInstance.result.then(
+					function( items )
+					{
+						$scope.addSalesCollectionItems( items );
+					},
+					function()
+					{
+
+					});
+			}
+
 
 		// Transfer item actions
 		$scope.addTransferItem = function( event )
@@ -2062,7 +2109,9 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				{
 					var data = {
 							item_name: $scope.input.inventoryItem.item_name,
+							item_class: $scope.input.inventoryItem.item_class,
 							cat_description: $scope.input.category.cat_description,
+							total_amount: $scope.input.inventoryItem.item_class == 'cash' ? $scope.input.inventoryItem.iprice_unit_price * $scope.input.quantity : $scope.input.inventoryItem.base_quantity * $scope.input.quantity,
 
 							item_id: $scope.input.inventoryItem.item_id,
 							transfer_item_category_id: $scope.input.category.id,
@@ -2100,8 +2149,38 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 					var data = {
 						item_name: items[i].item_name,
+						item_class: $scope.input.inventoryItem.item_class,
 						category_name: items[i].cat_name,
-						cat_description: $scope.input.category.cat_description + ' - ' + $items[i].cat_description,
+						cat_description: $scope.input.category.cat_description + ' - ' + items[i].cat_description,
+						total_amount: items[i].quantity,
+
+						item_id: items[i].item_id,
+						transfer_item_category_id: $scope.input.category.id,
+						quantity: items[i].quantity,
+						remarks: itemRemarks,
+						transfer_item_status: 1, // TRANSFER_ITEM_SCHEDULED
+						transfer_item_allocation_item_id: items[i].allocation_item_id,
+						transfer_item_transfer_item_id: items[i].transfer_item_id,
+						transfer_item_turnover_category_id: items[i].transfer_item_category_id,
+					}
+
+					$scope.transferItem.addItem( new TransferItem( data ) );
+				}
+				$scope.getItemQuantities();
+			};
+
+			$scope.addSalesCollectionItems = function( items )
+			{
+				for( var i = 0; i < items.length; i++ )
+				{
+					var itemRemarks = 'Allocation #' + items[i].source_id + ' - ' + ( items[i].assignee_type == 2 ? 'TVM# ' : '' ) + items[i].assignee;
+
+					var data = {
+						item_name: items[i].item_name,
+						item_class: items[i].item_class,
+						category_name: items[i].cat_name,
+						cat_description: $scope.input.category.cat_description + ' - ' + items[i].cat_description,
+						total_amount: items[i].total_amount,
 
 						item_id: items[i].item_id,
 						transfer_item_category_id: $scope.input.category.id,
@@ -2232,7 +2311,10 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 		// Select initial category
 		$scope.updateItemCategories();
-		$scope.input.category = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_module: 'Transfer' }, true )[0];
+		if( $scope.input.inventoryItem )
+		{
+			$scope.input.category = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_module: 'Transfer' }, true )[0];
+		}
 
 		if( $stateParams.transferItem )
 		{ // Load transfer record
@@ -2386,7 +2468,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						// Set transfer category
 						var category = getCategoryById( $scope.transferItem.transfer_category );
 						$scope.data.selectedCategory = category;
-						$scope.data.isTVMIRTransfer = ( category.categoryName == 'Add TVMIR Refund' || category.categoryName == 'Issue TVMIR Refund' );
+						$scope.data.isTVMTransfer = ( ['Add TVMIR Refund', 'Issue TVMIR Refund', 'Replenish TVM Change Fund'].indexOf( category.categoryName ) != -1 );
 
 						$scope.changeEditMode();
 						$scope.data.autoCategory = true;

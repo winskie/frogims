@@ -19,6 +19,7 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 		var receipt_datetime;
 		var receipt_user_id;
 		var transfer_tvm_id;
+		var transfer_init_shift_id;
 		var transfer_status;
 
 		var items;
@@ -52,6 +53,7 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 				'8': 'Bank Deposit',
 				'9': 'Add TVMIR Refund',
 				'10': 'Issue TVMIR Refund',
+				'11': 'Replenish TVM Change Fund',
 			};
 
 		var transferValidationReceiptStatus = {
@@ -163,6 +165,7 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 				me.receipt_datetime = null;
 				me.receipt_user_id = null;
 				me.transfer_tvm_id = null;
+				me.transfer_init_shift_id = null;
 				me.transfer_status = 1;
 				me.items = [];
 				me.transfer_validation = null;
@@ -594,6 +597,7 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 						receipt_datetime: this.receipt_datetime ? $filter( 'date' )( this.receipt_datetime, 'yyyy-MM-dd HH:mm:ss' ) : null,
 						receipt_user_id: this.receipt_user_id,
 						transfer_tvm_id: this.transfer_tvm_id,
+						transfer_init_shift_id: this.transfer_init_shift_id,
 						transfer_status: this.transfer_status,
 						items: []
 					};

@@ -500,6 +500,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 						{ id: 8, categoryName: 'Bank Deposit', store_types: [4] },
 						{ id: 9, categoryName: 'Add TVMIR Refund', store_types: [4] },
 						{ id: 10, categoryName: 'Issue TVMIR Refund', store_types: [4] },
+						{ id: 11, categoryName: 'Replenish TVM Change Fund', store_types: [4] },
 					],
 				transferStatus: [
 						{ id: 1, statusName: 'Scheduled' },
@@ -1732,6 +1733,39 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/turnover_items',
 					params: {
 						date: $filter( 'date' )( date, 'yyyy-MM-dd' )
+					}
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							deferred.resolve( response.data.data );
+						}
+						else
+						{
+							notifications.showMessages( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						notifications.showMessage( reason.data.errorMsg );
+						console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
+
+		me.getShiftSalesItems = function( storeId, date, shift )
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/sales_collection_items',
+					params: {
+						date: $filter( 'date' )( date, 'yyyy-MM-dd' ),
+						shift: shift
 					}
 				}).then(
 					function( response )

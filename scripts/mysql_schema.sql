@@ -372,6 +372,7 @@ CREATE TABLE IF NOT EXISTS transfers
 	receipt_datetime DATETIME NULL,
 	receipt_user_id INTEGER NULL,
 	transfer_tvm_id VARCHAR(50) NULL,
+	transfer_init_shift_id INTEGER NOT NULL,
 	transfer_status SMALLINT NOT NULL DEFAULT 1,
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,
@@ -396,7 +397,8 @@ CREATE TABLE IF NOT EXISTS transfers
 	FOREIGN KEY transfers_receipt_user_fk (receipt_user_id) REFERENCES users (id)
 		ON UPDATE CASCADE
 		ON DELETE SET NULL,
-	INDEX transfer_date_status_ndx ( transfer_datetime, transfer_status )
+	INDEX transfers_main_ndx ( transfer_datetime, transfer_category, origin_id, destination_id ),
+	INDEX transfers_date_status_ndx ( transfer_datetime, transfer_status )
 )
 ENGINE=InnoDB;
 

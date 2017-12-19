@@ -524,6 +524,218 @@ class Shift_turnover extends Base_model
 		return $r;
 	}
 
+	/**
+	 * Change Fund Beginning Balance
+	 */
+	public function beginning_balance( $type = 'cash_in_vault' )
+	{
+		$ci =& get_instance();
+		$items = $this->get_items();
+		$beginning_balance = 0.00;
+
+		switch( $type )
+		{
+			case 'cash_in_vault':
+				foreach( $items as $item )
+				{
+					if( $item->get( 'item_class' ) == 'cash' && in_array( $item->get( 'parent_item_name' ), array( 'Change Fund', 'Sales' ) ) )
+					{
+						$beginning_balance += $item->get( 'base_beginning_balance' ) * $item->get( 'iprice_unit_price' );
+					}
+				}
+				break;
+		}
+
+		return $beginning_balance;
+	}
+
+
+	/**
+	 * Gross Sales
+	 */
+	public function total_gross_sales()
+	{
+		$ci =& get_instance();
+		$ci->load->library( 'category' );
+		$Category = new Category();
+		$sales_collection_category = $Category->get_by_name( 'SalesColl' );
+
+		$sql = "SELECT
+							a.assignee_type, SUM( ai.allocated_quantity * ip.iprice_unit_price ) AS amount
+						FROM allocations AS a
+						LEFT JOIN allocation_items AS ai
+							ON ai.allocation_id = a.id
+						LEFT JOIN items AS i
+							ON i.id = ai.allocated_item_id
+						LEFT JOIN item_prices AS ip
+							ON ip.iprice_item_id = i.id
+						WHERE
+							a.business_date = '".$this->st_from_date."'
+							AND a.store_id = ".$this->st_store_id."
+							AND ai.cashier_shift_id = ".$this->st_from_shift_id."
+							AND ai.allocation_item_type = ".ALLOCATION_ITEM_TYPE_REMITTANCE."
+							AND i.item_class = 'cash'
+							AND ai.allocation_category_id = ".$sales_collection_category->get( 'id' )."
+							AND NOT ai.allocation_item_status = ".REMITTANCE_ITEM_VOIDED."
+						GROUP BY a.assignee_type";
+		$query = $ci->db->query( $sql );
+		$r = $query->result_array();
+
+		$gross_sales = array( 'teller' => 0.00, 'TVM' => 0.00 );
+		foreach( $r as $row )
+		{
+			switch( $row['assignee_type'] )
+			{
+				case ALLOCATION_ASSIGNEE_TELLER:
+					$gross_sales['teller'] += $row['amount'];
+					break;
+
+				case ALLOCATION_ASSIGNEE_MACHINE:
+					$gross_sales['TVM'] += $row['amount'];
+					break;
+			}
+		}
+
+		return $gross_sales;
+	}
+
+	/**
+	 * Hopper Readings
+	 */
+	public function hopper_readings()
+	{
+		$ci =& get_instance();
+
+		$hopper_readings = array(
+			'Php5' => array( 'previous' => 0.00, 'current' => 0.00 ),
+			'Php1' => array( 'previous' => 0.00, 'current' => 0.00 ) );
+
+		$sql = "SELECT
+							tvmr_type,
+							SUM(IF(tvmr_type = 'hopper_php5', tvmr_reading * 5, tvmr_reading)) AS current_reading,
+							SUM(IF(tvmr_type = 'hopper_php5', tvmr_previous_reading * 5, tvmr_previous_reading)) AS previous_reading
+						FROM tvm_readings AS tr
+						WHERE
+							tvmr_type IN ('hopper_php1', 'hopper_php5')
+							AND tvmr_date = '".$this->st_from_date."'
+							AND tvmr_store_id = ".$this->st_store_id."
+							AND tvmr_shift_id = ".$this->st_from_shift_id."
+						GROUP BY tvmr_type";
+		$query = $ci->db->query( $sql );
+		$r = $query->result_array();
+
+		foreach( $r as $row )
+		{
+			switch( $row['tvmr_type'] )
+			{
+				case 'hopper_php1':
+					$hopper_readings['Php1']['current'] += $row['current_reading'];
+					$hopper_readings['Php1']['previous'] += $row['previous_reading'];
+					break;
+
+				case 'hopper_php5':
+					$hopper_readings['Php5']['current'] += $row['current_reading'];
+					$hopper_readings['Php5']['previous'] += $row['previous_reading'];
+					break;
+			}
+		}
+
+		return $hopper_readings;
+	}
+
+	/**
+	 * Hopper Replenishments
+	 */
+	public function total_hopper_replenishment()
+	{
+		$ci =& get_instance();
+
+		$ci->load->library( 'item' );
+		$ci->load->library( 'category' );
+
+		$Item = new Item();
+		$Category = new Category();
+
+		$php1_coin = $Item->get_by_name( 'Php1 Coin' );
+		$php5_coin = $Item->get_by_name( 'Php5 Coin' );
+		$php1_bag = $Item->get_by_name( 'Bag Php1@100' );
+		$php5_bag = $Item->get_by_name( 'Bag Php5@100' );
+
+		$hopper_replenishment_category = $Category->get_by_name( 'HopAlloc' );
+
+		$valid_items = array( $php1_coin->get( 'id' ), $php5_coin->get( 'id' ), $php1_bag->get( 'id' ), $php5_bag->get( 'id' ) );
+		$replenishment_amount = 0.00;
+
+		$sql = "SELECT
+							SUM( IF( ai.allocated_item_id IN (".implode( ', ', $valid_items ).") AND ai.allocation_item_type = ".ALLOCATION_ITEM_TYPE_ALLOCATION.", ip.iprice_unit_price * ai.allocated_quantity, 0 ) ) AS amount
+						FROM allocations a
+						LEFT JOIN allocation_items ai
+							ON ai.allocation_id = a.id
+						LEFT JOIN items i
+							ON i.id = ai.allocated_item_id
+						LEFT JOIN item_prices ip
+							ON ip.iprice_item_id = i.id
+						WHERE
+							a.business_date ='".$this->st_from_date."'
+							AND a.store_id = ".$this->st_store_id."
+							AND a.assignee_type = ".ALLOCATION_ASSIGNEE_MACHINE."
+							AND ai.cashier_shift_id = ".$this->st_from_shift_id."
+							AND i.item_class = 'cash'
+							AND ai.allocation_category_id = ".$hopper_replenishment_category->get( 'id' )."
+							AND NOT ai.allocation_item_status IN (".implode( ', ', array( ALLOCATION_ITEM_VOIDED, ALLOCATION_ITEM_CANCELLED ) ).")";
+		$query = $ci->db->query( $sql );
+		$r = $query->row_array();
+
+		$replenishment_amount = $r['amount'];
+
+		return floatval( $replenishment_amount );
+	}
+
+	/**
+	 * Refunded TVMIR
+	 */
+	public function total_tvmir_refund()
+	{
+		$ci =& get_instance();
+
+		$refunded_amount = 0.00;
+
+		$sql = "SELECT
+							SUM( ti.quantity * ip.iprice_unit_price ) AS amount
+						FROM transfers t
+						LEFT JOIN transfer_items ti
+							ON ti.transfer_id = t.id
+						LEFT JOIN items i
+							ON i.id = ti.item_id
+						LEFT JOIN item_prices ip
+							ON ip.iprice_item_id = i.id
+						WHERE
+							t.transfer_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND t.origin_id = ".$this->st_store_id."
+							AND t.sender_shift = ".$this->st_from_shift_id."
+							AND t.transfer_category = ".TRANSFER_CATEGORY_ADD_TVMIR."
+							AND NOT ti.transfer_item_status IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")";
+		$query = $ci->db->query( $sql );
+		$r = $query->row_array();
+
+		$refunded_amount = $r['amount'];
+
+		return $refunded_amount;
+	}
+
+
+	/**
+	 * Get amount for deposit to bank
+	 *
+	 * TVM: Gross Sales - Hopper/Change Fund - Refunded TVMIR
+	 */
+	public function for_deposit_to_bank()
+	{
+		$ci =& get_instance();
+
+		return $amount;
+	}
+
 
 	public function cash_in_vault()
 	{
@@ -539,115 +751,29 @@ class Shift_turnover extends Base_model
 		$change_fund = $Item->get_by_name( 'Change Fund' );
 		$sales_collection = $Item->get_by_name( 'Sales' );
 		$sales_collection_category = $Category->get_by_name( 'SalesColl' );
-		$hopper_replenishment_category = $Category->get_by_name( 'HopAlloc' );
 
-		$items = $this->get_items();
-
-		// Beginning Balance - sum of change fund and sales collection
-		$beginning_balance = 0;
-
-		foreach( $items as $item )
-		{
-			if( $item->get( 'item_class' ) == 'cash' && in_array( $item->get( 'parent_item_name' ), array( 'Change Fund', 'Sales' ) ) )
-			{
-				$beginning_balance += $item->get( 'base_beginning_balance' ) * $item->get( 'iprice_unit_price' );
-			}
-		}
-
-		// Deposit to Bank = Gross Sales -
-		/*
-		For TVM: deposit = gross_sales - hopper_change_fund - refunded_tvmir
-		For Teller: deposit = gross_sales - tcerf
-		*/
-		$sql = "SELECT
-							a.assignee_type, SUM( ai.allocated_quantity * ip.iprice_unit_price ) AS amount
-						FROM allocations AS a
-						LEFT JOIN allocation_items AS ai
-							ON ai.allocation_id = a.id
-						LEFT JOIN items AS i
-							ON i.id = ai.allocated_item_id
-						LEFT JOIN item_prices AS ip
-							ON ip.iprice_item_id = i.id
-						WHERE
-							a.business_date = ?
-							AND a.store_id = ?
-							AND ai.cashier_shift_id = ?
-							AND ai.allocation_item_type = 2
-							AND i.item_class = 'cash'
-							AND ai.allocation_category_id = ?
-						GROUP BY a.assignee_type";
-		$sql_params = array( $this->st_from_date, $this->st_store_id, $this->st_from_shift_id, $sales_collection_category->get( 'id' )  );
-		$query = $ci->db->query( $sql, $sql_params );
-		$gross_sales = $query->result_array();
 		$teller_gross_sales = 0.00;
 		$tvm_gross_sales = 0.00;
-		foreach( $gross_sales as $sales )
+		$hopper_change_fund = 0.00;
+
+		$tcerf = 0.00;
+		$returned_change_fund_tvm = 0.00;
+		$returned_change_fund_teller = 0.00;
+
+		$total_gross_sales = $this->total_gross_sales();
+
+		$hopper_readings = $this->hopper_readings();
+		$previous_hopper_reading = 0.00;
+		$current_hopper_reading = 0.00;
+		foreach( $hopper_readings as $row )
 		{
-			if( $sales['assignee_type'] == 1 )
-			{
-				$teller_gross_sales += $sales['amount'];
-			}
-			elseif( $sales['assignee_type'] == 2 )
-			{
-				$tvm_gross_sales += $sales['amount'];
-			}
+			$previous_hopper_reading += $row['previous'];
+			$current_hopper_reading += $row['current'];
 		}
 
-		$sql = "SELECT
-							SUM(IF(tvmr_type = 'hopper_php5', tvmr_reading * 5, tvmr_reading)) AS reading,
-							SUM(IF(tvmr_type = 'hopper_php5', tvmr_previous_reading * 5, tvmr_previous_reading)) AS previous_reading
-						FROM tvm_readings AS tr
-						WHERE
-							tvmr_type IN ('hopper_php1', 'hopper_php5')
-							AND tvmr_date = ?
-							AND tvmr_store_id = ?
-							AND tvmr_shift_id = ?";
-		$sql_params = array( $this->st_from_date, $this->st_store_id, $this->st_from_shift_id );
-		$query = $ci->db->query( $sql, $sql_params );
-		$hopper_readings = $query->row_array();
+		$hopper_replenishment = $this->total_hopper_replenishment();
 
-		$sql = "SELECT
-							SUM( IF( ai.allocated_item_id IN (21, 23, 31, 32) AND ai.allocation_item_type = 1, ip.iprice_unit_price * ai.allocated_quantity, 0 ) ) AS amount
-						FROM allocations a
-						LEFT JOIN allocation_items ai
-							ON ai.allocation_id = a.id
-						LEFT JOIN items i
-							ON i.id = ai.allocated_item_id
-						LEFT JOIN item_prices ip
-							ON ip.iprice_item_id = i.id
-						WHERE
-							a.business_date = ?
-							AND a.store_id = ?
-							AND a.assignee_type = 2
-							AND ai.cashier_shift_id = ?
-							AND i.item_class = 'cash'
-							AND ai.allocation_category_id = ?";
-		$sql_params = array( $this->st_from_date, $this->st_store_id, $this->st_from_shift_id, $hopper_replenishment_category->get( 'id' ) );
-		$query = $ci->db->query( $sql, $sql_params );
-		$hopper_replenishments = $query->row_array();
-
-		// Refunded TVMIR deduction
-		$sql = "SELECT
-							SUM( ti.quantity * ip.iprice_unit_price ) AS amount
-						FROM transfers t
-						LEFT JOIN transfer_items ti
-							ON ti.transfer_id = t.id
-						LEFT JOIN items i
-							ON i.id = ti.item_id
-						LEFT JOIN item_prices ip
-							ON ip.iprice_item_id = i.id
-						WHERE
-							t.transfer_datetime BETWEEN ? AND ?
-							AND t.origin_id = ?
-							AND t.sender_shift = ?
-							AND t.transfer_category = ?";
-		$sql_params = array(
-			$this->st_from_date.' 00:00:00', $this->st_from_date.' 23:59:59',
-			$this->st_store_id,
-			$this->st_from_shift_id,
-			TRANSFER_CATEGORY_ADD_TVMIR );
-		$query = $ci->db->query( $sql, $sql_params );
-		$refunded_tvmir = $query->row_array();
+		$refunded_tvmir = $this->total_tvmir_refund();
 
 		// TCERF deduction
 		$tcerf_sales_item = $Sales_Item->get_by_name( 'TCERF' );
@@ -660,16 +786,24 @@ class Shift_turnover extends Base_model
 							a.business_date = ?
 							AND a.store_id = ?
 							AND a.assignee_type = 1
-							AND asi.alsale_shift_id = ?";
+							AND asi.alsale_shift_id = ?
+							AND NOT asi.alsale_sales_item_status = ".SALES_ITEM_VOIDED;
 		$sql_params = array( $tcerf_sales_item->get( 'id' ), $this->st_from_date, $this->st_store_id, $this->st_from_shift_id );
 		$query = $ci->db->query( $sql, $sql_params );
 		$tcerf = $query->row_array();
 
+		// Returned Change Fund - TVM
+
+
 		return array(
 				'balance_per_book' => array(
-					'beginning_balance' => $beginning_balance,
-					'for_deposit' => ( $tvm_gross_sales - ( $hopper_readings['previous_reading'] + $hopper_replenishments['amount'] - $hopper_readings['reading'] ) - $refunded_tvmir['amount'] )
-							+ ( $teller_gross_sales - $tcerf['amount'] )
+					'beginning_balance' => $this->beginning_balance(),
+					'tvm_gross_sales' => $total_gross_sales['TVM'],
+					'teller_gross_sales' => $total_gross_sales['teller'],
+					'hopper_replenishment' => $hopper_replenishment,
+					'TVMIR_refund' => $refunded_tvmir,
+					'for_deposit' => ( $total_gross_sales['TVM'] - ( $previous_hopper_reading + $hopper_replenishment - $current_hopper_reading ) - $refunded_tvmir )
+							+ ( $total_gross_sales['teller'] - $tcerf['amount'] )
 				)
 			);
 	}

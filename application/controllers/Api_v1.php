@@ -2163,6 +2163,30 @@ class Api_v1 extends MY_Controller {
 									}
 									break;
 
+								case 'sales_collection_items':
+									// Check permissions
+									if( !$current_user->check_permissions( 'allocations', 'view' ) )
+									{
+										$this->_error( 403, 'You are not allowed to access this resource' );
+									}
+									else
+									{
+										$params = array(
+												'date' => param( $this->input->get(), 'date' ),
+												'shift' => param( $this->input->get(), 'shift' ),
+												'status' => param( $this->input->get(), 'status' ),
+												'page' => param( $this->input->get(), 'page' ),
+												'limit' => param( $this->input->get(), 'limit' ),
+											);
+
+										$items = $store->get_sales_collection_items( $params );
+
+										$this->_response( array(
+											'items' => $items,
+											'query' => $this->db->last_query() ) );
+									}
+									break;
+
 								case 'turnover_items':
 									// Check permissions
 									if( !$current_user->check_permissions( 'allocations', 'view' ) )
@@ -2181,8 +2205,7 @@ class Api_v1 extends MY_Controller {
 										$items = $store->get_turnover_items( $params );
 
 										$this->_response( array(
-											'items' => $items,
-											'query' => $this->db->last_query() ) );
+											'items' => $items ) );
 									}
 									break;
 
@@ -2289,8 +2312,10 @@ class Api_v1 extends MY_Controller {
 												{
 													$transfer_items_data[] = $item->as_array( array(
 														'item_name' => array( 'type' => 'string' ),
+														'item_class' => array( 'type' => 'string' ),
 														'item_description' => array( 'type' => 'string' ),
 														'cat_description' => array( 'type' => 'string' ),
+														'total_amount' => array( 'type' => 'float' ),
 														'is_transfer_category' => array( 'type' => 'boolean' ) ) );
 												}
 												$transfer_data['items'] = $transfer_items_data;
@@ -2344,7 +2369,9 @@ class Api_v1 extends MY_Controller {
 												{
 													$r['items'][] = $item->as_array( array(
 														'item_name' => array( 'type' => 'string' ),
-														'item_description' => array( 'type' => 'stirng' ) ) );
+														'item_class' => array( 'type' => 'string' ),
+														'item_description' => array( 'type' => 'stirng' ),
+														'total_amount' => array( 'type' => 'float' ) ) );
 												}
 												$transfers_data[] = $r;
 											}
@@ -2544,8 +2571,10 @@ class Api_v1 extends MY_Controller {
 
 										$item_data_fields = array(
 											'item_name' => array( 'type', 'string' ),
+											'item_class' => array( 'type', 'string' ),
 											'item_description' => array( 'type', 'string' ),
-											'cat_description' => array( 'type', 'string' ) );
+											'cat_description' => array( 'type', 'string' ),
+											'total_amount' => array( 'type', 'float' ) );
 										if( $transfer->get( 'transfer_category' ) == TRANSFER_CATEGORY_TURNOVER )
 										{
 											$item_data_fields['allocation_cat_description'] = array( 'type', 'string' );

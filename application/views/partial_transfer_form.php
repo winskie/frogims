@@ -73,8 +73,8 @@
 
 						<!-- Recipient -->
 						<div class="form-group">
-							<label class="control-label col-sm-4">{{ data.isTVMIRTransfer ? 'TVM #' : ( data.mode == 'transfer' ? 'Deliver to' : 'Delivered by' ) }}</label>
-							<div class="col-sm-7" ng-if="data.editMode != 'view'" ng-switch on="data.isTVMIRTransfer">
+							<label class="control-label col-sm-4">{{ data.isTVMTransfer ? 'TVM #' : ( data.mode == 'transfer' ? 'Deliver to' : 'Delivered by' ) }}</label>
+							<div class="col-sm-7" ng-if="data.editMode != 'view'" ng-switch on="data.isTVMTransfer">
 								<input type="text" class="form-control ng-animate-disabled"
 										ng-switch-default
 										ng-model="transferItem[ data.mode == 'transfer' ? 'recipient_name' : 'sender_name']"
@@ -90,7 +90,7 @@
 								</select>
 							</div>
 							<div class="col-sm-7" ng-if="data.editMode == 'view'">
-								<p class="form-control-static">{{ data.isTVMIRTransfer ? transferItem.transfer_tvm_id : ( data.mode == 'transfer' ? transferItem.recipient_name : transferItem.sender_name ) }}</p>
+								<p class="form-control-static">{{ data.isTVMTransfer ? transferItem.transfer_tvm_id : ( data.mode == 'transfer' ? transferItem.recipient_name : transferItem.sender_name ) }}</p>
 							</div>
 						</div>
 					</div>
@@ -131,18 +131,20 @@
 			<h3 class="panel-title pull-left">Transfer Items</h3>
 			<div class="pull-right" ng-if="data.showAllocationItemEntry && ( transferItem.transfer_status == <?php echo TRANSFER_PENDING;?> )">
 				<button class="btn btn-default" type="button" ng-if="data.selectedCategory.id == 3 && data.editMode == 'transfer'" ng-click="showTurnoverItems()">Select turnover items...</button>
+				<button class="btn btn-default" type="button" ng-if="data.selectedCategory.id == 8 && data.editMode == 'externalTransfer'" ng-click="showSalesCollectionItems()">Select sales collection items...</button>
 			</div>
 		</div>
 		<table class="table table-condensed">
 			<thead>
 				<tr>
 					<th class="text-center" style="width: 50px;">Row</th>
-					<th class="text-left">Item</th>
-					<th class="text-center" style="width: 100px;">Quantity</th>
-					<th class="text-center" style="width: 100px;"
+					<th class="text-center">Item</th>
+					<th class="text-center">Category</th>
+					<th class="text-right" style="width: 100px;">Quantity</th>
+					<th class="text-right" style="width: 100px;"
 							ng-if="['receipt', 'externalReceipt', 'view' ].indexOf( data.editMode ) != -1">Received</th>
-					<th class="text-left">Category</th>
-					<th class="text-left">Remarks</th>
+					<th class="text-right">Total</th>
+					<th class="text-center">Remarks</th>
 					<th class="text-center" ng-if="[ 'view', 'receipt' ].indexOf( data.editMode ) == -1">Void</th>
 				</tr>
 			</thead>
@@ -154,8 +156,10 @@
 						}">
 					<td class="text-center">{{ $index + 1 }}</td>
 					<td class="text-left">{{ row.item_name }}</td>
-					<td class="text-center">{{ row.quantity | number }}</td>
-					<td class="text-center"
+					<td class="text-left">{{ row.cat_description + ( row.allocation_cat_description ? ' - ' + row.allocation_cat_description : '' )
+							+ ( row.transfer_cat_description ? ' - ' + row.transfer_cat_description : '' ) }}</td>
+					<td class="text-right">{{ row.quantity | number }}</td>
+					<td class="text-right"
 							ng-if="[ 'receipt', 'externalReceipt', 'view' ].indexOf( data.editMode ) != -1">
 						<input type="number" class="form-control"
 							ng-model="row.quantity_received"
@@ -164,8 +168,8 @@
 							{{ row.quantity_received == null ? '---' : ( row.quantity_received | number ) }}
 						</span>
 					</td>
-					<td class="text-left">{{ row.cat_description + ( row.allocation_cat_description ? ' - ' + row.allocation_cat_description : '' )
-							+ ( row.transfer_cat_description ? ' - ' + row.transfer_cat_description : '' ) }}</td>
+					<td class="text-right">{{ row.total_amount | number: ( row.item_class == 'cash' ? 2 : 0 ) }}
+					</td>
 					<td class="text-left">{{ row.remarks }}</td>
 					<td class="text-center" ng-if="[ 'view', 'receipt' ].indexOf( data.editMode ) == -1">
 						<a href
@@ -212,14 +216,7 @@
 						min="1"
 						ng-keypress="addTransferItem( $event )">
 			</div>
-			<div class="form-group col-sm-12 col-md-6 col-lg-3" ng-if="data.showCategory">
-				<label class="control-label">Category</label>
-				<select class="form-control"
-						ng-model="input.category"
-						ng-options="category as category.cat_description for category in ( input.inventoryItem.categories | filter:{ cat_module: 'Transfer' }:true ) track by category.id">
-				</select>
-			</div>
-			<div class="form-group" ng-class="{ 'col-sm-12 col-md-6 col-lg-3': data.showCategory, 'col-sm-12 col-md-6 col-lg-6': !data.showCategory }">
+			<div class="form-group col-sm-12 col-md-6 col-lg-6">
 				<label class="control-label">Remarks</label>
 				<input type="text" class="form-control"
 						ng-model="input.remarks"

@@ -414,6 +414,7 @@ class Installer extends CI_Controller {
 					receipt_datetime DATETIME NULL,
 					receipt_user_id INTEGER NULL,
 					transfer_tvm_id VARCHAR(50) NULL,
+					transfer_init_shift_id INTEGER NOT NULL,
 					transfer_status SMALLINT NOT NULL DEFAULT 1,
 					date_created DATETIME NOT NULL,
 					date_modified TIMESTAMP NOT NULL,
@@ -438,7 +439,8 @@ class Installer extends CI_Controller {
 					FOREIGN KEY transfers_receipt_user_fk (receipt_user_id) REFERENCES users (id)
 						ON UPDATE CASCADE
 						ON DELETE SET NULL,
-					INDEX transfer_date_status_ndx ( transfer_datetime, transfer_status )
+					INDEX transfers_main_ndx ( transfer_datetime, transfer_category, origin_id, destination_id ),
+					INDEX transfers_date_status_ndx ( transfer_datetime, transfer_status )
 				)
 				ENGINE=InnoDB" );
 
@@ -1561,6 +1563,16 @@ class Installer extends CI_Controller {
 						'cat_machine'     => NULL,
 						'cat_status'      => 1
 					),
+					array(
+						'cat_name'        => 'RepCFund',
+						'cat_description' => 'Replenish TVM Change Fund',
+						'cat_module'      => 'Transfer',
+						'cat_ticket'      => 0,
+						'cat_cash'        => 1,
+						'cat_teller'      => NULL,
+						'cat_machine'     => NULL,
+						'cat_status'      => 1
+					),
 
 					// Adjustment categories
 					array(
@@ -2030,6 +2042,7 @@ class Installer extends CI_Controller {
 					array( 'Php1 Coin', 'BankDep' ),
 					array( 'Php1 Coin', 'AddTVMIR' ),
 					array( 'Php1 Coin', 'IssueTVMIR' ),
+					array( 'Php1 Coin', 'RepCFund' ),
 					array( 'Php1 Coin', 'Adjust' ),
 					array( 'Php1 Coin', 'CAAlloc' ),
 					array( 'Php1 Coin', 'SalesColl' ),
@@ -2045,6 +2058,7 @@ class Installer extends CI_Controller {
 					array( 'Php0.25 Coin', 'BankDep' ),
 					array( 'Php0.25 Coin', 'AddTVMIR' ),
 					array( 'Php0.25 Coin', 'IssueTVMIR' ),
+					array( 'Php0.25 Coin', 'RepCFund' ),
 					array( 'Php0.25 Coin', 'Adjust' ),
 					array( 'Php0.25 Coin', 'SalesColl' ),
 					array( 'Php0.25 Coin', 'CFundRet' ),
@@ -2056,6 +2070,7 @@ class Installer extends CI_Controller {
 					array( 'Php5 Coin', 'BankDep' ),
 					array( 'Php5 Coin', 'AddTVMIR' ),
 					array( 'Php5 Coin', 'IssueTVMIR' ),
+					array( 'Php5 Coin', 'RepCFund' ),
 					array( 'Php5 Coin', 'Adjust' ),
 					array( 'Php5 Coin', 'CAAlloc' ),
 					array( 'Php5 Coin', 'SalesColl' ),
@@ -2071,6 +2086,7 @@ class Installer extends CI_Controller {
 					array( 'Php10 Coin', 'BankDep' ),
 					array( 'Php10 Coin', 'AddTVMIR' ),
 					array( 'Php10 Coin', 'IssueTVMIR' ),
+					array( 'Php10 Coin', 'RepCFund' ),
 					array( 'Php10 Coin', 'Adjust' ),
 					array( 'Php10 Coin', 'CAAlloc' ),
 					array( 'Php10 Coin', 'SalesColl' ),
@@ -2084,6 +2100,7 @@ class Installer extends CI_Controller {
 					array( 'Php20 Bill', 'BankDep' ),
 					array( 'Php20 Bill', 'AddTVMIR' ),
 					array( 'Php20 Bill', 'IssueTVMIR' ),
+					array( 'Php20 Bill', 'RepCFund' ),
 					array( 'Php20 Bill', 'CSCApp' ),
 					array( 'Php20 Bill', 'Adjust' ),
 					array( 'Php20 Bill', 'SalesColl' ),
@@ -2095,6 +2112,7 @@ class Installer extends CI_Controller {
 					array( 'Php50 Bill', 'BankDep' ),
 					array( 'Php50 Bill', 'AddTVMIR' ),
 					array( 'Php50 Bill', 'IssueTVMIR' ),
+					array( 'Php50 Bill', 'RepCFund' ),
 					array( 'Php50 Bill', 'Adjust' ),
 					array( 'Php50 Bill', 'SalesColl' ),
 					array( 'Php50 Bill', 'CFundRet' ),
@@ -2105,6 +2123,7 @@ class Installer extends CI_Controller {
 					array( 'Php100 Bill', 'BankDep' ),
 					array( 'Php100 Bill', 'AddTVMIR' ),
 					array( 'Php100 Bill', 'IssueTVMIR' ),
+					array( 'Php100 Bill', 'RepCFund' ),
 					array( 'Php100 Bill', 'Adjust' ),
 					array( 'Php100 Bill', 'SalesColl' ),
 					array( 'Php100 Bill', 'CFundRet' ),
@@ -2115,6 +2134,7 @@ class Installer extends CI_Controller {
 					array( 'Php200 Bill', 'BankDep' ),
 					array( 'Php200 Bill', 'AddTVMIR' ),
 					array( 'Php200 Bill', 'IssueTVMIR' ),
+					array( 'Php200 Bill', 'RepCFund' ),
 					array( 'Php200 Bill', 'Adjust' ),
 					array( 'Php200 Bill', 'SalesColl' ),
 					array( 'Php200 Bill', 'CFundRet' ),
@@ -2125,6 +2145,7 @@ class Installer extends CI_Controller {
 					array( 'Php500 Bill', 'BankDep' ),
 					array( 'Php500 Bill', 'AddTVMIR' ),
 					array( 'Php500 Bill', 'IssueTVMIR' ),
+					array( 'Php500 Bill', 'RepCFund' ),
 					array( 'Php500 Bill', 'Adjust' ),
 					array( 'Php500 Bill', 'SalesColl' ),
 					array( 'Php500 Bill', 'CFundRet' ),
@@ -2135,6 +2156,7 @@ class Installer extends CI_Controller {
 					array( 'Php1000 Bill', 'BankDep' ),
 					array( 'Php1000 Bill', 'AddTVMIR' ),
 					array( 'Php1000 Bill', 'IssueTVMIR' ),
+					array( 'Php1000 Bill', 'RepCFund' ),
 					array( 'Php1000 Bill', 'Adjust' ),
 					array( 'Php1000 Bill', 'SalesColl' ),
 					array( 'Php1000 Bill', 'CFundRet' ),
