@@ -1159,6 +1159,43 @@ class Api_v1 extends MY_Controller {
 								if( $new_store->is_member( current_user( TRUE ) ) || TRUE )
 								{
 									$this->session->current_store_id = $new_store->get( 'id' );
+									$inventory = $new_store->get_items();
+									$inventory_data = array();
+									$additional_fields = array(
+										'item_name' => array( 'type' => 'string' ),
+										'item_class' => array( 'type' => 'string' ),
+										'item_unit' => array( 'type' => 'string' ),
+										'item_group' => array( 'type' => 'string' ),
+										'item_description' => array( 'type' => 'string' ),
+										'base_item_id' => array( 'type' => 'integer' ),
+										'base_quantity' => array( 'type' => 'integer' ),
+										'iprice_currency' => array( 'type' => 'string' ),
+										'iprice_unit_price' => array( 'type' => 'decimal' ),
+										'teller_allocatable' => array( 'type' => 'boolean' ),
+										'teller_remittable' => array( 'type' => 'boolean' ),
+										'teller_saleable' => array( 'type' => 'boolean' ),
+										'machine_allocatable' => array( 'type' => 'boolean' ),
+										'machine_remittable' => array( 'type' => 'boolean' ),
+										'machine_saleable' => array( 'type' => 'boolean' ),
+										'turnover_item' => array( 'type' => 'boolean' ),
+										'movement' => array( 'type' => 'integer' ),
+										'sti_beginning_balance' => array( 'type' => 'integer' ),
+										'sti_ending_balance' => array( 'type' => 'integer' ),
+										'parent_item_name' => array( 'type' => 'string' ),
+									);
+									foreach( $inventory as $item )
+									{
+										$item_data = $item->as_array( $additional_fields );
+										$item_data['categories'] = array();
+										$categories = $item->get_categories();
+										foreach( $categories as $category )
+										{
+											$item_data['categories'][] = $category->as_array();
+										}
+
+										$inventory_data[] = $item_data;
+									}
+
 									$shifts = $new_store->get_shifts();
 									$shifts_data = array();
 									foreach( $shifts as $shift )
@@ -1171,6 +1208,7 @@ class Api_v1 extends MY_Controller {
 
 									$this->_response( array(
 										'store' => $new_store->as_array(),
+										'inventory' => $inventory_data,
 										'shifts' => $shifts_data,
 										'shift_balance' => $shift_balance ? $shift_balance->as_array() : NULL,
 										'suggested_shift' => $suggested_shift ? $suggested_shift->as_array() : NULL

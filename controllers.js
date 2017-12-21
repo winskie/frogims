@@ -1108,6 +1108,9 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 		// Subscribe to notifications
 		notifications.subscribe( $scope, 'onChangeStore',  function( event, data )
 			{
+				$scope.widgets.transactionsItems = angular.copy( data.inventory );
+				$scope.widgets.transactionsItems.unshift({ id: null, item_name: 'All', item_description: 'All' });
+
 				$scope.widgets.transactionsShifts = angular.copy( session.data.storeShifts );
 				$scope.widgets.transactionsShifts.unshift({ id: null, shift_num: 'All', description: 'All' });
 

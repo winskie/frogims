@@ -39,7 +39,7 @@
 				<td></td>
 			</tr>
 			<tr ng-if="$ctrl.data.items.length == 0">
-				<td colspan="7">No remaining sales collection for deposit</td>
+				<td colspan="7" class="text-center bg-warning">No remaining sales collection for deposit</td>
 			</tr>
 		</tbody>
 	</table>

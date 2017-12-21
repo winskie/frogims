@@ -486,7 +486,7 @@ class Store extends Base_model
 		$ci->load->library( 'transaction' );
 		$business_date = param( $params, 'date' );
 		$shift = param( $params, 'shift' );
-		$item_id = param( $params, 'item' );
+		$inventory_id = param( $params, 'item' );
 		$transaction_type = param( $params, 'type' );
 
 		$limit = param( $params, 'limit' );
@@ -525,9 +525,9 @@ class Store extends Base_model
 			$ci->db->where( 'transaction_shift', $shift );
 		}
 
-		if( $item_id )
+		if( $inventory_id )
 		{
-			$ci->db->where( 'i.id', $item_id );
+			$ci->db->where( 'si.id', $inventory_id );
 		}
 
 		if( $transaction_type )
@@ -1440,7 +1440,7 @@ class Store extends Base_model
 
 		$business_date = param( $params, 'date' );
 		$shift = param( $params, 'shift' );
-		$item_id = param( $params, 'item' );
+		$inventory_id = param( $params, 'item' );
 		$transaction_type = param( $params, 'type' );
 
 		$ci->db->select( 't.id' );
@@ -1463,9 +1463,9 @@ class Store extends Base_model
 			$ci->db->where( 'transaction_shift', $shift );
 		}
 
-		if( $item_id )
+		if( $inventory_id )
 		{
-			$ci->db->where( 'i.id', $item_id );
+			$ci->db->where( 'si.id', $inventory_id );
 		}
 
 		if( $transaction_type )

@@ -40,21 +40,21 @@ $current_user = current_user();
 							<td class="text-center">{{ item.item_unit }}</td>
 							<td class="text-right">
 								<span>
-									{{ item.sti_beginning_balance ? ( ( item.sti_beginning_balance + item.movement ) | number ) : ( item.quantity === 0 ? '---' : ( item.quantity | number ) ) }}
+									{{ item.sti_beginning_balance ? ( ( item.sti_beginning_balance + item.movement ) | number: ( item.item_class == 'fund' ? 2 : 0 ) ) : ( item.quantity === 0 ? '---' : ( item.quantity | number: ( item.item_class == 'fund' ? 2 : 0 ) ) ) }}
 								</span>
 								 <span ng-if="data.inventoryView == 'system'">
-									({{ item.quantity === 0 ? '---' : ( item.quantity | number ) }})
+									({{ item.quantity === 0 ? '---' : ( item.quantity | number: ( item.item_class == 'fund' ? 2 : 0 ) ) }})
 								</span>
 							</td>
 							<td class="text-right">
-								{{ item.reserved === 0 ? '---' : ( item.reserved | number ) }}
+								{{ item.reserved === 0 ? '---' : ( item.reserved | number: ( item.item_class == 'fund' ? 2 : 0 ) ) }}
 							</td>
 							<td class="text-right">
 								<span>
-									{{ ( ( item.sti_beginning_balance ? ( item.sti_beginning_balance + item.movement ) : item.quantity ) - item.reserved ) === 0 ? '---' : ( ( ( item.sti_beginning_balance ? ( item.sti_beginning_balance + item.movement ) : item.quantity ) - item.reserved ) | number ) }}
+									{{ ( ( item.sti_beginning_balance ? ( item.sti_beginning_balance + item.movement ) : item.quantity ) - item.reserved ) === 0 ? '---' : ( ( ( item.sti_beginning_balance ? ( item.sti_beginning_balance + item.movement ) : item.quantity ) - item.reserved ) | number: ( item.item_class == 'fund' ? 2 : 0 ) ) }}
 								</span>
 								 <span ng-if="data.inventoryView == 'system'">
-									({{ ( item.quantity - item.reserved ) === 0 ? '---' : ( ( item.quantity - item.reserved ) | number ) }})
+									({{ ( item.quantity - item.reserved ) === 0 ? '---' : ( ( item.quantity - item.reserved ) | number: ( item.item_class == 'fund' ? 2 : 0 ) ) }})
 								</span>
 							</td>
 						</tr>
@@ -105,7 +105,7 @@ $current_user = current_user();
 								<label class="control-label">Item</label>
 								<select class="form-control"
 										ng-model="filters.transactions.item"
-										ng-options="item as item.item_name for item in widgets.transactionsItems track by item.id">
+										ng-options="item as ( item.item_name + ( item.parent_item_name ? ( ' &laquo' + item.parent_item_name + ' &raquo' ) : '' ) ) for item in widgets.transactionsItems track by item.id">
 								</select>
 							</div>
 						</div>

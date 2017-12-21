@@ -365,11 +365,12 @@ angular.module( 'appServices' ).service( 'session', [ '$http', '$q', '$filter', 
 							var d = response.data.data;
 
 							me.data.currentStore = d.store;
+							me.data.items = d.inventory;
 							me.data.storeShifts = d.shifts;
 							me.data.currentShift = d.suggested_shift;
 							me.data.shiftBalance = d.shift_balance;
 
-							notifications.notify( 'onChangeStore' );
+							notifications.notify( 'onChangeStore', d );
 							deferred.resolve( d );
 						}
 						else
@@ -898,7 +899,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/transactions',
 					params: {
 						date: $filter( 'date' )( me.filters.transactions.date, 'yyyy-MM-dd' ),
-						item: me.filters.transactions.item ? me.filters.transactions.item.item_id : null,
+						item: me.filters.transactions.item ? me.filters.transactions.item.id : null,
 						type: me.filters.transactions.type ? me.filters.transactions.type.id : null,
 						shift: me.filters.transactions.shift ? me.filters.transactions.shift.id : null,
 						page: me.pagination.transactions ? me.pagination.transactions : null,
@@ -1979,6 +1980,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 		// Refresh
 		me.refresh = function( currentStoreId, group )
 			{
+				var deferred = $q.defer();
 				switch( group )
 				{
 					case 'shiftTurnovers':
@@ -2050,6 +2052,9 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 						me.getTVMReadings( currentStoreId );
 						me.getShiftDetailCashReports( currentStoreId );
 				}
+				deferred.resolve();
+
+				return deferred.promise;
 			};
 
 		me.getPreviousShift = function( date, shiftId )
