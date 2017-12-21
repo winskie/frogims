@@ -1108,66 +1108,115 @@ class Store extends Base_model
 	}
 
 
-	public function get_sales_collection_items( $params = array() )
+	public function available_sales_collection( $params = array() )
 	{
 		$ci =& get_instance();
-
-		$business_date = param( $params, 'date' );
-		$shift = param( $params, 'shift' );
-		$status = param( $params, 'status' );
-		$limit = param( $params, 'limit' );
-		$page = param( $params, 'page', 1 );
-		$order = param( $params, 'order', 'a.business_date ASC, shift_num ASC, a.id ASC, ai.id ASC' );
-
 		$ci->load->library( 'category' );
 		$Category = new Category();
 		$sales_collection_category = $Category->get_by_name( 'SalesColl' );
 
-		$transfer_item_statuses = array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED );
+		$business_date = param( $params, 'date' );
+		$shift_id = param( $params, 'shift' );
+		$limit = param( $params, 'limit' );
+		$page = param( $params, 'page', 1 );
+		$order = param( $params, 'order', 'allocation_id ASC, item_id DESC' );
 
-		$sql = 'SELECT
-							s.shift_num,
-							a.id AS source_id, a.assignee_type, a.assignee,
-							i.id AS item_id, i.item_name, i.item_description, i.item_class,
-							c.id AS transfer_item_category_id, c.cat_description,
-							ai.allocated_quantity AS quantity,
-							ip.iprice_unit_price AS unit_price,
-							ai.allocated_quantity * ip.iprice_unit_price AS total_amount,
-							ai.id AS allocation_item_id,
-							ti.id AS bank_transfer_id
-						FROM allocations AS a
-						LEFT JOIN allocation_items AS ai
-							ON ai.allocation_id = a.id
-						LEFT JOIN shifts AS s
-							ON s.id = ai.cashier_shift_id
+		$sql = "SELECT
+								sales.allocation_id, sales.assignee, sales.assignee_type,
+								sales.allocated_item_id AS item_id,
+								i.item_name, i.item_description,
+								s.shift_num,
+								c.cat_description,
+								(sales.quantity - COALESCE(tvmir.quantity, 0) - COALESCE(cfund.quantity, 0) - COALESCE(deposit.quantity, 0)) AS quantity,
+								(sales.quantity - COALESCE(tvmir.quantity, 0) - COALESCE(cfund.quantity, 0) - COALESCE(deposit.quantity, 0)) * ip.iprice_unit_price AS total_amount,
+								deposit.quantity AS deposit_quantity
+						FROM (
+							SELECT
+								a.id AS allocation_id, a.assignee, a.assignee_type,
+								ai.allocated_item_id, ai.cashier_shift_id, ai.allocation_category_id,
+								SUM( ai.allocated_quantity ) AS quantity
+							FROM allocations AS a
+							LEFT JOIN allocation_items AS ai
+								ON ai.allocation_id = a.id
+							LEFT JOIN items AS i
+								ON i.id = ai.allocated_item_id
+							WHERE
+								a.business_date = '".$business_date."'
+								AND a.store_id = ".$this->id."
+								AND ai.cashier_shift_id = ".$shift_id."
+								AND ai.allocation_item_type = ".ALLOCATION_ITEM_TYPE_REMITTANCE."
+								AND i.item_class = 'cash'
+								AND ai.allocation_category_id = ".$sales_collection_category->get( 'id' )."
+								AND NOT ai.allocation_item_status = ".REMITTANCE_ITEM_VOIDED."
+							GROUP BY a.id, a.assignee, a.assignee_type, ai.allocated_item_id, ai.cashier_shift_id, ai.allocation_category_id
+						) AS sales
+						LEFT JOIN (
+							SELECT
+								t.transfer_tvm_id, 2 AS assignee_type,
+								ti.item_id,
+								SUM( ti.quantity ) AS quantity
+							FROM transfers AS t
+							LEFT JOIN transfer_items AS ti
+								ON ti.transfer_id = t.id
+							WHERE
+								t.transfer_datetime BETWEEN '".$business_date." 00:00:00' AND '".$business_date." 23:59:59'
+								AND t.origin_id = ".$this->id."
+								AND t.sender_shift = ".$shift_id."
+								AND t.transfer_category = ".TRANSFER_CATEGORY_REPLENISH_TVM_CFUND."
+								AND NOT ti.transfer_item_status IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")
+						) AS cfund
+							ON cfund.item_id = sales.allocated_item_id AND cfund.transfer_tvm_id = sales.assignee AND cfund.assignee_type = sales.assignee_type
+						LEFT JOIN (
+							SELECT
+								t.transfer_tvm_id, 2 AS assignee_type,
+								ti.item_id,
+								SUM( ti.quantity ) AS quantity
+							FROM transfers AS t
+							LEFT JOIN transfer_items AS ti
+								ON ti.transfer_id = t.id
+							WHERE
+								t.transfer_datetime BETWEEN '".$business_date." 00:00:00' AND '".$business_date." 23:59:59'
+								AND t.origin_id = ".$this->id."
+								AND t.sender_shift = ".$shift_id."
+								AND t.transfer_category = ".TRANSFER_CATEGORY_ADD_TVMIR."
+								AND NOT ti.transfer_item_status IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")
+						) AS tvmir
+							ON tvmir.item_id = sales.allocated_item_id AND tvmir.transfer_tvm_id = sales.assignee AND tvmir.assignee_type = sales.assignee_type
+						LEFT JOIN (
+							SELECT
+								ti.transfer_item_allocation_id,
+								ti.item_id,
+								SUM( ti.quantity ) AS quantity
+							FROM transfers AS t
+							LEFT JOIN transfer_items AS ti
+								ON ti.transfer_id = t.id
+							WHERE
+								t.transfer_datetime BETWEEN '".$business_date." 00:00:00' AND '".$business_date." 23:59:59'
+								AND t.origin_id = ".$this->id."
+								AND t.sender_shift = ".$shift_id."
+								AND t.transfer_category = ".TRANSFER_CATEGORY_BANK_DEPOSIT."
+								AND NOT ti.transfer_item_status IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")
+							GROUP BY ti.transfer_item_allocation_id, ti.item_id
+						) AS deposit
+							ON deposit.transfer_item_allocation_id = sales.allocation_id AND deposit.item_id = sales.allocated_item_id
 						LEFT JOIN items AS i
-							ON i.id = ai.allocated_item_id
+							ON i.id = sales.allocated_item_id
 						LEFT JOIN item_prices AS ip
-							ON ip.iprice_item_id = i.id
+							ON ip.iprice_item_id = sales.allocated_item_id
+						LEFT JOIN shifts AS s
+							ON s.id = sales.cashier_shift_id
 						LEFT JOIN categories AS c
-							ON c.id = ai.allocation_category_id
-						LEFT JOIN transfer_items AS ti
-							ON ti.transfer_item_allocation_item_id = ai.id AND ti.transfer_item_status NOT IN ( '.implode( ', ', $transfer_item_statuses).' )
-
-						WHERE
-							ai.cashier_shift_id = ?
-							AND ai.allocation_item_type = 2
-							AND ai.allocation_category_id = ?
-							AND i.item_class = "cash"';
-
-		$params = array( current_shift( TRUE ), $sales_collection_category->get( 'id' ) );
-
-		if( $business_date )
-		{ // TODO: secure this parameter
-			$sql .= " AND a.business_date = ?";
-			$params[] = $business_date;
-		}
-
+							ON c.id = sales.allocation_category_id";
+		$sql .= ' HAVING quantity <> 0';
 		$sql .= ' ORDER BY '.$order;
+		if( $limit )
+		{
+			$sql .= ' LIMIT BY '.$page.', '.$limit;
+		}
+		$query = $ci->db->query( $sql );
+		$r = $query->result_array();
 
-		$remittances = $ci->db->query( $sql, $params );
-
-		return $remittances->result_array();
+		return $r;
 	}
 
 

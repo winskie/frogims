@@ -438,6 +438,12 @@ class Shift_turnover extends Base_model
 	{
 		$ci =& get_instance();
 
+		// Do checks before allowing end of shift
+
+		// No unreplenished TVM change fund
+
+		// TVM readings present
+
 		$ci->db->trans_start();
 		$this->set( 'st_end_user_id', current_user( TRUE ) );
 		$this->set( 'st_status', SHIFT_TURNOVER_CLOSED );
@@ -723,17 +729,278 @@ class Shift_turnover extends Base_model
 		return $refunded_amount;
 	}
 
+	/**
+	 * Teller Sales additions
+	 */
+	public function teller_sales_additions()
+	{
+		$ci =& get_instance();
+
+		$ci->load->library( 'sales_item' );
+		$Sales_Item = new Sales_item();
+
+		$additions = array(
+			'excess_time' => 0.00,
+			'mismatch' => 0.00,
+			'lost_ticket' => 0.00,
+			'others' => 0.00 );
+
+		$excess_sitem = $Sales_Item->get_by_name( 'Excess Time' );
+		$mismatch_sitem = $Sales_Item->get_by_name( 'Mismatch' );
+		$lost_ticket_sitem = $Sales_Item->get_by_name( 'Payment for Lost Ticket' );
+		$addition_ids = array( $excess_sitem->get( 'id' ), $mismatch_sitem->get( 'id' ), $lost_ticket_sitem->get( 'id' ) );
+
+		$sql = "SELECT
+							SUM(IF(asi.alsale_sales_item_id = ".$excess_sitem->get( 'id' ).", asi.alsale_amount, NULL)) AS excess_time,
+							SUM(IF(asi.alsale_sales_item_id != ".$mismatch_sitem->get( 'id' ).", asi.alsale_amount, NULL)) AS mismatch,
+							SUM(IF(asi.alsale_sales_item_id != ".$lost_ticket_sitem->get( 'id' ).", asi.alsale_amount, NULL)) AS lost_ticket,
+							SUM(IF(asi.alsale_sales_item_id NOT IN (".implode( ',', $addition_ids )."), asi.alsale_amount, NULL)) AS others
+						FROM allocations AS a
+						LEFT JOIN allocation_sales_items AS asi
+							ON asi.alsale_allocation_id = a.id
+						LEFT JOIN sales_items AS si
+							ON si.id = asi.alsale_sales_item_id
+						WHERE
+							a.business_date = '".$this->st_from_date."'
+							AND a.store_id = ".$this->st_store_id."
+							AND a.assignee_type = ".ALLOCATION_ASSIGNEE_TELLER."
+							AND asi.alsale_shift_id = ".$this->st_from_shift_id."
+							AND si.slitem_mode = 1
+							AND NOT asi.alsale_sales_item_status = ".SALES_ITEM_VOIDED;
+
+		$query = $ci->db->query( $sql );
+		$r = $query->row_array();
+
+		$additions['excess_time'] += $r['excess_time'];
+		$additions['mismatch'] += $r['mismatch'];
+		$additions['lost_ticket'] += $r['lost_ticket'];
+		$additions['others'] += $r['others'];
+
+		return $additions;
+	}
+
+	/**
+	 * Teller Sales deductions
+	 */
+	public function teller_sales_deductions()
+	{
+		$ci =& get_instance();
+
+		$ci->load->library( 'sales_item' );
+		$Sales_Item = new Sales_item();
+
+		$deductions = array(
+			'tcerf' => 0.00,
+			'others' => 0.00 );
+
+		$tcerf_sales_item = $Sales_Item->get_by_name( 'TCERF' );
+		$sql = "SELECT
+							SUM(IF(asi.alsale_sales_item_id = ".$tcerf_sales_item->get( 'id' ).", asi.alsale_amount, NULL)) AS tcerf,
+							SUM(IF(asi.alsale_sales_item_id != ".$tcerf_sales_item->get( 'id' ).", asi.alsale_amount, NULL)) AS others
+						FROM allocations AS a
+						LEFT JOIN allocation_sales_items AS asi
+							ON asi.alsale_allocation_id = a.id
+						LEFT JOIN sales_items AS si
+							ON si.id = asi.alsale_sales_item_id
+						WHERE
+							a.business_date = '".$this->st_from_date."'
+							AND a.store_id = ".$this->st_store_id."
+							AND a.assignee_type = ".ALLOCATION_ASSIGNEE_TELLER."
+							AND asi.alsale_shift_id = ".$this->st_from_shift_id."
+							AND si.slitem_mode = 0
+							AND NOT asi.alsale_sales_item_status = ".SALES_ITEM_VOIDED;
+
+		$query = $ci->db->query( $sql );
+		$r = $query->row_array();
+
+		$deductions['tcerf'] += $r['tcerf'];
+		$deductions['others'] += $r['others'];
+
+		return $deductions;
+	}
+
+	/**
+	 * Returned Change Fund
+	 */
+	public function returned_change_fund()
+	{
+		$ci =& get_instance();
+
+		$ci->load->library( 'category' );
+		$Category = new Category();
+
+		$change_fund_return_cat = $Category->get_by_name( 'CFundRet' );
+
+		$amount = array(
+			'teller' => 0.00,
+			'TVM' => 0.00 );
+
+		// Station Teller
+		$sql = "SELECT
+							SUM(ai.allocated_quantity * ip.iprice_unit_price) AS amount
+						FROM allocations AS a
+						LEFT JOIN allocation_items AS ai
+							ON ai.allocation_id = a.id
+						LEFT JOIN items AS i
+							ON i.id = ai.allocated_item_id
+						LEFT JOIN item_prices AS ip
+							ON ip.iprice_item_id = i.id
+						WHERE
+							a.business_date = '".$this->st_from_date."'
+							AND a.store_id = ".$this->st_store_id."
+							AND a.assignee_type = ".ALLOCATION_ASSIGNEE_TELLER."
+							AND ai.cashier_shift_id = ".$this->st_from_shift_id."
+							AND ai.allocation_item_type = ".ALLOCATION_ITEM_TYPE_REMITTANCE."
+							AND i.item_class = 'cash'
+							AND ai.allocation_category_id = ".$change_fund_return_cat->get( 'id' )."
+							AND NOT ai.allocation_item_status = ".REMITTANCE_ITEM_VOIDED;
+		$query = $ci->db->query( $sql );
+		$r = $query->row_array();
+
+		$amount['teller'] += $r['amount'];
+
+		// TVM
+		$sql = "SELECT
+							SUM( ti.quantity * ip.iprice_unit_price ) AS amount
+						FROM transfers t
+						LEFT JOIN transfer_items ti
+							ON ti.transfer_id = t.id
+						LEFT JOIN items i
+							ON i.id = ti.item_id
+						LEFT JOIN item_prices ip
+							ON ip.iprice_item_id = i.id
+						WHERE
+							t.transfer_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND t.origin_id = ".$this->st_store_id."
+							AND t.sender_shift = ".$this->st_from_shift_id."
+							AND t.transfer_category = ".TRANSFER_CATEGORY_REPLENISH_TVM_CFUND."
+							AND NOT ti.transfer_item_status IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")";
+		$query = $ci->db->query( $sql );
+		$r = $query->row_array();
+
+		$amount['TVM'] += $r['amount'];
+
+		return $amount;
+	}
+
+	/**
+	 * Deposit to Bank
+	 */
+	public function deposited_to_bank()
+	{
+		$ci =& get_instance();
+
+		$sql = "SELECT
+							t.transfer_init_shift_id, s.shift_num,
+							SUM( ti.quantity * ip.iprice_unit_price ) AS amount
+						FROM transfers t
+						LEFT JOIN transfer_items ti
+							ON ti.transfer_id = t.id
+						LEFT JOIN items i
+							ON i.id = ti.item_id
+						LEFT JOIN item_prices ip
+							ON ip.iprice_item_id = i.id
+						LEFT JOIN shifts AS s
+							ON s.id = t.transfer_init_shift_id
+						WHERE
+							t.transfer_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND t.origin_id = ".$this->st_store_id."
+							AND t.sender_shift = ".$this->st_from_shift_id."
+							AND t.transfer_category = ".TRANSFER_CATEGORY_BANK_DEPOSIT."
+							AND t.transfer_status = ".TRANSFER_APPROVED."
+							AND NOT ti.transfer_item_status IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")
+						GROUP BY t.transfer_init_shift_id, s.shift_num";
+		$query = $ci->db->query( $sql );
+		$r = $query->result_array();
+
+		$deposits = array();
+		foreach( $r as $row )
+		{
+			$deposits[$row['shift_num']] = $row['amount'];
+		}
+
+		return $deposits;
+	}
 
 	/**
 	 * Get amount for deposit to bank
 	 *
 	 * TVM: Gross Sales - Hopper/Change Fund - Refunded TVMIR
+	 * Teller: Gross Sales - TCERF - Other deductions + Other additions
 	 */
-	public function for_deposit_to_bank()
+	public function gross_sales_deposit()
 	{
 		$ci =& get_instance();
+		$ci->load->library( 'category' );
+		$Category = new Category();
+		$sales_collection_category = $Category->get_by_name( 'SalesColl' );
 
-		return $amount;
+		$sql = "SELECT
+							a.assignee_type,
+							IF(ti.id IS NULL, false, true) AS for_deposit,
+							SUM( ai.allocated_quantity * ip.iprice_unit_price ) AS amount
+						FROM allocations AS a
+						LEFT JOIN allocation_items AS ai
+							ON ai.allocation_id = a.id
+						LEFT JOIN items AS i
+							ON i.id = ai.allocated_item_id
+						LEFT JOIN item_prices AS ip
+							ON ip.iprice_item_id = i.id
+						LEFT JOIN transfer_items AS ti
+							ON ti.transfer_item_allocation_item_id = ai.id
+						WHERE
+							a.business_date = '".$this->st_from_date."'
+							AND a.store_id = ".$this->st_store_id."
+							AND ai.cashier_shift_id = ".$this->st_from_shift_id."
+							AND ai.allocation_item_type = ".ALLOCATION_ITEM_TYPE_REMITTANCE."
+							AND i.item_class = 'cash'
+							AND ai.allocation_category_id = ".$sales_collection_category->get( 'id' )."
+							AND NOT ai.allocation_item_status = ".REMITTANCE_ITEM_VOIDED."
+						GROUP BY for_deposit, a.assignee_type";
+		$query = $ci->db->query( $sql );
+		$r = $query->result_array();
+
+		$sales = array(
+			'deposit' => array(
+				'teller' => 0.00,
+				'TVM' => 0.00 ),
+			'sales' => array(
+				'teller' => 0.00,
+				'TVM' => 0.00 ) );
+
+		foreach( $r as $row )
+		{
+			if( $row['for_deposit'] )
+			{
+				switch( $row['assignee_type'] )
+				{
+					case ALLOCATION_ASSIGNEE_TELLER:
+						$sales['deposit']['teller'] += $row['amount'];
+						break;
+
+					case ALLOCATION_ASSIGNEE_MACHINE:
+						$sales['deposit']['TVM'] += $row['amount'];
+						break;
+				}
+			}
+			else
+			{
+				switch( $row['assignee_type'] )
+				{
+					case ALLOCATION_ASSIGNEE_TELLER:
+						$sales['sales']['teller'] += $row['amount'];
+						break;
+
+					case ALLOCATION_ASSIGNEE_MACHINE:
+						$sales['sales']['TVM'] += $row['amount'];
+						break;
+				}
+			}
+		}
+
+		// Deduct TVMIR and TVM Change Fund Return
+
+		return $sales;
 	}
 
 
@@ -775,36 +1042,38 @@ class Shift_turnover extends Base_model
 
 		$refunded_tvmir = $this->total_tvmir_refund();
 
-		// TCERF deduction
-		$tcerf_sales_item = $Sales_Item->get_by_name( 'TCERF' );
-		$sql = "SELECT
-							SUM(IF(asi.alsale_sales_item_id = ?, asi.alsale_amount, NULL)) AS amount
-						FROM allocations AS a
-						LEFT JOIN allocation_sales_items AS asi
-							ON asi.alsale_allocation_id = a.id
-						WHERE
-							a.business_date = ?
-							AND a.store_id = ?
-							AND a.assignee_type = 1
-							AND asi.alsale_shift_id = ?
-							AND NOT asi.alsale_sales_item_status = ".SALES_ITEM_VOIDED;
-		$sql_params = array( $tcerf_sales_item->get( 'id' ), $this->st_from_date, $this->st_store_id, $this->st_from_shift_id );
-		$query = $ci->db->query( $sql, $sql_params );
-		$tcerf = $query->row_array();
+		$deductions = $this->teller_sales_deductions();
+		$additions = $this->teller_sales_additions();
 
-		// Returned Change Fund - TVM
+		$returned_change_fund = $this->returned_change_fund();
 
+		$deposits = $this->deposited_to_bank();
 
+		// Add: For deposit to bank
+		$sales = $this->gross_sales_deposit();
+		$tvm_net_sales = $sales['deposit']['TVM'] + $sales['sales']['TVM'] - $returned_change_fund['TVM'] - $refunded_tvmir;
+
+		/*
 		return array(
 				'balance_per_book' => array(
 					'beginning_balance' => $this->beginning_balance(),
 					'tvm_gross_sales' => $total_gross_sales['TVM'],
+					'tvm_net_sales' => $tvm_net_sales,
 					'teller_gross_sales' => $total_gross_sales['teller'],
 					'hopper_replenishment' => $hopper_replenishment,
 					'TVMIR_refund' => $refunded_tvmir,
-					'for_deposit' => ( $total_gross_sales['TVM'] - ( $previous_hopper_reading + $hopper_replenishment - $current_hopper_reading ) - $refunded_tvmir )
-							+ ( $total_gross_sales['teller'] - $tcerf['amount'] )
-				)
-			);
+					'returned_change_fund' => $returned_change_fund,
+					'deposits' => $deposits,
+					'sales' => $sales ) );
+		*/
+		$available_sales = $this->available_sales_collection();
+		foreach( $available_sales as $k => $v )
+		{
+			echo $k.'<br />';
+			var_dump( $v );
+			echo '<br /><br />';
+		}
+
+		return NULL;
 	}
 }

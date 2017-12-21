@@ -402,6 +402,7 @@ CREATE TABLE IF NOT EXISTS transfers
 )
 ENGINE=InnoDB;
 
+
 CREATE TABLE IF NOT EXISTS transfer_items
 (
 	id INTEGER AUTO_INCREMENT NOT NULL,
@@ -412,8 +413,9 @@ CREATE TABLE IF NOT EXISTS transfer_items
 	quantity_received INTEGER NULL DEFAULT NULL,
 	remarks TEXT NULL DEFAULT NULL,
 	transfer_item_status SMALLINT NOT NULL DEFAULT 1,
-	transfer_item_allocation_item_id INTEGER NULL DEFAULT NULL,
-	transfer_item_transfer_item_id INTEGER NULL DEFAULT NULL,
+	transfer_item_allocation_id INTEGER NULL DEFAULT NULL, /* Used in tracking bank deposit */
+	transfer_item_allocation_item_id INTEGER NULL DEFAULT NULL, /* Used in tracking shift ticket turnovers */
+	transfer_item_transfer_item_id INTEGER NULL DEFAULT NULL, /* Used in tracking blackbox receipts */
 	date_created DATETIME NOT NULL,
 	date_modified TIMESTAMP NOT NULL,
 	created_by INTEGER NOT NULL,

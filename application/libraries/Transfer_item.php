@@ -10,6 +10,7 @@ class Transfer_item extends Base_model {
 	protected $quantity_received;
 	protected $remarks;
 	protected $transfer_item_status;
+	protected $transfer_item_allocation_id;
 	protected $transfer_item_allocation_item_id;
 	protected $transfer_item_transfer_item_id;
 
@@ -42,6 +43,7 @@ class Transfer_item extends Base_model {
 			'quantity_received' => array( 'type' => 'integer' ),
 			'remarks' => array( 'type' => 'string' ),
 			'transfer_item_status' => array( 'type' => 'integer' ),
+			'transfer_item_allocation_id' => array( 'type' => 'integer' ),
 			'transfer_item_allocation_item_id' => array( 'type' => 'integer' ),
 			'transfer_item_transfer_item_id' => array( 'type' => 'integer' )
 		);

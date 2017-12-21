@@ -615,6 +615,7 @@ angular.module( 'coreModels' ).factory( 'Transfer', [ '$http', '$q', '$filter', 
 							quantity_received: items[i].quantity_received,
 							remarks: items[i].remarks,
 							transfer_item_status: items[i].transfer_item_status,
+							transfer_item_allocation_id: items[i].transfer_item_allocation_id,
 							transfer_item_allocation_item_id: items[i].transfer_item_allocation_item_id,
 							transfer_item_transfer_item_id: items[i].transfer_item_transfer_item_id
 						};
@@ -710,6 +711,7 @@ angular.module( 'coreModels' ).factory( 'TransferItem', [ '$http', '$q', '$filte
 		var quantity_received;
 		var remarks;
 		var transfer_item_status;
+		var transfer_item_allocation_id;
 		var transfer_item_allocation_item_id;
 		var transfer_item_transfer_item_id;
 
@@ -743,6 +745,7 @@ angular.module( 'coreModels' ).factory( 'TransferItem', [ '$http', '$q', '$filte
 				me.quantity_received = null;
 				me.remarks = null;
 				me.transfer_item_status = 1;
+				me.transfer_item_allocation_id = null;
 				me.transfer_item_allocation_item_id = null;
 				me.transfer_item_transfer_item_id = null;
 

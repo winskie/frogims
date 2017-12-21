@@ -571,6 +571,12 @@ class Transfer extends Base_model {
 					$parent_item_id = $tvmir_fund->get( 'item_id' );
 					break;
 
+				case TRANSFER_CATEGORY_REPLENISH_TVM_CFUND:
+					// Deduct from TVMIR Fund
+					$sales_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_SALES );
+					$parent_item_id = $sales_fund->get( 'item_id' );
+					break;
+
 				default:
 					// Deduct from Change Fund
 					if( $this->_save_action == 'transfer_approve' )
@@ -593,35 +599,35 @@ class Transfer extends Base_model {
 		{ // Update transfer record
 			if( $this->_check_data() )
 			{
-				foreach( $this->items as $item )
+				foreach( $this->items as $transfer_item )
 				{
-					if( array_key_exists( 'transfer_item_status', $item->db_changes ) )
+					if( array_key_exists( 'transfer_item_status', $transfer_item->db_changes ) )
 					{
 						if( in_array( $this->transfer_category, $no_reservation_categories ) )
 						{
 							continue;
 						}
 
-						if( $item->db_changes['transfer_item_status']  == TRANSFER_ITEM_SCHEDULED )
+						if( $transfer_item->db_changes['transfer_item_status']  == TRANSFER_ITEM_SCHEDULED )
 						{
-							$inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
-							$inventory->reserve( $item->get( 'quantity' ) );
-							if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $item->get( 'item_class' ) == 'cash' && ! empty( $parent_item_id ) )
+							$inventory = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ) );
+							$inventory->reserve( $transfer_item->get( 'quantity' ) );
+							if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $transfer_item->get( 'item_class' ) == 'cash' && ! empty( $parent_item_id ) )
 							{
-								$sub_inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ), $parent_item_id );
-								$sub_inventory->reserve( $item->get( 'quantity' ) );
+								$sub_inventory = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), $parent_item_id );
+								$sub_inventory->reserve( $transfer_item->get( 'quantity' ) );
 							}
 						}
-						elseif( in_array( $item->db_changes['transfer_item_status'], array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ) )
+						elseif( in_array( $transfer_item->db_changes['transfer_item_status'], array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ) )
 						{
-							if( $item->get( 'previousStatus' ) == TRANSFER_ITEM_SCHEDULED )
+							if( $transfer_item->get( 'previousStatus' ) == TRANSFER_ITEM_SCHEDULED )
 							{
-								$inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
-								$inventory->reserve( $item->get( 'quantity' ) * -1 );
-								if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $item->get( 'item_class' ) == 'cash' && ! empty( $parent_item_id ) )
+								$inventory = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ) );
+								$inventory->reserve( $transfer_item->get( 'quantity' ) * -1 );
+								if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $transfer_item->get( 'item_class' ) == 'cash' && ! empty( $parent_item_id ) )
 								{
-									$sub_inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ), $parent_item_id );
-									$sub_inventory->reserve( $item->get( 'quantity' ) * -1 );
+									$sub_inventory = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), $parent_item_id );
+									$sub_inventory->reserve( $transfer_item->get( 'quantity' ) * -1 );
 								}
 							}
 
@@ -632,26 +638,31 @@ class Transfer extends Base_model {
 						&& $this->db_changes['transfer_status'] == TRANSFER_PENDING_CANCELLED
 						&& $this->previousStatus == TRANSFER_PENDING )
 					{
-						if( !in_array( $item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ) )
+						if( !in_array( $transfer_item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ) )
 						{ // do not unreserved items that are already cancelled or voided
-							$inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ) );
-							$inventory->reserve( $item->get( 'quantity' ) * -1 );
+							$item = $transfer_item->get_item();
 							if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $item->get( 'item_class' ) == 'cash' && ! empty( $parent_item_id ) )
 							{
-								$sub_inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ), $parent_item_id );
-								$sub_inventory->reserve( $item->get( 'quantity' ) * -1 );
+								$sub_inventory = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), $parent_item_id );
+								$sub_inventory->reserve( $transfer_item->get( 'quantity' ) * -1 );
+							}
+
+							else
+							{
+								$inventory = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ) );
+								$inventory->reserve( $transfer_item->get( 'quantity' ) * -1 );
 							}
 						}
 					}
 
-					if( ! $item->get( 'id' ) )
+					if( ! $transfer_item->get( 'id' ) )
 					{
-						$item->set( 'transfer_id', $this->id );
+						$transfer_item->set( 'transfer_id', $this->id );
 					}
 
-					if( $item->db_changes )
+					if( $transfer_item->db_changes )
 					{
-						if( !$item->db_save() )
+						if( !$transfer_item->db_save() )
 						{
 							$ci->db->trans_rollback();
 							return FALSE;

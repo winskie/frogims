@@ -2163,7 +2163,7 @@ class Api_v1 extends MY_Controller {
 									}
 									break;
 
-								case 'sales_collection_items':
+								case 'available_sales_collection':
 									// Check permissions
 									if( !$current_user->check_permissions( 'allocations', 'view' ) )
 									{
@@ -2179,7 +2179,7 @@ class Api_v1 extends MY_Controller {
 												'limit' => param( $this->input->get(), 'limit' ),
 											);
 
-										$items = $store->get_sales_collection_items( $params );
+										$items = $store->available_sales_collection( $params );
 
 										$this->_response( array(
 											'items' => $items,

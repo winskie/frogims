@@ -1762,7 +1762,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 				var deferred = $q.defer();
 				$http({
 					method: 'GET',
-					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/sales_collection_items',
+					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/available_sales_collection',
 					params: {
 						date: $filter( 'date' )( date, 'yyyy-MM-dd' ),
 						shift: shift

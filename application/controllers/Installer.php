@@ -456,6 +456,7 @@ class Installer extends CI_Controller {
 					quantity_received INTEGER NULL DEFAULT NULL,
 					remarks TEXT NULL DEFAULT NULL,
 					transfer_item_status SMALLINT NOT NULL DEFAULT 1,
+					transfer_item_allocation_id INTEGER NULL DEFAULT NULL,
 					transfer_item_allocation_item_id INTEGER NULL DEFAULT NULL,
 					transfer_item_transfer_item_id INTEGER NULL DEFAULT NULL,
 					date_created DATETIME NOT NULL,

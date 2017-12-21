@@ -613,7 +613,9 @@ class Allocation extends Base_model {
 				}
 
 				// Transact remittances
-				if( ( $this->remittances || $this->cash_remittances ) && in_array( $this->allocation_status, $transact_status ) )
+				if( ( $this->remittances || $this->cash_remittances )
+						&& ( in_array( $this->allocation_status, $transact_status )
+								|| ( $this->allocation_status == ALLOCATION_SCHEDULED && $this->assignee_type == ALLOCATION_ASSIGNEE_MACHINE ) ) )
 				{
 					$this->_transact_remittance();
 				}

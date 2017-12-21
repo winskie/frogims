@@ -553,9 +553,11 @@ class Report extends MY_Controller {
 		$this->load->library( 'store' );
 		$this->load->library( 'shift' );
 		$this->load->library( 'category' );
+		$this->load->library( 'item' );
 		$Store = new Store();
 		$Shift = new Shift();
 		$Category = new Category();
+		$Item = new Item();
 
 		$business_date = param_type( $this->input->get( 'date' ), 'date', time() );
 		$store_id = param_type( $this->input->get( 'store' ), 'integer', current_store( TRUE ) );
@@ -571,6 +573,18 @@ class Report extends MY_Controller {
 		// Hopper Pullout
 		$hopper_category = $Category->get_by_name( 'HopAlloc' );
 		$sales_collection_category = $Category->get_by_name( 'SalesColl' );
+
+		$ticket_sales_cat = $Category->get_by_name( 'TktSales' );
+		$csc_issue_cat = $Category->get_by_name( 'CSCIssue' );
+		$sale_paid_exit_cat = $Category->get_by_name( 'SalePdExt' );
+		$sale_free_exit_cat = $Category->get_by_name( 'SaleFrExt' );
+		$sale_unconfirmed_cat = $Category->get_by_name( 'SaleUncfrm' );
+		$change_fund_return_cat =  $Category->get_by_name( 'CFundRet' );
+
+		$sjt_item = $Item->get_by_name( 'L2 SJT' );
+		$svc_item = $Item->get_by_name( 'SVC' );
+		$senior_item = $Item->get_by_name( 'Senior' );
+		$pwd_item = $Item->get_by_name( 'PWD' );
 
 		// Sales from TVM
 		$sql = "SELECT
@@ -792,21 +806,21 @@ class Report extends MY_Controller {
 							alloc_sales.gross_sales, alloc_sales.excess_time, alloc_sales.mismatch, alloc_sales.lost_ticket_payment, alloc_sales.other_penalties,
 							alloc_sales.tcerf, alloc_sales.other_deductions, alloc_sales.change_fund, alloc_sales.shortage, alloc_sales.overage,
 							alloc_sales.short_over,
-							COALESCE(alloc_sales.gross_sales, 0) - (COALESCE(alloc_sales.tcerf, 0)) AS net_sales,
-							COALESCE(alloc_sales.gross_sales, 0) - (COALESCE(alloc_sales.tcerf, 0)) + COALESCE(alloc_items.change_fund,0) AS cash_collection,
+							COALESCE(alloc_sales.gross_sales, 0) + (COALESCE(alloc_sales.tcerf, 0)) AS net_sales,
+							COALESCE(alloc_sales.gross_sales, 0) + (COALESCE(alloc_sales.tcerf, 0)) + COALESCE(alloc_items.change_fund,0) AS cash_collection,
 							afcs.afcs_total_sales
 						FROM allocations AS a
 
 						LEFT JOIN
 						(
 							SELECT a.id AS allocation_id,
-								SUM(IF(ai.allocated_item_id = 1 AND ai.allocation_category_id = 30, ai.allocated_quantity, NULL)) AS sold_sjt,
-								SUM(IF(ai.allocated_item_id = 6 AND ai.allocation_category_id = 30, ai.allocated_quantity, NULL)) AS sold_svc,
-								SUM(IF(ai.allocated_item_id IN (12,13) AND ai.allocation_category_id = 31, ai.allocated_quantity, NULL)) AS issued_csc,
-								SUM(IF(ai.allocated_item_id = 1 AND ai.allocation_category_id = 33, ai.allocated_quantity, NULL)) AS free_exit,
-								SUM(IF(ai.allocated_item_id = 1 AND ai.allocation_category_id = 32, ai.allocated_quantity, NULL)) AS paid_exit,
-								SUM(IF(ai.allocated_item_id = 1 AND ai.allocation_category_id = 34, ai.allocated_quantity, NULL)) AS unconfirmed,
-								SUM(IF(i.item_class = 'cash' AND ai.allocation_category_id = 27, ai.allocated_quantity * ip.iprice_unit_price, NULL )) AS change_fund
+								SUM(IF(ai.allocated_item_id = ".$sjt_item->get( 'id' )." AND ai.allocation_category_id = ".$ticket_sales_cat->get( 'id' ).", ai.allocated_quantity, NULL)) AS sold_sjt,
+								SUM(IF(ai.allocated_item_id = ".$svc_item->get( 'id' )." AND ai.allocation_category_id = ".$ticket_sales_cat->get( 'id' ).", ai.allocated_quantity, NULL)) AS sold_svc,
+								SUM(IF(ai.allocated_item_id IN (".implode( ', ', array( $senior_item->get( 'id' ), $pwd_item->get( 'id' ) ) ).") AND ai.allocation_category_id = ".$csc_issue_cat->get( 'id' ).", ai.allocated_quantity, NULL)) AS issued_csc,
+								SUM(IF(ai.allocated_item_id = ".$sjt_item->get( 'id' )." AND ai.allocation_category_id = ".$sale_free_exit_cat->get( 'id' ).", ai.allocated_quantity, NULL)) AS free_exit,
+								SUM(IF(ai.allocated_item_id = ".$sjt_item->get( 'id' )." AND ai.allocation_category_id = ".$sale_paid_exit_cat->get( 'id' ).", ai.allocated_quantity, NULL)) AS paid_exit,
+								SUM(IF(ai.allocated_item_id = ".$sjt_item->get( 'id' )." AND ai.allocation_category_id = ".$sale_unconfirmed_cat->get( 'id' ).", ai.allocated_quantity, NULL)) AS unconfirmed,
+								SUM(IF(i.item_class = 'cash' AND ai.allocation_category_id = ".$change_fund_return_cat->get( 'id' ).", ai.allocated_quantity * ip.iprice_unit_price, NULL )) AS change_fund
 							FROM allocations AS a
 							LEFT JOIN allocation_items AS ai
 								ON ai.allocation_id = a.id
@@ -817,7 +831,7 @@ class Report extends MY_Controller {
 							WHERE
 								a.business_date = ?
 								AND a.store_id = ?
-								AND a.assignee_type = 1
+								AND a.assignee_type = ".ALLOCATION_ASSIGNEE_TELLER."
 								AND ai.cashier_shift_id = ?
 								AND ai.allocation_item_type IN (2,3)
 							GROUP BY a.id

@@ -2159,6 +2159,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						quantity: items[i].quantity,
 						remarks: itemRemarks,
 						transfer_item_status: 1, // TRANSFER_ITEM_SCHEDULED
+						transfer_item_allocation_id: items[i].source_id,
 						transfer_item_allocation_item_id: items[i].allocation_item_id,
 						transfer_item_transfer_item_id: items[i].transfer_item_id,
 						transfer_item_turnover_category_id: items[i].transfer_item_category_id,
@@ -2173,7 +2174,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 			{
 				for( var i = 0; i < items.length; i++ )
 				{
-					var itemRemarks = 'Allocation #' + items[i].source_id + ' - ' + ( items[i].assignee_type == 2 ? 'TVM# ' : '' ) + items[i].assignee;
+					var itemRemarks = 'Allocation #' + items[i].allocation_id + ' - ' + ( items[i].assignee_type == 2 ? 'TVM# ' : '' ) + items[i].assignee;
 
 					var data = {
 						item_name: items[i].item_name,
@@ -2187,7 +2188,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						quantity: items[i].quantity,
 						remarks: itemRemarks,
 						transfer_item_status: 1, // TRANSFER_ITEM_SCHEDULED
-						transfer_item_allocation_item_id: items[i].allocation_item_id,
+						transfer_item_allocation_id: items[i].allocation_id,
 						transfer_item_transfer_item_id: items[i].transfer_item_id,
 						transfer_item_turnover_category_id: items[i].transfer_item_category_id,
 					}
