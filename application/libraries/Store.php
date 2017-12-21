@@ -552,6 +552,7 @@ class Store extends Base_model
 
 		$ci->load->library( 'Transfer' );
 		$business_date = param( $params, 'date' );
+		$category = param( $params, 'category' );
 		$destination = param( $params, 'dst' );
 		$status = param( $params, 'status' );
 		$includes = param( $params, 'includes' );
@@ -561,7 +562,7 @@ class Store extends Base_model
 		$format = param( $params, 'format', 'object' );
 		$order = param( $params, 'order', 'transfer_datetime DESC, id DESC' );
 
-		$select = 't.*';
+		$select = 't.*, ss.shift_num AS sender_shift_num, sr.shift_num AS recipient_shift_num';
 
 		if( $limit )
 		{
@@ -575,6 +576,11 @@ class Store extends Base_model
 		if( $business_date )
 		{
 			$ci->db->where( 'DATE(transfer_datetime)', $business_date );
+		}
+
+		if( $category )
+		{
+			$ci->db->where( 'transfer_category', $category );
 		}
 
 		if( $destination )
@@ -608,6 +614,8 @@ class Store extends Base_model
 		$ci->db->select( $select );
 		$ci->db->where( 'origin_id', $this->id );
 		//$ci->db->join( 'items i', 'i.id = t.item_id' );
+		$ci->db->join( 'shifts ss', 'ss.id = t.sender_shift', 'left' );
+		$ci->db->join( 'shifts sr', 'sr.id = t.recipient_shift', 'left' );
 		$query = $ci->db->get( 'transfers t' );
 
 		if( $format == 'object')
@@ -626,6 +634,7 @@ class Store extends Base_model
 	public function get_receipts( $params = array() )
 	{
 		$receipt_date = param( $params, 'date' );
+		$category = param( $params, 'category' );
 		$source = param( $params, 'src' );
 		$status = param( $params, 'status' );
 		$includes = param( $params, 'includes' );
@@ -641,7 +650,7 @@ class Store extends Base_model
 		// Do not show pending or scheduled transfers
 		$available_status = array( TRANSFER_APPROVED, TRANSFER_RECEIVED, TRANSFER_APPROVED_CANCELLED );
 
-		$select = 't.*';
+		$select = 't.*, ss.shift_num AS sender_shift_num, sr.shift_num AS recipient_shift_num';
 
 		if( $limit )
 		{
@@ -655,6 +664,11 @@ class Store extends Base_model
 		if( $receipt_date )
 		{
 			$ci->db->where( "(DATE(receipt_datetime) = '${receipt_date}' OR receipt_datetime IS NULL )");
+		}
+
+		if( $category )
+		{
+			$ci->db->where( 'transfer_category', $category );
 		}
 
 		if( $source )
@@ -678,6 +692,8 @@ class Store extends Base_model
 		$ci->db->where_in( 'transfer_status', $available_status );
 		$ci->db->where( 'destination_id', $this->id );
 		$ci->db->join( 'stores s', 's.id = t.origin_id', 'left' );
+		$ci->db->join( 'shifts ss', 'ss.id = t.sender_shift', 'left' );
+		$ci->db->join( 'shifts sr', 'sr.id = t.recipient_shift', 'left' );
 
 		if( $includes )
 		{
@@ -1108,7 +1124,7 @@ class Store extends Base_model
 	}
 
 
-	public function available_sales_collection( $params = array() )
+	public function get_available_sales_collection( $params = array() )
 	{
 		$ci =& get_instance();
 		$ci->load->library( 'category' );
@@ -1164,6 +1180,7 @@ class Store extends Base_model
 								AND t.sender_shift = ".$shift_id."
 								AND t.transfer_category = ".TRANSFER_CATEGORY_REPLENISH_TVM_CFUND."
 								AND NOT ti.transfer_item_status IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")
+							GROUP BY t.transfer_tvm_id, assignee_type, ti.item_id
 						) AS cfund
 							ON cfund.item_id = sales.allocated_item_id AND cfund.transfer_tvm_id = sales.assignee AND cfund.assignee_type = sales.assignee_type
 						LEFT JOIN (
@@ -1180,6 +1197,7 @@ class Store extends Base_model
 								AND t.sender_shift = ".$shift_id."
 								AND t.transfer_category = ".TRANSFER_CATEGORY_ADD_TVMIR."
 								AND NOT ti.transfer_item_status IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")
+							GROUP BY t.transfer_tvm_id, assignee_type, ti.item_id
 						) AS tvmir
 							ON tvmir.item_id = sales.allocated_item_id AND tvmir.transfer_tvm_id = sales.assignee AND tvmir.assignee_type = sales.assignee_type
 						LEFT JOIN (
@@ -1467,12 +1485,18 @@ class Store extends Base_model
 		$ci->load->library( 'Transfer' );
 
 		$business_date = param( $params, 'date' );
+		$category = param( $params, 'category' );
 		$destination = param( $params, 'dst' );
 		$status = param( $params, 'status' );
 
 		if( $business_date )
 		{
 			$ci->db->where( 'DATE(transfer_datetime)', $business_date );
+		}
+
+		if( $category )
+		{
+			$ci->db->where( 'transfer_category', $category );
 		}
 
 		if( $destination )
@@ -1503,6 +1527,7 @@ class Store extends Base_model
 	public function count_receipts( $params = array() )
 	{
 		$receipt_date = param( $params, 'date' );
+		$category = param( $params, 'category' );
 		$source = param( $params, 'src' );
 		$status = param( $params, 'status' );
 
@@ -1516,6 +1541,11 @@ class Store extends Base_model
 		if( $receipt_date )
 		{
 			$ci->db->where( "(DATE(receipt_datetime) = '${receipt_date}' OR receipt_datetime IS NULL )");
+		}
+
+		if( $category )
+		{
+			$ci->db->where( 'transfer_category', $category );
 		}
 
 		if( $source )

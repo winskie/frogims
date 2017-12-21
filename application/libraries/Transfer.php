@@ -1072,6 +1072,7 @@ class Transfer extends Base_model {
 		$in_transit_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_IN_TRANSIT );
 		$csc_card_fee_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_CSC_CARD_FEE );
 		$sales_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_SALES );
+		$tvmir_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_TVMIR );
 
 		// TODO: Should this be on the day of the transfer or on the date it was cancelled?
 		$transaction_datetime = $this->transfer_datetime;
@@ -1120,6 +1121,37 @@ class Transfer extends Base_model {
 						break;
 
 					case TRANSFER_CATEGORY_BANK_DEPOSIT:
+						// Return to Sales Collection Fund
+						$sales_fund->transact( TRANSACTION_TRANSFER_CANCEL, $amount, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+						$sales_fund_sub = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), $sales_fund->get( 'item_id' ), TRUE );
+						$sales_fund_sub->transact( TRANSACTION_TRANSFER_CANCEL, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+						break;
+
+					case TRANSFER_CATEGORY_ADD_TVMIR:
+						// Deduct from TVMIR Fund
+						$tvmir_fund->transact( TRANSACTION_TRANSFER_CANCEL, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+						$tvmir_fund_sub = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), $tvmir_fund->get( 'item_id' ), TRUE );
+						$tvmir_fund_sub->transact( TRANSACTION_TRANSFER_CANCEL, $quantity * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+
+						// Return to Sales Collection Fund
+						$sales_fund->transact( TRANSACTION_TRANSFER_CANCEL, $amount, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+						$sales_fund_sub = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), $sales_fund->get( 'item_id' ), TRUE );
+						$sales_fund_sub->transact( TRANSACTION_TRANSFER_CANCEL, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+						break;
+
+					case TRANSFER_CATEGORY_ISSUE_TVMIR:
+						// Return to TVMIR Fund
+						$tvmir_fund->transact( TRANSACTION_TRANSFER_CANCEL, $amount, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+						$tvmir_fund_sub = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), $tvmir_fund->get( 'item_id' ), TRUE );
+						$tvmir_fund_sub->transact( TRANSACTION_TRANSFER_CANCEL, $quantity, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+						break;
+
+					case TRANSFER_CATEGORY_REPLENISH_TVM_CFUND:
+						// Deduct from Change Fund
+						$change_fund->transact( TRANSACTION_TRANSFER_CANCEL, $amount * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+						$change_fund_sub = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), $change_fund->get( 'item_id' ), TRUE );
+						$change_fund_sub->transact( TRANSACTION_TRANSFER_CANCEL, $quantity * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
+
 						// Return to Sales Collection Fund
 						$sales_fund->transact( TRANSACTION_TRANSFER_CANCEL, $amount, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
 						$sales_fund_sub = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), $sales_fund->get( 'item_id' ), TRUE );

@@ -2114,6 +2114,7 @@ class Api_v1 extends MY_Controller {
 										$includes = explode( ',', $includes );
 										$params = array(
 												'date' => param( $this->input->get(), 'date' ),
+												'category' => param( $this->input->get(), 'cat' ),
 												'src' => param( $this->input->get(), 'src' ),
 												'status' => param( $this->input->get(), 'status' ),
 												'page' => param( $this->input->get(), 'page' ),
@@ -2125,11 +2126,14 @@ class Api_v1 extends MY_Controller {
 										$pending_receipts = $store->count_pending_receipts( $params );
 
 										$receipts_data = array();
-										$array_params = array();
+										$array_params = array(
+											'sender_shift_num' => array( 'type' => 'string' ),
+											'recipient_shift_num' => array( 'type' => 'string' ),
+										);
 
 										if( $params['includes'] && in_array( 'validation', $params['includes'] ) )
 										{
-											$array_params = array(
+											$array_params = array_merge( array(
 												'transval_receipt_status' => array( 'type' => 'integer' ),
 												'transval_receipt_datetime' => array( 'type' => 'datetime' ),
 												'transval_receipt_sweeper' => array( 'type' => 'string' ),
@@ -2139,7 +2143,7 @@ class Api_v1 extends MY_Controller {
 												'transval_transfer_datetime' => array( 'type' => 'datetime' ),
 												'transval_transfer_sweeper' => array( 'type' => 'string' ),
 												'transval_transfer_user_id' => array( 'type' => 'integer' ),
-												'transval_transfer_shift_id' => array( 'type' => 'integer' ) );
+												'transval_transfer_shift_id' => array( 'type' => 'integer' ) ), $array_params );
 										}
 
 										foreach( $receipts as $receipt )
@@ -2179,7 +2183,7 @@ class Api_v1 extends MY_Controller {
 												'limit' => param( $this->input->get(), 'limit' ),
 											);
 
-										$items = $store->available_sales_collection( $params );
+										$items = $store->get_available_sales_collection( $params );
 
 										$this->_response( array(
 											'items' => $items,
@@ -2331,6 +2335,7 @@ class Api_v1 extends MY_Controller {
 										{
 											$params = array(
 												'date' => param( $this->input->get(), 'date' ),
+												'category' => param( $this->input->get(), 'cat' ),
 												'dst' => param( $this->input->get(), 'dst' ),
 												'status' => param( $this->input->get(), 'status' ),
 												'page' => param( $this->input->get(), 'page' ),
@@ -2342,11 +2347,14 @@ class Api_v1 extends MY_Controller {
 											$pending_transfers = $store->count_pending_transfers( $params );
 
 											$transfers_data = array();
-											$array_params = array();
+											$array_params = array(
+												'sender_shift_num' => array( 'type' => 'string' ),
+												'recipient_shift_num' => array( 'type' => 'string' ),
+											);
 
 											if( $params['includes'] && in_array( 'validation', $params['includes'] ) )
 											{
-												$array_params = array(
+												$array_params = array_merge( array(
 													'transval_id' => array( 'type' => 'integer' ),
 													'transval_receipt_status' => array( 'type' => 'integer' ),
 													'transval_receipt_datetime' => array( 'type' => 'datetime' ),
@@ -2358,7 +2366,7 @@ class Api_v1 extends MY_Controller {
 													'transval_transfer_sweeper' => array( 'type' => 'string' ),
 													'transval_transfer_user_id' => array( 'type' => 'integer' ),
 													'transval_transfer_shift_id' => array( 'type' => 'integer' ),
-													'transval_status' => array( 'type' => 'integer' ) );
+													'transval_status' => array( 'type' => 'integer' ) ), $array_params );
 											}
 
 											foreach( $transfers as $transfer )
@@ -2379,7 +2387,7 @@ class Api_v1 extends MY_Controller {
 											$this->_response( array(
 												'transfers' => $transfers_data,
 												'total' => $total_transfers,
-												'pending' => $pending_transfers
+												'pending' => $pending_transfers,
 											) );
 										}
 									}

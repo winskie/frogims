@@ -144,7 +144,7 @@ $current_user = current_user();
 								<th class="text-left">Item</th>
 								<th class="text-left">Transaction Type</th>
 								<th class="text-left">Category</th>
-								<th class="text-center">Shift</th>
+								<th class="text-left">Shift</th>
 								<th class="text-right">Quantity</th>
 								<th class="text-right">Balance</th>
 							</tr>
@@ -155,7 +155,7 @@ $current_user = current_user();
 								<td>{{ transaction.item_name }} <span class="label label-info" ng-if="transaction.parent_item_name">{{ transaction.parent_item_name }}</span></td>
 								<td>{{ lookup( 'transactionTypes', '' + transaction.transaction_type ) }}</td>
 								<td class="text-left">{{ transaction.cat_description }}</td>
-								<td class="text-center">{{ transaction.shift_num }}</td>
+								<td class="text-left">{{ transaction.shift_num }}</td>
 								<td class="text-right">{{ transaction.transaction_quantity | number }}</td>
 								<td class="text-right">{{ transaction.current_quantity | number }}</td>
 							</tr>
@@ -421,7 +421,7 @@ $current_user = current_user();
 
 					<!-- Filter Panel -->
 					<div class="filter_panel row" ng-show="filterPanels.transfers">
-						<div class="col-sm-4 col-md-3 col-lg-2">
+						<div class="col-sm-6 col-md-3 col-lg-2">
 							<div class="form-group">
 								<label class="control-label">Business Date</label>
 								<div class="input-group">
@@ -435,7 +435,17 @@ $current_user = current_user();
 							</div>
 						</div>
 
-						<div class="col-sm-4">
+						<div class="col-sm-6 col-md-4 col-lg-3">
+							<div class="form-group">
+								<label class="control-label">Category</label>
+								<select class="form-control"
+										ng-model="filters.transfers.category"
+										ng-options="category as category.categoryName for category in widgets.transfersCategories track by category.id">
+								</select>
+							</div>
+						</div>
+
+						<div class="col-sm-6 col-md-4 col-lg-3">
 							<div class="form-group">
 								<label class="control-label">Destination</label>
 								<select class="form-control"
@@ -445,7 +455,7 @@ $current_user = current_user();
 							</div>
 						</div>
 
-						<div class="col-sm-4 col-md-3 col-lg-2">
+						<div class="col-sm-6 col-md-3 col-lg-2">
 							<div class="form-group">
 								<label class="control-label">Status</label>
 								<select class="form-control"
@@ -468,8 +478,8 @@ $current_user = current_user();
 						<thead>
 							<tr>
 								<th class="text-center">ID</th>
-								<th class="text-left" style="width: 175px;">Date / Time / Category</th>
-								<th class="text-left">Destination / Items</th>
+								<th class="text-left" style="width: 175px;">Date / Time / Shift</th>
+								<th class="text-left">Category / Destination / Items</th>
 								<th class="text-center">Status</th>
 								<th class="text-center" style="width: 175px;"></th>
 							</tr>
@@ -479,11 +489,11 @@ $current_user = current_user();
 								<td class="text-center vert-top">{{ transfer.id }}</td>
 								<td class="vert-top">
 									<span>{{ transfer.get( 'transferDate' ) }}</span><br/>
-									<span>{{ transfer.get( 'transferCategoryName' ) }}</span>
+									<span>{{ transfer.sender_shift_num }}</span>
 								</td>
 								<td class="vert-top">
 									<div>
-										{{ transfer.destination_name }} {{ transfer.sender_name ? 'thru ' + transfer.sender_name : '' }}
+										{{ transfer.get( 'transferCategoryName' ) }}: {{ transfer.destination_name }} {{ transfer.sender_name ? 'thru ' + transfer.sender_name : '' }}
 									</div>
 									<div class="panel panel-default">
 										<table class="table table-condensed table-bordered table-details">
@@ -592,7 +602,7 @@ $current_user = current_user();
 
 					<!-- Filter Panel -->
 					<div class="row filter_panel" ng-show="filterPanels.receipts">
-						<div class="col-sm-4 col-md-3 col-lg-2">
+						<div class="col-sm-6 col-md-3 col-lg-2">
 							<div class="form-group">
 								<label class="control-label">Receipt Date</label>
 								<div class="input-group">
@@ -606,7 +616,17 @@ $current_user = current_user();
 							</div>
 						</div>
 
-						<div class="col-sm-4">
+						<div class="col-sm-6 col-md-4 col-lg-3">
+							<div class="form-group">
+								<label class="control-label">Category</label>
+								<select class="form-control"
+										ng-model="filters.receipts.category"
+										ng-options="category as category.categoryName for category in widgets.receiptsCategories track by category.id">
+								</select>
+							</div>
+						</div>
+
+						<div class="col-sm-6 col-md-4 col-lg-3">
 							<div class="form-group">
 								<label class="control-label">Source</label>
 								<select class="form-control"
@@ -616,7 +636,7 @@ $current_user = current_user();
 							</div>
 						</div>
 
-						<div class="col-sm-4 col-md-3 col-lg-2">
+						<div class="col-sm-6 col-md-3 col-lg-2">
 							<div class="form-group">
 								<label class="control-label">Status</label>
 								<select class="form-control"
@@ -639,8 +659,8 @@ $current_user = current_user();
 						<thead>
 							<tr>
 								<th class="text-center">ID</th>
-								<th class="text-left" style="width: 175px;">Date / Time / Category</th>
-								<th class="text-left">Source / Items</th>
+								<th class="text-left" style="width: 175px;">Date / Time / Shift</th>
+								<th class="text-left">Category / Source / Items</th>
 								<th class="text-center">Status</th>
 								<th class="text-center" style="width: 175px;"></th>
 							</tr>
@@ -650,11 +670,11 @@ $current_user = current_user();
 								<td class="text-center vert-top">{{ receipt.id }}</td>
 								<td class="vert-top">
 									<span>{{ receipt.get( 'receiptDate' ) }}</span><br/>
-									<span>{{ receipt.get( 'transferCategoryName' ) }}</span>
+									<span>{{ receipt.get( 'recipient_shift_num' ) }}</span>
 								</td>
 								<td class="vert-top">
 									<div>
-										{{ receipt.origin_name }} <span class="text-muted">- sent last {{ receipt.get( 'transferDate' ) }}</span>{{ receipt.sender_name ? ' thru ' + receipt.sender_name : '' }}
+									{{ receipt.get( 'transferCategoryName' ) }}: {{ receipt.origin_name }} <span class="text-muted">- sent last {{ receipt.get( 'transferDate' ) }}</span>{{ receipt.sender_name ? ' thru ' + receipt.sender_name : '' }}
 									</div>
 									<div class="panel panel-default">
 										<table class="table table-condensed table-bordered table-details">

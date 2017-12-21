@@ -623,12 +623,14 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 				},
 				transfers: {
 					date: null,
+					category: { id: null, categoryName: 'All' },
 					destination: { id: null, store_name: 'All' },
 					status: { id: null, statusName: 'All' },
 					filtered: false
 				},
 				receipts: {
 					date: null,
+					category: { id: null, categoryName: 'All' },
 					source: { id: null, store_name: 'All' },
 					status: { id: null, statusName: 'All' },
 					filtered: false
@@ -1036,6 +1038,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/transfers',
 					params: {
 						date: $filter( 'date' )( me.filters.transfers.date, 'yyyy-MM-dd' ),
+						cat: me.filters.transfers.category ? me.filters.transfers.category.id : null,
 						dst: me.filters.transfers.destination ? me.filters.transfers.destination.id : null,
 						status: me.filters.transfers.status ? me.filters.transfers.status.id : null,
 						page: me.pagination.transfers ? me.pagination.transfers : null,
@@ -1082,6 +1085,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/receipts',
 					params: {
 						date: $filter( 'date' )( me.filters.receipts.date, 'yyyy-MM-dd' ),
+						cat: me.filters.receipts.category ? me.filters.receipts.category.id : null,
 						src: me.filters.receipts.source ? me.filters.receipts.source.id : null,
 						status: me.filters.receipts.status ? me.filters.receipts.status.id : null,
 						page: me.pagination.receipts ? me.pagination.receipts : null,

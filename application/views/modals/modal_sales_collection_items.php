@@ -22,7 +22,10 @@
 				<td>{{ row.item_name }}</td>
 				<td class="text-right">{{ row.quantity | number }}</td>
 				<td class="text-right">{{ row.total_amount | number: 2 }}</td>
-				<td class="text-center">{{ ( row.assignee_type == 1 ? ''  : 'TVM# ' ) + row.assignee }}</td>
+				<td class="text-center">
+					{{ ( row.assignee_type == 1 ? ''  : 'TVM ' ) + row.assignee }}
+					&nbsp;<span class="label label-info">#{{ row.allocation_id }}</span>
+				</td>
 				<td class="text-center">{{ row.shift_num }}</td>
 				<td>
 					<input type="checkbox" ng-model="row.selected">

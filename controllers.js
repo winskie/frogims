@@ -757,12 +757,14 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 				transfersDate: {
 					opened: false
 				},
+				transfersCategories: angular.copy( appData.data.transferCategories ),
 				transfersDestinations: angular.copy( appData.data.stores ),
 				transfersStatus: angular.copy( appData.data.transferStatus ),
 
 				receiptsDate: {
 					opened: false
 				},
+				receiptsCategories: angular.copy( appData.data.transferCategories ),
 				receiptsSources: angular.copy( appData.data.stores ),
 				receiptsStatus: angular.copy( appData.data.receiptStatus ),
 
@@ -820,10 +822,12 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 		$scope.widgets.transferValidationsStatus.unshift({ id: '_null_', statusName: 'No validation' });
 		$scope.widgets.transferValidationsStatus.unshift({ id: null, statusName: 'All' });
 
+		$scope.widgets.transfersCategories.unshift({ id: null, categoryName: 'All' });
 		$scope.widgets.transfersDestinations.unshift({ id: null, store_name: 'All' });
 		$scope.widgets.transfersDestinations.push({ id: '_ext_', store_name: 'External Destinations' });
 		$scope.widgets.transfersStatus.unshift({ id: null, statusName: 'All' });
 
+		$scope.widgets.receiptsCategories.unshift({ id: null, categoryName: 'All' });
 		$scope.widgets.receiptsSources.unshift({ id: null, store_name: 'All' });
 		$scope.widgets.receiptsSources.push({ id: '_ext_', store_name: 'External Sources' });
 		$scope.widgets.receiptsStatus.unshift({ id: null, statusName: 'All' });
