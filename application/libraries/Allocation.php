@@ -259,15 +259,20 @@ class Allocation extends Base_model {
 	{
 		$ci =& get_instance();
 		$ci->load->library( 'inventory' );
+		$Inventory = new Inventory();
 
 		$result = NULL;
 		$ci->db->trans_start();
+
+		$current_store = current_store();
 
 		if( $this->assignee_type == ALLOCATION_ASSIGNEE_TELLER && ! $this->_check_for_valid_allocation_item() )
 		{ // Teller allocation must have a valid allocation item for all actions
 			set_message( 'Allocation does not contain any valid items' );
 			return FALSE;
 		}
+
+		$change_fund = $Inventory->get_by_store_item_name( $this->store_id, FUND_CHANGE_FUND );
 
 		if( isset( $this->id ) )
 		{
@@ -290,6 +295,7 @@ class Allocation extends Base_model {
 				{
 					foreach( $this->allocations AS $allocation )
 					{
+						$quantity = $allocation->get( 'allocated_quantity' );
 						if( $allocation->get( 'allocation_item_status' ) == ALLOCATION_ITEM_SCHEDULED // cancel if has already reserved
 							&& $allocation->get( 'id' ) // ...and if existing allocation
 							&& isset( $this->db_changes['allocation_status'] )
@@ -300,7 +306,7 @@ class Allocation extends Base_model {
 
 							if( $inventory )
 							{
-								$inventory->reserve( $allocation->get( 'allocated_quantity' ) * -1 );
+								$inventory->reserve( $quantity * -1 );
 							}
 							else
 							{
@@ -317,17 +323,26 @@ class Allocation extends Base_model {
 							&& isset( $this->db_changes['allocation_status'] )
 							&& in_array( $this->db_changes['allocation_status'], array( ALLOCATION_ALLOCATED, ALLOCATION_CANCELLED ) ) )
 						{
-							$inventory = new Inventory();
-							$inventory = $inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ) );
+							$item = $allocation->get_item();
+							$quantity = $allocation->get( 'allocated_quantity' );
+							$skip_inventory = false;
 
-							if( $inventory )
+							if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM )
 							{
-								$inventory->reserve( $allocation->get( 'allocated_quantity' ) * -1 );
+								$item_unit_price = $item->get( 'iprice_unit_price' );
+								$amount = $quantity * $item_unit_price;
+								$skip_inventory = true;
+
+								$change_fund->reserve( $amount * -1 );
+								$change_fund_sub = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ), $change_fund->get( 'item_id' ), TRUE );
+								$change_fund_sub->reserve( $quantity * -1 );
 							}
-							else
+
+							// Cash allocations normally does not need this
+							if( ! $skip_inventory )
 							{
-								set_message( 'Inventory record not found' );
-								return FALSE;
+								$inventory = $inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ) );
+								$inventory->reserve( $quantity * -1 );
 							}
 						}
 					}
@@ -343,7 +358,7 @@ class Allocation extends Base_model {
 				if( $allocation->get( 'allocation_item_status' ) == ALLOCATION_ITEM_SCHEDULED
 					&& $allocation->get( 'allocation_category_name' ) == 'Initial Allocation'
 					&& ! $allocation->get( 'id' ) )
-				{
+				{ // New scheduled allocation, reserve item
 					$inventory = new Inventory();
 					$inventory = $inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ) );
 					if( $inventory )
@@ -376,16 +391,27 @@ class Allocation extends Base_model {
 				if( $allocation->get( 'allocation_item_status' ) == ALLOCATION_ITEM_SCHEDULED
 					&& $allocation->get( 'allocation_category_name' ) == 'Initial Change Fund'
 					&& ! $allocation->get( 'id' ) )
-				{
-					$inventory = new Inventory();
-					$inventory = $inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ) );
-					if( $inventory )
+				{ // New scheduled allocation, reserve item
+					$item = $allocation->get_item();
+					$quantity = $allocation->get( 'allocated_quantity' );
+					$skip_inventory = false;
+
+					if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM )
 					{
-						$inventory->reserve( $allocation->get( 'allocated_quantity' ) );
+						$item_unit_price = $item->get( 'iprice_unit_price' );
+						$amount = $quantity * $item_unit_price;
+						$skip_inventory = true;
+
+						$change_fund->reserve( $amount * -1 );
+						$change_fund_sub = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ), $change_fund->get( 'item_id' ), TRUE );
+						$change_fund_sub->reserve( $quantity );
 					}
-					else
+
+					// Cash allocations will normally skip the following block
+					if( ! $skip_inventory )
 					{
-						die( 'Cannot find inventory record' );
+						$inventory = $inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ) );
+						$inventory->reserve( $quantity * -1 );
 					}
 				}
 
@@ -506,8 +532,7 @@ class Allocation extends Base_model {
 				{
 					foreach( $this->allocations as $allocation )
 					{
-						$inventory = new Inventory();
-						$inventory = $inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ) );
+						$inventory = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ) );
 						if( $inventory )
 						{
 							$inventory->reserve( $allocation->get( 'allocated_quantity' ) );
@@ -521,16 +546,26 @@ class Allocation extends Base_model {
 
 					foreach( $this->cash_allocations as $allocation )
 					{
-						$inventory = new Inventory();
-						$inventory = $inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ) );
-						if( $inventory )
+						$item = $allocation->get_item();
+						$quantity = $allocation->get( 'allocated_quantity' );
+						$skip_inventory = false;
+
+						if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM )
 						{
-							$inventory->reserve( $allocation->get( 'allocated_quantity' ) );
+							$item_unit_price = $item->get( 'iprice_unit_price' );
+							$amount = $quantity * $item_unit_price;
+							$skip_inventory = true;
+
+							$change_fund->reserve( $amount );
+							$change_fund_sub = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ), $change_fund->get( 'item_id' ), TRUE );
+							$change_fund_sub->reserve( $quantity );
 						}
-						else
+
+						// Cash allocations will normally skip the following block
+						if( ! $skip_inventory )
 						{
-							set_message( 'Cannot find inventory record' );
-							return FALSE;
+							$inventory = $inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ) );
+							$inventory->reserve( $quantity );
 						}
 					}
 				}
@@ -1455,7 +1490,11 @@ class Allocation extends Base_model {
 
 		$allocations = $this->get_allocations();
 		$cash_allocations = $this->get_cash_allocations();
+
+		// This will follow the date of the allocation
 		//$transaction_datetime = $this->business_date.' '.date( 'H:i:s' );
+
+		// This will use the current timestamp
 		$transaction_datetime = date( TIMESTAMP_FORMAT );
 
 		$ci->db->trans_start();
@@ -1569,7 +1608,8 @@ class Allocation extends Base_model {
 						break;
 
 					default:
-						die( sprintf( 'Invalid allocation category: %s', $remittance_category->get( 'cat_name' ) ) );
+						set_message( sprintf( 'Invalid cash allocation category: %s', $remittance_category->get( 'cat_name' ) ) );
+						return FALSE;
 				}
 
 				$allocation->set( 'cashier_shift_id', $ci->session->current_shift_id );

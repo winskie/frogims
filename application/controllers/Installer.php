@@ -2187,7 +2187,7 @@ class Installer extends CI_Controller {
 			$Category = new Category();
 			foreach( $values as $value )
 			{
-				echo $value[0].' === '.$value[1].'<br/>';
+				//echo $value[0].' === '.$value[1].'<br/>';
 				$item = $Item->get_by_name( $value[0] );
 				$category = $Category->get_by_name( $value[1] );
 				$this->db->set( 'ic_item_id', $item->get( 'id' ) );

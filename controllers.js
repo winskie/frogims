@@ -2118,7 +2118,9 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 							item_name: $scope.input.inventoryItem.item_name,
 							item_class: $scope.input.inventoryItem.item_class,
 							cat_description: $scope.input.category.cat_description,
-							total_amount: $scope.input.inventoryItem.item_class == 'cash' ? $scope.input.inventoryItem.iprice_unit_price * $scope.input.quantity : $scope.input.inventoryItem.base_quantity * $scope.input.quantity,
+							total_amount: $scope.input.inventoryItem.item_class == 'cash' ?
+									( $scope.input.inventoryItem.iprice_unit_price * $scope.input.quantity )
+									: ( $scope.input.inventoryItem.base_item_id ? $scope.input.inventoryItem.base_quantity * $scope.input.quantity : $scope.input.quantity ),
 
 							item_id: $scope.input.inventoryItem.item_id,
 							transfer_item_category_id: $scope.input.category.id,
@@ -3416,7 +3418,12 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 				cashRemittancesEmptyText: 'No cash remittance items'
 			};
 
+		var now = new Date();
+		now.setSeconds( 0 );
+		now.setMilliseconds( 0 );
 		$scope.input = {
+				date: now,
+				time: now,
 				category: null,
 				item: $scope.data.inventoryItems[0] || null,
 				salesItem: $scope.data.salesItems[0] || null,
@@ -3724,10 +3731,10 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 									iprice_unit_price: $scope.input.item.iprice_unit_price,
 
 									cashier_shift_id: session.data.currentShift.id,
+									allocation_datetime: new Date( $filter( 'date' )( $scope.input.date, 'yyyy-MM-dd' ) + ' ' + $filter( 'date' )( $scope.input.time, 'HH:mm:ss' ) ),
 									allocated_item_id: $scope.input.item.item_id,
 									allocated_quantity: $scope.input.quantity,
 									allocation_category_id: $scope.input.category.id,
-									allocation_datetime: new Date()
 								};
 							switch( $scope.data.allocationPhase )
 							{

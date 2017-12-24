@@ -503,7 +503,8 @@ class Store extends Base_model
 			$ci->db->order_by( $order );
 		}
 
-		$ci->db->select( 't.*, i.id AS item_id, i.item_name, i.item_description, s.shift_num, c.cat_description, pi.item_name AS parent_item_name' );
+		$ci->db->select( 't.*, i.id AS item_id, i.item_name, i.item_description, i.item_class,
+				s.shift_num, c.cat_description, pi.item_name AS parent_item_name' );
 		$ci->db->join( 'store_inventory si', 'si.id = t.store_inventory_id', 'left' );
 		$ci->db->join( 'items i', 'i.id = si.item_id', 'left' );
 		$ci->db->join( 'items pi', 'pi.id = si.parent_item_id', 'left' );

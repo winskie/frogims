@@ -94,6 +94,7 @@
 						<tr>
 							<th class="text-center">Row</th>
 							<th class="text-left">Cashier Shift</th>
+							<th class="text-left">Date/Time</th>
 							<th class="text-left">Category</th>
 							<th class="text-left">Item Description</th>
 							<th class="text-center">Quantity</th>
@@ -113,6 +114,7 @@
 									}">
 							<td class="text-center">{{ $index + 1 }}</td>
 							<td class="text-left">{{ row.cashier_shift_num }}</td>
+							<td class="text-left">{{ row.allocation_datetime | date: 'yyyy-MM-dd HH:mm' }}</td>
 							<td class="text-left">{{ row.cat_description }}</td>
 							<td class="text-left">{{ row.item_name }}</td>
 							<td class="text-center">{{ row.allocated_quantity | number }}</td>
@@ -131,14 +133,14 @@
 							</td>
 						</tr>
 						<tr ng-if="!allocationItem.allocations.length">
-							<td colspan="8" class="text-center bg-warning">
+							<td colspan="9" class="text-center bg-warning">
 								No allocated ticket items
 							</td>
 						</tr>
 					</tbody>
 					<tbody>
 						<tr>
-							<td colspan="7"><h5>Cash Items</h5></td>
+							<td colspan="9"><h5>Cash Items</h5></td>
 						</tr>
 						<tr ng-repeat="row in allocationItem.cash_allocations"
 								ng-class="{
@@ -147,6 +149,7 @@
 									}">
 							<td class="text-center">{{ $index + 1 }}</td>
 							<td class="text-left">{{ row.cashier_shift_num }}</td>
+							<td class="text-left">{{ row.allocation_datetime | date: 'yyyy-MM-dd HH:mm' }}</td>
 							<td class="text-left">{{ row.cat_description }}</td>
 							<td class="text-left">{{ row.item_name }}</td>
 							<td class="text-center">{{ row.allocated_quantity | number }}</td>
@@ -165,13 +168,13 @@
 							</td>
 						</tr>
 						<tr ng-if="allocationItem.cash_allocations.length">
-							<th colspan="5" class="text-right">Total Amount</th>
+							<th colspan="6" class="text-right">Total Amount</th>
 							<td class="text-right">{{ allocationItem.cash_allocations | filter: allocationTotalFilter | sumItemPrice: 'iprice_unit_price':'allocated_quantity' | number: 2 }}</td>
 							<td></td>
 							<td></td>
 						</tr>
 						<tr ng-if="!allocationItem.cash_allocations.length">
-							<td colspan="8" class="text-center bg-warning">
+							<td colspan="9" class="text-center bg-warning">
 								No allocated cash items
 							</td>
 						</tr>
@@ -435,50 +438,66 @@
 <!-- Input form -->
 <div class="panel panel-default" ng-if="data.editMode != 'view' && data.allocationPhase != 'cash_report'">
 	<form>
-		<div class="panel-body row">
-			<!-- Item -->
-			<div class="form-group col-sm-12 col-md-6 col-lg-5">
-				<label class="control-label">Item</label>
-				<select class="form-control ng-animate-disabled"
-						ng-model="input.item"
-						ng-change="onItemChange()"
-						ng-options="item as ( item.item_name + ( item.parent_item_name ? ( ' &laquo' + item.parent_item_name + ' &raquo' ) : '' ) ) for item in data.inventoryItems track by item.id"
-						ng-hide="data.allocationPhase == 'sales'">
-				</select>
-				<select class="form-control ng-animate-disabled"
-						ng-model="input.salesItem"
-						ng-options="item as item.slitem_name for item in data.salesItems track by item.id"
-						ng-show="data.allocationPhase == 'sales'">
-				</select>
+		<div class="panel-body">
+			<div class="row">
+				<!-- Item -->
+				<div class="form-group col-sm-12 col-md-4 col-lg-4">
+					<label class="control-label">Item</label>
+					<select class="form-control ng-animate-disabled"
+							ng-model="input.item"
+							ng-change="onItemChange()"
+							ng-options="item as ( item.item_name + ( item.parent_item_name ? ( ' &laquo' + item.parent_item_name + ' &raquo' ) : '' ) ) for item in data.inventoryItems track by item.id"
+							ng-hide="data.allocationPhase == 'sales'">
+					</select>
+					<select class="form-control ng-animate-disabled"
+							ng-model="input.salesItem"
+							ng-options="item as item.slitem_name for item in data.salesItems track by item.id"
+							ng-show="data.allocationPhase == 'sales'">
+					</select>
+				</div>
+
+				<!-- Category -->
+				<div class="form-group col-sm-12 col-md-4 col-lg-4" ng-if="data.allocationPhase != 'sales'">
+					<label class="control-label">Category</label>
+					<select class="form-control"
+							ng-model="input.category"
+							ng-options="category as category.cat_description for category in data.categories track by category.id">
+					</select>
+				</div>
+
+				<!-- Available Balance -->
+				<div class="form-group col-sm-6 col-md-2 col-lg-1" ng-if="data.allocationPhase == 'allocation'">
+					<label class="control-label">Available</label>
+					<p class="form-control-static text-center">{{ ( input.item.quantity - input.item.reserved - input.itemReservedQuantity ) | number }}</p>
+				</div>
+
+				<!-- Quantity-->
+				<div class="form-group col-sm-6 col-md-2 col-lg-2">
+					<label class="control-label">{{ data.allocationPhase == 'sales' ? 'Amount' : 'Quantity' }}</label>
+					<input type="number" class="form-control" min="1"
+							ng-model="input.quantity"
+							ng-keypress="addAllocationItem( $event )">
+				</div>
+
+				<!-- Remarks -->
+				<div class="form-group col-sm-12 col-md-3 col-lg-5" ng-if="data.allocationPhase == 'sales'">
+					<label class="control-label">Remarks</label>
+					<input type="text" class="form-control" ng-model="input.remarks">
+				</div>
 			</div>
 
-			<!-- Category -->
-			<div class="form-group col-sm-12 col-md-6 col-lg-4" ng-if="data.allocationPhase != 'sales'">
-				<label class="control-label">Category</label>
-				<select class="form-control"
-						ng-model="input.category"
-						ng-options="category as category.cat_description for category in data.categories track by category.id">
-				</select>
-			</div>
+			<div class="row">
+				<!-- Date -->
+				<div class="form-group col-sm-6 col-md-2">
+					<label class="control-label">Date</label>
+					<input type="date" class="form-control" ng-model="input.date">
+				</div>
 
-			<!-- Available Balance -->
-			<div class="form-group col-sm-6 col-md-3 col-lg-1" ng-if="data.allocationPhase == 'allocation'">
-				<label class="control-label">Available</label>
-				<p class="form-control-static text-center">{{ ( input.item.quantity - input.item.reserved - input.itemReservedQuantity ) | number }}</p>
-			</div>
-
-			<!-- Quantity-->
-			<div class="form-group col-sm-6 col-md-3 col-lg-2">
-				<label class="control-label">{{ data.allocationPhase == 'sales' ? 'Amount' : 'Quantity' }}</label>
-				<input type="number" class="form-control" min="1"
-						ng-model="input.quantity"
-						ng-keypress="addAllocationItem( $event )">
-			</div>
-
-			<!-- Remarks -->
-			<div class="form-group col-sm-12 col-md-3 col-lg-5" ng-if="data.allocationPhase == 'sales'">
-				<label class="control-label">Remarks</label>
-				<input type="text" class="form-control" ng-model="input.remarks">
+				<!-- Time -->
+				<div class="form-group col-sm-6 col-md-2">
+					<label class="control-label">Time</label>
+					<input type="time" class="form-control" ng-model="input.time">
+				</div>
 			</div>
 		</div>
 	</form>

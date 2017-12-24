@@ -2455,6 +2455,7 @@ class Api_v1 extends MY_Controller {
 										$additional_fields = array(
 											'item_name' => array( 'type' => 'string' ),
 											'item_description' => array( 'type' => 'string' ),
+											'item_class' => array( 'type' => 'string' ),
 											'shift_num' => array( 'type' => 'string' ),
 											'cat_description' => array( 'type' => 'string' ),
 											'parent_item_name' => array( 'type' => 'string' )

@@ -156,8 +156,8 @@ $current_user = current_user();
 								<td>{{ lookup( 'transactionTypes', '' + transaction.transaction_type ) }}</td>
 								<td class="text-left">{{ transaction.cat_description }}</td>
 								<td class="text-left">{{ transaction.shift_num }}</td>
-								<td class="text-right">{{ transaction.transaction_quantity | number }}</td>
-								<td class="text-right">{{ transaction.current_quantity | number }}</td>
+								<td class="text-right">{{ transaction.transaction_quantity | number: ( transaction.item_class == 'fund' ? 2: 0 ) }}</td>
+								<td class="text-right">{{ transaction.current_quantity | number: ( transaction.item_class == 'fund' ? 2 : 0 ) }}</td>
 							</tr>
 							<tr ng-show="!appData.transactions.length">
 								<td colspan="6" class="text-center">No transaction data available</td>
@@ -1133,7 +1133,7 @@ $current_user = current_user();
 											<tbody>
 												<tr ng-repeat="item in row.allocationSummary">
 													<td>{{ item.item_description }}</td>
-													<td class="text-right">{{ ( item.initial === 0 ? '---' : ( item.item_class == 'cash' ? ( item.initial | number: 2 ) : ( item.initial | number ) ) ) + ( item.scheduled ? ' (' + item.scheduled + ')' : '' ) }}</td>
+													<td class="text-right">{{ ( item.initial === 0 ? '---' : ( item.initial | number: ( item.item_class == 'cash' ? 2 : 0 ) ) ) + ( item.scheduled !== 0 ? ' (' + ( item.scheduled | number: ( item.item_class == 'cash' ? 2 : 0 ) ) + ')' : '' ) }}</td>
 													<td class="text-right">{{ item.additional === 0 ? '---' : ( item.item_class == 'cash' ? ( item.additional | number: 2 ) : ( item.additional | number ) ) }}</td>
 													<td class="text-right">{{ item.remitted === 0 ? '---' : ( item.item_class == 'cash' ? ( item.remitted | number : 2 ) : ( item.remitted | number ) ) }}</td>
 												</tr>
@@ -1153,7 +1153,7 @@ $current_user = current_user();
 											<tbody>
 												<tr ng-repeat="item in row.allocationSummary">
 													<td>{{ item.item_description }}</td>
-													<td class="text-right">{{ ( item.replenish === 0 ? '---' : ( item.item_class == 'cash' ? ( item.replenish | number: 2 ) : ( item.replenish | number ) ) ) + ( item.scheduled !== 0 ? ' (' + item.scheduled + ')' : '' ) }}</td>
+													<td class="text-right">{{ ( item.replenish === 0 ? '---' : ( item.replenish | number: ( item.item_class == 'cash' ? 2 : 0 ) ) ) + ( item.scheduled !== 0 ? ' (' + ( item.scheduled | number: ( item.item_class == 'cash' ? 2 : 0 ) ) + ')' : '' ) }}</td>
 													<td class="text-right">{{ item.pullout === 0 ? '---' : ( item.item_class == 'cash' ? ( item.pullout | number: 2 ) : ( item.pullout | number ) ) }}</td>
 													<td class="text-right">{{ item.rejected === 0 ? '---' : ( item.item_class == 'cash' ? ( item.rejected | number: 2 ) : ( item.rejected | number ) ) }}</td>
 												</tr>
@@ -1434,6 +1434,7 @@ $current_user = current_user();
 								<td>
 									{{ turnover.st_from_date | date: 'fullDate' }}
 									<span class="label label-info" ng-if="turnover.isCurrent()">current</span>
+									<span class="label label-warning" ng-if="turnover.isActive()">active</span>
 								</td>
 								<td>{{ turnover.description }}</td>
 								<td>{{ turnover.start_user ? turnover.start_user : '---' }}</td>

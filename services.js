@@ -34,7 +34,7 @@ angular.module( 'appServices' ).service( 'session', [ '$http', '$q', '$filter', 
 
 				isAdmin: false,
 				previousState: null,
-				previousTab: null
+				previousTab: null,
 			};
 
 		me.permissions = {
@@ -418,6 +418,24 @@ angular.module( 'appServices' ).service( 'session', [ '$http', '$q', '$filter', 
 					});
 
 				return deferred.promise;
+			};
+
+		me.getCurrentShift = function()
+			{
+				var d = new Date();
+				var currentShift;
+				for( var i = 0, n = me.data.storeShifts.length; i < n; i++ )
+				{
+					var startTime = $filter( 'date' )( d, 'yyyy-MM-dd' ) + ' ' + me.data.storeShifts[i].shift_start_time;
+					var endTime = $filter( 'date' )( d, 'yyyy-MM-dd' ) + ' ' + me.data.storeShifts[i].shift_end_time;
+
+					if( Date.now() >= Date.parse( startTime ) && Date.now() <= Date.parse( endTime ) )
+					{
+						return me.data.storeShifts[i];
+					}
+				}
+
+				return null;
 			};
 	}
 ]);

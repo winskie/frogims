@@ -136,7 +136,10 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 
 					if( me.business_date )
 					{
-						me.business_date = Date.parse( me.business_date );
+						if( me.business_date.constructor == String )
+						{
+							me.business_date = new Date( me.business_date );
+						}
 					}
 
 					// Allocation items
@@ -501,13 +504,14 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 										item_name: this.allocations[i].item_name,
 										item_description: this.allocations[i].item_description,
 										item_class: this.allocations[i].item_class,
+										scheduled: 0,
 										initial: 0,
 										additional: 0,
 										remitted: 0
 									};
 							}
 
-							if( this.allocations[i].allocation_item_status == 10 )
+							if( this.allocations[i].allocation_item_status == 10 ) // ALLOCATION_ITEM_SCHEDULED
 							{
 								tempObj[this.allocations[i].allocated_item_id].scheduled += this.allocations[i].allocated_quantity;
 							}
@@ -530,6 +534,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 							}
 
 							var rowObject;
+							var amount = this.cash_allocations[i].allocated_quantity * this.cash_allocations[i].iprice_unit_price;
 
 							if( ['Initial Change Fund', 'Additional Change Fund'].indexOf( this.cash_allocations[i].cat_description ) != -1 )
 							{
@@ -554,13 +559,17 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 									};
 							}
 
-							if( this.cash_allocations[i].cat_description == 'Initial Change Fund' )
+							if( this.cash_allocations[i].allocation_item_status == 10 ) // ALLOCATION_ITEM_SCHEDULED
 							{
-								tempObj[rowObject].initial += this.cash_allocations[i].allocated_quantity * this.cash_allocations[i].iprice_unit_price;
+								tempObj[rowObject].scheduled += amount;
+							}
+							else if( this.cash_allocations[i].cat_description == 'Initial Change Fund' )
+							{
+								tempObj[rowObject].initial += amount;
 							}
 							else if( this.cash_allocations[i].cat_description == 'Additional Change Fund' )
 							{
-								tempObj[rowObject].additional += this.cash_allocations[i].allocated_quantity * this.cash_allocations[i].iprice_unit_price;
+								tempObj[rowObject].additional += amount;
 							}
 						}
 
@@ -1351,7 +1360,10 @@ angular.module( 'coreModels' ).factory( 'AllocationItem', [ '$http', '$q', '$fil
 
 					if( me.allocation_datetime )
 					{
-						me.allocation_datetime = Date.parse( me.allocation_datetime );
+						if( me.allocation_datetime.constructor == String )
+						{
+							me.allocation_datetime =  new Date( me.allocation_datetime );
+						}
 					}
 				}
 			};

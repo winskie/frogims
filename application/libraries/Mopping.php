@@ -285,14 +285,14 @@ class Mopping extends Base_model {
 		$collection_category = $Category->get_by_name( 'TktCollect' );
 		$conversion_category = $Category->get_by_name( 'Pack' );
 
+		//$transaction_datetime = $this->processing_datetime;
+		$transaction_datetime = date( TIMESTAMP_FORMAT );
+
 		$ci->db->trans_start();
 
 		foreach( $items as $item )
 		{
 			$inventory = $Inventory->get_by_store_item( $this->store_id, $item->get( 'mopped_item_id' ), NULL, TRUE );
-
-			//$transaction_datetime = $this->processing_datetime;
-			$transaction_datetime = date( TIMESTAMP_FORMAT );
 
 			if( $inventory )
 			{
@@ -387,8 +387,9 @@ class Mopping extends Base_model {
 		$Inventory = new Inventory();
 		$Category = new Category();
 
-		$transaction_datetime = date( TIMESTAMP_FORMAT, $this->processing_datetime );
-		//$transaction_datetime = date( TIMESTAMP_FORMAT );
+		//$transaction_datetime = date( TIMESTAMP_FORMAT, $this->processing_datetime );
+		$transaction_datetime = date( TIMESTAMP_FORMAT );
+
 		$collection_category = $Category->get_by_name( 'TktCollect' );
 		$ticket_issue_category = $Category->get_by_name( 'TktIssue' );
 

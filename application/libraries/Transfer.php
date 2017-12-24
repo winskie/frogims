@@ -1002,8 +1002,8 @@ class Transfer extends Base_model {
 		$sales_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_SALES );
 		$tvmir_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_TVMIR );
 
-		$transaction_datetime = $this->transfer_datetime;
-		//$transaction_datetime = date( TIMESTAMP_FORMAT );
+		//$transaction_datetime = $this->transfer_datetime;
+		$transaction_datetime = date( TIMESTAMP_FORMAT );
 
 		$ci->db->trans_start();
 		foreach( $transfer_items as $transfer_item )
@@ -1140,8 +1140,8 @@ class Transfer extends Base_model {
 		$tvmir_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_TVMIR );
 
 		// TODO: Should this be on the day of the transfer or on the date it was cancelled?
-		$transaction_datetime = $this->transfer_datetime;
-		//$transaction_datetime = date( TIMESTAMP_FORMAT );
+		//$transaction_datetime = $this->transfer_datetime;
+		$transaction_datetime = date( TIMESTAMP_FORMAT );
 
 		$ci->db->trans_start();
 		foreach( $transfer_items as $transfer_item )
@@ -1270,8 +1270,8 @@ class Transfer extends Base_model {
 		$csc_card_fee_fund = $Inventory->get_by_store_item_name( $this->destination_id, FUND_CSC_CARD_FEE );
 		$sales_fund = $Inventory->get_by_store_item_name( $this->destination_id, FUND_SALES );
 
-		$transaction_datetime = $this->receipt_datetime;
-		//$transaction_datetime = date( TIMESTAMP_FORMAT );
+		//$transaction_datetime = $this->receipt_datetime;
+		$transaction_datetime = date( TIMESTAMP_FORMAT );
 		$ci->db->trans_start();
 
 		foreach( $transfer_items as $transfer_item )
@@ -1359,8 +1359,8 @@ class Transfer extends Base_model {
 		$Inventory = new Inventory();
 
 		// TODO: Should this be the same as the trasfer date or the date when the transfer is voided?
-		$transaction_datetime = $this->transfer_datetime;
-		// $transaction_datetime = date( TIMESTAMP_FORMAT );
+		// $transaction_datetime = $this->transfer_datetime;
+		$transaction_datetime = date( TIMESTAMP_FORMAT );
 
 		$ci->db->trans_start();
 		if( isset( $this->voided_items ) && $this->voided_items )
