@@ -370,7 +370,7 @@ $config['encryption_key'] = 'TheQuickBrownFoxJumpsOverTheLazyDog';
 */
 $config['sess_driver'] = 'files';
 $config['sess_cookie_name'] = 'ci_session';
-$config['sess_expiration'] = 600; // ten minutes
+$config['sess_expiration'] = 1200; // ten minutes
 $config['sess_save_path'] = NULL;
 $config['sess_match_ip'] = FALSE;
 $config['sess_time_to_update'] = 300;
@@ -521,5 +521,5 @@ function __autoload($class)
 	}
 }
 
-$config['app_version'] = '1.0.3-develop';
+$config['app_version'] = '1.1.0-beta';
 $config['copyright_year'] = date( 'Y' );
