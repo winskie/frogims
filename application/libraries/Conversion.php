@@ -363,8 +363,7 @@ class Conversion extends Base_model {
 			$source_item_id = $source_inventory->get( 'item_id' );
 			$target_item_id = $target_inventory->get( 'item_id' );
 
-			//$transaction_datetime = $this->conversion_datetime;
-			$transaction_datetime = date( TIMESTAMP_FORMAT );
+			$transaction_datetime = $this->conversion_datetime;
 
 			$output = $this->convert( $source_item_id, $target_item_id, $this->source_quantity );
 

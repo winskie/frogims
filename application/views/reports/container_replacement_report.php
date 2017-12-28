@@ -7,6 +7,7 @@
 
 		<title>TICMS - Container Replacement Report</title>
 		<link rel="stylesheet" type="text/css" href="<?php echo base_url( 'resources/css/bootstrap.min.css' );?>" />
+		<link rel="stylesheet" type="text/css" href="<?php echo base_url( 'resources/css/report.css' );?>" />
 	</head>
 	<body class="container-fluid">
 		<div class="report-header">

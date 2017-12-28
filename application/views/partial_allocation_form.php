@@ -45,7 +45,7 @@
 						<select class="form-control"
 								ng-model="data.selectedAssigneeType"
 								ng-options="type.typeName for type in data.assigneeTypes track by type.id"
-								ng-disabled="( allocationItem.allocations.length > 0 ) || ( allocationItem.remittances.length > 0 )"
+								ng-disabled="( allocationItem.allocations.length > 0 ) || ( allocationItem.remittances.length > 0 || allocationItem.cash_allocations.length > 0 || allocationItem.cash_remittances.length > 0 )"
 								ng-change="onAssigneeTypeChange()">
 						</select>
 					</div>
@@ -332,7 +332,7 @@
 			</div>
 		</uib-tab>
 		<!-- Sale Items -->
-		<uib-tab heading="Sales" select="updatePhase( 'sales' )" index="3" ng-if="allocationItem.assignee_type == 1"
+		<uib-tab heading="Sales" select="updatePhase( 'sales' )" index="3"
 				disable="allocationItem.allocation_status == 1 && allocationItem.assignee_type == 1">
 			<div class="panel panel-default" style="margin: 20px 0; height: 300px; overflow-y: auto;">
 				<table class="table table-condensed">
@@ -497,6 +497,16 @@
 				<div class="form-group col-sm-6 col-md-2">
 					<label class="control-label">Time</label>
 					<input type="time" class="form-control" ng-model="input.time">
+				</div>
+
+				<div class="form-group col-sm-6 col-md-2">
+					<label class="control-label">Gross Sales</label>
+					<p class="form-control-static">{{ allocationItem.grossSales  }}</p>
+				</div>
+
+				<div class="form-group col-sm-6 col-md-2">
+					<label class="control-label">Change Fund</label>
+					<p class="form-control-static">{{ allocationItem.changeFund  }}</p>
 				</div>
 			</div>
 		</div>

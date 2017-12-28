@@ -403,6 +403,8 @@ angular.module( 'appServices' ).service( 'session', [ '$http', '$q', '$filter', 
 
 							me.data.currentShift = d.shift;
 							me.data.shiftBalance = d.shift_balance;
+
+							notifications.notify( 'onChangeShift', d );
 							deferred.resolve( d );
 						}
 						else
@@ -429,6 +431,14 @@ angular.module( 'appServices' ).service( 'session', [ '$http', '$q', '$filter', 
 					var startTime = $filter( 'date' )( d, 'yyyy-MM-dd' ) + ' ' + me.data.storeShifts[i].shift_start_time;
 					var endTime = $filter( 'date' )( d, 'yyyy-MM-dd' ) + ' ' + me.data.storeShifts[i].shift_end_time;
 
+					//if( Date.parse( startTime ) > Date.parse( endTime ) )
+					if( startTime > endTime )
+					{ // Case of Shift 3
+						endTime = new Date( endTime );
+						endTime = endTime.setDate( endTime.getDate() +  1 );
+						endTime = $filter( 'date' )( endTime, 'yyyy-MM-dd' ) + ' ' + me.data.storeShifts[i].shift_end_time;
+					}
+
 					if( Date.now() >= Date.parse( startTime ) && Date.now() <= Date.parse( endTime ) )
 					{
 						return me.data.storeShifts[i];
@@ -440,8 +450,10 @@ angular.module( 'appServices' ).service( 'session', [ '$http', '$q', '$filter', 
 	}
 ]);
 
-angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'utilities', 'Transfer', 'Conversion', 'Allocation', 'Collection', 'Adjustment', 'ShiftTurnover', 'TVMReading', 'ShiftDetailCashReport',
-	function( $http, $q, $filter, baseUrl, session, notifications, utilities, Transfer, Conversion, Allocation, Collection, Adjustment, ShiftTurnover, TVMReading, ShiftDetailCashReport )
+angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'utilities', 'lookup',
+		'Transfer', 'Conversion', 'Allocation', 'Collection', 'Adjustment', 'ShiftTurnover', 'TVMReading', 'ShiftDetailCashReport',
+	function( $http, $q, $filter, baseUrl, session, notifications, utilities, lookup,
+			Transfer, Conversion, Allocation, Collection, Adjustment, ShiftTurnover, TVMReading, ShiftDetailCashReport )
 	{
 		var me = this;
 
@@ -795,6 +807,7 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 						{
 							var d = response.data;
 							me.data.categories = d.data;
+							lookup.loadData( d.data, 'categories', 'id' );
 							deferred.resolve( d );
 						}
 						else
@@ -1542,6 +1555,40 @@ angular.module( 'appServices' ).service( 'appData', [ '$http', '$q', '$filter', 
 					url: baseUrl + 'index.php/api/v1/transfers/' + transferId,
 					params: {
 						include: includes
+					}
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							deferred.resolve( response.data );
+						}
+						else
+						{
+							notifications.showMessages( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
+
+
+		me.getTVMSalesCollectionItems = function( tvmId, storeId, date, shiftId )
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/stores/' + storeId + '/tvm_sale_items/',
+					params: {
+						tvm: tvmId,
+						date: $filter( 'date' )( date, 'yyyy-MM-dd' ),
+						shift: shiftId
 					}
 				}).then(
 					function( response )
@@ -2369,48 +2416,63 @@ angular.module( 'appServices' ).service( 'lookup',
 	{
 		var me = this;
 		me.data = {
-			transactionTypes: {
-				'0': 'Initial Balance',
-				'10': 'Transfer',
-				'11': 'Receipt',
-				'12': 'Transfer Cancellation',
-				'13': 'Void Transfer',
+				transactionTypes: {
+					'0': 'Initial Balance',
+					'10': 'Transfer',
+					'11': 'Receipt',
+					'12': 'Transfer Cancellation',
+					'13': 'Void Transfer',
 
-				'20': 'Allocation',
-				'21': 'Remittance',
-				'22': 'Void Allocation',
-				'23': 'Void Remittance',
+					'20': 'Allocation',
+					'21': 'Remittance',
+					'22': 'Void Allocation',
+					'23': 'Void Remittance',
 
-				'30': 'Mopping Collection',
-				'31': 'Void Collection',
-				'32': 'Issuance to Production',
-				'33': 'Void Issuance',
+					'30': 'Mopping Collection',
+					'31': 'Void Collection',
+					'32': 'Issuance to Production',
+					'33': 'Void Issuance',
 
-				'40': 'Adjustment',
+					'40': 'Adjustment',
 
-				'50': 'Conversion From',
-				'51': 'Conversion To',
-			},
-			shiftTurnoverStatus: {
-				'1': 'Open',
-				'2': 'Closed'
-			},
-			storeTypes: {
-				'1': 'General',
-				'2': 'Production',
-				'3': 'Logistics',
-				'4': 'Cashroom'
-			},
-			userRoles: {
-				'1': 'Administrator',
-				'2': 'User'
-			},
-			userStatus: {
-				'1': 'Active',
-				'2': 'Locked',
-				'3': 'Disabled'
-			}
-		};
+					'50': 'Conversion From',
+					'51': 'Conversion To',
+				},
+				shiftTurnoverStatus: {
+					'1': 'Open',
+					'2': 'Closed'
+				},
+				storeTypes: {
+					'1': 'General',
+					'2': 'Production',
+					'3': 'Logistics',
+					'4': 'Cashroom'
+				},
+				userRoles: {
+					'1': 'Administrator',
+					'2': 'User'
+				},
+				userStatus: {
+					'1': 'Active',
+					'2': 'Locked',
+					'3': 'Disabled'
+				}
+			};
+
+		me.loadData = function( data, name, idField )
+			{
+				if( me.data[name] == undefined )
+				{
+					me.data[name] = {};
+				}
+				for( var i = 0, n = data.length; i < n; i++ )
+				{
+					var rowData = data[i];
+					var rowId = rowData[idField];
+					delete rowData[idField];
+					me.data[name][rowId] = rowData;
+				}
+			};
 
 		me.getX = function( set, value )
 			{
@@ -2574,46 +2636,62 @@ angular.module( 'appServices' ).service( 'ReportServices', [ '$http', '$httpPara
 				return deferred.promise;
 			};
 
-		me.generateReport = function( report, params )
+		me.generateReport = function( report, params, mode )
 			{
 				var url = baseUrl + 'index.php/report/' + report;
 				var noteId = notifications.alert( 'Generating report, please wait...', 'info', -1 );
 
-				me.getReportMode().then(
-					function( response )
-					{
-						switch( response )
+				if( mode && mode == 'HTML' )
+				{
+					reportUrl = baseUrl + 'index.php/report/' + report + '?' + $.param( params );
+					$window.open( reportUrl, '_blank', 'toolbar=no, menubar=no, location=no, titlebar=no' );
+					notifications.closeNotification( noteId );
+				}
+				else
+				{
+					me.getReportMode().then(
+						function( response )
 						{
-							case 'JasperReports':
-								$http({
-									method: 'GET',
-									url: url,
-									params: params,
-									responseType: 'arraybuffer'
-								}).then(
-									function( response )
-									{
-										// Close notification
-										notifications.closeNotification( noteId );
+							switch( response )
+							{
+								case 'JasperReports':
+									$http({
+										method: 'GET',
+										url: url,
+										params: params,
+										responseType: 'arraybuffer'
+									}).then(
+										function( response )
+										{
+											// Close notification
+											notifications.closeNotification( noteId );
 
-										var headers = response.headers();
-										var file = new Blob( [response.data], { type: headers['content-type'] } );
-										var fileURL = URL.createObjectURL( file );
+											var headers = response.headers();
+											var file = new Blob( [response.data], { type: headers['content-type'] } );
+											var fileURL = URL.createObjectURL( file );
 
-										// open in new window
-										$window.open( fileURL, '_blank', 'toolbar=no, menubar=no, location=no, titlebar=no' );
-									},
-									function( reason )
-									{
-										console.error( reason );
-									} );
-								break;
+											// open in new window
+											$window.open( fileURL, '_blank', 'toolbar=no, menubar=no, location=no, titlebar=no' );
+										},
+										function( reason )
+										{
+											console.error( reason );
+										} );
+									break;
 
-							default:
-								$window.open( baseUrl + 'index.php/report/' + report + '?' + $.param( params ), '_blank' );
-								break;
-						}
-					} );
+								default:
+									reportUrl = baseUrl + 'index.php/report/' + report + '?' + $.param( params );
+									$window.open( reportUrl, '_blank', 'toolbar=no, menubar=no, location=no, titlebar=no' );
+									notifications.closeNotification( noteId );
+									break;
+							}
+						} );
+				}
+			};
+
+		me.viewReport = function( report, params )
+			{
+
 			};
 	}
 ]);

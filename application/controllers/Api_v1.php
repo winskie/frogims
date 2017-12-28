@@ -2508,6 +2508,53 @@ class Api_v1 extends MY_Controller {
 									}
 									break;
 
+								case 'tvm_sale_items': // TVM Sale items
+									// Check permissions
+									if( !$current_user->check_permissions( 'allocations', 'view' ) )
+									{
+										$this->_error( 403, 'You are not allowed to access this resource' );
+									}
+									else
+									{
+										$params = array(
+											'date' => param( $this->input->get(), 'date' ),
+											'shift_id' => param( $this->input->get(), 'shift' ),
+											'machine_id' => param( $this->input->get(), 'tvm' ),
+										);
+										$items = $store->get_tvm_sales_items( $params );
+										$query = $this->db->last_query();
+										$items_data = array();
+
+										$additional_fields = array(
+											'item_name' => array( 'type' => 'string' ),
+											'item_class' => array( 'type' => 'string' ),
+											'item_unit' => array( 'type' => 'string' ),
+											'item_group' => array( 'type' => 'string' ),
+											'item_description' => array( 'type' => 'string' ),
+											'base_item_id' => array( 'type' => 'integer' ),
+											'base_quantity' => array( 'type' => 'integer' ),
+											'iprice_currency' => array( 'type' => 'string' ),
+											'iprice_unit_price' => array( 'type' => 'decimal' ),
+										);
+
+										foreach( $items as $item )
+										{
+											$item_data = $item->as_array( $additional_fields );
+											$item_data['categories'] = array();
+											$categories = $item->get_categories();
+											foreach( $categories as $category )
+											{
+												$item_data['categories'][] = $category->as_array();
+											}
+											$items_data[] = $item_data;
+										}
+
+										$this->_response( array(
+											'items' => $items_data,
+											'query' => $query ) );
+									}
+									break;
+
 								default:
 									$this->_error( 404, sprintf( '%s resource not found', $relation ) );
 							}

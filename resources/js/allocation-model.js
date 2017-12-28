@@ -1,5 +1,7 @@
-angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'AllocationItem', 'AllocationSalesItem', 'ShiftDetailCashReport',
-	function( $http, $q, $filter, baseUrl, session, notifications, AllocationItem, AllocationSalesItem, ShiftDetailCashReport )
+angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter', 'baseUrl', 'session', 'notifications', 'lookup',
+		'AllocationItem', 'AllocationSalesItem', 'ShiftDetailCashReport',
+	function( $http, $q, $filter, baseUrl, session, notifications, lookup,
+			AllocationItem, AllocationSalesItem, ShiftDetailCashReport )
 	{
 		var id;
 		var store_id;
@@ -20,6 +22,8 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 		var cash_reports;
 
 		var allocationSummary;
+		var changeFund = 0.00;
+		var grossSales = 0.00;
 
 		var allocationStatus = {
 				'1': 'Scheduled',
@@ -82,6 +86,8 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 				me.cash_reports = [];
 
 				me.allocationSummary = [];
+				me.grossSales = 0.00;
+				me.changeFund = 0.00;
 
 				if( data )
 				{
@@ -179,6 +185,16 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 						for( var i = 0; i < n; i++ )
 						{
 							me.cash_remittances.push( new AllocationItem( remittanceCashItems[i] ) );
+							switch( lookup.getX( 'categories', remittanceCashItems[i].allocation_category_id ).cat_name )
+							{
+								case 'SalesColl':
+									me.grossSales += remittanceCashItems[i].allocated_quantity * remittanceCashItems[i].iprice_unit_price;
+									break;
+
+								case 'CFundRet':
+									me.changeFund += remittanceCashItems[i].allocated_quantity * remittanceCashItems[i].iprice_unit_price;
+									break;
+							}
 						}
 					}
 
@@ -449,18 +465,29 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 
 		Allocation.prototype.addRemittanceItem = function( item )
 			{
+				var me = this;
 				switch( item.item_class )
 				{
 					case 'ticket':
-						this.remittances.push( item );
+						me.remittances.push( item );
 						break;
 
 					case 'cash':
-						this.cash_remittances.push( item );
+						me.cash_remittances.push( item );
+						switch( lookup.getX( 'categories', item.allocation_category_id ).cat_name )
+						{
+							case 'SalesColl':
+								me.grossSales += item.allocated_quantity * item.iprice_unit_price;
+								break;
+
+							case 'CFundRet':
+								me.changeFund += item.allocated_quantity * item.iprice_unit_price;
+								break;
+						}
 						break;
 				}
 
-				this.updateAllocationSummary();
+				me.updateAllocationSummary();
 			};
 
 
@@ -472,7 +499,12 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 
 		Allocation.prototype.addSalesItem = function( item )
 			{
-				this.sales.push( item );
+				var me = this;
+				me.sales.push( item );
+				if( item.slitem_mode === 0 )
+				{
+					me.grossSales -= item.alsale_amount;
+				}
 			};
 
 
@@ -873,6 +905,8 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 
 		Allocation.prototype.removeRemittanceItem = function( item )
 			{
+				var me = this;
+
 				if( item.id == undefined )
 				{
 					var index;
@@ -880,12 +914,22 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 					{
 						case 'ticket':
 							index = this.remittances.indexOf( item );
-							this.remittances.splice( index, 1 );
+							me.remittances.splice( index, 1 );
 							break;
 
 						case 'cash':
 							index = this.cash_remittances.indexOf( item );
-							this.cash_remittances.splice( index, 1 );
+							me.cash_remittances.splice( index, 1 );
+							switch( lookup.getX( 'categories', item.allocation_category_id ).cat_name )
+							{
+								case 'SalesColl':
+									me.grossSales -= item.allocated_quantity * item.iprice_unit_price;
+									break;
+
+								case 'CFundRet':
+									me.changeFund -= item.allocated_quantity * item.iprice_unit_price;
+									break;
+							}
 							break;
 					}
 				}
@@ -922,6 +966,11 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 				else
 				{
 					item.void( !item.void() );
+				}
+
+				if( item.slitem_mode === 0 )
+				{
+					me.grossSales += item.amount;
 				}
 			};
 
@@ -1308,6 +1357,11 @@ angular.module( 'coreModels' ).factory( 'AllocationItem', [ '$http', '$q', '$fil
 				'32': 'Voided',
 			};
 
+		var iprice_currency;
+		var iprice_unit_price;
+		var item_class;
+		var base_quantity;
+
 
 		/**
 		 * Constructor
@@ -1333,6 +1387,7 @@ angular.module( 'coreModels' ).factory( 'AllocationItem', [ '$http', '$q', '$fil
 				me.iprice_currency = null;
 				me.iprice_unit_price = null;
 				me.item_class = null;
+				me.base_quantity = null;
 
 				switch( type )
 				{

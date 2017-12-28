@@ -326,6 +326,68 @@ class Store extends Base_model
 	}
 
 
+	public function get_tvm_sales_items( $params = array() )
+	{
+		$business_date = param( $params, 'date', date( DATE_FORMAT ) );
+		$shift_id = param( $params, 'shift_id', current_shift( TRUE ) );
+		$machine_id = param( $params, 'machine_id' );
+		$format = param( $params, 'format', 'object' );
+
+		$ci =& get_instance();
+		$ci->load->library( 'inventory' );
+		$ci->load->library( 'category' );
+		$Category = new Category();
+		$sales_collection_cat = $Category->get_by_name( 'SalesColl' );
+
+		if( empty( $machine_id ) )
+		{
+			return NULL;
+		}
+
+		$query_params = array();
+		$sql = 'SELECT
+							i.id, i.id AS item_id, i.item_name, i.item_description, i.item_class, i.item_group, i.item_unit,
+							i.base_item_id, ct.conversion_factor AS base_quantity,
+							ip.iprice_currency, ip.iprice_unit_price,
+							SUM( allocated_quantity ) AS quantity
+						FROM allocations AS a
+						LEFT JOIN allocation_items AS ai
+							ON ai.allocation_id = a.id
+						LEFT JOIN items AS i
+							ON i.id = ai.allocated_item_id
+						LEFT JOIN conversion_table AS ct
+							ON ct.target_item_id = i.id AND ct.source_item_id = i.base_item_id
+						LEFT JOIN item_prices AS ip
+							ON ip.iprice_item_id = i.id
+
+						WHERE
+							a.business_date = ?
+							AND a.store_id = ?
+							AND a.assignee_type = 2
+							AND a.assignee = ?
+							AND ai.cashier_shift_id = ?
+							AND ai.allocation_item_type = '.ALLOCATION_ITEM_TYPE_REMITTANCE.'
+							AND ai.allocation_category_id = '.$sales_collection_cat->get( 'id').'
+						GROUP BY
+							i.id, i.item_name, i.item_description, i.item_class, i.item_group, i.item_unit,
+							i.base_item_id, ct.conversion_factor, ip.iprice_currency, ip.iprice_unit_price';
+
+		$query_params = array( $business_date, $this->id, 'T'.str_pad( $machine_id, 2, '0', STR_PAD_LEFT), $shift_id );
+		$query = $ci->db->query( $sql, $query_params );
+
+		if( $format == 'object')
+		{
+			return $query->result( 'Inventory' );
+		}
+		elseif( $format == 'array' )
+		{
+			return $query->result_array();
+		}
+
+		return NULL;
+	}
+
+
 	public function get_shift_turnover_items( $params = array() )
 	{
 		$business_date = param( $params, 'date', date( DATE_FORMAT ) );

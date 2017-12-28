@@ -539,7 +539,7 @@ $current_user = current_user();
 												<a href ng-click="cancelTransfer( transfer )">Cancel</a>
 											</li>
 											<li role="menuitem" ng-if="transfer.canEdit()">
-												<a ui-sref="main.transfer({ transferItem: transfer, editMode: 'transfer' })">Edit...</a>
+												<a ui-sref="main.transfer({ transferItem: transfer, editMode: 'auto' })">Edit...</a>
 											</li>
 										</ul>
 									</div>
@@ -1423,9 +1423,12 @@ $current_user = current_user();
 							<tr>
 								<th>Business Date</th>
 								<th>Shift</th>
+								<!--
 								<th>Started by</th>
 								<th>Closed by</th>
+								-->
 								<th class="text-center">Status</th>
+								<th>Reports</th>
 								<th class="text-center" style="width: 175px;"></th>
 							</tr>
 						</thead>
@@ -1437,13 +1440,28 @@ $current_user = current_user();
 									<span class="label label-warning" ng-if="turnover.isActive()">active</span>
 								</td>
 								<td>{{ turnover.description }}</td>
+								<!--
 								<td>{{ turnover.start_user ? turnover.start_user : '---' }}</td>
 								<td>{{ turnover.end_user ? turnover.end_user : '---' }}</td>
+								-->
 								<td class="text-center">
 									{{ turnover.get( 'shiftTurnoverStatus' ) }}
 									<span class="label label-danger label-as-badge" ng-if="turnover.st_status == <?php echo SHIFT_TURNOVER_CLOSED;?> && turnover.has_issues > 0">
 										{{ turnover.has_issues }}
 									</span>
+								</td>
+								<td ng-switch on="turnover.st_status == undefined">
+									<div class="btn-group" uib-dropdown is-open="status.isopen" ng-switch-when="false">
+										<button type="button" class="btn btn-default" uib-dropdown-toggle ng-disabled="disabled">
+											View Report <span class="caret"></span>
+										</button>
+										<ul uib-dropdown-menu role="menu" aria-labelledby="single-button">
+											<li><a href ng-click="viewReport( 'container_replacement', { date: turnover.st_from_date, shift: turnover.st_from_shift_id, store: turnover.st_store_id } )">Container Replacement</a></li>
+											<li><a href ng-click="viewReport( 'shift_collection', { date: turnover.st_from_date, shift: turnover.st_from_shift_id, store: turnover.st_store_id } )">Shift Collection</a></li>
+											<li><a href ng-click="viewReport( 'cashroom_turnover', { date: turnover.st_from_date, shift: turnover.st_from_shift_id, store: turnover.st_store_id } )">Cashroom Turnover</a></li>
+										</ul>
+									</div>
+									<span ng-switch-default>Unavailable</span>
 								</td>
 								<td class="text-right">
 									<button type="button" class="btn btn-default" ui-sref="main.shiftTurnover({ shiftTurnover: turnover, editMode: 'edit' })">View details...</button>

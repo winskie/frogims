@@ -139,17 +139,19 @@ angular.module( 'coreModels' ).factory( 'ShiftTurnover', [ '$http', '$q', '$filt
 		ShiftTurnover.prototype.isCurrent = function()
 			{
 				var currentShift = session.getCurrentShift();
+
 				return currentShift
-								&& $filter( 'date' )( this.st_from_date, 'yyyy-MM-dd' ) == $filter( 'date' )( new Date(), 'yyyy-MM-dd' )
-								&& this.st_from_shift_id == currentShift.id
-								&& this.st_store_id == session.data.currentStore.id;
+								&& ( $filter( 'date' )( this.st_from_date, 'yyyy-MM-dd' ) == $filter( 'date' )( new Date(), 'yyyy-MM-dd' ) )
+								&& ( this.st_from_shift_id == currentShift.id )
+								&& ( this.st_store_id == session.data.currentStore.id );
 			};
 
 		ShiftTurnover.prototype.isActive = function()
 			{
-				return $filter( 'date' )( this.st_from_date, 'yyyy-MM-dd' ) == $filter( 'date' )( new Date(), 'yyyy-MM-dd' )
-								&& this.st_from_shift_id == session.data.currentShift.id
-								&& this.st_store_id == session.data.currentStore.id;
+				return ( $filter( 'date' )( this.st_from_date, 'yyyy-MM-dd' ) == $filter( 'date' )( new Date(), 'yyyy-MM-dd' ) )
+								&& ( this.st_from_shift_id == session.data.currentShift.id )
+								&& ( this.st_store_id == session.data.currentStore.id )
+								&& ( parseInt( this.st_status ) === 1 );
 			};
 
 

@@ -19,6 +19,7 @@ class Shift_turnover extends Base_model
 	protected $modified_by_field = 'modified_by';
 
 	protected $items;
+	protected $shift;
 	protected $previousStatus;
 
 	public function __construct()
@@ -110,6 +111,21 @@ class Shift_turnover extends Base_model
 	}
 
 
+	public function get_shift( $force = FALSE )
+	{
+		if( ! isset( $this->shift ) || $force )
+		{
+			$ci =& get_instance();
+			$ci->load->library( 'shift' );
+			$Shift = new Shift();
+
+			$this->shift = $Shift->get_by_id( $this->st_from_shift_id );
+		}
+
+		return $this->shift;
+	}
+
+
 	public function count_turnovers( $params = array() )
 	{
 		$ci =& get_instance();
@@ -183,7 +199,8 @@ class Shift_turnover extends Base_model
 								IF( ct.conversion_factor IS NULL, sti.sti_beginning_balance, sti.sti_beginning_balance * ct.conversion_factor ) AS base_beginning_balance,
 								IF( ct.conversion_factor IS NULL, sti.sti_ending_balance, sti.sti_ending_balance * ct.conversion_factor ) AS base_ending_balance,
 								IF( ct.conversion_factor IS NULL, ts.movement, ts.movement * ct.conversion_factor ) AS base_movement,
-								ip.iprice_unit_price
+								ip.iprice_unit_price,
+								ct.conversion_factor
 							FROM shift_turnover_items AS sti
 							LEFT JOIN items AS i
 								ON i.id = sti.sti_item_id
@@ -300,7 +317,8 @@ class Shift_turnover extends Base_model
 		$prev_turnover = $this->get_previous_turnover();
 		if( $prev_turnover )
 		{
-			$prev_items = $prev_turnover->get_shift_turnovers();
+			$prev_items = $prev_turnover->get_items();
+
 			foreach( $prev_items as $inv_id => $prev_item )
 			{
 				if( isset( $this->items[$inv_id] ) )
@@ -440,9 +458,13 @@ class Shift_turnover extends Base_model
 
 		// Do checks before allowing end of shift
 
-		// No unreplenished TVM change fund
+		// Check all remaining sales have scheduled bank deposit
 
-		// TVM readings present
+		// Check for unreplenished TVM change fund
+
+		// Check TVM readings present
+
+		// Check for unrecorded shortage/overages
 
 		$ci->db->trans_start();
 		$this->set( 'st_end_user_id', current_user( TRUE ) );
@@ -531,9 +553,9 @@ class Shift_turnover extends Base_model
 	}
 
 	/**
-	 * Change Fund Beginning Balance
+	 * Cash Beginning Balance
 	 */
-	public function beginning_balance( $type = 'cash_in_vault' )
+	public function beginning_balance( $type = 'cash_balance' )
 	{
 		$ci =& get_instance();
 		$items = $this->get_items();
@@ -541,12 +563,59 @@ class Shift_turnover extends Base_model
 
 		switch( $type )
 		{
-			case 'cash_in_vault':
+			case 'cash_balance':
+				// Change Fund + Sales
 				foreach( $items as $item )
 				{
 					if( $item->get( 'item_class' ) == 'cash' && in_array( $item->get( 'parent_item_name' ), array( 'Change Fund', 'Sales' ) ) )
 					{
-						$beginning_balance += $item->get( 'base_beginning_balance' ) * $item->get( 'iprice_unit_price' );
+						$beginning_balance += $item->get( 'sti_beginning_balance' ) * $item->get( 'iprice_unit_price' );
+					}
+				}
+				break;
+
+			case 'tvmir':
+				// TVMIR
+				foreach( $items as $item )
+				{
+					if( $item->get( 'item_class' ) == 'cash' && $item->get( 'parent_item_name' ) == 'TVMIR' )
+					{
+						$beginning_balance += $item->get( 'sti_beginning_balance' ) * $item->get( 'iprice_unit_price' );
+					}
+				}
+				break;
+
+			case 'csc':
+				// Concessionary Card Fee
+				foreach( $items as $item )
+				{
+					if( $item->get( 'item_class' ) == 'cash' && $item->get( 'parent_item_name' ) == 'CSC Card Fee' )
+					{
+						$beginning_balance += $item->get( 'sti_beginning_balance' ) * $item->get( 'iprice_unit_price' );
+					}
+				}
+				break;
+
+			case 'ticket_balance':
+				$beginning_balance = array( 'SJT' => 0, 'SVC' => 0, 'Concessionary' => 0 );
+				foreach( $items as $item )
+				{
+					if( $item->get( 'item_class' ) == 'ticket' )
+					{
+						switch( $item->get( 'item_group' ) )
+						{
+							case 'SJT':
+								$beginning_balance['SJT'] += $item->get( 'sti_beginning_balance' );
+								break;
+
+							case 'SVC':
+								$beginning_balance['SVC'] += $item->get( 'sti_beginning_balance' );
+								break;
+
+							case 'Concessionary':
+								$beginning_balance['Concessionary'] += $item->get( 'sti_beginning_balance' );
+								break;
+						}
 					}
 				}
 				break;
@@ -554,6 +623,1291 @@ class Shift_turnover extends Base_model
 
 		return $beginning_balance;
 	}
+
+	/**
+	 * Cash Ending Balance
+	 */
+	public function ending_balance( $type = 'cash_balance' )
+	{
+		$ci =& get_instance();
+		$items = $this->get_items();
+		$data = array(
+			'actual' => 0.00,
+			'system' => 0.00
+		);
+
+		switch( $type )
+		{
+			case 'cash_balance':
+				// Change Fund + Sales
+				foreach( $items as $item )
+				{
+					if( $item->get( 'item_class' ) == 'cash' && in_array( $item->get( 'parent_item_name' ), array( 'Change Fund', 'Sales' ) ) )
+					{
+						$data['system'] += ( $item->get( 'sti_beginning_balance' ) + $item->get( 'movement') ) * $item->get( 'iprice_unit_price' );
+						$data['actual'] += $item->get( 'sti_ending_balance' ) * $item->get( 'iprice_unit_price' );
+					}
+				}
+				break;
+
+			case 'tvmir':
+				// TVMIR
+				foreach( $items as $item )
+				{
+					if( $item->get( 'item_class' ) == 'cash' && $item->get( 'parent_item_name' ) == 'TVMIR' )
+					{
+						$data['system'] += ( $item->get( 'sti_beginning_balance' ) + $item->get( 'movement') ) * $item->get( 'iprice_unit_price' );
+						$data['actual'] += $item->get( 'sti_ending_balance' ) * $item->get( 'iprice_unit_price' );
+					}
+				}
+				break;
+
+			case 'csc':
+				// Concessionary Card Fee
+				foreach( $items as $item )
+				{
+					if( $item->get( 'item_class' ) == 'cash' && $item->get( 'parent_item_name' ) == 'CSC Card Fee' )
+					{
+						$data['system'] += ( $item->get( 'sti_beginning_balance' ) + $item->get( 'movement') ) * $item->get( 'iprice_unit_price' );
+						$data['actual'] += $item->get( 'sti_ending_balance' ) * $item->get( 'iprice_unit_price' );
+					}
+				}
+				break;
+
+			case 'ticket_balance':
+				$data = array(
+					'SJT' => array( 'actual' => 0, 'system' => 0 ),
+					'SVC' => array( 'actual' => 0, 'system' => 0 ),
+					'Concessionary' => array( 'actual' => 0, 'system' => 0 ) );
+				foreach( $items as $item )
+				{
+					if( $item->get( 'item_class' ) == 'ticket' )
+					{
+						//var_dump( $item->get( 'item_name' ), $item->get( 'sti_beginning_balance' ), $item->get( 'movement' ), $item->get( 'base_movement' ) );
+						//echo '<br/>';
+						switch( $item->get( 'item_group' ) )
+						{
+							case 'SJT':
+								$data['SJT']['system'] += $item->get( 'sti_beginning_balance' ) + $item->get( 'base_movement' );
+								$data['SJT']['actual'] += $item->get( 'sti_ending_balance' );
+								break;
+
+							case 'SVC':
+								$data['SVC']['system'] += $item->get( 'sti_beginning_balance' ) + $item->get( 'base_movement' );
+								$data['SVC']['actual'] += $item->get( 'sti_ending_balance' );
+								break;
+
+							case 'Concessionary':
+								$data['Concessionary']['system'] += $item->get( 'sti_beginning_balance' ) + $item->get( 'base_movement' );
+								$data['Concessionary']['actual'] += $item->get( 'sti_ending_balance' );
+								break;
+						}
+					}
+				}
+				break;
+		}
+
+		return $data;
+	}
+
+	/**
+	 * For deposit to bank
+	 */
+	public function for_deposit_to_bank()
+	{
+		$ci =& get_instance();
+
+		$shift = $this->get_shift();
+		$data = array();
+
+		// Get remaining sales collection amount
+		$items = $this->get_items();
+		$sales_collection = 0.00;
+
+		foreach( $items as $item )
+		{
+			if( $item->get( 'item_class' ) == 'cash' && $item->get( 'parent_item_name' ) == 'Sales' )
+			{
+				$sales_collection += ( $item->get( 'sti_beginning_balance') + $item->get( 'movement' ) ) * $item->get( 'iprice_unit_price' );
+			}
+		}
+
+		$data[$shift->get('shift_num')] = array( 'sales_collection' => $sales_collection, 'for_deposit' => 0.00 );
+
+		// Get scheduled deposit to bank
+		$sql = "SELECT
+							s.shift_num,
+							SUM( ti.quantity * ip.iprice_unit_price ) AS amount
+						FROM transfers AS t
+						LEFT JOIN transfer_items AS ti
+							ON ti.transfer_id = t.id
+						LEFT JOIN items AS i
+							ON i.id = ti.item_id
+						LEFT JOIN item_prices AS ip
+							ON ip.iprice_item_id = i.id
+						LEFT JOIN shifts AS s
+							ON s.id = t.transfer_init_shift_id
+						WHERE
+							t.origin_id = ".$this->st_store_id."
+							AND t.transfer_init_shift_id = ".$this->st_from_shift_id."
+							AND t.transfer_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND t.transfer_category = ".TRANSFER_CATEGORY_BANK_DEPOSIT."
+							AND i.item_class = 'cash'
+							-- AND t.transfer_status = ".TRANSFER_PENDING."
+							AND ti.transfer_item_status NOT IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")
+						GROUP BY shift_num";
+		$query = $ci->db->query( $sql );
+		$r = $query->result_array();
+
+		foreach( $r as $row )
+		{
+			if( isset( $data[$row['shift_num']] ) )
+			{
+				$data[$row['shift_num']]['for_deposit'] = $row['amount'];
+			}
+			else
+			{
+				$data[$row['shift_num']] = array( 'sales_collection' => 0.00, 'for_deposit' => $row['amount'] );
+			}
+		}
+		//var_dump( $data );
+		//echo '<br/>';
+		return $data;
+	}
+
+	/**
+	 * Returned Change Fund
+	 */
+	public function returned_change_fund()
+	{
+		$ci =& get_instance();
+
+		$ci->load->library( 'category' );
+		$Category = new Category();
+
+		$change_fund_return_cat = $Category->get_by_name( 'CFundRet' );
+
+		$data = array(
+			'teller' => 0.00,
+			'TVM' => 0.00 );
+
+		// Station Teller
+		$sql = "SELECT
+							SUM(ai.allocated_quantity * ip.iprice_unit_price) AS amount
+						FROM allocations AS a
+						LEFT JOIN allocation_items AS ai
+							ON ai.allocation_id = a.id
+						LEFT JOIN items AS i
+							ON i.id = ai.allocated_item_id
+						LEFT JOIN item_prices AS ip
+							ON ip.iprice_item_id = i.id
+						WHERE
+							a.business_date = '".$this->st_from_date."'
+							AND a.store_id = ".$this->st_store_id."
+							AND a.assignee_type = ".ALLOCATION_ASSIGNEE_TELLER."
+							AND ai.cashier_shift_id = ".$this->st_from_shift_id."
+							AND ai.allocation_item_type = ".ALLOCATION_ITEM_TYPE_REMITTANCE."
+							AND i.item_class = 'cash'
+							AND ai.allocation_category_id = ".$change_fund_return_cat->get( 'id' )."
+							AND NOT ai.allocation_item_status = ".REMITTANCE_ITEM_VOIDED;
+		$query = $ci->db->query( $sql );
+		$r = $query->row_array();
+
+		$data['teller'] += $r['amount'];
+
+		// TVM
+		$sql = "SELECT
+							SUM( ti.quantity * ip.iprice_unit_price ) AS amount
+						FROM transfers t
+						LEFT JOIN transfer_items ti
+							ON ti.transfer_id = t.id
+						LEFT JOIN items i
+							ON i.id = ti.item_id
+						LEFT JOIN item_prices ip
+							ON ip.iprice_item_id = i.id
+						WHERE
+							t.transfer_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND t.origin_id = ".$this->st_store_id."
+							AND t.sender_shift = ".$this->st_from_shift_id."
+							AND t.transfer_category = ".TRANSFER_CATEGORY_REPLENISH_TVM_CFUND."
+							AND NOT ti.transfer_item_status IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")";
+		$query = $ci->db->query( $sql );
+		$r = $query->row_array();
+
+		$data['TVM'] += $r['amount'];
+
+		return $data;
+	}
+
+	/**
+	 * Other Cash Additions
+	 */
+	public function other_cash_additions()
+	{
+		$ci =& get_instance();
+		$data = array();
+
+		// Returned Bills to Coins exchange
+		$sql = "SELECT
+							SUM( ti.quantity * ip.iprice_unit_price ) AS amount
+						FROM transfers AS t
+						LEFT JOIN transfer_items AS ti
+							ON ti.transfer_id = t.id
+						LEFT JOIN items AS i
+							ON i.id = ti.item_id
+						LEFT JOIN item_prices AS ip
+							ON ip.iprice_item_id = i.id
+						LEFT JOIN shifts AS s
+							ON s.id = t.transfer_init_shift_id
+						WHERE
+							t.destination_id = ".$this->st_store_id."
+							AND t.recipient_shift = ".$this->st_from_shift_id."
+							AND t.transfer_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND t.transfer_category = ".TRANSFER_CATEGORY_BILLS_TO_COINS."
+							AND i.item_class = 'cash'
+							AND t.transfer_status = ".TRANSFER_RECEIVED."
+							AND ti.transfer_item_status NOT IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")";
+		$query = $ci->db->query( $sql );
+		$r = $query->row_array();
+
+		if( ! empty($r['amount'] ) )
+		{
+			$data['Bills to Coins Exchange'] = $r['amount'];
+		}
+
+		// Adjustments
+		$sql = "SELECT
+							SUM((a.adjusted_quantity - a.previous_quantity) * ip.iprice_unit_price) AS amount
+						FROM adjustments AS a
+						LEFT JOIN store_inventory AS si
+							ON si.id = a.store_inventory_id
+						LEFT JOIN items AS i
+							ON i.id = si.item_id
+						LEFT JOIN item_prices AS ip
+							ON ip.iprice_item_id = i.id
+						LEFT JOIN items AS pi
+							ON pi.id = si.parent_item_id
+						WHERE
+							a.adjustment_timestamp BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND a.adjustment_shift = ".$this->st_from_shift_id."
+							AND a.adjustment_status = ".ADJUSTMENT_APPROVED."
+							AND si.store_id = ".$this->st_store_id."
+							AND i.item_class = 'cash'
+							AND pi.item_name = 'Change Fund'";
+		$query = $ci->db->query( $sql );
+		$r = $query->row_array();
+
+		if( $r['amount'] > 0 )
+		{
+			$data['Adjustment'] = $r['amount'];
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Deposit to Bank
+	 */
+	public function deposit_to_bank()
+	{
+		$ci =& get_instance();
+
+		$shift = $this->get_shift();
+		$data = array();
+
+		// Get scheduled deposit to bank
+		$sql = "SELECT
+							s.shift_num,
+							SUM( ti.quantity * ip.iprice_unit_price ) AS amount
+						FROM transfers AS t
+						LEFT JOIN transfer_items AS ti
+							ON ti.transfer_id = t.id
+						LEFT JOIN items AS i
+							ON i.id = ti.item_id
+						LEFT JOIN item_prices AS ip
+							ON ip.iprice_item_id = i.id
+						LEFT JOIN shifts AS s
+							ON s.id = t.transfer_init_shift_id
+						WHERE
+							t.origin_id = ".$this->st_store_id."
+							AND t.sender_shift = ".$this->st_from_shift_id."
+							AND t.transfer_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND t.transfer_category = ".TRANSFER_CATEGORY_BANK_DEPOSIT."
+							AND i.item_class = 'cash'
+							AND t.transfer_status = ".TRANSFER_APPROVED."
+							AND ti.transfer_item_status NOT IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")
+						GROUP BY t.transfer_init_shift_id";
+		$query = $ci->db->query( $sql );
+		$r = $query->result_array();
+
+		foreach( $r as $row )
+		{
+			$data[$row['shift_num']] = $row['amount'];
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Change Fund Allocations
+	 */
+	public function change_fund_allocations()
+	{
+		$ci =& get_instance();
+
+		$valid_items = array( 'Php1 Coin', 'Php5 Coin', 'Bag Php1@100', 'Bag Php5@100' );
+		$data = array( 'teller' => 0.00, 'TVM' => 0.00 );
+
+		$sql = "SELECT
+							a.assignee_type,
+							SUM( IF( ai.allocation_item_type = ".ALLOCATION_ITEM_TYPE_ALLOCATION.", ip.iprice_unit_price * ai.allocated_quantity, 0 ) ) AS amount
+						FROM allocations a
+						LEFT JOIN allocation_items ai
+							ON ai.allocation_id = a.id
+						LEFT JOIN items i
+							ON i.id = ai.allocated_item_id
+						LEFT JOIN item_prices ip
+							ON ip.iprice_item_id = i.id
+						LEFT JOIN categories AS c
+							ON c.id = ai.allocation_category_id
+						WHERE
+							a.store_id = ".$this->st_store_id."
+							AND ai.allocation_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND ai.cashier_shift_id = ".$this->st_from_shift_id."
+							AND i.item_class = 'cash'
+							AND c.cat_name IN ( 'HopAlloc', 'InitCFund', 'AddCFund' )
+							AND NOT ai.allocation_item_status IN (".implode( ', ', array( ALLOCATION_ITEM_VOIDED, ALLOCATION_ITEM_CANCELLED ) ).")
+						GROUP BY assignee_type";
+		$query = $ci->db->query( $sql );
+		$r = $query->result_array();
+
+		foreach( $r as $row )
+		{
+			switch( $row['assignee_type'] )
+			{
+				case 1:
+					$assignee_type = 'teller';
+					break;
+
+				case 2:
+					$assignee_type = 'TVM';
+					break;
+
+				default:
+					die( 'Invalid assignee type detected. Contact your system administrator.' );
+			}
+
+			$data[$assignee_type] = $row['amount'];
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Other Cash Deductions
+	 */
+	public function other_cash_deductions()
+	{
+		$ci =& get_instance();
+		$data = array();
+
+		// Bills to Coins exchange
+		$sql = "SELECT
+							SUM( ti.quantity * ip.iprice_unit_price ) AS amount
+						FROM transfers AS t
+						LEFT JOIN transfer_items AS ti
+							ON ti.transfer_id = t.id
+						LEFT JOIN items AS i
+							ON i.id = ti.item_id
+						LEFT JOIN item_prices AS ip
+							ON ip.iprice_item_id = i.id
+						LEFT JOIN shifts AS s
+							ON s.id = t.transfer_init_shift_id
+						WHERE
+							t.origin_id = ".$this->st_store_id."
+							AND t.sender_shift = ".$this->st_from_shift_id."
+							AND t.transfer_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND t.transfer_category = ".TRANSFER_CATEGORY_BILLS_TO_COINS."
+							AND i.item_class = 'cash'
+							AND t.transfer_status = ".TRANSFER_APPROVED."
+							AND ti.transfer_item_status NOT IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")";
+		$query = $ci->db->query( $sql );
+		$r = $query->row_array();
+
+		if( ! empty($r['amount'] ) )
+		{
+			$data['Bills to Coins Exchange'] = $r['amount'];
+		}
+
+		// Adjustments
+		$sql = "SELECT
+							SUM((a.adjusted_quantity - a.previous_quantity) * ip.iprice_unit_price) AS amount
+						FROM adjustments AS a
+						LEFT JOIN store_inventory AS si
+							ON si.id = a.store_inventory_id
+						LEFT JOIN items AS i
+							ON i.id = si.item_id
+						LEFT JOIN item_prices AS ip
+							ON ip.iprice_item_id = i.id
+						LEFT JOIN items AS pi
+							ON pi.id = si.parent_item_id
+						WHERE
+							a.adjustment_timestamp BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND a.adjustment_shift = ".$this->st_from_shift_id."
+							AND a.adjustment_status = ".ADJUSTMENT_APPROVED."
+							AND si.store_id = ".$this->st_store_id."
+							AND i.item_class = 'cash'
+							AND pi.item_name = 'Change Fund'";
+		$query = $ci->db->query( $sql );
+		$r = $query->row_array();
+
+		if( $r['amount'] < 0 )
+		{
+			$data['Adjustment'] = abs( $r['amount'] );
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Get TVMIR transactions
+	 */
+	public function tvmir_transactions()
+	{
+		$ci =& get_instance();
+		$data = array(
+			'additions' => array(),
+			'issuances' => array(),
+			'returns' => 0.00
+		);
+
+		// Get TVMIR transactions
+		$sql = "SELECT
+							t.id,
+							t.transfer_category,
+							t.transfer_reference_num,
+							DATE( t.transfer_datetime ) AS business_date,
+							t.transfer_tvm_id,
+							SUM( ti.quantity * ip.iprice_unit_price ) AS amount
+						FROM transfers AS t
+						LEFT JOIN transfer_items AS ti
+							ON ti.transfer_id = t.id
+						LEFT JOIN items AS i
+							ON i.id = ti.item_id
+						LEFT JOIN item_prices AS ip
+							ON ip.iprice_item_id = i.id
+						LEFT JOIN shifts AS s
+							ON s.id = t.transfer_init_shift_id
+						WHERE
+							t.origin_id = ".$this->st_store_id."
+							AND t.sender_shift = ".$this->st_from_shift_id."
+							AND t.transfer_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND t.transfer_category IN (".implode( ',', array( TRANSFER_CATEGORY_ADD_TVMIR, TRANSFER_CATEGORY_ISSUE_TVMIR ) ).")
+							AND i.item_class = 'cash'
+							AND t.transfer_status = ".TRANSFER_APPROVED."
+							AND ti.transfer_item_status NOT IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")
+						GROUP BY t.id, t.transfer_category, t.transfer_reference_num, DATE( t.transfer_datetime ), t.transfer_tvm_id";
+		$query = $ci->db->query( $sql );
+		$r = $query->result_array();
+
+		foreach( $r as $row )
+		{
+			switch( $row['transfer_category'] )
+			{
+				case TRANSFER_CATEGORY_ADD_TVMIR:
+					$data['additions'][] = $row;
+					break;
+
+				case TRANSFER_CATEGORY_ISSUE_TVMIR:
+					$data['issuances'][] = $row;
+					break;
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Get Concessionary Card Fee transactions
+	 */
+	public function csc_transactions()
+	{
+		$ci =& get_instance();
+		$data = array(
+			'additions' => array(),
+			'issuances' => array(),
+			'new' => 0.00,
+			'issuance' => 0.00,
+		);
+
+		// Get TVMIR transactions
+		$sql = "SELECT
+							t.id,
+							t.transfer_category,
+							t.transfer_reference_num,
+							DATE( t.transfer_datetime ) AS business_date,
+							t.transfer_tvm_id,
+							SUM( ti.quantity * ip.iprice_unit_price ) AS amount,
+							CASE WHEN t.origin_id IS NULL AND t.destination_id = ".$this->st_store_id." THEN 'addition'
+								WHEN t.origin_id = ".$this->st_store_id." AND t.destination_id IS NULL THEN 'issuance'
+								ELSE 'unknown' END AS transaction_type
+						FROM transfers AS t
+						LEFT JOIN transfer_items AS ti
+							ON ti.transfer_id = t.id
+						LEFT JOIN items AS i
+							ON i.id = ti.item_id
+						LEFT JOIN item_prices AS ip
+							ON ip.iprice_item_id = i.id
+						LEFT JOIN shifts AS s
+							ON s.id = t.transfer_init_shift_id
+						WHERE
+							( t.origin_id = ".$this->st_store_id." OR t.destination_id = ".$this->st_store_id." )
+							AND ( t.sender_shift = ".$this->st_from_shift_id." OR t.recipient_shift = ".$this->st_from_shift_id." )
+							AND t.transfer_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND t.transfer_category = ".TRANSFER_CATEGORY_CSC_APPLICATION."
+							AND i.item_class = 'cash'
+							AND t.transfer_status IN (".implode( ',', array( TRANSFER_APPROVED, TRANSFER_RECEIVED ) ).")
+							AND ti.transfer_item_status NOT IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")
+						GROUP BY t.id, t.transfer_category, t.transfer_reference_num, DATE( t.transfer_datetime ), t.transfer_tvm_id";
+		$query = $ci->db->query( $sql );
+		$r = $query->result_array();
+
+		foreach( $r as $row )
+		{
+			switch( $row['transaction_type'] )
+			{
+				case 'addition':
+					$data['additions'][] = $row;
+					$data['new'] += $row['amount'];
+					break;
+
+				case 'issuance':
+					$data['issuances'][] = $row;
+					$data['issuance'] = $row['amount'];
+					break;
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Get ticket deliveries
+	 */
+	public function ticket_deliveries()
+	{
+		$ci =& get_instance();
+		$data = array(
+			'Magazine' => array( 'SJT' => 0, 'SVC' => 0, 'Concessionary' => 0 ),
+			'Rigid Box' => array( 'SJT' => 0, 'SVC' => 0, 'Concessionary' => 0 ),
+		);
+
+		$sql = "SELECT
+							i.item_group,
+							i.item_unit,
+							SUM( IF( i.base_item_id IS NULL, ti.quantity, ti.quantity * ct.conversion_factor ) ) AS quantity
+						FROM transfers AS t
+						LEFT JOIN transfer_items AS ti
+							ON ti.transfer_id = t.id
+						LEFT JOIN items AS i
+							ON i.id = ti.item_id
+						LEFT JOIN conversion_table AS ct
+							ON ct.target_item_id = i.id AND ct.source_item_id = i.base_item_id
+						WHERE
+							t.destination_id = ".$this->st_store_id."
+							AND t.recipient_shift = ".$this->st_from_shift_id."
+							AND t.receipt_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND t.transfer_category = ".TRANSFER_CATEGORY_REPLENISHMENT."
+							AND i.item_class = 'ticket'
+							AND t.transfer_status = ".TRANSFER_RECEIVED."
+							AND ti.transfer_item_status NOT IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")
+						GROUP BY i.item_group, i.item_unit";
+		$query = $ci->db->query( $sql );
+
+		$r = $query->result_array();
+
+		foreach( $r as $row )
+		{
+			switch( $row['item_unit'] )
+			{
+				case 'magazine':
+					$unit = 'Magazine';
+					break;
+
+				case 'box':
+					$unit = 'Rigid Box';
+					break;
+
+				default:
+					continue;
+			}
+
+			if( !isset( $data[$unit] ) )
+			{
+				$data[$unit] = array( 'SJT' => 0, 'SVC' => 0, 'Concessionary' => 0 );
+			}
+
+			switch( $row['item_group'] )
+			{
+				case 'SJT':
+					$data[$unit]['SJT'] += $row['quantity'];
+					break;
+
+				case 'SVC':
+					$data[$unit]['SVC'] += $row['quantity'];
+					break;
+
+				case 'Concessionary':
+					$data[$unit]['Concessionary'] += $row['quantity'];
+					break;
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Get ticket receipts
+	 */
+	public function ticket_receipts()
+	{
+		$ci =& get_instance();
+		$data = array(
+			'Magazine' => array( 'SJT' => 0, 'SVC' => 0, 'Concessionary' => 0 ),
+			'Rigid Box' => array( 'SJT' => 0, 'SVC' => 0, 'Concessionary' => 0 ),
+		);
+
+		$sql = "SELECT
+							i.item_group,
+							i.item_unit,
+							SUM( IF( i.base_item_id IS NULL, ti.quantity, ti.quantity * ct.conversion_factor ) ) AS quantity
+						FROM transfers AS t
+						LEFT JOIN transfer_items AS ti
+							ON ti.transfer_id = t.id
+						LEFT JOIN items AS i
+							ON i.id = ti.item_id
+						LEFT JOIN conversion_table AS ct
+							ON ct.target_item_id = i.id AND ct.source_item_id = i.base_item_id
+						WHERE
+							t.destination_id = ".$this->st_store_id."
+							AND t.recipient_shift = ".$this->st_from_shift_id."
+							AND t.receipt_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND t.transfer_category IN (".implode( ',', array( TRANSFER_CATEGORY_EXTERNAL, TRANSFER_CATEGORY_INTERNAL ) ).")
+							AND i.item_class = 'ticket'
+							AND t.transfer_status = ".TRANSFER_RECEIVED."
+							AND ti.transfer_item_status NOT IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")
+						GROUP BY i.item_group, i.item_unit";
+		$query = $ci->db->query( $sql );
+
+		$r = $query->result_array();
+
+		foreach( $r as $row )
+		{
+			switch( $row['item_unit'] )
+			{
+				case 'magazine':
+					$unit = 'Magazine';
+					break;
+
+				case 'box':
+					$unit = 'Rigid Box';
+					break;
+
+				default:
+					continue;
+			}
+
+			if( !isset( $data[$unit] ) )
+			{
+				$data[$unit] = array( 'SJT' => 0, 'SVC' => 0, 'Concessionary' => 0 );
+			}
+
+			switch( $row['item_group'] )
+			{
+				case 'SJT':
+					$data[$unit]['SJT'] += $row['quantity'];
+					break;
+
+				case 'SVC':
+					$data[$unit]['SVC'] += $row['quantity'];
+					break;
+
+				case 'Concessionary':
+					$data[$unit]['Concessionary'] += $row['quantity'];
+					break;
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Get ticket transfers
+	 */
+	public function ticket_transfers()
+	{
+		$ci =& get_instance();
+		$data = array(
+			'Magazine' => array( 'SJT' => 0, 'SVC' => 0, 'Concessionary' => 0 ),
+			'Rigid Box' => array( 'SJT' => 0, 'SVC' => 0, 'Concessionary' => 0 ),
+		);
+
+		$sql = "SELECT
+							i.item_group,
+							i.item_unit,
+							SUM( IF( i.base_item_id IS NULL, ti.quantity, ti.quantity * ct.conversion_factor ) ) AS quantity
+						FROM transfers AS t
+						LEFT JOIN transfer_items AS ti
+							ON ti.transfer_id = t.id
+						LEFT JOIN items AS i
+							ON i.id = ti.item_id
+						LEFT JOIN conversion_table AS ct
+							ON ct.target_item_id = i.id AND ct.source_item_id = i.base_item_id
+						WHERE
+							t.origin_id = ".$this->st_store_id."
+							AND t.sender_shift = ".$this->st_from_shift_id."
+							AND t.transfer_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND t.transfer_category IN (".implode( ',', array( TRANSFER_CATEGORY_EXTERNAL, TRANSFER_CATEGORY_INTERNAL ) ).")
+							AND i.item_class = 'ticket'
+							AND t.transfer_status IN (".implode( ',', array( TRANSFER_APPROVED, TRANSFER_RECEIVED ) ).")
+							AND ti.transfer_item_status NOT IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")
+						GROUP BY i.item_group, i.item_unit";
+		$query = $ci->db->query( $sql );
+
+		$r = $query->result_array();
+
+		foreach( $r as $row )
+		{
+			switch( $row['item_unit'] )
+			{
+				case 'magazine':
+					$unit = 'Magazine';
+					break;
+
+				case 'box':
+					$unit = 'Rigid Box';
+					break;
+
+				default:
+					$unit = 'Others';
+			}
+
+			if( !isset( $data[$unit] ) )
+			{
+				$data[$unit] = array( 'SJT' => 0, 'SVC' => 0, 'Concessionary' => 0 );
+			}
+
+			switch( $row['item_group'] )
+			{
+				case 'SJT':
+					$data[$unit]['SJT'] += $row['quantity'];
+					break;
+
+				case 'SVC':
+					$data[$unit]['SVC'] += $row['quantity'];
+					break;
+
+				case 'Concessionary':
+					$data[$unit]['Concessionary'] += $row['quantity'];
+					break;
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Get Teller Ticket Remittance
+	 */
+	public function teller_ticket_remittance()
+	{
+		$ci =& get_instance();
+
+		$data = array(
+			'Sealed' => array( 'SJT' => 0, 'SVC' => 0, 'Concessionary' => 0 ),
+			'Loose' => array( 'SJT' => 0, 'SVC' => 0, 'Concessionary' => 0 ),
+		);
+
+		$sql = "SELECT
+							i.item_group,
+							IF( i.base_item_id IS NULL, 'Loose', 'Sealed' ) AS package,
+							SUM( IF( i.base_item_id IS NULL, ai.allocated_quantity, ai.allocated_quantity * ct.conversion_factor ) ) AS quantity
+						FROM allocations AS a
+						LEFT JOIN allocation_items AS ai
+							ON ai.allocation_id = a.id
+						LEFT JOIN categories AS c
+							ON c.id = ai.allocation_category_id
+						LEFT JOIN items AS i
+							ON i.id = ai.allocated_item_id
+						LEFT JOIN conversion_table AS ct
+							ON ct.target_item_id = i.id AND ct.source_item_id = i.base_item_id
+						WHERE
+							a.business_date = '".$this->st_from_date."'
+							AND ai.allocation_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND a.store_id = ".$this->st_store_id."
+							AND a.assignee_type = ".ALLOCATION_ASSIGNEE_TELLER."
+							AND ai.cashier_shift_id = ".$this->st_from_shift_id."
+							AND ai.allocation_item_type = ".ALLOCATION_ITEM_TYPE_REMITTANCE."
+							AND i.item_class = 'ticket'
+							AND c.cat_name = 'Unsold'
+							AND NOT ai.allocation_item_status = ".REMITTANCE_ITEM_VOIDED."
+						GROUP BY i.item_group, package";
+		$query = $ci->db->query( $sql );
+		$r = $query->result_array();
+
+		foreach( $r as $row )
+		{
+			if( ! isset( $row['package'] ) )
+			{
+				$data[$row['package']] = array( 'SJT' => 0, 'SVC' => 0, 'Concessionary' => 0 );
+			}
+
+			switch( $row['item_group'] )
+			{
+				case 'SJT':
+					$data[$row['package']]['SJT'] += $row['quantity'];
+					break;
+
+				case 'SVC':
+					$data[$row['package']]['SVC'] += $row['quantity'];
+					break;
+
+				case 'Concessionary':
+					$data[$row['package']]['Concessionary'] += $row['quantity'];
+					break;
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Get TVM Unsold Tickets
+	 */
+	public function tvm_unsold_tickets()
+	{
+		$ci =& get_instance();
+
+		$data = array( 'SJT' => 0, 'SVC' => 0, 'Concessionary' => 0 );
+
+		$sql = "SELECT
+							i.item_group,
+							SUM( IF( i.base_item_id IS NULL, ai.allocated_quantity, ai.allocated_quantity * ct.conversion_factor ) ) AS quantity
+						FROM allocations AS a
+						LEFT JOIN allocation_items AS ai
+							ON ai.allocation_id = a.id
+						LEFT JOIN categories AS c
+							ON c.id = ai.allocation_category_id
+						LEFT JOIN items AS i
+							ON i.id = ai.allocated_item_id
+						LEFT JOIN conversion_table AS ct
+							ON ct.target_item_id = i.id AND ct.source_item_id = i.base_item_id
+						WHERE
+							a.business_date = '".$this->st_from_date."'
+							AND ai.allocation_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND a.store_id = ".$this->st_store_id."
+							AND a.assignee_type = ".ALLOCATION_ASSIGNEE_MACHINE."
+							AND ai.cashier_shift_id = ".$this->st_from_shift_id."
+							AND ai.allocation_item_type = ".ALLOCATION_ITEM_TYPE_REMITTANCE."
+							AND i.item_class = 'ticket'
+							AND c.cat_name = 'Unsold'
+							AND NOT ai.allocation_item_status = ".REMITTANCE_ITEM_VOIDED."
+						GROUP BY i.item_group";
+		$query = $ci->db->query( $sql );
+		$r = $query->result_array();
+
+		foreach( $r as $row )
+		{
+			switch( $row['item_group'] )
+			{
+				case 'SJT':
+					$data['SJT'] += $row['quantity'];
+					break;
+
+				case 'SVC':
+					$data['SVC'] += $row['quantity'];
+					break;
+
+				case 'Concessionary':
+					$data['Concessionary'] += $row['quantity'];
+					break;
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Get Ticket Allocation
+	 */
+	public function ticket_allocations()
+	{
+		$ci =& get_instance();
+
+		$data = array( 'teller' => array(), 'TVM' => array() );
+
+		$sql = "SELECT
+							a.assignee_type,
+							s.shift_num,
+							i.item_group,
+							SUM( IF( i.base_item_id IS NULL, ai.allocated_quantity, ai.allocated_quantity * ct.conversion_factor ) ) AS quantity
+						FROM allocations AS a
+						LEFT JOIN allocation_items AS ai
+							ON ai.allocation_id = a.id
+						LEFT JOIN items i
+							ON i.id = ai.allocated_item_id
+						LEFT JOIN conversion_table AS ct
+							ON ct.target_item_id = i.id AND ct.source_item_id = i.base_item_id
+						LEFT JOIN categories AS c
+							ON c.id = ai.allocation_category_id
+						LEFT JOIN shifts AS s
+							ON s.id = a.shift_id
+						WHERE
+							a.store_id = ".$this->st_store_id."
+							AND ai.allocation_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND ai.cashier_shift_id = ".$this->st_from_shift_id."
+							AND ai.allocation_item_type = ".ALLOCATION_ITEM_TYPE_ALLOCATION."
+							AND i.item_class = 'ticket'
+							AND c.cat_name IN ( 'TVMAlloc', 'InitAlloc', 'AddAlloc' )
+							AND NOT ai.allocation_item_status IN (".implode( ', ', array( ALLOCATION_ITEM_VOIDED, ALLOCATION_ITEM_CANCELLED ) ).")
+						GROUP BY assignee_type, shift_num, item_group";
+		$query = $ci->db->query( $sql );
+		$r = $query->result_array();
+
+		foreach( $r as $row )
+		{
+			$shift_num = $row['shift_num'];
+			switch( $row['assignee_type'] )
+			{
+				case 1:
+					$assignee_type = 'teller';
+					break;
+
+				case 2:
+					$assignee_type = 'TVM';
+					break;
+
+				default:
+					die( 'Invalid assignee type detected. Contact your system administrator.' );
+			}
+
+			if( ! isset( $data[$assignee_type][$shift_num] ) )
+			{
+				$data[$assignee_type][$shift_num] = array( 'SJT' => 0, 'SVC' => 0, 'Concessionary' => 0 );
+			}
+
+			switch( $row['item_group'] )
+			{
+				case 'SJT':
+					$data[$assignee_type][$shift_num]['SJT'] += $row['quantity'];
+					break;
+
+				case 'SVC':
+					$data[$assignee_type][$shift_num]['SVC'] += $row['quantity'];
+					break;
+
+				case 'Concessionary':
+					$data[$assignee_type][$shift_num]['Concessionary'] += $row['quantity'];
+					break;
+
+				default:
+					die( 'Invalid item group detected. Contact your system administrator.' );
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Get ticket turnovers
+	 */
+	public function ticket_turnovers()
+	{
+		$ci =& get_instance();
+		$data = array( 'SJT' => 0, 'SVC' => 0, 'Concessionary' => 0 );
+
+		$sql = "SELECT
+							i.item_group,
+							SUM( IF( i.base_item_id IS NULL, ti.quantity, ti.quantity * ct.conversion_factor ) ) AS quantity
+						FROM transfers AS t
+						LEFT JOIN transfer_items AS ti
+							ON ti.transfer_id = t.id
+						LEFT JOIN items AS i
+							ON i.id = ti.item_id
+						LEFT JOIN conversion_table AS ct
+							ON ct.target_item_id = i.id AND ct.source_item_id = i.base_item_id
+						WHERE
+							t.origin_id = ".$this->st_store_id."
+							AND t.sender_shift = ".$this->st_from_shift_id."
+							AND t.transfer_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND t.transfer_category = ".TRANSFER_CATEGORY_TURNOVER."
+							AND i.item_class = 'ticket'
+							AND t.transfer_status IN (".implode( ',', array( TRANSFER_APPROVED, TRANSFER_RECEIVED ) ).")
+							AND ti.transfer_item_status NOT IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")
+						GROUP BY i.item_group";
+		$query = $ci->db->query( $sql );
+
+		$r = $query->result_array();
+
+		foreach( $r as $row )
+		{
+			switch( $row['item_group'] )
+			{
+				case 'SJT':
+					$data['SJT'] += $row['quantity'];
+					break;
+
+				case 'SVC':
+					$data['SVC'] += $row['quantity'];
+					break;
+
+				case 'Concessionary':
+					$data['Concessionary'] += $row['quantity'];
+					break;
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Get ticket issuances
+	 */
+	public function ticket_issuances()
+	{
+		$ci =& get_instance();
+		$data = array( 'SJT' => 0, 'SVC' => 0, 'Concessionary' => 0 );
+
+		$sql = "SELECT
+							i.item_group,
+							SUM( IF( i.base_item_id IS NULL, ti.quantity, ti.quantity * ct.conversion_factor ) ) AS quantity
+						FROM transfers AS t
+						LEFT JOIN transfer_items AS ti
+							ON ti.transfer_id = t.id
+						LEFT JOIN items AS i
+							ON i.id = ti.item_id
+						LEFT JOIN conversion_table AS ct
+							ON ct.target_item_id = i.id AND ct.source_item_id = i.base_item_id
+						WHERE
+							t.origin_id = ".$this->st_store_id."
+							AND t.sender_shift = ".$this->st_from_shift_id."
+							AND t.transfer_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND t.transfer_category = ".TRANSFER_CATEGORY_TURNOVER."
+							AND i.item_class = 'ticket'
+							AND t.transfer_status IN (".implode( ',', array( TRANSFER_APPROVED, TRANSFER_RECEIVED ) ).")
+							AND ti.transfer_item_status NOT IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")
+						GROUP BY i.item_group";
+		$query = $ci->db->query( $sql );
+
+		$r = $query->result_array();
+
+		foreach( $r as $row )
+		{
+			switch( $row['item_group'] )
+			{
+				case 'SJT':
+					$data['SJT'] += $row['quantity'];
+					break;
+
+				case 'SVC':
+					$data['SVC'] += $row['quantity'];
+					break;
+
+				case 'Concessionary':
+					$data['Concessionary'] += $row['quantity'];
+					break;
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Other ticket additions
+	 */
+	public function other_ticket_additions()
+	{
+		$ci =& get_instance();
+
+		$data = array();
+
+		// Adjustments
+		$sql = "SELECT
+							i.item_group,
+							SUM( IF( i.base_item_id IS NULL, a.adjusted_quantity - a.previous_quantity, (a.adjusted_quantity - a.previous_quantity) * ct.conversion_factor ) ) AS quantity
+						FROM adjustments AS a
+						LEFT JOIN store_inventory AS si
+							ON si.id = a.store_inventory_id
+						LEFT JOIN items AS i
+							ON i.id = si.item_id
+						LEFT JOIN conversion_table AS ct
+							ON ct.target_item_id = i.id AND ct.source_item_id = i.base_item_id
+						LEFT JOIN items AS pi
+							ON pi.id = si.parent_item_id
+						WHERE
+							a.adjustment_timestamp BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND a.adjustment_shift = ".$this->st_from_shift_id."
+							AND a.adjustment_status = ".ADJUSTMENT_APPROVED."
+							AND si.store_id = ".$this->st_store_id."
+							AND i.item_class = 'ticket'
+						GROUP BY item_group";
+		$query = $ci->db->query( $sql );
+		$r = $query->result_array();
+
+		$adjustment_data = array( 'SJT' => 0, 'SVC' => 0, 'Concessionary' => 0 );
+		foreach( $r as $row )
+		{
+			switch( $row['item_group'] )
+			{
+				case 'SJT':
+					$adjustment_data['SJT'] += $row['quantity'];
+					break;
+
+				case 'SVC':
+					$adjustment_data['SVC'] += $row['quantity'];
+					break;
+
+				case 'Concessionary':
+					$adjustment_data['Concessionary'] += $row['quantity'];
+					break;
+
+				default:
+					die( 'Invalid item group detected. Contact your system administrator' );
+			}
+		}
+
+		if( $adjustment_data['SJT'] > 0 )
+		{
+			$add_adjustment = true;
+		}
+		else
+		{
+			$adjustment_data['SJT'] = NULL;
+		}
+
+		if( $adjustment_data['SVC'] > 0 )
+		{
+			$add_adjustment = true;
+		}
+		else
+		{
+			$adjustment_data['SVC'] = NULL;
+		}
+
+		if( $adjustment_data['Concessionary'] > 0 )
+		{
+			$add_adjustment = true;
+		}
+		else
+		{
+			$adjustment_data['Concessionary'] = NULL;
+		}
+
+		if( isset( $add_adjustment ) )
+		{
+			$data['Adjustment'] = $adjustment_data;
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Other ticket deductions
+	 */
+	public function other_ticket_deductions()
+	{
+		$ci =& get_instance();
+
+		$data = array();
+
+		// Adjustments
+		$sql = "SELECT
+							i.item_group,
+							SUM( IF( i.base_item_id IS NULL, a.adjusted_quantity - a.previous_quantity, (a.adjusted_quantity - a.previous_quantity) * ct.conversion_factor ) ) AS quantity
+						FROM adjustments AS a
+						LEFT JOIN store_inventory AS si
+							ON si.id = a.store_inventory_id
+						LEFT JOIN items AS i
+							ON i.id = si.item_id
+						LEFT JOIN conversion_table AS ct
+							ON ct.target_item_id = i.id AND ct.source_item_id = i.base_item_id
+						LEFT JOIN items AS pi
+							ON pi.id = si.parent_item_id
+						WHERE
+							a.adjustment_timestamp BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
+							AND a.adjustment_shift = ".$this->st_from_shift_id."
+							AND a.adjustment_status = ".ADJUSTMENT_APPROVED."
+							AND si.store_id = ".$this->st_store_id."
+							AND i.item_class = 'ticket'
+						GROUP BY item_group";
+		$query = $ci->db->query( $sql );
+		$r = $query->result_array();
+
+		$adjustment_data = array( 'SJT' => 0, 'SVC' => 0, 'Concessionary' => 0 );
+		foreach( $r as $row )
+		{
+			switch( $row['item_group'] )
+			{
+				case 'SJT':
+					$adjustment_data['SJT'] += $row['quantity'];
+					break;
+
+				case 'SVC':
+					$adjustment_data['SVC'] += $row['quantity'];
+					break;
+
+				case 'Concessionary':
+					$adjustment_data['Concessionary'] += $row['quantity'];
+					break;
+
+				default:
+					die( 'Invalid item group detected. Contact your system administrator' );
+			}
+		}
+
+		$adjustment_data['SJT'] = $adjustment_data['SJT'] * -1;
+		$adjustment_data['SVC'] = $adjustment_data['SVC'] * -1;
+		$adjustment_data['Concessionary'] = $adjustment_data['Concessionary'] * -1;
+
+		if( $adjustment_data['SJT'] > 0 )
+		{
+			$add_adjustment = true;
+		}
+		else
+		{
+			$adjustment_data['SJT'] = NULL;
+		}
+
+		if( $adjustment_data['SVC'] > 0 )
+		{
+			$add_adjustment = true;
+		}
+		else
+		{
+			$adjustment_data['SVC'] = NULL;
+		}
+
+		if( $adjustment_data['Concessionary'] > 0 )
+		{
+			$add_adjustment = true;
+		}
+		else
+		{
+			$adjustment_data['Concessionary'] = NULL;
+		}
+
+		if( isset( $add_adjustment ) )
+		{
+			$data['Adjustment'] = $adjustment_data;
+		}
+
+		return $data;
+	}
+
+
+
+
+
 
 
 	/**
@@ -649,53 +2003,7 @@ class Shift_turnover extends Base_model
 		return $hopper_readings;
 	}
 
-	/**
-	 * Hopper Replenishments
-	 */
-	public function total_hopper_replenishment()
-	{
-		$ci =& get_instance();
 
-		$ci->load->library( 'item' );
-		$ci->load->library( 'category' );
-
-		$Item = new Item();
-		$Category = new Category();
-
-		$php1_coin = $Item->get_by_name( 'Php1 Coin' );
-		$php5_coin = $Item->get_by_name( 'Php5 Coin' );
-		$php1_bag = $Item->get_by_name( 'Bag Php1@100' );
-		$php5_bag = $Item->get_by_name( 'Bag Php5@100' );
-
-		$hopper_replenishment_category = $Category->get_by_name( 'HopAlloc' );
-
-		$valid_items = array( $php1_coin->get( 'id' ), $php5_coin->get( 'id' ), $php1_bag->get( 'id' ), $php5_bag->get( 'id' ) );
-		$replenishment_amount = 0.00;
-
-		$sql = "SELECT
-							SUM( IF( ai.allocated_item_id IN (".implode( ', ', $valid_items ).") AND ai.allocation_item_type = ".ALLOCATION_ITEM_TYPE_ALLOCATION.", ip.iprice_unit_price * ai.allocated_quantity, 0 ) ) AS amount
-						FROM allocations a
-						LEFT JOIN allocation_items ai
-							ON ai.allocation_id = a.id
-						LEFT JOIN items i
-							ON i.id = ai.allocated_item_id
-						LEFT JOIN item_prices ip
-							ON ip.iprice_item_id = i.id
-						WHERE
-							a.business_date ='".$this->st_from_date."'
-							AND a.store_id = ".$this->st_store_id."
-							AND a.assignee_type = ".ALLOCATION_ASSIGNEE_MACHINE."
-							AND ai.cashier_shift_id = ".$this->st_from_shift_id."
-							AND i.item_class = 'cash'
-							AND ai.allocation_category_id = ".$hopper_replenishment_category->get( 'id' )."
-							AND NOT ai.allocation_item_status IN (".implode( ', ', array( ALLOCATION_ITEM_VOIDED, ALLOCATION_ITEM_CANCELLED ) ).")";
-		$query = $ci->db->query( $sql );
-		$r = $query->row_array();
-
-		$replenishment_amount = $r['amount'];
-
-		return floatval( $replenishment_amount );
-	}
 
 	/**
 	 * Refunded TVMIR
@@ -819,108 +2127,7 @@ class Shift_turnover extends Base_model
 		return $deductions;
 	}
 
-	/**
-	 * Returned Change Fund
-	 */
-	public function returned_change_fund()
-	{
-		$ci =& get_instance();
 
-		$ci->load->library( 'category' );
-		$Category = new Category();
-
-		$change_fund_return_cat = $Category->get_by_name( 'CFundRet' );
-
-		$amount = array(
-			'teller' => 0.00,
-			'TVM' => 0.00 );
-
-		// Station Teller
-		$sql = "SELECT
-							SUM(ai.allocated_quantity * ip.iprice_unit_price) AS amount
-						FROM allocations AS a
-						LEFT JOIN allocation_items AS ai
-							ON ai.allocation_id = a.id
-						LEFT JOIN items AS i
-							ON i.id = ai.allocated_item_id
-						LEFT JOIN item_prices AS ip
-							ON ip.iprice_item_id = i.id
-						WHERE
-							a.business_date = '".$this->st_from_date."'
-							AND a.store_id = ".$this->st_store_id."
-							AND a.assignee_type = ".ALLOCATION_ASSIGNEE_TELLER."
-							AND ai.cashier_shift_id = ".$this->st_from_shift_id."
-							AND ai.allocation_item_type = ".ALLOCATION_ITEM_TYPE_REMITTANCE."
-							AND i.item_class = 'cash'
-							AND ai.allocation_category_id = ".$change_fund_return_cat->get( 'id' )."
-							AND NOT ai.allocation_item_status = ".REMITTANCE_ITEM_VOIDED;
-		$query = $ci->db->query( $sql );
-		$r = $query->row_array();
-
-		$amount['teller'] += $r['amount'];
-
-		// TVM
-		$sql = "SELECT
-							SUM( ti.quantity * ip.iprice_unit_price ) AS amount
-						FROM transfers t
-						LEFT JOIN transfer_items ti
-							ON ti.transfer_id = t.id
-						LEFT JOIN items i
-							ON i.id = ti.item_id
-						LEFT JOIN item_prices ip
-							ON ip.iprice_item_id = i.id
-						WHERE
-							t.transfer_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
-							AND t.origin_id = ".$this->st_store_id."
-							AND t.sender_shift = ".$this->st_from_shift_id."
-							AND t.transfer_category = ".TRANSFER_CATEGORY_REPLENISH_TVM_CFUND."
-							AND NOT ti.transfer_item_status IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")";
-		$query = $ci->db->query( $sql );
-		$r = $query->row_array();
-
-		$amount['TVM'] += $r['amount'];
-
-		return $amount;
-	}
-
-	/**
-	 * Deposit to Bank
-	 */
-	public function deposited_to_bank()
-	{
-		$ci =& get_instance();
-
-		$sql = "SELECT
-							t.transfer_init_shift_id, s.shift_num,
-							SUM( ti.quantity * ip.iprice_unit_price ) AS amount
-						FROM transfers t
-						LEFT JOIN transfer_items ti
-							ON ti.transfer_id = t.id
-						LEFT JOIN items i
-							ON i.id = ti.item_id
-						LEFT JOIN item_prices ip
-							ON ip.iprice_item_id = i.id
-						LEFT JOIN shifts AS s
-							ON s.id = t.transfer_init_shift_id
-						WHERE
-							t.transfer_datetime BETWEEN '".$this->st_from_date." 00:00:00' AND '".$this->st_from_date." 23:59:59'
-							AND t.origin_id = ".$this->st_store_id."
-							AND t.sender_shift = ".$this->st_from_shift_id."
-							AND t.transfer_category = ".TRANSFER_CATEGORY_BANK_DEPOSIT."
-							AND t.transfer_status = ".TRANSFER_APPROVED."
-							AND NOT ti.transfer_item_status IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")
-						GROUP BY t.transfer_init_shift_id, s.shift_num";
-		$query = $ci->db->query( $sql );
-		$r = $query->result_array();
-
-		$deposits = array();
-		foreach( $r as $row )
-		{
-			$deposits[$row['shift_num']] = $row['amount'];
-		}
-
-		return $deposits;
-	}
 
 	/**
 	 * Get amount for deposit to bank
@@ -1004,76 +2211,167 @@ class Shift_turnover extends Base_model
 	}
 
 
-	public function cash_in_vault()
+	public function cash_balance()
+	{
+		return array(
+			'beginning_balance' => $this->beginning_balance( 'cash_balance' ),
+			'for_deposit' => $this->for_deposit_to_bank(),
+			'returned_change_fund' => $this->returned_change_fund(),
+			'other_additions' => $this->other_cash_additions(),
+			'deposits' => $this->deposit_to_bank(),
+			'change_fund_allocations' => $this->change_fund_allocations(),
+			'other_deductions' => $this->other_cash_deductions(),
+			'ending_balance' => $this->ending_balance( 'cash_balance' ),
+		);
+	}
+
+	/**
+	 * Get Change Fund and Sales Collection cash breakdown
+	 */
+	public function cash_breakdown()
 	{
 		$ci =& get_instance();
-		$ci->load->library( 'item' );
-		$ci->load->library( 'sales_item' );
-		$ci->load->library( 'category' );
+		$ci->load->helper( 'inflector' );
+		$ci->load->library( 'shift_turnover' );
+		$Shift_Turnover = new Shift_turnover();
 
-		$Item = new Item();
-		$Category = new Category();
-		$Sales_Item = new Sales_item();
+		$shift = $this->get_shift();
 
-		$change_fund = $Item->get_by_name( 'Change Fund' );
-		$sales_collection = $Item->get_by_name( 'Sales' );
-		$sales_collection_category = $Category->get_by_name( 'SalesColl' );
-
-		$teller_gross_sales = 0.00;
-		$tvm_gross_sales = 0.00;
-		$hopper_change_fund = 0.00;
-
-		$tcerf = 0.00;
-		$returned_change_fund_tvm = 0.00;
-		$returned_change_fund_teller = 0.00;
-
-		$total_gross_sales = $this->total_gross_sales();
-
-		$hopper_readings = $this->hopper_readings();
-		$previous_hopper_reading = 0.00;
-		$current_hopper_reading = 0.00;
-		foreach( $hopper_readings as $row )
+		// Change Fund
+		$items = $this->get_items();
+		$change_fund = array();
+		$sales_fund = 0.00;
+		$cash_on_hand = 0.00;
+		foreach( $items as $item )
 		{
-			$previous_hopper_reading += $row['previous'];
-			$current_hopper_reading += $row['current'];
+			if( ( $item->get( 'item_class' ) == 'cash' ) && ( $item->get( 'parent_item_name' ) == 'Change Fund' ) )
+			{
+				$change_fund[$item->get( 'item_name' )] = array(
+					'group' => $item->get( 'item_group' ),
+					'unit' => abs( $item->get( 'sti_beginning_balance' ) + $item->get( 'movement' ) ) == 1 ? $item->get( 'item_unit' ) : plural( $item->get( 'item_unit' ) ),
+					'quantity' => $item->get( 'sti_beginning_balance' ) + $item->get( 'movement' ),
+					'amount' => ( $item->get( 'sti_beginning_balance' ) + $item->get( 'movement' ) ) * $item->get( 'iprice_unit_price' )
+				);
+				$cash_on_hand += ( $item->get( 'sti_ending_balance' ) ) * $item->get( 'iprice_unit_price' );
+			}
+
+			if( ( $item->get( 'item_class' ) == 'cash' ) && ( $item->get( 'parent_item_name' ) == 'Sales' ) )
+			{
+				$sales_fund += ( $item->get( 'sti_beginning_balance' ) + $item->get( 'movement' ) ) * $item->get( 'iprice_unit_price' );
+				$cash_on_hand += ( $item->get( 'sti_ending_balance' ) ) * $item->get( 'iprice_unit_price' );
+			}
 		}
 
-		$hopper_replenishment = $this->total_hopper_replenishment();
-
-		$refunded_tvmir = $this->total_tvmir_refund();
-
-		$deductions = $this->teller_sales_deductions();
-		$additions = $this->teller_sales_additions();
-
-		$returned_change_fund = $this->returned_change_fund();
-
-		$deposits = $this->deposited_to_bank();
-
-		// Add: For deposit to bank
-		$sales = $this->gross_sales_deposit();
-		$tvm_net_sales = $sales['deposit']['TVM'] + $sales['sales']['TVM'] - $returned_change_fund['TVM'] - $refunded_tvmir;
-
+		// Undeposited Sales Collection
 		/*
-		return array(
-				'balance_per_book' => array(
-					'beginning_balance' => $this->beginning_balance(),
-					'tvm_gross_sales' => $total_gross_sales['TVM'],
-					'tvm_net_sales' => $tvm_net_sales,
-					'teller_gross_sales' => $total_gross_sales['teller'],
-					'hopper_replenishment' => $hopper_replenishment,
-					'TVMIR_refund' => $refunded_tvmir,
-					'returned_change_fund' => $returned_change_fund,
-					'deposits' => $deposits,
-					'sales' => $sales ) );
-		*/
-		$available_sales = $this->available_sales_collection();
-		foreach( $available_sales as $k => $v )
+		$remaining_sales_fund = $sales_fund;
+
+		// Get previous shifts of the day
+		$shift_counter = $shift->get( 'shift_order' );
+		$c_shift = $shift;
+		$c_turnover = $this;
+		$for_deposit = array();
+		for( $i = 0; $i < $shift_counter; $i++ )
 		{
-			echo $k.'<br />';
-			var_dump( $v );
-			echo '<br /><br />';
+			$data = $c_turnover->for_deposit_to_bank();
+			$c_shift = $c_turnover->get_shift();
+			if( $c_turnover->get( 'st_from_date' ) == $this->get( 'st_from_date' ) )
+			{
+				$for_deposit[$c_shift->get( 'shift_num' )] = $data[$c_shift->get( 'shift_num' )]['for_deposit'];
+			}
+			if( $c_turnover == $this )
+			{
+				$remaining_sales_fund -= $data[$c_shift->get( 'shift_num' )]['sales_collection'];
+			}
+			$c_turnover = $c_turnover->get_previous_turnover();
 		}
 
-		return NULL;
+		$for_deposit = array_reverse( $for_deposit );
+
+		if( $remaining_sales_fund <> 0 )
+		{
+			$for_deposit['Others'] = $remaining_sales_fund;
+		}
+		*/
+		$for_deposit['Sales Collection'] = $sales_fund;
+
+		return array(
+				'change_fund' => $change_fund,
+				'for_deposit' => $for_deposit,
+				'cash_on_hand' => $cash_on_hand
+			);
+	}
+
+	public function tvmir_breakdown()
+	{
+		return array(
+				'beginning_balance' => $this->beginning_balance( 'tvmir' ),
+				'transactions' => $this->tvmir_transactions(),
+				'ending_balance' => $this->ending_balance( 'tvmir' ),
+			);
+	}
+
+	public function csc_breakdown()
+	{
+		return array(
+				'beginning_balance' => $this->beginning_balance( 'csc' ),
+				'transactions' => $this->csc_transactions(),
+				'ending_balance' => $this->ending_balance( 'csc' ),
+			);
+	}
+
+	public function ticket_balance()
+	{
+		return array(
+			'beginning_balance' => $this->beginning_balance( 'ticket_balance' ),
+			'ticket_deliveries' => $this->ticket_deliveries(),
+			'teller_remittances' => $this->teller_ticket_remittance(),
+			'tvm_unsold_tickets' => $this->tvm_unsold_tickets(),
+			'ticket_receipts' => $this->ticket_receipts(),
+			'other_additions' => $this->other_ticket_additions(),
+			'ticket_allocations' => $this->ticket_allocations(),
+			'ticket_transfers' => $this->ticket_transfers(),
+			'ticket_turnovers' => $this->ticket_turnovers(),
+			'ticket_issuances' => $this->ticket_issuances(),
+			'other_deductions' => $this->other_ticket_deductions(),
+			'ending_balance' => $this->ending_balance( 'ticket_balance' ),
+		);
+	}
+
+	public function ticket_breakdown()
+	{
+		$ci =& get_instance();
+		$ci->load->helper( 'inflector' );
+
+		$shift = $this->get_shift();
+
+		$items = $this->get_items();
+		$data = array();
+
+		foreach( $items as $item )
+		{
+			if( ( $item->get( 'item_class' ) == 'ticket' )
+					&& ( $item->get( 'item_type' ) == 1 )
+					&& in_array( $item->get( 'item_group' ), array( 'SJT', 'SVC', 'Concessionary' ) ) )
+			{
+				$group = $item->get( 'item_group' );
+				if( ! isset( $data[$group] ) )
+				{
+					$data[$group] = array();
+					$data['totals'][$group] = 0;
+				}
+
+				$data[$group][$item->get( 'item_name' )] = array(
+					'group' => $item->get( 'item_group' ),
+					'unit' => abs( $item->get( 'sti_beginning_balance' ) + $item->get( 'movement' ) ) == 1 ? $item->get( 'item_unit' ) : plural( $item->get( 'item_unit' ) ),
+					'quantity' => $item->get( 'sti_beginning_balance' ) + $item->get( 'movement' ),
+					'factor' => $item->get( 'conversion_factor' ) == NULL ? 1 : $item->get( 'conversion_factor' ),
+					'base_quantity' => $item->get( 'base_beginning_balance' ) + $item->get( 'base_movement' ) );
+
+				$data['totals'][$group] += $item->get( 'base_beginning_balance' ) + $item->get( 'base_movement' );
+			}
+		}
+
+		return $data;
 	}
 }

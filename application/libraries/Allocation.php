@@ -33,6 +33,10 @@ class Allocation extends Base_model {
 	protected $has_valid_ticket_sale_item;
 	protected $has_valid_sales_item;
 
+	protected $change_fund;
+	protected $gross_sales;
+	protected $net_sales;
+
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
 	protected $created_by_field = 'created_by';
@@ -223,6 +227,94 @@ class Allocation extends Base_model {
 		}
 
 		return $this->cash_reports;
+	}
+
+	public function get_gross_sales( $force = FALSE )
+	{
+		$ci =& get_instance();
+
+		$ci->load->library( 'category' );
+		$Category = new Category();
+		$sales_collection_cat = $Category->get_by_name( 'SalesColl' );
+
+		if( !isset( $this->gross_sales ) || $force )
+		{
+			$gross_sales = 0.00;
+			$cash_remittances = $this->get_cash_remittances( $force );
+
+			foreach( $cash_remittances as $cash_remittance )
+			{
+				if( $cash_remittance->get( 'allocation_item_status') == REMITTANCE_ITEM_VOIDED )
+				{
+					continue;
+				}
+
+				if( $cash_remittance->get( 'allocation_item_category_id' ) == $sales_collection_cat->get( 'id' ) )
+				{
+					$gross_sales += $cash_remittance->get( 'allocated_quantity' ) * $cash_remittance->get( 'iprice_unit_price' );
+				}
+			}
+			$this->gross_sales = $gross_sales;
+		}
+
+		return $this->gross_sales;
+	}
+
+	public function get_change_fund( $force = FALSE )
+	{
+		$ci =& get_instance();
+
+		$ci->load->library( 'category' );
+		$Category = new Category();
+		$change_fund_return_cat = $Category->get_by_name( 'CFundRet' );
+
+		if( !isset( $this->change_fund ) || $force )
+		{
+			$change_fund = 0.00;
+			$cash_remittances = $this->get_cash_remittances( $force );
+			foreach( $cash_remittances as $cash_remittance )
+			{
+				if( $cash_remittance->get( 'allocation_item_status') == REMITTANCE_ITEM_VOIDED )
+				{
+					continue;
+				}
+
+				if( $cash_remittance->get( 'allocation_item_category_id' ) == $change_fund_return_cat->get( 'id' ) )
+				{
+					$change_fund += $cash_remittance->get( 'allocated_quantity' ) * $cash_remittance->get( 'iprice_unit_price' );
+				}
+			}
+			$this->change_fund = $change_fund;
+		}
+
+		return $this->change_fund;
+	}
+
+	public function get_net_sales( $shift = 'all', $force = FALSE )
+	{
+		$ci =& get_instance();
+
+		if( !isset( $this->net_sales ) || $force )
+		{
+			$gross_sales = $this->get_gross_sales( $force );
+			$sale_items = $this->get_sales( $force );
+			$total_deductions = 0.00;
+			foreach( $sales as $sale )
+			{
+				if( $sale->get( 'alsale_sales_item_status' ) == SALES_ITEM_VOIDED )
+				{
+					continue;
+				}
+
+				if( $sale->get( 'slitem_mode' ) === 0 )
+				{
+					$total_deductions += $sale->get( 'alsale_amount' );
+				}
+			}
+			$this->net_sales = $gross_sales + $total_deductions;
+		}
+
+		return $this->net_sales;
 	}
 
 	public function set( $property, $value )
@@ -1460,18 +1552,6 @@ class Allocation extends Base_model {
 				set_message( sprintf( 'The returned change fund [%d] does not match the allocated change fund [%d]', $returned_change_fund, $allocated_change_fund ), 'error' );
 				return FALSE;
 			}
-			if( $allocated_change_fund != $sales_change_fund )
-			{
-				set_message( sprintf( 'The allocated change fund [%d] does not match the declared change fund [%d]', $allocated_change_fund, $sales_change_fund ), 'error' );
-				return FALSE;
-			}
-
-			// Remitted sales collection must match declared sales
-			if( ( $sales_collection + $returned_change_fund ) != $declared_sales )
-			{
-				set_message( sprintf( 'The declared sales [%d] does not match the remitted cash [%d]', $declared_sales, $sales_collection + $returned_change_fund ), 'error' );
-				return FALSE;
-			}
 		}
 
 		return TRUE;
@@ -1491,18 +1571,13 @@ class Allocation extends Base_model {
 		$allocations = $this->get_allocations();
 		$cash_allocations = $this->get_cash_allocations();
 
-		// This will follow the date of the allocation
-		//$transaction_datetime = $this->business_date.' '.date( 'H:i:s' );
-
-		// This will use the current timestamp
-		$transaction_datetime = date( TIMESTAMP_FORMAT );
-
 		$ci->db->trans_start();
 		// Ticket items
 		foreach( $allocations as $allocation )
 		{
-			if( $allocation->get( 'allocation_item_status' ) == ALLOCATION_ITEM_SCHEDULED
-				&& in_array( $this->allocation_status, array( ALLOCATION_ALLOCATED, ALLOCATION_REMITTED ) ) )
+			$transaction_datetime = $allocation->get( 'allocation_datetime' );
+			if( ( $allocation->get( 'allocation_item_status' ) == ALLOCATION_ITEM_SCHEDULED )
+					&& in_array( $this->allocation_status, array( ALLOCATION_ALLOCATED, ALLOCATION_REMITTED ) ) )
 			{
 				$inventory = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ) );
 				if ( $inventory )
@@ -1529,8 +1604,9 @@ class Allocation extends Base_model {
 
 		foreach( $cash_allocations as $allocation )
 		{
+			$transaction_datetime = $allocation->get( 'allocation_datetime' );
 			$quantity = $allocation->get( 'allocated_quantity' );
-			if( $allocation->get( 'allocation_item_status' ) == ALLOCATION_ITEM_SCHEDULED
+			if( ( $allocation->get( 'allocation_item_status' ) == ALLOCATION_ITEM_SCHEDULED )
 					&& in_array( $this->allocation_status, array( ALLOCATION_ALLOCATED, ALLOCATION_REMITTED ) ) )
 			{
 				$item = $allocation->get_item();
@@ -1635,9 +1711,6 @@ class Allocation extends Base_model {
 		$remittances = $this->get_remittances();
 		$cash_remittances = $this->get_cash_remittances();
 
-		//$transaction_datetime = $this->business_date.' '.date( 'H:i:s' );
-		$transaction_datetime = date( TIMESTAMP_FORMAT );
-
 		$ci->db->trans_start();
 		// Ticket items
 		foreach( $remittances as $remittance )
@@ -1647,6 +1720,7 @@ class Allocation extends Base_model {
 				$inventory = $Inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ), NULL, TRUE );
 				if( $inventory )
 				{
+					$transaction_datetime = $remittance->get( 'allocation_datetime' );
 					$quantity = $remittance->get( 'allocated_quantity' );
 					$inventory->transact( TRANSACTION_REMITTANCE, $quantity, $transaction_datetime, $this->id, $remittance->get( 'id' ), $remittance->get( 'allocation_category_id' ) );
 
@@ -1673,6 +1747,7 @@ class Allocation extends Base_model {
 		{
 			if( $remittance->get( 'allocation_item_status' ) == REMITTANCE_ITEM_PENDING )
 			{
+				$transaction_datetime = $remittance->get( 'allocation_datetime' );
 				$item = $remittance->get_item();
 				$quantity = $remittance->get( 'allocated_quantity' );
 
@@ -1790,15 +1865,13 @@ class Allocation extends Base_model {
 		$ci->load->library( 'inventory' );
 		$Inventory = new Inventory();
 
-		//$transaction_datetime = $this->business_date.' '.date( 'H:i:s' );
-		$transaction_datetime = date( TIMESTAMP_FORMAT );
-
 		$ci->db->trans_start();
 		// Allocations
 		if( isset( $this->voided_allocations ) && $this->voided_allocations )
 		{
 			foreach( $this->voided_allocations as $allocation )
 			{
+				$transaction_datetime = $allocation->get( 'allocation_datetime' );
 				$quantity = $allocation->get( 'allocated_quantity' );
 				$inventory = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ), NULL, TRUE );
 
@@ -1818,6 +1891,7 @@ class Allocation extends Base_model {
 		{
 			foreach( $this->voided_cash_allocations as $allocation )
 			{
+				$transaction_datetime = $allocation->get( 'allocation_datetime' );
 				$quantity = $allocation->get( 'allocated_quantity' );
 				$inventory = $Inventory->get_by_store_item( $this->store_id, $allocation->get( 'allocated_item_id' ), NULL, TRUE );
 
@@ -1860,6 +1934,7 @@ class Allocation extends Base_model {
 		{
 			foreach( $this->voided_remittances as $remittance )
 			{
+				$transaction_datetime = $remittance->get( 'allocation_datetime' );
 				$quantity = $remittance->get( 'allocated_quantity' ) * -1;
 				$inventory = $Inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ), NULL, TRUE );
 
@@ -1881,6 +1956,7 @@ class Allocation extends Base_model {
 
 			foreach( $this->voided_cash_remittances as $remittance )
 			{
+				$transaction_datetime = $remittance->get( 'allocation_datetime' );
 				$quantity = $remittance->get( 'allocated_quantity' ) * -1;
 				$inventory = $Inventory->get_by_store_item( $this->store_id, $remittance->get( 'allocated_item_id' ), NULL, TRUE );
 

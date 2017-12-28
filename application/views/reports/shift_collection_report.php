@@ -7,6 +7,7 @@
 
 		<title>TICMS - Shift Collection Report</title>
 		<link rel="stylesheet" type="text/css" href="<?php echo base_url( 'resources/css/bootstrap.min.css' );?>" />
+		<link rel="stylesheet" type="text/css" href="<?php echo base_url( 'resources/css/report.css' );?>" />
 	</head>
 	<body class="container-fluid">
 		<div class="report-header">
@@ -65,7 +66,7 @@
 							<td class="text-right">{previous_reading}</td>
 							<td class="text-right">{total_replenishment}</td>
 							<td class="text-right">{reading}</td>
-							<td class="text-right">{hopper_change_fund}</td>
+							<td class="text-right">{replenished_change_fund}</td>
 							<td class="text-right">{refunded_tvmir}</td>
 							<td class="text-right">{short_over}</td>
 							<td class="text-right">{net_sales}</td>

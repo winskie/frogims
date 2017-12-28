@@ -62,8 +62,8 @@ app.controller( 'NotificationController', [ '$scope', '$timeout', 'appData', 'no
 	}
 ]);
 
-app.controller( 'MainController', [ '$rootScope', '$scope', '$filter', '$state', 'session', 'appData', 'lookup', 'notifications',
-	function( $rootScope, $scope, $filter, $state, session, appData, lookup, notifications )
+app.controller( 'MainController', [ '$rootScope', '$scope', '$filter', '$state', 'session', 'appData', 'lookup', 'notifications', 'ReportServices',
+	function( $rootScope, $scope, $filter, $state, session, appData, lookup, notifications, ReportServices )
 	{
 		var allowStoreChange = [ 'main.dashboard', 'main.store' ];
 
@@ -227,6 +227,23 @@ app.controller( 'MainController', [ '$rootScope', '$scope', '$filter', '$state',
 					default:
 						// do nothing
 				}
+			};
+
+		$scope.viewReport = function( type, params )
+			{
+				var reportUrl, params;
+
+				switch( type )
+				{
+					case 'shift_collection':
+						params = { date: $filter( 'date' )( new Date(), 'yyyy-MM-dd' ), store: session.data.currentStore.id, shift: session.data.currentShift.id };
+						break;
+
+					case 'container_replacement':
+						break;
+				}
+
+				ReportServices.generateReport( type, params, 'HTML' );
 			};
 
 		$scope.notify = function( message )
@@ -656,8 +673,8 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 	}
 ]);
 
-app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'lookup', 'notifications', 'sessionData',
-	function( $scope, $filter, $state, $stateParams, session, appData, lookup, notifications, sessionData )
+app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParams', 'session', 'appData', 'lookup', 'notifications', 'sessionData', 'ReportServices',
+	function( $scope, $filter, $state, $stateParams, session, appData, lookup, notifications, sessionData, ReportServices )
 	{
 		$scope.data = {
 				inventoryView: 'shift',
@@ -926,6 +943,16 @@ app.controller( 'FrontController', [ '$scope', '$filter', '$state', '$stateParam
 					$scope.viewRecord( type, $scope.quicksearch[type], mode );
 					$scope.quicksearch[type] = null;
 				}
+			};
+
+		$scope.viewReport = function( type, params )
+			{
+				if( params.date )
+				{
+					params['date'] = $filter( 'date' )( params.date, 'yyyy-MM-dd' );
+				}
+
+				ReportServices.generateReport( type, params, 'HTML' );
 			};
 
 		$scope.showDatePicker = function( dp )
@@ -1738,6 +1765,31 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				$scope.input.itemReservedQuantity = reservedQuantity;
 			};
 
+		$scope.getTVMSalesCollectionItems = function( categoryName )
+			{
+				appData.getTVMSalesCollectionItems( $scope.data.selectedTVM.id, session.data.currentStore.id, $scope.transferItem.transfer_datetime, session.data.currentShift.id ).then(
+					function( response )
+					{
+						if( response.status == 'ok' && response.data.items.length > 0 )
+						{
+							$scope.data.inventoryItems = response.data.items;
+							$scope.input.inventoryItem = $scope.data.inventoryItems[0];
+							$scope.onItemChange();
+							$scope.input.category = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_name: categoryName }, true )[0];
+						}
+						else
+						{
+							$scope.data.inventoryItems = [];
+							$scope.input.inventoryItem = null;
+							$scope.input.category = null;
+						}
+					},
+					function( reason )
+					{
+						console.error( reason )
+					});
+			};
+
 
 		// Transfer form events
 		$scope.changeSource = function()
@@ -1969,7 +2021,10 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.data.selectedDestination = null;
 						$scope.changeEditMode( 'externalTransfer' );
 
-						var filteredItems;
+						// Limit to remitted sales collection items only
+						var filteredItems = [];
+						$scope.getTVMSalesCollectionItems( 'AddTVMIR');
+						/*
 						filteredItems = $filter( 'itemsWithProps' )( appData.data.items, 'AddTVMIR' );
 						filteredItems = $filter( 'cashFilter' )( filteredItems, 'Sales' );
 						if( filteredItems.length > 0 )
@@ -1979,6 +2034,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 							$scope.onItemChange();
 							$scope.input.category = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_name: 'AddTVMIR' }, true )[0];
 						}
+						*/
 						break;
 
 					case 'Issue TVMIR Refund':
@@ -2004,7 +2060,10 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.changeEditMode( 'externalTransfer' );
 						$scope.transferItem.destination_name = session.data.currentStore.store_name;
 
-						var filteredItems;
+						// Limit to remitted sales collection items only
+						var filteredItems = [];
+						$scope.getTVMSalesCollectionItems( 'RepCFund' );
+						/*
 						filteredItems = $filter( 'itemsWithProps' )( appData.data.items, 'RepCFund' );
 						filteredItems = $filter( 'cashFilter' )( filteredItems, 'Sales' );
 						if( filteredItems.length > 0 )
@@ -2014,6 +2073,7 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 							$scope.onItemChange();
 							$scope.input.category = $filter( 'filter' )( $scope.input.inventoryItem.categories, { cat_name: 'RepCFund' }, true )[0];
 						}
+						*/
 						break;
 				}
 
@@ -2030,6 +2090,17 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				// Apply changes to source and destination
 				$scope.changeSource();
 				$scope.changeDestination();
+			};
+
+		$scope.onDateChange = function()
+			{
+				switch( $scope.data.selectedCategory.categoryName )
+				{
+					case 'Add TVMIR Refund':
+					case 'Replenish TVM Change Fund':
+						$scope.getTVMSalesCollectionItems();
+						break;
+				}
 			};
 
 		$scope.onItemChange = function()
@@ -2058,6 +2129,13 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 		$scope.onTVMChange = function()
 			{
 				$scope.transferItem.set( 'transfer_tvm_id', $scope.data.selectedTVM.description );
+				switch( $scope.data.selectedCategory.categoryName )
+				{
+					case 'Add TVMIR Refund':
+					case 'Replenish TVM Change Fund':
+						$scope.getTVMSalesCollectionItems();
+						break;
+				}
 			};
 
 		// Modals
@@ -2315,6 +2393,17 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 
 
 		// Initialize controller
+
+		notifications.subscribe( $scope, 'onChangeShift',  function( event, data )
+			{
+				switch( $scope.data.selectedCategory.categoryName )
+				{
+					case 'Add TVMIR Refund':
+					case 'Replenish TVM Change Fund':
+						$scope.getTVMSalesCollectionItems();
+						break;
+				}
+			});
 
 		// Select initial inventory input item
 		$scope.input.inventoryItem = $scope.data.inventoryItems[0];
@@ -3375,7 +3464,12 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 			}
 
 			return true;
-		}
+		};
+
+		function sales_items_short_over_filter( value, index, array )
+		{
+			return value.slitem_name == 'Shortage' || value.slitem_name == 'Overage';
+		};
 
 		$scope.salesTotalFilter = function( v, i, a )
 			{
@@ -3548,7 +3642,15 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 				}
 				else if( $scope.data.allocationPhase == 'sales' )
 				{
-					// do nothing
+					if( assignee == 'teller' )
+					{
+						$scope.data.salesItems = angular.copy( appData.data.salesItems );
+					}
+					else
+					{ // Only shortage and overage are available for TVMs
+						$scope.data.salesItems = $filter( 'filter' )( $scope.data.salesItems, sales_items_short_over_filter );
+					}
+					$scope.input.salesItem = $scope.data.salesItems[0];
 				}
 
 				if( $scope.data.allocationPhase != 'sales' )

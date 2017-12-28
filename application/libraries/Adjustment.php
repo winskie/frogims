@@ -313,7 +313,8 @@ class Adjustment extends Base_model {
 	{
 		$ci =& get_instance();
 
-		$timestamp = date( TIMESTAMP_FORMAT );
+		$transaction_datetime = date( TIMESTAMP_FORMAT );
+
 		$ci->load->library( 'inventory' );
 		$inventory = new Inventory();
 		$inventory = $inventory->get_by_id( $this->store_inventory_id );
@@ -325,7 +326,7 @@ class Adjustment extends Base_model {
 		if( $inventory )
 		{
 			$quantity = $this->adjusted_quantity - $inventory->get( 'quantity' );
-			$inventory->transact( TRANSACTION_ADJUSTMENT, $quantity, $timestamp, $this->id, NULL, $adjustment_category->get( 'id' ) );
+			$inventory->transact( TRANSACTION_ADJUSTMENT, $quantity, $transaction_datetime, $this->id, NULL, $adjustment_category->get( 'id' ) );
 		}
 		else
 		{

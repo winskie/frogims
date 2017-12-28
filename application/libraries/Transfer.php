@@ -644,7 +644,7 @@ class Transfer extends Base_model {
 
 						if( $transfer_item->db_changes['transfer_item_status']  == TRANSFER_ITEM_SCHEDULED )
 						{ // New scheduled item, reserve
-							if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $item->get( 'item_class' ) == 'cash' && ! empty( $parent_item_id ) )
+							if( ( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM ) && ( $item->get( 'item_class' ) == 'cash' ) && ! empty( $parent_item_id ) )
 							{
 								$item_unit_price = $item->get( 'iprice_unit_price' );
 								$amount = $quantity * $item_unit_price;
@@ -666,7 +666,7 @@ class Transfer extends Base_model {
 						{ // Cancelled or voided item
 							if( $transfer_item->get( 'previousStatus' ) == TRANSFER_ITEM_SCHEDULED )
 							{ // Previously scheduled, cancel reservation
-								if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $transfer_item->get( 'item_class' ) == 'cash' && ! empty( $parent_item_id ) )
+								if( ( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM ) && ( $transfer_item->get( 'item_class' ) == 'cash' ) && ! empty( $parent_item_id ) )
 								{
 									$item_unit_price = $item->get( 'iprice_unit_price' );
 									$amount = $quantity * $item_unit_price;
@@ -688,12 +688,14 @@ class Transfer extends Base_model {
 					}
 
 					if( array_key_exists( 'transfer_status', $this->db_changes )
-						&& $this->db_changes['transfer_status'] == TRANSFER_PENDING_CANCELLED
-						&& $this->previousStatus == TRANSFER_PENDING )
+						&& ( $this->db_changes['transfer_status'] == TRANSFER_PENDING_CANCELLED )
+						&& ( $this->previousStatus == TRANSFER_PENDING ) )
 					{ // Scheduled transfer cancelled, cancel reserved items
 						if( !in_array( $transfer_item->get( 'transfer_item_status' ), array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ) )
 						{ // do not unreserved items that are already cancelled or voided
-							if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $item->get( 'item_class' ) == 'cash' && ! empty( $parent_item_id ) )
+							if( ( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM )
+									&& ( $item->get( 'item_class' ) == 'cash' )
+									&& ! empty( $parent_item_id ) )
 							{
 								$item_unit_price = $item->get( 'iprice_unit_price' );
 								$amount = $quantity * $item_unit_price;
@@ -799,7 +801,9 @@ class Transfer extends Base_model {
 							continue;
 						}
 
-						if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $item->get( 'item_class' ) == 'cash' && ! empty( $parent_item_id ) )
+						if( ( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM )
+								&& ( $item->get( 'item_class' ) == 'cash' )
+								&& ! empty( $parent_item_id ) )
 						{
 							$item_unit_price = $item->get( 'iprice_unit_price' );
 							$amount = $quantity * $item_unit_price;
@@ -813,7 +817,7 @@ class Transfer extends Base_model {
 
 						if( ! $skip_inventory )
 						{
-							$inventory = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), $parent_item_id, TRUE );
+							$inventory = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), NULL, TRUE );
 							$inventory->reserve( $quantity );
 						}
 					}
@@ -1002,8 +1006,7 @@ class Transfer extends Base_model {
 		$sales_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_SALES );
 		$tvmir_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_TVMIR );
 
-		//$transaction_datetime = $this->transfer_datetime;
-		$transaction_datetime = date( TIMESTAMP_FORMAT );
+		$transaction_datetime = $this->transfer_datetime;
 
 		$ci->db->trans_start();
 		foreach( $transfer_items as $transfer_item )
@@ -1014,7 +1017,8 @@ class Transfer extends Base_model {
 				$quantity = $transfer_item->get( 'quantity' );
 				$skip_inventory = false;
 
-				if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $item->get( 'item_class' ) == 'cash' )
+				if( ( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM )
+						&& ( $item->get( 'item_class' ) == 'cash' ) )
 				{
 					$item_unit_price = $item->get( 'iprice_unit_price' );
 					if( empty( $item_unit_price ) )
@@ -1106,7 +1110,9 @@ class Transfer extends Base_model {
 					$inventory = $Inventory->get_by_store_item( $this->origin_id, $transfer_item->get( 'item_id' ), NULL, TRUE );
 					$inventory->reserve( $quantity * -1 );
 					$inventory->transact( TRANSACTION_TRANSFER_OUT, $quantity * -1, $transaction_datetime, $this->id, $transfer_item->get( 'id' ), $transfer_item->get( 'transfer_item_category_id' ) );
-					if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $item->get( 'item_class' ) == 'cash' && ! empty( $sub_parent_item_id ) )
+					if( ( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM )
+							&& ( $item->get( 'item_class' ) == 'cash' )
+							&& ! empty( $sub_parent_item_id ) )
 					{
 						$sub_inventory = $Inventory->get_by_store_item( $this->origin_id, $item->get( 'item_id' ), $sub_parent_item_id );
 						$sub_inventory->reserve( $quantity * -1 );
@@ -1139,9 +1145,7 @@ class Transfer extends Base_model {
 		$sales_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_SALES );
 		$tvmir_fund = $Inventory->get_by_store_item_name( $this->origin_id, FUND_TVMIR );
 
-		// TODO: Should this be on the day of the transfer or on the date it was cancelled?
-		//$transaction_datetime = $this->transfer_datetime;
-		$transaction_datetime = date( TIMESTAMP_FORMAT );
+		$transaction_datetime = $this->transfer_datetime;
 
 		$ci->db->trans_start();
 		foreach( $transfer_items as $transfer_item )
@@ -1150,15 +1154,15 @@ class Transfer extends Base_model {
 			$quantity = $transfer_item->get( 'quantity' );
 			$skip_inventory = false;
 
-			if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM
-					&& $item->get( 'item_class' ) == 'cash' )
+			if( ( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM )
+					&& ( $item->get( 'item_class' ) == 'cash' ) )
 			{ // Skip inventory for cashroom
 				$skip_inventory = true;
 			}
 
-			if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM
-					&& $item->get( 'item_class' ) == 'cash'
-					&& $transfer_item->get( 'transfer_item_status' ) == TRANSFER_ITEM_APPROVED )
+			if( ( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM )
+					&& ( $item->get( 'item_class' ) == 'cash' )
+					&& ( $transfer_item->get( 'transfer_item_status' ) == TRANSFER_ITEM_APPROVED ) )
 			{
 				$item_unit_price = $item->get( 'iprice_unit_price' );
 				if( empty( $item_unit_price ) )
@@ -1270,8 +1274,8 @@ class Transfer extends Base_model {
 		$csc_card_fee_fund = $Inventory->get_by_store_item_name( $this->destination_id, FUND_CSC_CARD_FEE );
 		$sales_fund = $Inventory->get_by_store_item_name( $this->destination_id, FUND_SALES );
 
-		//$transaction_datetime = $this->receipt_datetime;
-		$transaction_datetime = date( TIMESTAMP_FORMAT );
+		$transaction_datetime = $this->receipt_datetime;
+
 		$ci->db->trans_start();
 
 		foreach( $transfer_items as $transfer_item )
@@ -1290,7 +1294,8 @@ class Transfer extends Base_model {
 				}
 				$skip_inventory = false;
 
-				if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM && $item->get( 'item_class' ) == 'cash' )
+				if( ( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM )
+						&& ( $item->get( 'item_class' ) == 'cash' ) )
 				{
 					$item_unit_price = $item->get( 'iprice_unit_price' );
 					if( empty( $item_unit_price ) )
@@ -1358,9 +1363,7 @@ class Transfer extends Base_model {
 		$ci->load->library( 'transfer_item' );
 		$Inventory = new Inventory();
 
-		// TODO: Should this be the same as the trasfer date or the date when the transfer is voided?
-		// $transaction_datetime = $this->transfer_datetime;
-		$transaction_datetime = date( TIMESTAMP_FORMAT );
+		$transaction_datetime = $this->transfer_datetime;
 
 		$ci->db->trans_start();
 		if( isset( $this->voided_items ) && $this->voided_items )
@@ -1371,9 +1374,9 @@ class Transfer extends Base_model {
 				$quantity = $transfer_item->get( 'quantity' );
 				$skip_inventory = false;
 
-				if( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM
-						&& $item->get( 'item_class' ) == 'cash'
-						&& $transfer_item->get( 'transfer_item_status' ) == TRANSFER_ITEM_APPROVED )
+				if( ( $current_store->get( 'store_type' ) == STORE_TYPE_CASHROOM )
+						&& ( $item->get( 'item_class' ) == 'cash' )
+						&& ( $transfer_item->get( 'transfer_item_status' ) == TRANSFER_ITEM_APPROVED ) )
 				{
 					$item_unit_price = $item->get( 'iprice_unit_price' );
 					if( empty( $item_unit_price ) )

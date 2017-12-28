@@ -1,0 +1,11 @@
+body {
+	font-size: 10pt;
+}
+
+.report-header {
+	margin-bottom: 3em;
+}
+
+.text-money {
+	text-align: right;
+}

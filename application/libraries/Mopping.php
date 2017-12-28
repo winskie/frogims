@@ -285,8 +285,7 @@ class Mopping extends Base_model {
 		$collection_category = $Category->get_by_name( 'TktCollect' );
 		$conversion_category = $Category->get_by_name( 'Pack' );
 
-		//$transaction_datetime = $this->processing_datetime;
-		$transaction_datetime = date( TIMESTAMP_FORMAT );
+		$transaction_datetime = $this->processing_datetime;
 
 		$ci->db->trans_start();
 
@@ -387,8 +386,7 @@ class Mopping extends Base_model {
 		$Inventory = new Inventory();
 		$Category = new Category();
 
-		//$transaction_datetime = date( TIMESTAMP_FORMAT, $this->processing_datetime );
-		$transaction_datetime = date( TIMESTAMP_FORMAT );
+		$transaction_datetime = date( TIMESTAMP_FORMAT, $this->processing_datetime );
 
 		$collection_category = $Category->get_by_name( 'TktCollect' );
 		$ticket_issue_category = $Category->get_by_name( 'TktIssue' );

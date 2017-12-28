@@ -1125,11 +1125,6 @@ class Installer extends CI_Controller {
 			$this->load->library( 'Sales_item' );
 			$sales_items = array(
 					array(
-						'slitem_name' => 'Gross Sales',
-						'slitem_description' => 'Gross Sales',
-						'slitem_group' => '',
-						'slitem_mode' => 1 ),
-					array(
 						'slitem_name' => 'Excess Time',
 						'slitem_description' => 'Excess Time',
 						'slitem_group' => 'Penalties',
@@ -1159,11 +1154,6 @@ class Installer extends CI_Controller {
 						'slitem_description' => 'Other Deductions',
 						'slitem_group' => 'Deductions',
 						'slitem_mode' => 0 ),
-					array(
-						'slitem_name' => 'Change Fund',
-						'slitem_description' => 'Change Fund',
-						'slitem_group' => 'Allocation',
-						'slitem_mode' => 1 ),
 					array(
 						'slitem_name' => 'Shortage',
 						'slitem_description' => 'Shortage',

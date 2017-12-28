@@ -107,7 +107,7 @@
 							<label class="control-label col-sm-4">Date</label>
 							<div class="input-group col-sm-7" ng-if="[ 'transfer', 'externalTransfer', 'externalReceipt' ].indexOf( data.editMode ) != -1">
 								<input type="text" class="form-control" uib-datepicker-popup="{{ data.transferDatepicker.format }}" is-open="data.transferDatepicker.opened"
-									min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)"
+									min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)" ng-change="onDateChange()"
 									ng-model="transferItem.transfer_datetime" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" />
 								<span class="input-group-btn">
 									<button type="button" class="btn btn-default" ng-click="showDatePicker( 'transfer' )"><i class="glyphicon glyphicon-calendar"></i></button>
@@ -129,7 +129,7 @@
 	<div class="panel panel-default" style="height: 300px; overflow-y: auto;">
 		<div class="panel-heading clearfix">
 			<h3 class="panel-title pull-left">Transfer Items</h3>
-			<div class="pull-right" ng-if="data.showAllocationItemEntry && ( transferItem.transfer_status == <?php echo TRANSFER_PENDING;?> )">
+			<div class="pull-right" ng-if="data.showAllocationItemEntry">
 				<button class="btn btn-default" type="button" ng-if="data.selectedCategory.id == 3 && data.editMode == 'transfer'" ng-click="showTurnoverItems()">Select turnover items...</button>
 				<button class="btn btn-default" type="button" ng-if="data.selectedCategory.id == 8 && data.editMode == 'externalTransfer'" ng-click="showSalesCollectionItems()">Select sales collection items...</button>
 			</div>
@@ -138,8 +138,8 @@
 			<thead>
 				<tr>
 					<th class="text-center" style="width: 50px;">Row</th>
-					<th class="text-center">Item</th>
-					<th class="text-center">Category</th>
+					<th class="text-left">Item</th>
+					<th class="text-left">Category</th>
 					<th class="text-right" style="width: 100px;">Quantity</th>
 					<th class="text-right" style="width: 100px;"
 							ng-if="['receipt', 'externalReceipt', 'view' ].indexOf( data.editMode ) != -1">Received</th>
