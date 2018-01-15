@@ -104,8 +104,20 @@
 				</div>
 
 				<div class="row">
+					<!-- Reference Number -->
+					<div class="form-group col-sm-4" ng-hide="!data.selectedType.hasReference">
+						<label class="control-label col-sm-4">Reference #</label>
+						<div class="col-sm-7" ng-if="data.editMode == 'edit'">
+							<input type="text" class="form-control" placeholder="Reference ID"
+									ng-model="TVMReading.tvmr_reference_num">
+						</div>
+						<div class="col-sm-4" ng-if="data.editMode != 'edit'">
+							<p class="form-control-static">{{ TVMReading.tvmr_reference_num | number: data.selectedType.decimalPlace }}</p>
+						</div>
+					</div>
+
 					<!-- Previous Reading -->
-					<div class="form-group col-sm-4">
+					<div class="form-group col-sm-4" ng-hide="[ 'coin_box', 'note_box' ].indexOf( data.selectedType.id ) != -1">
 						<label class="control-label col-sm-4">Previous</label>
 						<div class="col-sm-7" ng-if="data.editMode == 'edit'">
 							<input type="number" class="form-control" placeholder="Previous Reading"
@@ -125,18 +137,6 @@
 						</div>
 						<div class="col-sm-4" ng-if="data.editMode != 'edit'">
 							<p class="form-control-static">{{ TVMReading.tvmr_reading }}</p>
-						</div>
-					</div>
-
-					<!-- Reference Number -->
-					<div class="form-group col-sm-4" ng-hide="!data.selectedType.hasReference">
-						<label class="control-label col-sm-4">Reference #</label>
-						<div class="col-sm-7" ng-if="data.editMode == 'edit'">
-							<input type="text" class="form-control" placeholder="Reference ID"
-									ng-model="TVMReading.tvmr_reference_num">
-						</div>
-						<div class="col-sm-4" ng-if="data.editMode != 'edit'">
-							<p class="form-control-static">{{ TVMReading.tvmr_reference_num | number: data.selectedType.decimalPlace }}</p>
 						</div>
 					</div>
 

@@ -1633,11 +1633,13 @@ $current_user = current_user();
 						<button class="btn btn-default btn-sm btn-filter" ng-click="toggleFilters( 'shiftDetailCashReports' )">
 							<i class="glyphicon glyphicon-filter"></i> {{ filterPanels.shiftDetailCashReports ? 'Hide' : 'Show' }} filters
 						</button>&nbsp;
+						<!--
 						<span ng-if="checkPermissions( 'allocations', 'edit' )">
 							<button class="btn btn-primary btn-sm" ui-sref="main.shiftDetailCashReport({ editMode: 'edit' })">
 								<i class="glyphicon glyphicon-plus"></i> New Cash Report
 							</button>&nbsp;
 						</span>
+						-->
 						<button class="btn btn-default btn-sm" ng-click="updateShiftDetailCashReports( sessionData.currentStore.id )">
 							<i class="glyphicon glyphicon-refresh"></i>
 						</button>

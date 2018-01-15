@@ -9,7 +9,7 @@
 					<span class="icon-bar"></span>
 					<span class="icon-bar"></span>
 				</button>
-				<a class="navbar-brand" href="#">FROG Ticket Management Inventory System</a>
+				<a class="navbar-brand" href="#">Ticket Inventory and Cash Management System</a>
 			</div>
 			<div id="navbar" class="collapse navbar-collapse">
 				<ul class="nav navbar-nav">
