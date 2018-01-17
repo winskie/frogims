@@ -2217,7 +2217,7 @@ class Store extends Base_model
 					ON su.id = x.st_start_user_id
 				LEFT JOIN users AS eu
 					ON eu.id = x.st_end_user_id
-				GROUP BY x.dt, x.shift_id, x.st_to_date, x.st_to_shift_id, x.st_status, x.st_start_user_id, x.st_end_user_id,  x.shift_order
+				GROUP BY x.dt, fs.description, x.shift_id, x.st_to_date, x.st_to_shift_id, x.st_status, x.st_start_user_id, su.full_name, eu.full_name, x.st_end_user_id,  x.shift_order
 				ORDER BY x.dt DESC, x.shift_order DESC";
 
 		$sql_params = array( $this->id, $this->id, $this->id, $start_date.' 00:00:00', $end_date.' 23:59:59', $start_date, $end_date, $store_shifts );

@@ -936,7 +936,7 @@ class Shift_turnover extends Base_model
 							AND i.item_class = 'cash'
 							AND t.transfer_status = ".TRANSFER_APPROVED."
 							AND ti.transfer_item_status NOT IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")
-						GROUP BY t.transfer_init_shift_id";
+						GROUP BY t.transfer_init_shift_id, s.shift_num";
 		$query = $ci->db->query( $sql );
 		$r = $query->result_array();
 
@@ -1168,7 +1168,7 @@ class Shift_turnover extends Base_model
 							AND i.item_class = 'cash'
 							AND t.transfer_status IN (".implode( ',', array( TRANSFER_APPROVED, TRANSFER_RECEIVED ) ).")
 							AND ti.transfer_item_status NOT IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")
-						GROUP BY t.id, t.transfer_category, t.transfer_reference_num, DATE( t.transfer_datetime ), t.transfer_tvm_id";
+						GROUP BY t.id, t.transfer_category, t.transfer_reference_num, DATE( t.transfer_datetime ), t.transfer_tvm_id, t.origin_id, t.destination_id";
 		$query = $ci->db->query( $sql );
 		$r = $query->result_array();
 

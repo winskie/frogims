@@ -654,26 +654,26 @@ class Report extends MY_Controller {
 							) AS tkt_sales
 								ON tkt_sales.assignee = CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) )
 
-								LEFT JOIN
-								(
-									SELECT a.assignee,
-										SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'coin' AND ai.allocation_category_id = ".$sales_collection_cat->get( 'id' ).", ai.allocated_quantity * ip.iprice_unit_price, NULL ) ) AS actual_coin_sales,
-										SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'bill' AND ai.allocation_category_id = ".$sales_collection_cat->get( 'id' ).", ai.allocated_quantity * ip.iprice_unit_price, NULL ) ) AS actual_bill_sales
-									FROM allocations a
-									LEFT JOIN allocation_items ai ON ai.allocation_id = a.id
-									LEFT JOIN items i ON i.id = ai.allocated_item_id
-									LEFT JOIN item_prices ip ON ip.iprice_item_id = i.id
-									LEFT JOIN conversion_table ct ON ct.target_item_id = ai.allocated_item_id
-									WHERE
-										business_date = ?
-										AND a.store_id = ?
-										AND a. assignee_type = 2
-										AND ai.cashier_shift_id = ?
-										AND i.item_class = 'cash'
-										AND ai.allocation_item_status != ".REMITTANCE_ITEM_VOIDED."
-									GROUP BY a.assignee
-								) AS actual_sales
-									ON actual_sales.assignee = CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) )
+							LEFT JOIN
+							(
+								SELECT a.assignee,
+									SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'coin' AND ai.allocation_category_id = ".$sales_collection_cat->get( 'id' ).", ai.allocated_quantity * ip.iprice_unit_price, NULL ) ) AS actual_coin_sales,
+									SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'bill' AND ai.allocation_category_id = ".$sales_collection_cat->get( 'id' ).", ai.allocated_quantity * ip.iprice_unit_price, NULL ) ) AS actual_bill_sales
+								FROM allocations a
+								LEFT JOIN allocation_items ai ON ai.allocation_id = a.id
+								LEFT JOIN items i ON i.id = ai.allocated_item_id
+								LEFT JOIN item_prices ip ON ip.iprice_item_id = i.id
+								LEFT JOIN conversion_table ct ON ct.target_item_id = ai.allocated_item_id
+								WHERE
+									business_date = ?
+									AND a.store_id = ?
+									AND a. assignee_type = 2
+									AND ai.cashier_shift_id = ?
+									AND i.item_class = 'cash'
+									AND ai.allocation_item_status != ".REMITTANCE_ITEM_VOIDED."
+								GROUP BY a.assignee
+							) AS actual_sales
+								ON actual_sales.assignee = CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) )
 
 							LEFT JOIN
 							(
@@ -777,7 +777,7 @@ class Report extends MY_Controller {
 
 							LEFT JOIN
 							(
-								SELECT a.assignee,
+								SELECT a.id, a.assignee,
 									SUM(IF(asi.alsale_sales_item_id = 9, asi.alsale_amount, NULL)) AS shortage,
 									SUM(IF(asi.alsale_sales_item_id = 10, asi.alsale_amount, NULL)) AS overage,
 									SUM(CASE asi.alsale_sales_item_id WHEN 9 THEN asi.alsale_amount*-1 WHEN 10 THEN asi.alsale_amount ELSE NULL END) AS short_over
@@ -790,7 +790,7 @@ class Report extends MY_Controller {
 									AND a.assignee_type = 2
 									AND asi.alsale_shift_id = ?
 									AND asi.alsale_sales_item_status != ".SALES_ITEM_VOIDED."
-								GROUP BY a.id
+								GROUP BY a.id, a.assignee
 							) AS alloc_sales
 								ON alloc_sales.assignee = actual_sales.assignee AND ( actual_sales.actual_coin_sales IS NOT NULL OR actual_sales.actual_bill_sales IS NOT NULL )
 
@@ -936,9 +936,7 @@ class Report extends MY_Controller {
 							ON afcs.allocation_id = a.id
 						WHERE a.business_date = ?
 							AND a.store_id = ?
-							AND a.assignee_type = 1
-						GROUP BY
-							a.id, a.assignee";
+							AND a.assignee_type = 1";
 
 		$query = $this->db->query( $sql, array(
 				/* alloc_items */ $business_date, $store_id, $shift_id,

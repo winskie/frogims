@@ -1161,7 +1161,7 @@ class Installer extends CI_Controller {
 						'slitem_mode' => 0 ),
 					array(
 						'slitem_name' => 'Overage',
-						'slitem_name' => 'Overage',
+						'slitem_description' => 'Overage',
 						'slitem_group' => 'Short Over',
 						'slitem_mode' => 1 ),
 				);

@@ -99,7 +99,7 @@ class Group extends Base_model {
 		}
 		$ci->db->select( 'g.id, g.group_name, COUNT( u.id ) AS member_count' );
 		$ci->db->join( 'users AS u', 'u.group_id = g.id', 'left' );
-		$ci->db->group_by( 'g.id', 'g.group_name' );
+		$ci->db->group_by( 'g.id, g.group_name' );
 		$data = $ci->db->get( $this->primary_table.' AS g' );
 
 		if( $format == 'array' )
