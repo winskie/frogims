@@ -172,6 +172,7 @@ angular.module( 'coreModels' ).factory( 'Collection', [ '$http', '$q', '$filter'
 									item_name: this.items[i].mopped_item_name,
 									item_description: this.items[i].mopped_item_description,
 									quantity: this.items[i].mopped_quantity,
+									base_quantity: this.items[i].mopped_base_quantity,
 									src_rows: [ this.items[i].id ],
 									valid_item: true,
 									item_status: this.items[i].mopping_item_status
@@ -220,10 +221,12 @@ angular.module( 'coreModels' ).factory( 'Collection', [ '$http', '$q', '$filter'
 				for( var key in groupObj )
 				{
 					cQuantity = Conversion.convert( groupObj[key].original_item_id, groupObj[key].item_id, groupObj[key].quantity );
+					cBaseQuantity = groupObj[key].quantity;
 
 					if( tempObj[groupObj[key].item_id + '_' + groupObj[key].item_status] )
 					{
 						tempObj[groupObj[key].item_id + '_' + groupObj[key].item_status].quantity += cQuantity;
+						tempObj[groupObj[key].item_id + '_' + groupObj[key].item_status].base_quantity += cBaseQuantity;
 						tempObj[groupObj[key].item_id + '_' + groupObj[key].item_status].src_rows = tempObj[groupObj[key].item_id + '_' + groupObj[key].item_status].src_rows.concat( groupObj[key].src_rows );
 						tempObj[groupObj[key].item_id + '_' + groupObj[key].item_status].valid_item = tempObj[groupObj[key].item_id + '_' + groupObj[key].item_status].valid_item;
 					}
@@ -234,6 +237,7 @@ angular.module( 'coreModels' ).factory( 'Collection', [ '$http', '$q', '$filter'
 								item_name: groupObj[key].item_name,
 								item_description: groupObj[key].item_description,
 								quantity: cQuantity,
+								base_quantity: cBaseQuantity,
 								src_rows: groupObj[key].src_rows,
 								valid_item: groupObj[key].valid_item,
 								item_status: groupObj[key].item_status

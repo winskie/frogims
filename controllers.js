@@ -3320,6 +3320,7 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 								mopped_station_id: parseInt( $scope.input.moppedSource.id ),
 								mopped_item_id: parseInt( $scope.input.moppedItem.item_id ),
 								mopped_quantity: parseInt( $scope.input.moppedQuantity ),
+								mopped_base_quantity: $scope.input.moppedItem.base_item_id ? parseInt( $scope.input.moppedQuantity * $scope.input.moppedItem.base_quantity ) : parseInt( $scope.input.moppedQuantity ),
 								converted_to: ( $scope.input.packAs && $scope.input.packAs.id ) ? $scope.input.packAs.target_item_id : null,
 								group_id: null,
 								processor_id: $scope.input.processor ? $scope.input.processor.id : null,

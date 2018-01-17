@@ -978,12 +978,14 @@ $current_user = current_user();
 												<tr class="active">
 													<th>Item Description</th>
 													<th style="width: 70px;">Quantity</th>
+													<th style="width: 70px;">Base Qty</th>
 												</tr>
 											</thead>
 											<tbody>
 												<tr ng-repeat="item in collection.collectionSummary" ng-class="{ deleted: item.item_status == <?php echo MOPPING_ITEM_VOIDED;?> }">
 													<td>{{ item.item_description }}</td>
-													<td class="text-center">{{ item.quantity | number }}</td>
+													<td class="text-right">{{ item.quantity | number }}</td>
+													<td class="text-right">{{ item.base_quantity | number }}</td>
 												</tr>
 											</tbody>
 										</table>

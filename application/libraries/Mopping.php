@@ -326,7 +326,7 @@ class Mopping extends Base_model {
 		$Inventory = new Inventory();
 
 		//$timestamp = date( TIMESTAMP_FORMAT );
-		$timestamp = date( TIMESTAMP_FORMAT, $this->processing_datetime );
+		$timestamp = date( TIMESTAMP_FORMAT, strtotime( $this->processing_datetime ) );
 
 		if( isset( $this->packed_items ) && $this->packed_items )
 		{
