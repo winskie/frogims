@@ -13,6 +13,7 @@ class Store extends Base_model
 	protected $members;
 	protected $shifts;
 	protected $items;
+	protected $allowed_transfers;
 
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
@@ -1994,6 +1995,258 @@ class Store extends Base_model
 		$count = $ci->db->count_all_results( 'shift_detail_cash_reports sdcr' );
 
 		return $count;
+	}
+
+	public function default_allowed_transfers()
+	{
+		$ci =& get_instance();
+		$ci->load->library( 'transfer' );
+		$Transfer = new Transfer();
+
+		$settings = array(
+				1 => array(
+					TRANSFER_CATEGORY_INTERNAL => array(
+						'out_src' => 'self',
+						'out_dst' => array(
+								array( 'type' => 'store_id', 'value' => array( 4, 5, 6 ) ) ),
+						'in_src' => 'all',
+						'in_dst' => 'self',
+					)
+				),
+				4 => array(
+					TRANSFER_CATEGORY_INTERNAL => array(
+						'out_src' => 'self',
+						'out_dst' => array(
+								array( 'type' => 'store_id', 'value' => array( 1, 3 ) ) ),
+						'in_src' => 'all',
+						'in_dst' => 'self',
+					)
+				),
+				5 => array(
+					TRANSFER_CATEGORY_INTERNAL => array(
+						'out_src' => 'self',
+						'out_dst' => array(
+								array( 'type' => 'store_id', 'value' => 1 ),
+								array( 'type' => 'store_type', 'value' => STORE_TYPE_CASHROOM ) ),
+						'in_src' => 'all',
+						'in_dst' => 'self',
+					)
+				),
+				6 => array(
+					TRANSFER_CATEGORY_INTERNAL => array(
+						'out_src' => 'self',
+						'out_dst' => array(
+								array( 'type' => 'store_id', 'value' => 1 ),
+								array( 'type' => 'store_type', 'value' => STORE_TYPE_CASHROOM ) ),
+						'in_src' => 'all',
+						'in_dst' => 'self',
+					)
+				),
+			);
+		$r = array();
+		$transfer_categories = $Transfer->get_transfer_categories();
+		$stores = $this->get_stores();
+
+		foreach( $transfer_categories as $cat )
+		{
+			$i = array(
+				'out_src' => NULL, // Transfer origin
+				'out_dst' => NULL, // Transfer destination
+				'in_src' => NULL,  // Receipt origin
+				'in_dst' => NULL,  // Receipt destination
+			);
+
+			if( in_array( $this->store_type, $cat['store_types'] ) )
+			{
+				if( isset( $settings[$this->id][$cat['id']] ) )
+				{
+					$i = $settings[$this->id][$cat['id']];
+				}
+				else
+				{
+					switch( $cat['id'] )
+					{
+						case TRANSFER_CATEGORY_INTERNAL:
+							$i['out_src'] = 'self';
+							$i['out_dst'] = 'all';
+							$i['in_src'] = 'all';
+							$i['in_dst'] = 'self';
+							break;
+
+						case TRANSFER_CATEGORY_EXTERNAL:
+							$i['out_src'] = 'self';
+							$i['out_dst'] = 'external';
+							$i['in_src'] = 'external';
+							$i['in_dst'] = 'self';
+							break;
+
+						case TRANSFER_CATEGORY_TURNOVER:
+							// transfer only
+							$i['out_src'] = 'self';
+							$i['out_dst'] = array(
+								array( 'type' => 'store_type', 'value' => STORE_TYPE_PRODUCTION ) );
+							$i['in_src'] = NULL;
+							$i['in_dst'] = NULL;
+							break;
+
+						case TRANSFER_CATEGORY_REPLENISHMENT:
+							// transfer only
+							$i['out_src'] = 'self';
+							$i['out_dst'] = array(
+								array( 'type' => 'store_type', 'value' => STORE_TYPE_CASHROOM ) );
+							$i['in_src'] = NULL;
+							$i['in_dst'] = NULL;
+							break;
+
+						case TRANSFER_CATEGORY_BLACKBOX:
+							// receipt only
+							$i['out_src'] = NULL;
+							$i['out_dst'] = NULL;
+							$i['in_src'] = 'external';
+							$i['in_dst'] = 'self';
+							break;
+
+						case TRANSFER_CATEGORY_BILL_TO_COINS:
+							$i['out_src'] = 'self';
+							$i['out_dst'] = 'external';
+							$i['in_src'] = 'external';
+							$i['in_dst'] = 'self';
+							break;
+
+						case TRANSFER_CATEGORY_CSC_APPLICATION:
+							$i['out_src'] = 'self';
+							$i['out_dst'] = 'external';
+							$i['in_src'] = 'external';
+							$i['in_dst'] = 'self';
+							break;
+
+						case TRANSFER_CATEGORY_BANK_DEPOSIT:
+							// transfer only
+							$i['out_src'] = 'self';
+							$i['out_dst'] = 'external';
+							$i['in_src'] = NULL;
+							$i['in_dst'] = NULL;
+							break;
+
+						case TRANSFER_CATEGORY_ADD_TVMIR:
+							// transfer only
+							$i['out_src'] = 'self';
+							$i['out_dst'] = 'external';
+							$i['in_src'] = NULL;
+							$i['in_dst'] = NULL;
+							break;
+
+						case TRANSFER_CATEGORY_ISSUE_TVMIR:
+							// transfer only
+							$i['out_src'] = 'self';
+							$i['out_dst'] = 'external';
+							$i['in_src'] = NULL;
+							$i['in_dst'] = NULL;
+							break;
+
+						case TRANSFER_CATEGORY_REPLENISH_TVM_CFUND:
+							// transfer only
+							$i['out_src'] = 'self';
+							$i['out_dst'] = 'external';
+							$i['in_src'] = NULL;
+							$i['in_dst'] = NULL;
+							break;
+					}
+				}
+
+				// Convert values to store ids
+				foreach( $i as $key => $value )
+				{
+					if( $value == 'self' )
+					{
+						$i[$key] = intval( $this->id );
+					}
+					elseif( $value == 'external' )
+					{
+						$i[$key] = NULL;
+					}
+					elseif( $value == 'all' )
+					{
+						$store_ids = array();
+						foreach( $stores as $store )
+						{
+							if( $store->get( 'id' ) != $this->id )
+							{
+								$store_ids[] = intval( $store->get( 'id' ) );
+							}
+						}
+						$i[$key] = $store_ids;
+					}
+					elseif( is_array( $value ) )
+					{
+						$filters = $value;
+						$filtered_ids = array();
+
+						foreach( $filters as $filter )
+						{
+							switch( $filter['type'] )
+							{
+								case 'store_id':
+									$store_ids = array();
+									if( ! is_array( $filter['value'] ) )
+									{
+										$filter['value'] = array( $filter['value'] );
+									}
+									$store_ids = $filter['value'];
+									break;
+
+								case 'store_type':
+									$store_ids = array();
+									$valid_types = $filter['value'];
+									if( ! is_array( $valid_types ) )
+									{
+										$valid_types = array( $valid_types );
+									}
+									foreach( $stores as $store )
+									{
+										if( in_array( $store->get( 'store_type' ), $valid_types ) )
+										{
+											$store_ids[] = intval( $store->get( 'id' ) );
+										}
+									}
+									break;
+
+								default:
+									die( 'Invalid filter type!' );
+							}
+
+							if( ! empty( $store_ids ) )
+							{
+								$filtered_ids = array_merge( $filtered_ids, $store_ids );
+							}
+						}
+
+						$i[$key] = array_values( array_unique( $filtered_ids ) );
+					}
+					else
+					{
+						unset( $i[$key] );
+					}
+				}
+
+				$i['category_name'] = $cat['name'];
+
+				$r[$cat['id']] = $i;
+			}
+		}
+
+		return $r;
+	}
+
+
+	public function get_allowed_transfers( $force = FALSE )
+	{
+		if( ! isset( $this->get_allowed_transfers ) || $force )
+		{
+			$this->get_allowed_transfers = $this->default_allowed_transfers();
+		}
+
+		return $this->get_allowed_transfers;
 	}
 
 

@@ -76,6 +76,68 @@ class Transfer extends Base_model {
 	}
 
 
+	static function get_transfer_categories()
+	{
+		return array(
+			array(
+				'id'          => 1,
+				'name'        => 'External Transfer',
+				'store_types' => array( STORE_TYPE_GENERAL, STORE_TYPE_PRODUCTION, STORE_TYPE_TRANSPORT, STORE_TYPE_CASHROOM )
+			),
+			array(
+				'id'          => 2,
+				'name'        => 'Internal Transfer',
+				'store_types' => array( STORE_TYPE_GENERAL, STORE_TYPE_PRODUCTION, STORE_TYPE_TRANSPORT, STORE_TYPE_CASHROOM )
+			),
+			array(
+				'id'          => 3,
+				'name'        => 'Ticket Turnover',
+				'store_types' => array( STORE_TYPE_CASHROOM )
+			),
+			array(
+				'id'          => 4,
+				'name'        => 'Stock Replenishment',
+				'store_types' => array( STORE_TYPE_TRANSPORT )
+			),
+			array(
+				'id'          => 5,
+				'name'        => 'Blackbox Receipt',
+				'store_types' => array( STORE_TYPE_CASHROOM )
+			),
+			array(
+				'id'          => 6,
+				'name'        => 'Bills to Coins Exchange',
+				'store_types' => array( STORE_TYPE_CASHROOM )
+			),
+			array(
+				'id'          => 7,
+				'name'        => 'CSC Application',
+				'store_types' => array( STORE_TYPE_CASHROOM )
+			),
+			array(
+				'id'          => 8,
+				'name'        => 'Bank Deposit',
+				'store_types' => array( STORE_TYPE_CASHROOM )
+			),
+			array(
+				'id'          => 9,
+				'name'        => 'Add TVMIR Refund',
+				'store_types' => array( STORE_TYPE_CASHROOM )
+			),
+			array(
+				'id'          => 10,
+				'name'        => 'Issue TVMIR Refund',
+				'store_types' => array( STORE_TYPE_CASHROOM )
+			),
+			array(
+				'id'          => 11,
+				'name'        => 'Replenish TVM Change Fund',
+				'store_types' => array( STORE_TYPE_CASHROOM )
+			),
+		);
+	}
+
+
 	public function get_transfers( $params = array() )
 	{
 		$ci =& get_instance();

@@ -1211,7 +1211,8 @@ class Api_v1 extends MY_Controller {
 										'inventory' => $inventory_data,
 										'shifts' => $shifts_data,
 										'shift_balance' => $shift_balance ? $shift_balance->as_array() : NULL,
-										'suggested_shift' => $suggested_shift ? $suggested_shift->as_array() : NULL
+										'suggested_shift' => $suggested_shift ? $suggested_shift->as_array() : NULL,
+										'allowed_transfers' => $new_store->get_allowed_transfers()
 									) );
 								}
 								else
