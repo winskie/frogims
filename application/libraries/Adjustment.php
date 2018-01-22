@@ -316,17 +316,35 @@ class Adjustment extends Base_model {
 		$transaction_datetime = date( TIMESTAMP_FORMAT );
 
 		$ci->load->library( 'inventory' );
-		$inventory = new Inventory();
-		$inventory = $inventory->get_by_id( $this->store_inventory_id );
-
 		$ci->load->library( 'category' );
+		$Inventory = new Inventory();
 		$Category = new Category();
+
+		$inventory = $Inventory->get_by_id( $this->store_inventory_id );
 		$adjustment_category = $Category->get_by_name( 'Adjust' );
 
 		if( $inventory )
 		{
+			$item = $inventory->get_item();
 			$quantity = $this->adjusted_quantity - $inventory->get( 'quantity' );
 			$inventory->transact( TRANSACTION_ADJUSTMENT, $quantity, $transaction_datetime, $this->id, NULL, $adjustment_category->get( 'id' ) );
+
+			// Adjust parent item inventory if necessary:
+			$parent_inventory = $inventory->get_parent_inventory();
+			if( ! empty( $parent_inventory ) )
+			{
+				$parent_item = $parent_inventory->get_item();
+				if( $item->get( 'item_class' ) == 'cash' && $parent_item->get( 'item_class') == 'fund' )
+				{
+					$unit_price = $item->get( 'item_unit_price' );
+					$amount = $quantity * $unit_price;
+					$parent_inventory->transact( TRANSACTION_ADJUSTMENT, $amount, $transaction_datetime, $this->id, NULL, $adjustment_category->get( 'id' ) );
+				}
+				else
+				{
+					$parent_inventory->transact( TRANSACTION_ADJUSTMENT, $quantity, $transaction_datetime, $this->id, NULL, $adjustment_category->get( 'id' ) );
+				}
+			}
 		}
 		else
 		{

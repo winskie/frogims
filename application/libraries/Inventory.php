@@ -12,6 +12,7 @@ class Inventory extends Base_model
 	protected $reserved;
 
 	protected $item;
+	protected $parent_inventory;
 
 	public function __construct()
 	{
@@ -59,6 +60,24 @@ class Inventory extends Base_model
 		$query = $ci->db->get( 'item_categories' );
 
 		return $query->custom_result_object( 'Category' );
+	}
+
+
+	public function get_parent_inventory( $force = false )
+	{
+		if( ! isset( $this->parent_inventory ) || $force )
+		{
+			if( ! empty( $this->parent_item_id ) )
+			{
+				$this->parent_inventory = $this->get_by_store_item( $this->store_id, $this->parent_item_id );
+			}
+			else
+			{
+				$this->parent_inventory = NULL;
+			}
+		}
+
+		return $this->parent_inventory;
 	}
 
 

@@ -18,7 +18,7 @@ class Item extends Base_model
 	protected $machine_saleable;
 	protected $turnover_item;
 
-	protected $item_unit_price;
+	protected $iprice_unit_price;
 
 	protected $date_created_field = 'date_created';
 	protected $date_modified_field = 'date_modified';
@@ -77,13 +77,82 @@ class Item extends Base_model
 		}
 	}
 
-	public function get_items()
+	public function get_items( $params = array() )
 	{
+		$query = param( $params, 'q' );
+		$class = param( $params, 'class' );
+		$group = param( $params, 'group' );
+		$limit = param( $params, 'limit' );
+		$page = param( $params, 'page' );
+		$format = param( $params, 'format', 'object' );
+		$order = param( $params, 'order', 'item_name ASC' );
+
 		$ci =& get_instance();
 
-		$query = $ci->db->get( $this->primary_table );
+		if( $query )
+		{
+			$ci->db->like( 'item_name', $query );
+			$ci->db->or_like( 'item_description', $query );
+		}
+
+		if( $class )
+		{
+			$ci->db->where( 'item_class', $class );
+		}
+
+		if( $group )
+		{
+			$ci->db->where( 'item_group', $group );
+		}
+
+		if( $limit )
+		{
+			$ci->db->limit( $limit, ( $page ? ( ( $page - 1 ) * $limit ) : 0 ) );
+		}
+
+		if( $order )
+		{
+			$ci->db->order_by( $order );
+		}
+
+		$ci->db->select( 'i.*' );
+		$query = $ci->db->get( $this->primary_table.' AS i' );
+
+		if( $format == 'array' )
+		{
+			return $query->result_array();
+		}
 
 		return $query->result( get_class( $this ) );
+	}
+
+	public function count_items( $params = array() )
+	{
+		$query = param( $params, 'q' );
+		$class = param( $params, 'class' );
+		$group = param( $params, 'group' );
+
+		$ci =& get_instance();
+
+		if( $query )
+		{
+			$ci->db->like( 'item_name', $query );
+			$ci->db->or_like( 'item_description', $query );
+		}
+
+		if( $class )
+		{
+			$ci->db->where( 'item_class', $class );
+		}
+
+		if( $group )
+		{
+			$ci->db->where( 'item_group', $group );
+		}
+
+		$count = $ci->db->count_all_results( $this->primary_table );
+
+		return $count;
 	}
 
 	public function get_by_name( $item_name )
