@@ -1918,6 +1918,7 @@ class Installer extends CI_Controller {
 
 					array( 'L2 SJT - Defective', 'IntTrans' ),
 					array( 'L2 SJT - Defective', 'ExtTrans' ),
+					array( 'L2 SJT - Defective', 'Adjust' ),
 					array( 'L2 SJT - Defective', 'Unsold' ),
 					array( 'L2 SJT - Defective', 'RejectBin' ),
 					array( 'L2 SJT - Defective', 'Blackbox' ),
@@ -1925,6 +1926,7 @@ class Installer extends CI_Controller {
 
 					array( 'L2 SJT - Damaged', 'IntTrans' ),
 					array( 'L2 SJT - Damaged', 'ExtTrans' ),
+					array( 'L2 SJT - Damaged', 'Adjust' ),
 					array( 'L2 SJT - Damaged', 'Unsold' ),
 					array( 'L2 SJT - Damaged', 'RejectBin' ),
 					array( 'L2 SJT - Damaged', 'Blackbox' ),
