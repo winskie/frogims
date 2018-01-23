@@ -201,7 +201,7 @@ class Mopping extends Base_model {
 
 						// Check if status is still the same
 						if( $item->get( 'mopping_item_status' ) !== $packed_items[$current_group]['status'] )
-						{
+						{ // All parts should have the same status!
 							$this->packed_items = array();
 							$this->void_items = array();
 							return FALSE;
@@ -231,10 +231,11 @@ class Mopping extends Base_model {
 					}
 				}
 			}
-			elseif( array_key_exists( 'mopping_item_status', $item->db_changes )
+
+			if( array_key_exists( 'mopping_item_status', $item->db_changes )
 					&& $item->db_changes['mopping_item_status'] == MOPPING_ITEM_VOIDED )
 			{
-				$source_item_id = $item->get( 'mopped_item_id' );
+				//$source_item_id = $item->get( 'mopped_item_id' );
 				$void_items[] = $item;
 			}
 		}
@@ -285,7 +286,7 @@ class Mopping extends Base_model {
 		$collection_category = $Category->get_by_name( 'TktCollect' );
 		$conversion_category = $Category->get_by_name( 'Pack' );
 
-		$transaction_datetime = $this->processing_datetime;
+		$transaction_datetime = date( TIMESTAMP_FORMAT, strtotime( $this->processing_datetime ) );
 
 		$ci->db->trans_start();
 
@@ -386,7 +387,7 @@ class Mopping extends Base_model {
 		$Inventory = new Inventory();
 		$Category = new Category();
 
-		$transaction_datetime = date( TIMESTAMP_FORMAT, $this->processing_datetime );
+		$transaction_datetime = date( TIMESTAMP_FORMAT, strtotime( $this->processing_datetime ) );
 
 		$collection_category = $Category->get_by_name( 'TktCollect' );
 		$ticket_issue_category = $Category->get_by_name( 'TktIssue' );
@@ -396,7 +397,7 @@ class Mopping extends Base_model {
 			$ci->db->trans_start();
 			foreach( $this->void_items as $item )
 			{
-				if( isset( $item['group_id'] ) )
+				if( is_array( $item ) )
 				{ // Packed item
 
 					// Unpack item first
@@ -431,9 +432,10 @@ class Mopping extends Base_model {
 						}
 					}
 				}
-				else
+				elseif( is_a( $item, 'Mopping_item' ) )
 				{
-					$inventory = $Inventory->get_by_store_item( $this->store_id, $item['id'] );
+					$item = $item->as_array();
+					$inventory = $Inventory->get_by_store_item( $this->store_id, $item['mopped_item_id'] );
 
 					if( $inventory )
 					{

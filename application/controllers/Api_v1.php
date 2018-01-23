@@ -771,7 +771,6 @@ class Api_v1 extends MY_Controller {
 								'order' => param( $this->input->get(), 'order' ) );
 
 							$groups = $Group->get_groups( $params );
-							$sql = $this->db->last_query();
 							$total_groups = $Group->count_groups( $params );
 							$groups_array = array();
 							foreach( $groups as $group )
@@ -782,8 +781,7 @@ class Api_v1 extends MY_Controller {
 
 							$this->_response( array(
 								'groups' => $groups_array,
-								'total' => $total_groups,
-								'sql' => $sql ) );
+								'total' => $total_groups ) );
 						}
 				}
 				break;
@@ -1435,6 +1433,7 @@ class Api_v1 extends MY_Controller {
 											array(
 												'item_name' => array( 'type' => 'string' ),
 												'item_description' => array( 'type' => 'string' ),
+												'item_class' => array( 'type' => 'string' ),
 												'item_group' => array( 'type' => 'string' ),
 												'item_unit' => array( 'type' => 'string' ),
 												'parent_item_name' => array( 'type' => 'string' ),
@@ -1494,6 +1493,7 @@ class Api_v1 extends MY_Controller {
 												array(
 													'item_name' => array( 'type' => 'string' ),
 													'item_description' => array( 'type' => 'string' ),
+													'item_class' => array( 'type' => 'string' ),
 													'item_group' => array( 'type' => 'string' ),
 													'item_unit' => array( 'type' => 'string' ),
 													'parent_item_name' => array( 'type' => 'string' ),

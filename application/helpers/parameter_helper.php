@@ -128,6 +128,13 @@ if( ! function_exists( 'param' ) )
 				}
 				break;
 
+			case 'array':
+				if( ! is_array( $param ) )
+				{
+					$v = array( $param );
+				}
+				break;
+
 			default:
 				$v = $param;
 		}

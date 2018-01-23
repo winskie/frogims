@@ -734,11 +734,19 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 									{
 										case 'Bag Php5@100':
 										case 'Php5 Coin':
+										case 'Php5@500':
+										case 'Php5@1000':
+										case 'Php5@1500':
+										case 'Php5@2500':
 											rowObject = 'Hopper Php5';
 											break;
 
 										case 'Bag Php1@100':
 										case 'Php1 Coin':
+										case 'Php1@100':
+										case 'Php1@200':
+										case 'Php1@500':
+										case 'Php1@2000':
 											rowObject = 'Hopper Php1';
 											break;
 									}

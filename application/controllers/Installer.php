@@ -1189,37 +1189,47 @@ class Installer extends CI_Controller {
 
 					array( 'SVC', 'Stored Value Card', NULL, 0, 1, 0, 1, 'SVC', 'piece', 1, 1, 'ticket', TRUE, TRUE ), // ID: 6
 					array( 'SVC - Rigid Box', 'Stored Value Ticket in Rigid Box in 10s', 6, 1, 1, 0, 0, 'SVC', 'box', 0, 1, 'ticket', FALSE, FALSE ),
-					array( 'SVC - 25', 'Stored Value Ticket in 25s', 6, 1, 1, 0, 0, 'SVC', 'box', 0, 1, 'ticket', FALSE, FALSE ),
-					array( 'SVC - 150', 'Stored Value Ticket in 150s', 6, 0, 0, 1, 0, 'SVC', 'box', 0, 1, 'ticket', FALSE, FALSE ),
+					//array( 'SVC - 25', 'Stored Value Ticket in 25s', 6, 1, 1, 0, 0, 'SVC', 'box', 0, 1, 'ticket', FALSE, FALSE ),
+					//array( 'SVC - 150', 'Stored Value Ticket in 150s', 6, 0, 0, 1, 0, 'SVC', 'box', 0, 1, 'ticket', FALSE, FALSE ),
 					array( 'SVC - Defective', 'Defective Stored Value Card', 6, 0, 1, 0, 1, 'SVC', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
 					array( 'SVC - Damaged', 'Damaged Stored Value Card', 6, 0, 1, 0, 1, 'SVC', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
 
-					array( 'Senior', 'Senior Citizen Stored Value Card', NULL, 1, 0, 0, 0, 'Concessionary', 'piece', 1, 1, 'ticket', TRUE, FALSE ), // ID: 12
-					array( 'PWD', 'Passenger with Disability Store Value Card', NULL, 1, 0, 0, 0, 'Concessionary', 'piece', 1, 1, 'ticket', TRUE, FALSE ), // ID: 13
-					array( 'Senior - Defective', 'Defective Senior Citizen Stored Value Card', 12, 0, 0, 0, 0, 'Concessionary', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
-					array( 'PWD - Defective', 'Defective - Passenger with Disability Store Value Card', 13, 0, 0, 0, 0, 'Concessionary', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
+					array( 'Senior', 'Senior Citizen Stored Value Card', NULL, 1, 0, 0, 0, 'Concessionary', 'piece', 1, 1, 'ticket', TRUE, FALSE ), // ID: 9
+					array( 'PWD', 'Passenger with Disability Store Value Card', NULL, 1, 0, 0, 0, 'Concessionary', 'piece', 1, 1, 'ticket', TRUE, FALSE ), // ID: 10
+					array( 'Senior - Defective', 'Defective Senior Citizen Stored Value Card', 9, 0, 0, 0, 0, 'Concessionary', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
+					array( 'PWD - Defective', 'Defective - Passenger with Disability Store Value Card', 10, 0, 0, 0, 0, 'Concessionary', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
 
 					array( 'L2 Ticket Coupon', 'Line 2 Ticket Coupon', NULL, 1, 1, 0, 0, 'Coupon', 'piece', 0, 0, 'ticket', TRUE, FALSE ),
 
-					array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0, 'Others', 'piece', 1, 0, 'ticket', FALSE, FALSE ), // ID: 17
-					array( 'L1 SJT', 'Line 1 Single Journey Ticket', 17, 0, 1, 0, 0, 'Others', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
-					array( 'MRT SJT', 'Line 3 Single Journey Ticket', 17, 0, 1, 0, 0, 'Others', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
+					array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0, 'Others', 'piece', 1, 0, 'ticket', FALSE, FALSE ), // ID: 14
+					array( 'L1 SJT', 'Line 1 Single Journey Ticket', 14, 0, 1, 0, 0, 'Others', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
+					array( 'MRT SJT', 'Line 3 Single Journey Ticket', 14, 0, 1, 0, 0, 'Others', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
 					array( 'Staff Card', 'Staff Card', 17, 0, 0, 0, 0, 'Others', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
 
-					array( 'Php1 Coin', '1 peso coin', NULL, 1, 1, 1, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ), // ID: 21
-					array( 'Php0.25 Coin', '25 centavos coin', 21, 1, 1, 0, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php5 Coin', '5 pesos coin', 21, 1, 1, 1, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ), // ID: 23
-					array( 'Php10 Coin', '10 pesos coin', 21, 1, 1, 0, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php1 Coin', '1 peso coin', NULL, 1, 1, 1, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ), // ID: 18
+					array( 'Php0.25 Coin', '25 centavos coin', 18, 1, 1, 0, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php5 Coin', '5 pesos coin', 18, 1, 1, 1, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ), // ID: 20
+					array( 'Php10 Coin', '10 pesos coin', 18, 1, 1, 0, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ),
 
-					array( 'Php20 Bill', '20 pesos bill', 21, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php50 Bill', '50 pesos bill', 21, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php100 Bill', '100 pesos bill', 21, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php200 Bill', '200 pesos bill', 21, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php500 Bill', '500 pesos bill', 21, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php1000 Bill', '1000 pesos bill', 21, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php20 Bill', '20 pesos bill', 18, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php50 Bill', '50 pesos bill', 18, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php100 Bill', '100 pesos bill', 18, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php200 Bill', '200 pesos bill', 18, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php500 Bill', '500 pesos bill', 18, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php1000 Bill', '1000 pesos bill', 18, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
 
-					array( 'Bag Php5@100', 'Bag of Php5 coins worth Php100', 23, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Bag Php1@100', 'Bag of Php1 coins worth Php100', 21, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Bag Php5@100', 'Bag of Php5 coins worth Php100', 20, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Bag Php1@100', 'Bag of Php1 coins worth Php100', 18, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
+
+					array( 'Php1@100', 'Bag of Php1 coins worth Php100', 18, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php1@200', 'Bag of Php1 coins worth Php200', 18, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php1@500', 'Bag of Php1 coins worth Php500', 18, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php1@2000', 'Bag of Php1 coins worth Php2000', 18, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
+
+					array( 'Php5@500', 'Bag of Php5 coins worth Php500', 20, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php5@1000', 'Bag of Php5 coins worth Php1000', 20, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php5@1500', 'Bag of Php5 coins worth Php1500', 20, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
+					array( 'Php5@2500', 'Bag of Php5 coins worth Php2500', 20, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
 
 					array( 'Change Fund', 'Change Fund', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
 					array( 'Sales', 'Sales', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
@@ -1304,24 +1314,29 @@ class Installer extends CI_Controller {
 					'Change Fund' => array(
 						'Php1 Coin', 'Php0.25 Coin', 'Php5 Coin', 'Php10 Coin',
 						'Php20 Bill', 'Php50 Bill', 'Php100 Bill', 'Php200 Bill', 'Php500 Bill', 'Php1000 Bill',
-						'Bag Php5@100', 'Bag Php1@100'
+						'Bag Php5@100', 'Bag Php1@100',
+						'Php1@100', 'Php1@200', 'Php1@500', 'Php1@2000',
+						'Php5@500', 'Php5@1000', 'Php5@1500', 'Php5@2500',
 					),
 					'Sales' => array(
 						'Php1 Coin', 'Php0.25 Coin', 'Php5 Coin', 'Php10 Coin',
 						'Php20 Bill', 'Php50 Bill', 'Php100 Bill', 'Php200 Bill', 'Php500 Bill', 'Php1000 Bill',
-						'Bag Php5@100', 'Bag Php1@100'
 					),
 					'CA Fund' => array(
 						'Php1 Coin', 'Php5 Coin', 'Php10 Coin',
 					),
 					'TVM Hopper' => array(
 						'Php1 Coin', 'Php5 Coin',
-						'Bag Php5@100', 'Bag Php1@100'
+						'Bag Php5@100', 'Bag Php1@100',
+						'Php1@100', 'Php1@200', 'Php1@500', 'Php1@2000',
+						'Php5@500', 'Php5@1000', 'Php5@1500', 'Php5@2500',
 					),
 					'In Transit' => array(
 						'Php1 Coin', 'Php0.25 Coin', 'Php5 Coin', 'Php10 Coin',
 						'Php20 Bill', 'Php50 Bill', 'Php100 Bill', 'Php200 Bill', 'Php500 Bill', 'Php1000 Bill',
-						'Bag Php5@100', 'Bag Php1@100'
+						'Bag Php5@100', 'Bag Php1@100',
+						'Php1@100', 'Php1@200', 'Php1@500', 'Php1@2000',
+						'Php5@500', 'Php5@1000', 'Php5@1500', 'Php5@2500'
 					),
 					'CSC Card Fee' => array(
 						'Php1 Coin', 'Php5 Coin', 'Php10 Coin',
@@ -1330,7 +1345,6 @@ class Installer extends CI_Controller {
 					'TVMIR' => array(
 						'Php1 Coin', 'Php5 Coin', 'Php10 Coin',
 						'Php20 Bill', 'Php50 Bill', 'Php100 Bill', 'Php200 Bill', 'Php500 Bill', 'Php1000 Bill',
-						'Bag Php5@100', 'Bag Php1@100'
 					)
 				);
 
@@ -1418,8 +1432,8 @@ class Installer extends CI_Controller {
 				array( 'SVC', 'SVC - Rigid Box', 10 ),
 				array( 'SVC', 'SVC - Defective', 1 ),
 				array( 'SVC', 'SVC - Damaged', 1 ),
-				array( 'SVC', 'SVC - 25', 25 ),
-				array( 'SVC', 'SVC - 150', 150 ),
+				//array( 'SVC', 'SVC - 25', 25 ),
+				//array( 'SVC', 'SVC - 150', 150 ),
 				array( 'SVC - Defective', 'SVC - Damaged', 1 ),
 
 				array( 'Senior', 'Senior - Defective', 1 ),
@@ -1432,6 +1446,16 @@ class Installer extends CI_Controller {
 
 				array( 'Php1 Coin', 'Bag Php1@100', 100 ),
 				array( 'Php5 Coin', 'Bag Php5@100', 20 ),
+
+				array( 'Php1 Coin', 'Php1@100', 100 ),
+				array( 'Php1 Coin', 'Php1@200', 200 ),
+				array( 'Php1 Coin', 'Php1@500', 500 ),
+				array( 'Php1 Coin', 'Php1@2000', 2000 ),
+
+				array( 'Php5 Coin', 'Php5@500', 100 ),
+				array( 'Php5 Coin', 'Php5@1000', 200 ),
+				array( 'Php5 Coin', 'Php5@1500', 300 ),
+				array( 'Php5 Coin', 'Php5@2500', 500 ),
 			);
 
 			$item = new Item();
@@ -1952,6 +1976,7 @@ class Installer extends CI_Controller {
 					array( 'SVC - Rigid Box', 'Unsold' ),
 					array( 'SVC - Rigid Box', 'Unpack' ),
 
+					/*
 					array( 'SVC - 25', 'IntTrans' ),
 					array( 'SVC - 25', 'StockRep' ),
 					array( 'SVC - 25', 'Adjust' ),
@@ -1965,6 +1990,7 @@ class Installer extends CI_Controller {
 					array( 'SVC - 150', 'Adjust' ),
 					array( 'SVC - 150', 'TVMAlloc' ),
 					array( 'SVC - 150', 'Unpack' ),
+					*/
 
 					array( 'SVC - Defective', 'IntTrans' ),
 					array( 'SVC - Defective', 'ExtTrans' ),
@@ -2163,6 +2189,34 @@ class Installer extends CI_Controller {
 					array( 'Bag Php1@100', 'CFundRet' ),
 					array( 'Bag Php1@100', 'Unpack' ),
 
+					array( 'Php1@100', 'Adjust' ),
+					array( 'Php1@100', 'InitCFund' ),
+					array( 'Php1@100', 'AddCFund' ),
+					array( 'Php1@100', 'HopAlloc' ),
+					array( 'Php1@100', 'CFundRet' ),
+					array( 'Php1@100', 'Unpack' ),
+
+					array( 'Php1@200', 'Adjust' ),
+					array( 'Php1@200', 'InitCFund' ),
+					array( 'Php1@200', 'AddCFund' ),
+					array( 'Php1@200', 'HopAlloc' ),
+					array( 'Php1@200', 'CFundRet' ),
+					array( 'Php1@200', 'Unpack' ),
+
+					array( 'Php1@500', 'Adjust' ),
+					array( 'Php1@500', 'InitCFund' ),
+					array( 'Php1@500', 'AddCFund' ),
+					array( 'Php1@500', 'HopAlloc' ),
+					array( 'Php1@500', 'CFundRet' ),
+					array( 'Php1@500', 'Unpack' ),
+
+					array( 'Php1@2000', 'Adjust' ),
+					array( 'Php1@2000', 'InitCFund' ),
+					array( 'Php1@2000', 'AddCFund' ),
+					array( 'Php1@2000', 'HopAlloc' ),
+					array( 'Php1@2000', 'CFundRet' ),
+					array( 'Php1@2000', 'Unpack' ),
+
 					//array( 'Bag Php5@100', 'IntTrans' ),
 					//array( 'Bag Php5@100', 'ExtTrans' ),
 					array( 'Bag Php5@100', 'Adjust' ),
@@ -2171,6 +2225,34 @@ class Installer extends CI_Controller {
 					array( 'Bag Php5@100', 'HopAlloc' ),
 					array( 'Bag Php5@100', 'CFundRet' ),
 					array( 'Bag Php5@100', 'Unpack' ),
+
+					array( 'Php5@500', 'Adjust' ),
+					array( 'Php5@500', 'InitCFund' ),
+					array( 'Php5@500', 'AddCFund' ),
+					array( 'Php5@500', 'HopAlloc' ),
+					array( 'Php5@500', 'CFundRet' ),
+					array( 'Php5@500', 'Unpack' ),
+
+					array( 'Php5@1000', 'Adjust' ),
+					array( 'Php5@1000', 'InitCFund' ),
+					array( 'Php5@1000', 'AddCFund' ),
+					array( 'Php5@1000', 'HopAlloc' ),
+					array( 'Php5@1000', 'CFundRet' ),
+					array( 'Php5@1000', 'Unpack' ),
+
+					array( 'Php5@1500', 'Adjust' ),
+					array( 'Php5@1500', 'InitCFund' ),
+					array( 'Php5@1500', 'AddCFund' ),
+					array( 'Php5@1500', 'HopAlloc' ),
+					array( 'Php5@1500', 'CFundRet' ),
+					array( 'Php5@1500', 'Unpack' ),
+
+					array( 'Php5@2500', 'Adjust' ),
+					array( 'Php5@2500', 'InitCFund' ),
+					array( 'Php5@2500', 'AddCFund' ),
+					array( 'Php5@2500', 'HopAlloc' ),
+					array( 'Php5@2500', 'CFundRet' ),
+					array( 'Php5@2500', 'Unpack' ),
 				);
 
 			$this->load->library( 'item' );
@@ -2207,6 +2289,14 @@ class Installer extends CI_Controller {
 						array( 'Php1000 Bill', 'PHP', 1000.00 ),
 						array( 'Bag Php1@100', 'PHP', 100.00 ),
 						array( 'Bag Php5@100', 'PHP', 100.00 ),
+						array( 'Php1@100', 'PHP', 100.00 ),
+						array( 'Php1@200', 'PHP', 200.00 ),
+						array( 'Php1@500', 'PHP', 500.00 ),
+						array( 'Php1@2000', 'PHP', 2000.00 ),
+						array( 'Php5@500', 'PHP', 500.00 ),
+						array( 'Php5@1000', 'PHP', 1000.00 ),
+						array( 'Php5@1500', 'PHP', 1500.00 ),
+						array( 'Php5@2500', 'PHP', 2500.00 ),
 				);
 
 			$this->load->library( 'item' );

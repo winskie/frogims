@@ -236,7 +236,8 @@ class Store extends Base_model
 					i.base_item_id, ct.conversion_factor AS base_quantity,
 					ip.iprice_currency, ip.iprice_unit_price,
 					ts.movement, sts.sti_beginning_balance, sts.sti_ending_balance,
-					pi.item_name AS parent_item_name
+					pi.item_name AS parent_item_name,
+					IF( si.parent_item_id IS NULL, 0, 1 ) AS order_col
 				FROM store_inventory AS si
 				LEFT JOIN items AS i
 					ON i.id = si.item_id
@@ -297,7 +298,7 @@ class Store extends Base_model
 					ON ts.store_inventory_id = si.id
 				WHERE
 					store_id = ?
-				ORDER BY si.parent_item_id, si.id';
+				ORDER BY order_col, si.parent_item_id, si.id';
 
 		// Do not show subinventories
 		//$sql .= ' AND parent_item_id IS NULL';

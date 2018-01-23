@@ -278,7 +278,7 @@ class Shift_turnover extends Base_model
 		$ci =& get_instance();
 		$ci->load->library( 'store' );
 
-		if( !isset( $this->id ) )
+		if( ! isset( $this->id ) )
 		{
 			$Store = new Store();
 			$store = $Store->get_by_id( $this->st_store_id );
@@ -288,10 +288,10 @@ class Shift_turnover extends Base_model
 				'date' => $this->st_from_date,
 				'shift' => $this->st_from_shift_id );
 
-			$store_items = $store->get_shift_turnover_items( $params );
+			$store_items = $store->get_shift_turnover_items( $params ); // store inventory
 			foreach( $store_items as $inv_id => $store_item )
 			{
-				if( !isset( $this->items[$inv_id] ) )
+				if( ! isset( $this->items[$inv_id] ) )
 				{
 					$new_item = new Shift_turnover_item();
 					$new_item->set( 'sti_item_id', $store_item->get( 'item_id' ) );
@@ -329,6 +329,7 @@ class Shift_turnover extends Base_model
 				else
 				{
 					//$new_item = $prev_item;
+					$new_item = new Shift_turnover_item();
 					$new_item->set( 'sti_turnover_id', $this->id );
 					$new_item->set( 'previous_balance', $prev_item->get( 'sti_ending_balance' ) );
 					$new_item->set( 'sti_beginning_balance', $prev_item->get( 'sti_ending_balance' ) );
@@ -338,7 +339,7 @@ class Shift_turnover extends Base_model
 			}
 		}
 
-		if( !isset( $this->id ) )
+		if( ! isset( $this->id ) )
 		{ // new shift turnover
 			foreach( $this->items as $inv_id => $item )
 			{
@@ -955,7 +956,8 @@ class Shift_turnover extends Base_model
 	{
 		$ci =& get_instance();
 
-		$valid_items = array( 'Php1 Coin', 'Php5 Coin', 'Bag Php1@100', 'Bag Php5@100' );
+		$valid_items = array( 'Php1 Coin', 'Php5 Coin', 'Bag Php1@100', 'Bag Php5@100', 'Php1@100', 'Php1@200', 'Php1@500', 'Php1@2000',
+				'Php5@500', 'Php5@1000', 'Php5@1500', 'Php5@2500' );
 		$data = array( 'teller' => 0.00, 'TVM' => 0.00 );
 
 		$sql = "SELECT

@@ -2886,7 +2886,6 @@ app.controller( 'ConversionController', [ '$scope', '$filter', '$state', '$state
 
 				if( ! $scope.data.factor )
 				{
-					console.log( $scope.data.sourceInventory, $scope.data.targetInventory, $scope.data.factor );
 					$scope.data.valid_conversion = false;
 					$scope.data.messages.push( 'Cannot convert input item to output item.' );
 				}
