@@ -1183,7 +1183,7 @@ class Installer extends CI_Controller {
 			$items = array(
 					array( 'L2 SJT', 'Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, 'SJT', 'piece', 1, 1, 'ticket', TRUE, TRUE ), // ID: 1
 					array( 'L2 SJT - Rigid Box', 'Line 2 Single Journey Ticket in Rigid Box in 50s', 1, 1, 1, 0, 0, 'SJT', 'box', 0, 1, 'ticket', FALSE, FALSE ),
-					array( 'L2 SJT - Ticket Magazine', 'Line 2 Single Journey Ticket in Ticket Magazine in 800s', 1, 0, 0, 1, 0, 'SJT', 'magazine', 0, 1, 'ticket', FALSE, FALSE ),
+					array( 'L2 SJT - Ticket Magazine', 'Line 2 Single Journey Ticket in Ticket Magazine in 650s', 1, 0, 0, 1, 0, 'SJT', 'magazine', 0, 1, 'ticket', FALSE, FALSE ),
 					array( 'L2 SJT - Defective', 'Defective Line 2 Single Journey Ticket', 1, 0, 1, 0, 1, 'SJT', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
 					array( 'L2 SJT - Damaged', 'Damaged Line 2 Single Journey Ticket', 1, 0, 1, 0, 1, 'SJT', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
 
@@ -1423,7 +1423,7 @@ class Installer extends CI_Controller {
 			$values = array(
 				// SJT
 				array( 'L2 SJT', 'L2 SJT - Rigid Box', 50 ),
-				array( 'L2 SJT', 'L2 SJT - Ticket Magazine', 800 ),
+				array( 'L2 SJT', 'L2 SJT - Ticket Magazine', 650 ),
 				array( 'L2 SJT', 'L2 SJT - Defective', 1 ),
 				array( 'L2 SJT', 'L2 SJT - Damaged', 1 ),
 				array( 'L2 SJT - Defective', 'L2 SJT - Damaged', 1 ),
