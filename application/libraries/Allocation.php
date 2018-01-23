@@ -985,6 +985,9 @@ class Allocation extends Base_model {
 		$ci->load->library( 'category' );
 		$ci->load->library( 'item' );
 
+		$Category = new Category();
+		$unsold_category = $Category->get_by_name( 'Unsold' );
+
 		$pre_allocation_categories = array( 'InitAlloc', 'TVMAlloc', 'InitCFund' );
 		$post_allocation_categories = array( 'AddAlloc', 'TVMAlloc', 'AddCFund' );
 
@@ -1341,17 +1344,20 @@ class Allocation extends Base_model {
 				$item_id = $remittance->get( 'allocated_item_id' );
 				$voided_remittances[] = $remittance;
 			}
-			else
+			elseif( $remittance->get( 'allocation_item_status' ) != REMITTANCE_ITEM_VOIDED )
 			{
-				switch( $item->get( 'item_group' ) )
-				{
-					case 'SJT':
-						$remitted_sjt += $item->get( 'base_item_id' ) ? $remittance->get( 'allocated_quantity' ) * $item->get( 'conversion_factor' ) : $remittance->get( 'allocated_quantity' );
-						break;
+				if( $unsold_category->get( 'id' ) == $remittance->get( 'allocation_category_id' ) )
+				{ // Count only remittances from allocation, i.e., unsold/loose
+					switch( $item->get( 'item_group' ) )
+					{
+						case 'SJT':
+							$remitted_sjt += $item->get( 'base_item_id' ) ? $remittance->get( 'allocated_quantity' ) * $item->get( 'conversion_factor' ) : $remittance->get( 'allocated_quantity' );
+							break;
 
-					case 'SVC':
-						$remitted_svc += $item->get( 'base_item_id' ) ? $remittance->get( 'allocated_quantity' ) * $item->get( 'conversion_factor' ) : $remittance->get( 'allocated_quantity' );
-						break;
+						case 'SVC':
+							$remitted_svc += $item->get( 'base_item_id' ) ? $remittance->get( 'allocated_quantity' ) * $item->get( 'conversion_factor' ) : $remittance->get( 'allocated_quantity' );
+							break;
+					}
 				}
 			}
 		}
@@ -1469,7 +1475,7 @@ class Allocation extends Base_model {
 				$item_id = $ticket_sale->get( 'allocated_item_id' );
 				$voided_ticket_sales[] = $ticket_sale;
 			}
-			else
+			elseif( $ticket_sale->get( 'allocation_item_status' ) != TICKET_SALE_ITEM_VOIDED )
 			{
 				switch( $item->get( 'item_group' ) )
 				{
