@@ -3350,7 +3350,9 @@ app.controller( 'MoppingController', [ '$scope', '$filter', '$state', '$statePar
 								{
 									appData.refresh( session.data.currentStore.id, 'collections' );
 									notifications.alert( 'Collection record saved', 'success' );
-									$scope.moppingItem.items = [];
+									$scope.moppingItem = new Collection();
+									$scope.onItemChange();
+									$scope.onChangePullOutShift();
 								}
 								else
 								{
