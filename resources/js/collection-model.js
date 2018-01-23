@@ -162,8 +162,8 @@ angular.module( 'coreModels' ).factory( 'Collection', [ '$http', '$q', '$filter'
 					{
 						if( tempObj[this.items[i].mopped_item_id + '_' + this.items[i].mopping_item_status] )
 						{
-							tempObj[this.items[i].mopped_item_id].quantity += this.items[i].mopped_quantity;
-							tempObj[this.items[i].mopped_item_id].src_rows.push( this.items[i].id );
+							tempObj[this.items[i].mopped_item_id + '_' + this.items[i].mopping_item_status].quantity += this.items[i].mopped_quantity;
+							tempObj[this.items[i].mopped_item_id + '_' + this.items[i].mopping_item_status].src_rows.push( this.items[i].id );
 						}
 						else
 						{
