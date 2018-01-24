@@ -2181,21 +2181,45 @@ angular.module( 'appServices' ).service( 'adminData', [ '$http', '$q', '$filter'
 					}
 			};
 
-		me.filters = {
+		me.defaultFilters = {
 				itemsPerPage: 15,
 				users: {
 					q: null,
-					role: null,
-					group: null,
-					status: null,
-					page: 1
+					position: null,
+					role: { id: null, roleName: 'All' },
+					group: { id: null, group_name: 'All' },
+					status: { id: null, statusName: 'All' },
+					filtered: false
 				},
 				groups: {
 					q: null,
-					page: 1
+					filtered: false
 				},
 				stores: {},
-				items: {}
+				items: {
+					q: null,
+					class: null,
+					group: null,
+					filtered: false
+				}
+			};
+
+		me.filters = {};
+		angular.copy( me.defaultFilters, me.filters );
+
+		me.clearFilter = function( tab )
+			{
+				me.defaultFilters[tab].filtered = false;
+				angular.copy( me.defaultFilters[tab], me.filters[tab] );
+
+				return me.filters[tab];
+			};
+
+		me.pagination = {
+				users: 1,
+				groups: 1,
+				items: 1,
+				stores: 1
 			};
 
 		me.getUsers = function()
@@ -2206,10 +2230,11 @@ angular.module( 'appServices' ).service( 'adminData', [ '$http', '$q', '$filter'
 					url: baseUrl + 'index.php/api/v1/users',
 					params: {
 						q: me.filters.users.q ? me.filters.users.q : null,
-						role: me.filters.users.role ? me.filters.users.role : null,
+						position: me.filters.users.q ? me.filters.users.position : null,
+						role: me.filters.users.role ? me.filters.users.role.id : null,
 						group: me.filters.users.group ? me.filters.users.group.id : null,
 						status: me.filters.users.status ? me.filters.users.status.id : null,
-						page: me.filters.users.page ? me.filters.users.page : null,
+						page: me.pagination.users ? me.pagination.users : null,
 						limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
 					}
 				}).then(
@@ -2245,7 +2270,7 @@ angular.module( 'appServices' ).service( 'adminData', [ '$http', '$q', '$filter'
 					url: baseUrl + 'index.php/api/v1/groups',
 					params: {
 						q: me.filters.users.q ? me.filters.users.q : null,
-						page: me.filters.users.page ? me.filters.users.page : null,
+						page: me.pagination.groups ? me.pagination.groups : null,
 						limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
 					}
 				}).then(
@@ -2288,6 +2313,7 @@ angular.module( 'appServices' ).service( 'adminData', [ '$http', '$q', '$filter'
 					case 'all':
 					default:
 						me.getUsers();
+						me.getGroups();
 				}
 			}
 

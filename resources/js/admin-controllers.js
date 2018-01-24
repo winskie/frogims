@@ -2,7 +2,8 @@ app.controller( 'AdminController', [ '$scope', '$state', '$stateParams', 'sessio
 	function( $scope, $state, $stateParams, session, adminData, notifications )
 	{
 		$scope.data = adminData.data;
-		$scope.filters = adminData.filters;
+
+		$scope.filters = angular.copy( adminData.filters );
 		$scope.tabs = {
 				general: { index: 0, title: 'General' },
 				users: { index: 1, title: 'Users' },
@@ -20,6 +21,65 @@ app.controller( 'AdminController', [ '$scope', '$state', '$stateParams', 'sessio
 		{
 			$scope.activeTab = 0;
 		}
+
+		$scope.widget = {
+				usersRole: angular.copy( adminData.data.userRoles ),
+				usersGroup: angular.copy( adminData.data.groups ),
+				usersStatus: angular.copy( adminData.data.userStatus ),
+			};
+
+		$scope.widget.usersRole.unshift({ id: null, roleName: 'All' });
+		$scope.widget.usersGroup.unshift({ id: null, group_name: 'All' });
+		$scope.widget.usersStatus.unshift({ id: null, statusName: 'All' });
+
+		$scope.pagination = adminData.pagination;
+
+		$scope.filterPanels = {
+				users: false,
+				groups: false,
+				items: false,
+				stores: false,
+			};
+
+		$scope.toggleFilters = function( tab )
+			{
+				$scope.filterPanels[tab] = !$scope.filterPanels[tab];
+			};
+
+		$scope.applyFilter = function( tab )
+			{
+				$scope.pagination[tab] = 1;
+				$scope.filters[tab].filtered = true;
+				angular.copy( $scope.filters[tab], adminData.filters[tab] );
+
+				switch( tab )
+				{
+					case 'users':
+						$scope.updateUsers();
+						break;
+
+					case 'groups':
+						$scope.updateGroups();
+						break;
+
+					case 'items':
+						$scope.updateItems();
+						break;
+
+					default:
+						error.console( 'Unknown filter group' );
+				}
+			};
+
+		$scope.clearFilter = function( tab )
+			{
+				$scope.pagination[tab] = 1;
+				angular.copy( adminData.clearFilter( tab ), $scope.filters[tab] );
+
+				$scope.applyFilter( tab );
+				$scope.filters[tab].filtered = false;
+				adminData.filters[tab].filtered = false;
+			};
 
 		// Refresh/update functions
 		$scope.updateUsers = adminData.getUsers;
@@ -43,8 +103,8 @@ app.controller( 'AdminController', [ '$scope', '$state', '$stateParams', 'sessio
 	}
 ]);
 
-app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter', 'groups', 'session', 'appData', 'adminData', 'notifications',
-	function( $scope, $state, $stateParams, $filter, groups, session, appData, adminData, notifications )
+app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter', 'session', 'appData', 'adminData', 'notifications',
+	function( $scope, $state, $stateParams, $filter, session, appData, adminData, notifications )
 	{
 		function generateStoreList( registeredStores )
 		{
@@ -92,7 +152,7 @@ app.controller( 'UserController', [ '$scope', '$state', '$stateParams', '$filter
 			selectedRole: { id: 2, roleName: 'User' },
 			userStatus: angular.copy( adminData.data.userStatus),
 			selectedStatus: { id: 1, statusName: 'Active' },
-			groups: groups,
+			groups: angular.copy( adminData.data.groups ),
 			selectedGroup: { id: null, group_name: 'None' },
 			viewMode: 'edit',
 			isNew: true,

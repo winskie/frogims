@@ -11,8 +11,11 @@
 		<uib-tab heading="Users" index="1" select="onTabSelect('users')">
 			<div class="panel panel-default">
 				<div class="panel-heading">
-					<h3 class="panel-title pull-left">Users</h3>
+					<h3 class="panel-title pull-left">Users <span class="label label-default" ng-if="filters.users.filtered">Filtered</span></h3>
 					<div class="pull-right">
+						<button class="btn btn-default btn-sm btn-filter" ng-click="toggleFilters( 'users' )">
+							<i class="glyphicon glyphicon-filter"></i> {{ filterPanels.users ? 'Hide' : 'Show' }} filters
+						</button>&nbsp;
 						<button class="btn btn-primary btn-sm" ui-sref="main.user({ referrer: 'main.admin' })">
 							<i class="glyphicon glyphicon-plus"></i> New user
 						</button>&nbsp;
@@ -22,43 +25,103 @@
 					</div>
 					<div class="clearfix"></div>
 				</div>
-				<table class="table table-condensed">
-					<thead>
-						<tr>
-							<th class="text-center">ID</th>
-							<th>Username</th>
-							<th>Full Name</th>
-							<th>Position</th>
-							<th>Role</th>
-							<th>Group</th>
-							<th>Status</th>
-							<th></th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr ng-repeat="user in data.users">
-							<td class="text-center">{{ user.id }}</td>
-							<td>{{ user.username }}</td>
-							<td>{{ user.full_name }}</td>
-							<td>{{ user.position }}</td>
-							<td>{{ lookup( 'userRoles', user.user_role ) }}</td>
-							<td>{{ user.group_name }}</td>
-							<td>{{ lookup( 'userStatus', user.user_status ) }}</td>
-							<td>
-								<button id="split-button" type="button" class="btn btn-default btn-block" ui-sref="main.user({ userItem: user })">Edit</button>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-				<div class="text-center" ng-if="data.totals.users > filters.itemsPerPage">
-					<uib-pagination
-							total-items="data.totals.users"
-							items-per-page="filters.itemsPerPage"
-							max-size="5"
-							boundary-link-numbers="true"
-							ng-model="filters.users.page"
-							ng-change="updateUsers()">
-					</uib-pagination>
+
+				<div class="panel-body">
+					<!-- Filter Panel -->
+					<div class="row filter_panel" ng-show="filterPanels.users">
+						<div class="col-sm-4 col-md-3 col-lg-2">
+							<div class="form-group">
+								<label class="control-label">Name</label>
+								<input type="text" class="form-control" ng-model="filters.users.q">
+							</div>
+						</div>
+
+						<div class="col-sm-4 col-md-3 col-lg-2">
+							<div class="form-group">
+								<label class="control-label">Position</label>
+								<input type="text" class="form-control" ng-model="filters.users.position">
+							</div>
+						</div>
+
+						<div class="col-sm-4 col-md-3 col-lg-2">
+							<div class="form-group">
+								<label class="control-label">Role</label>
+								<select class="form-control"
+										ng-model="filters.users.role"
+										ng-options="role as role.roleName for role in widget.usersRole track by role.id">
+								</select>
+							</div>
+						</div>
+
+						<div class="col-sm-4 col-md-3 col-lg-2">
+							<div class="form-group">
+								<label class="control-label">Group</label>
+								<select class="form-control"
+										ng-model="filters.users.group"
+										ng-options="group as group.group_name for group in widget.usersGroup track by group.id">
+								</select>
+							</div>
+						</div>
+
+						<div class="col-sm-4 col-md-3 col-lg-2">
+							<div class="form-group">
+								<label class="control-label">Status</label>
+								<select class="form-control"
+										ng-model="filters.users.status"
+										ng-options="status as status.statusName for status in widget.usersStatus track by status.id">
+								</select>
+							</div>
+						</div>
+
+						<div>
+							<div class="form-group">
+								<button style="margin-top: 25px" class="btn btn-primary" ng-click="applyFilter( 'users' )">Apply</button>
+								<button style="margin-top: 25px" class="btn btn-default" ng-click="clearFilter( 'users' )">Clear</button>
+							</div>
+						</div>
+
+					</div>
+					<table class="table table-condensed">
+						<thead>
+							<tr>
+								<th class="text-center">ID</th>
+								<th>Username</th>
+								<th>Full Name</th>
+								<th>Position</th>
+								<th>Role</th>
+								<th>Group</th>
+								<th>Status</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="user in data.users">
+								<td class="text-center">{{ user.id }}</td>
+								<td>{{ user.username }}</td>
+								<td>{{ user.full_name }}</td>
+								<td>{{ user.position }}</td>
+								<td>{{ lookup( 'userRoles', user.user_role ) }}</td>
+								<td>{{ user.group_name }}</td>
+								<td>{{ lookup( 'userStatus', user.user_status ) }}</td>
+								<td>
+									<button id="split-button" type="button" class="btn btn-default btn-block" ui-sref="main.user({ userItem: user })">Edit</button>
+								</td>
+							</tr>
+							<tr ng-show="data.users.length == 0">
+								<td colspan="8" class="text-center">No user record available</td>
+							</tr>
+						</tbody>
+					</table>
+					<div class="text-center" ng-if="data.totals.users > filters.itemsPerPage">
+						<uib-pagination
+								total-items="data.totals.users"
+								items-per-page="filters.itemsPerPage"
+								max-size="5"
+								boundary-link-numbers="true"
+								ng-model="pagination.users"
+								ng-change="updateUsers()">
+						</uib-pagination>
+					</div>
 				</div>
 			</div>
 		</uib-tab>
@@ -107,7 +170,7 @@
 							items-per-page="filters.itemsPerPage"
 							max-size="5"
 							boundary-link-numbers="true"
-							ng-model="filters.groups.page"
+							ng-model="pagination.groups"
 							ng-change="updateGroups()">
 					</uib-pagination>
 				</div>

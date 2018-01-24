@@ -3228,6 +3228,7 @@ class Api_v1 extends MY_Controller {
 						{ // get list of users
 							$params = array(
 								'q' => param( $this->input->get(), 'q' ),
+								'position' => param( $this->input->get(), 'position' ),
 								'role' => param( $this->input->get(), 'role' ),
 								'group' => param( $this->input->get(), 'group' ),
 								'status' => param( $this->input->get(), 'status' ),

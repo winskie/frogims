@@ -39,6 +39,7 @@ class User extends Base_model {
 	public function get_users( $params = array() )
 	{
 		$query = param( $params, 'q' );
+		$position = param( $params, 'position' );
 		$role = param( $params, 'role' );
 		$group_id = param( $params, 'group' );
 		$status = param( $params, 'status' );
@@ -52,6 +53,12 @@ class User extends Base_model {
 		if( $query )
 		{
 			$ci->db->like( 'full_name', $query );
+			$ci->db->or_like( 'username', $query );
+		}
+
+		if( $position )
+		{
+			$ci->db->like( 'position', $position );
 		}
 
 		if( $role )
@@ -66,7 +73,7 @@ class User extends Base_model {
 
 		if( $status )
 		{
-			$ci->db->where( 'status', $status );
+			$ci->db->where( 'user_status', $status );
 		}
 
 		if( $limit )
@@ -94,6 +101,7 @@ class User extends Base_model {
 	public function count_users( $params = array() )
 	{
 		$query = param( $params, 'q' );
+		$position = param( $params, 'position' );
 		$role = param( $params, 'role' );
 		$group_id = param( $params, 'group' );
 		$status = param( $params, 'status' );
@@ -103,6 +111,12 @@ class User extends Base_model {
 		if( $query )
 		{
 			$ci->db->like( 'full_name', $query );
+			$ci->db->or_like( 'username', $query );
+		}
+
+		if( $position )
+		{
+			$ci->db->like( 'position', $position );
 		}
 
 		if( $role )
@@ -117,7 +131,7 @@ class User extends Base_model {
 
 		if( $status )
 		{
-			$ci->db->where( 'status', $status );
+			$ci->db->where( 'user_status', $status );
 		}
 
 
