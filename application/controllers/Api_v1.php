@@ -954,10 +954,87 @@ class Api_v1 extends MY_Controller {
 	public function items()
 	{
 		$request_method = $this->input->method();
+		$action = $this->uri->rsegment( 3 );
+
+		$this->load->library( 'item' );
+		$Item = new Item();
 
 		switch( $request_method )
 		{
 			case 'get':
+				switch( $action )
+				{
+					case 'search':
+						$q = param_type( $this->input->get( 'q' ), 'string' );
+						break;
+
+					default:
+						$item_id = param_type( $this->uri->rsegment( 3 ), 'integer' );
+
+						if( $item_id )
+						{
+							$item = $Item->get_by_id( $item_id );
+							if( $item )
+							{
+								$item_data = $item->as_array();
+
+								$this->_response( $item_data );
+							}
+							else
+							{
+								$this->_error( 404, 'Item record not found' );
+							}
+						}
+						else
+						{ // get list of items
+							$params = array(
+								'q' => param( $this->input->get(), 'q' ),
+								'page' => param( $this->input->get(), 'page' ),
+								'class' => param( $this->input->get(), 'class' ),
+								'group' => param( $this->input->get(), 'group' ),
+								'limit' => param( $this->input->get(), 'limit' ),
+								'format' => param( $this->input->get(), 'format' ),
+								'order' => param( $this->input->get(), 'order' ) );
+
+							$items = $Item->get_items( $params );
+							$total_items = $Item->count_items( $params );
+							$items_array = array();
+							foreach( $items as $item )
+							{
+								$items_array[] = $item->as_array();
+							}
+
+							$this->_response( array(
+								'items' => $items_array,
+								'total' => $total_items ) );
+						}
+				}
+				break;
+
+			case 'post':
+				$action = param_type( $this->uri->rsegment( 3 ), 'string' );
+				$item_id = param( $this->input->post(), 'id' );
+
+				$item = $Item->load_from_data( $this->input->post() );
+
+				$this->db->trans_start();
+				switch( $action )
+				{
+					default:
+						$result = $item->db_save();
+				}
+				if( $result )
+				{
+					$item_data = $item->as_array();
+					$this->db->trans_complete();
+
+					$this->_response( $item_data, $item_id ? 200 : 201 );
+				}
+				else
+				{
+					$messages = get_messages();
+					$this->_error( 202, $messages );
+				}
 				break;
 
 			default:

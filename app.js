@@ -417,6 +417,14 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider
 				controller: 'GroupController'
 			};
 
+		var item = {
+				name: 'main.item',
+				parent: 'main',
+				url: '/item',
+				params: { item: null, viewMode: 'edit' },
+				templateUrl: baseUrl + 'index.php/main/view/partial_item_form.php',
+				controller: 'ItemController'
+			};
 
 		$stateProvider
 			.state( dashboard )
@@ -434,7 +442,8 @@ app.config( function( baseUrl, $stateProvider, $urlRouterProvider, $httpProvider
 
 			.state( admin )
 			.state( user )
-			.state( group );
+			.state( group )
+			.state( item );
 	});
 
 app.directive( 'highcharts', chartDirective );

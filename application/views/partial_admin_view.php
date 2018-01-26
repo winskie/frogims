@@ -186,8 +186,55 @@
 
 		<!-- Items -->
 		<uib-tab heading="Items" index="4" select="onTabSelect('items')">
-			<div class="alert alert-warning">
-				<i class="glyphicon glyphicon-alert"></i> This section is still under development
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title pull-left">Items</h3>
+					<div class="pull-right">
+						<button class="btn btn-primary btn-sm" ui-sref="main.item({ referrer: 'main.admin' })">
+							<i class="glyphicon glyphicon-plus"></i> New item
+						</button>&nbsp;
+						<button class="btn btn-default btn-sm" ng-click="updateItems( sessionData.currentStore.id )">
+							<i class="glyphicon glyphicon-refresh"></i>
+						</button>
+					</div>
+					<div class="clearfix"></div>
+				</div>
+				<table class="table table-condensed">
+					<thead>
+						<tr>
+							<th class="text-center">ID</th>
+							<th>Code</th>
+							<th>Description</th>
+							<th>Class</th>
+							<th>Group</th>
+							<th>Unit</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="item in data.items">
+							<td class="text-center">{{ item.id }}</td>
+							<td>{{ item.item_name }}</td>
+							<td>{{ item.item_description }}</td>
+							<td>{{ item.item_class }}</td>
+							<td>{{ item.item_group }}</td>
+							<td>{{ item.item_unit }}</td>
+							<td>
+								<button id="split-button" type="button" class="btn btn-default btn-block" ui-sref="main.item({ item: item })">Edit</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="text-center" ng-if="data.totals.items > filters.itemsPerPage">
+					<uib-pagination
+							total-items="data.totals.items"
+							items-per-page="filters.itemsPerPage"
+							max-size="5"
+							boundary-link-numbers="true"
+							ng-model="pagination.items"
+							ng-change="updateItems()">
+					</uib-pagination>
+				</div>
 			</div>
 		</uib-tab>
 

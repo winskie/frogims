@@ -84,6 +84,7 @@ app.controller( 'AdminController', [ '$scope', '$state', '$stateParams', 'sessio
 		// Refresh/update functions
 		$scope.updateUsers = adminData.getUsers;
 		$scope.updateGroups = adminData.getGroups;
+		$scope.updateItems = adminData.getItems;
 
 		$scope.onTabSelect = function( tab )
 			{
@@ -444,9 +445,125 @@ app.controller( 'StoreController', [ '$scope', '$state', '$stateParams', 'sessio
 	}
 ]);
 
-app.controller( 'ItemController', [ '$scope', '$state', '$stateParams', 'session', 'appData', 'notifications',
-	function( $scope, $state, $stateParams, session, appData, notifications )
+app.controller( 'ItemController', [ '$scope', '$state', '$stateParams', '$filter', 'session', 'adminData', 'notifications',
+	function( $scope, $state, $stateParams, $filter, session, adminData, notifications )
 	{
+		$scope.data = {
+			viewMode: 'edit',
+			itemClasses: [
+					{ id: 'ticket', class: 'ticket', groups: [
+							{ id: 'SJT', group: 'SJT' },
+							{ id: 'SVC', group: 'SVC' },
+							{ id: 'Concessionary', group: 'Concessionary' },
+							{ id: 'Coupon', group: 'Coupon' },
+							{ id: 'Others', group: 'Others' },
+						] },
+					{ id: 'cash', class: 'cash', groups: [
+							{ id: 'coin', group: 'coin' },
+							{ id: 'bill', group: 'bill' },
+						] },
+					{ id: 'fund', class: 'fund', groups: [
+							{ id: 'fund', group: 'fund' },
+						] }
+				],
+			selectedItemClass: null,
+			selectedItemGroup: null,
+		};
 
+		$scope.item = {
+				item_name: null,
+				item_description: null,
+				item_class: 'ticket',
+				item_group: 'Others',
+				item_unit: null,
+				item_type: 1,
+				teller_allocatable: false,
+				teller_remittable: false,
+				teller_saleable: false,
+				machine_allocatable: false,
+				machine_remittable: false,
+				machine_saleable: false,
+				turnover_item: false,
+			};
+
+		$scope.onChangeClass = function()
+			{
+				$scope.item.item_class = $scope.data.selectedItemClass.id;
+			};
+
+		$scope.onChangeGroup = function()
+			{
+				$scope.item.item_group = $scope.data.selectedItemGroup.id;
+			};
+
+		$scope.close = function()
+			{
+				var params = {};
+				if( session.data.previousTab )
+				{
+					params['activeTab'] = session.data.previousTab;
+				}
+				$state.go( session.data.previousState, params );
+			};
+
+		$scope.checkData = function()
+			{
+				return true;
+			};
+
+		$scope.prepareData = function()
+			{
+				var data = angular.copy( $scope.item );
+
+				return data;
+			};
+
+		$scope.saveItem = function()
+			{
+				if( $scope.checkData() )
+				{
+					var data = $scope.prepareData();
+
+					adminData.saveItem( data ).then(
+						function( response )
+						{
+							adminData.refresh( 'item' );
+							notifications.alert( 'Item record saved', 'success' );
+
+							var params = {};
+							if( session.data.previousTab )
+							{
+								params['activeTab'] = session.data.previousTab;
+							}
+							$state.go( session.data.previousState, params );
+						},
+						function( reason )
+						{
+							notifications.alert( reason, 'error' );
+							console.error( reason );
+						});
+				}
+			};
+
+		if( $stateParams.item )
+		{
+			$scope.data.editMode = $stateParams.editMode || 'edit';
+			adminData.getItem( $stateParams.item.id ).then(
+				function( response )
+				{
+					$scope.item = response.data;
+
+					$scope.data.selectedItemClass = $filter( 'filter' )( $scope.data.itemClasses, { id: $stateParams.item.item_class }, true )[0];
+					$scope.data.selectedItemGroup = $filter( 'filter' )( $scope.data.selectedItemClass.groups, { id: $stateParams.item.item_group }, true )[0];
+				},
+				function( reason )
+				{
+					console.error( reason );
+				} );
+		}
+		else
+		{
+
+		}
 	}
 ]);

@@ -47,7 +47,7 @@ body
 
 #mainTabSet > div.tab-content,
 #adminTabSet > div.tab-content,
-#userTabSet > div.tab-content {
+#userTabSet, #itemTabSet > div.tab-content {
     padding-top: 20px;
 }
 

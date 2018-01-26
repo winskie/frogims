@@ -2298,6 +2298,44 @@ angular.module( 'appServices' ).service( 'adminData', [ '$http', '$q', '$filter'
 				return deferred.promise;
 			};
 
+		me.getItems = function()
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/items',
+					params: {
+						q: me.filters.items.q ? me.filters.items.q : null,
+						class: me.filters.items.class ? me.filters.items.class : null,
+						group: me.filters.items.group ? me.filters.items.group : null,
+						page: me.pagination.items ? me.pagination.items : null,
+						limit: me.filters.itemsPerPage ? me.filters.itemsPerPage : null
+					}
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							var d = response.data;
+							me.data.items = d.data.items;
+							me.data.totals.items = d.data.total;
+							deferred.resolve( d );
+						}
+						else
+						{
+							notifications.showMessages( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
+
 		me.refresh = function( group )
 			{
 				switch( group )
@@ -2310,10 +2348,15 @@ angular.module( 'appServices' ).service( 'adminData', [ '$http', '$q', '$filter'
 						me.getGroups();
 						break;
 
+					case 'item':
+						me.getItems();
+						break;
+
 					case 'all':
 					default:
 						me.getUsers();
 						me.getGroups();
+						me.getItems();
 				}
 			}
 
@@ -2413,6 +2456,60 @@ angular.module( 'appServices' ).service( 'adminData', [ '$http', '$q', '$filter'
 					method: 'POST',
 					url: baseUrl + 'index.php/api/v1/groups/',
 					data: groupData
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							deferred.resolve( response.data );
+						}
+						else
+						{
+							notifications.showMessages( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					},
+					function( reason )
+					{
+						console.error( reason.data.errorMsg );
+						deferred.reject( reason.data.errorMsg );
+					});
+
+				return deferred.promise;
+			};
+
+		// Items
+		me.getItem = function( itemId, params )
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'GET',
+					url: baseUrl + 'index.php/api/v1/items/' + itemId,
+					params: params
+				}).then(
+					function( response )
+					{
+						if( response.data.status == 'ok' )
+						{
+							deferred.resolve( response.data );
+						}
+						else
+						{
+							notifications.showMessages( response.data.errorMsg );
+							deferred.reject( response.data.errorMsg );
+						}
+					});
+
+				return deferred.promise;
+			};
+
+		me.saveItem = function( userData )
+			{
+				var deferred = $q.defer();
+				$http({
+					method: 'POST',
+					url: baseUrl + 'index.php/api/v1/items/',
+					data: userData
 				}).then(
 					function( response )
 					{
