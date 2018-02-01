@@ -825,7 +825,16 @@ class Api_v1 extends MY_Controller {
 		$relation = param_type( $this->uri->rsegment( 3 ), 'string' );
 
 		$this->load->library( 'inventory' );
+		$this->load->library( 'store' );
+		$this->load->library( 'shift_turnover' );
+
+		$Store = new Store();
 		$Inventory = new Inventory();
+		$Shift_Turnover = new Shift_turnover();
+
+		$StoreCache = array();
+
+		// Get current shift
 
 		switch( $request_method )
 		{
@@ -833,21 +842,73 @@ class Api_v1 extends MY_Controller {
 				switch( $relation )
 					{
 						case 'system':
-							// TODO: Add transfer_datetime in the WHERE clause of the subquery, probably limit to transfers within a month or week
-							$sql = "SELECT s.store_name, s.store_code, i.item_name,
-												IF( i.base_item_id IS NULL, si.quantity, ( si.quantity * ct.conversion_factor ) ) AS quantity,
-												COALESCE( it.in_transit_quantity, 0 ) AS in_transit_quantity
-											FROM store_inventory si
-											LEFT JOIN stores s
-												ON s.id = si.store_id
-											LEFT JOIN items i
-												ON i.id = si.item_id
-											LEFT JOIN conversion_table ct
-												ON ct.target_item_id = i.id AND ct.source_item_id = i.base_item_id
-											LEFT JOIN (
-												SELECT t.destination_id, ti.item_id,
+							// Get stores
+							$stores = $Store->get_stores();
+							$store_list = array();
+							$item_list = array();
+							$transfers_list = array();
+							$turnovers_list = array();
+
+							foreach( $stores as $loop_store )
+							{
+								$store_current_shift = $loop_store->get_suggested_shift();
+								$shift_turnover = $Shift_Turnover->get_by_store_date_shift( $loop_store->get( 'id' ), date( DATE_FORMAT ), $store_current_shift->get( 'id' ) );
+								$items = $loop_store->get_items( array( 'class' => 'ticket', 'shift' => $store_current_shift->get( 'id' ) ) );
+								$store_code = $loop_store->get( 'store_code' );
+								$store_list[] = $store_code;
+								foreach( $items as $loop_item )
+								{
+									$item_name = $loop_item->get( 'item_name' );
+									if( ! in_array( $loop_item, $item_list ) )
+									{
+										switch( $loop_store->get( 'store_type' ) )
+										{
+											case STORE_TYPE_GENERAL:
+											case STORE_TYPE_TRANSPORT:
+												$balance = $loop_item->get( 'quantity' );
+												break;
+
+											case STORE_TYPE_PRODUCTION:
+											case STORE_TYPE_CASHROOM:
+												if( empty( $shift_turnover ) )
+												{
+													$turnovers_list[$store_code] = -1;
+													$balance = $loop_item->get( 'quantity' );
+												}
+												elseif( $shift_turnover->get( 'st_status' ) == SHIFT_TURNOVER_OPEN )
+												{
+													$turnovers_list[$store_code] = 0;
+													$balance = $loop_item->get( 'sti_beginning_balance' ) + $loop_item->get( 'movement' );
+												}
+												elseif( $shift_turnover->get( 'st_status') == SHIFT_TURNOVER_CLOSE )
+												{
+													$turnovers_list[$store_code] = 1;
+													$balance = $loop_item->get( 'sti_ending_balance' );
+												}
+												else
+												{
+													die( 'Invalid shift turnover status' );
+												}
+												break;
+
+										}
+
+										// Convert to base quantity
+										if( ! empty( $loop_item->get( 'base_item_id' ) ) )
+										{
+											$balance = $balance * $loop_item->get( 'base_quantity' );
+										}
+
+										$item_list[$item_name][$store_code] = floatval( $balance );
+									}
+								}
+
+								// Get in-transit items
+								$sql = "SELECT t.destination_id, s.store_code, ti.item_id, i.item_name,
 													SUM( IF( i.base_item_id IS NULL, ti.quantity, ( ti.quantity * ct.conversion_factor ) ) ) AS in_transit_quantity
 												FROM transfers t
+												LEFT JOIN stores s
+													ON s.id = t.destination_id
 												LEFT JOIN transfer_items ti
 													ON ti.transfer_id = t.id
 												LEFT JOIN items i
@@ -855,41 +916,65 @@ class Api_v1 extends MY_Controller {
 												LEFT JOIN conversion_table ct
 													ON ct.target_item_id = i.id AND ct.source_item_id = i.base_item_id
 												WHERE
-													t.transfer_status = 2
-												GROUP BY t.destination_id, ti.item_id
-											) AS it
-												ON it.destination_id = si.store_id AND it.item_id = si.item_id
-											WHERE i.item_class = 'ticket'
-											ORDER BY si.store_id ASC, si.item_id ASC";
+													t.transfer_status = ".TRANSFER_APPROVED."
+													AND NOT t.destination_id IS NULL
+													AND i.item_class = 'ticket'
+												GROUP BY t.destination_id, s.store_code, ti.item_id, i.item_name";
+								$query = $this->db->query( $sql );
+								$transfers = $query->result_array();
 
-							$data = $this->db->query( $sql );
-							$data = $data->result_array();
-
-							$stores = array();
-							$series = array();
-
-							foreach( $data as $row )
-							{
-								$index = array_search( $row['store_code'], $stores );
-								if( $index === FALSE )
+								foreach( $transfers as $transfer )
 								{
-									$stores[] = $row['store_code'];
+									$transfers_list[$transfer['item_name']][$transfer['store_code']] = floatval( $transfer['in_transit_quantity'] );
+								}
+							}
+
+							$stores = $store_list;
+							$series = array();
+							foreach( $item_list as $item_name => $data )
+							{
+								$series[$item_name.'_1']['item'] = $item_name;
+								$series[$item_name.'_1']['stack'] = $item_name;
+								$series[$item_name.'_1']['data'] = array_fill( 0, count( $store_list ), 0 );
+								$series[$item_name.'_1']['in_transit'] = 0;
+								foreach( $data as $store_code => $balance )
+								{
+									$series[$item_name.'_1']['data'][array_search( $store_code, $stores )] = $balance;
 								}
 
-								$series[$row['item_name'].'_1']['item'] = $row['item_name'];
-								$series[$row['item_name'].'_1']['stack'] = $row['item_name'];
-								$series[$row['item_name'].'_1']['data'][] = (int) $row['quantity'];
-								$series[$row['item_name'].'_1']['in_transit'] = 0;
+								$series[$item_name.'_2']['item'] = $item_name.' (transit)';
+								$series[$item_name.'_2']['stack'] = $item_name;
+								$series[$item_name.'_2']['data'] = array_fill( 0, count( $store_list ), 0 );
+								$series[$item_name.'_2']['in_transit'] = 1;
+							}
 
-								$series[$row['item_name'].'_2']['item'] = $row['item_name'].' (transit)';
-								$series[$row['item_name'].'_2']['stack'] = $row['item_name'];
-								$series[$row['item_name'].'_2']['data'][] = (int) $row['in_transit_quantity'];
-								$series[$row['item_name'].'_2']['in_transit'] = 1;
+							foreach( $transfers_list as $item_name => $data )
+							{
+								$series[$item_name.'_2']['item'] = $item_name.' (transit)';
+								$series[$item_name.'_2']['stack'] = $item_name;
+								$series[$item_name.'_2']['data'] = array_fill( 0, count( $store_list ), 0 );
+								$series[$item_name.'_2']['in_transit'] = 1;
+								foreach( $data as $store_code => $balance )
+								{
+									$series[$item_name.'_2']['data'][array_search( $store_code, $stores )] += $balance;
+								}
+							}
+
+							$turnovers = array_fill( 0, count( $store_list ), NULL );
+							foreach( $turnovers_list as $store_code => $value )
+							{
+								$turnovers[array_search( $store_code, $stores )] = $value;
 							}
 
 							$data_array = array(
 									'stores' => $stores,
-									'series' => array_values( $series )
+									'series' => array_values( $series ),
+									'turnovers' => $turnovers
+									/*
+									'store_list' => $store_list,
+									'item_list' => $item_list,
+									'transfers_list' => $transfers_list
+									*/
 								);
 
 							$this->_response( $data_array );

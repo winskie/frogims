@@ -222,6 +222,8 @@ class Store extends Base_model
 	{
 		$business_date = param( $params, 'date', date( DATE_FORMAT ) );
 		$shift = param( $params, 'shift', current_shift( TRUE ) );
+		$group = param( $params, 'group', NULL );
+		$class = param( $params, 'class', NULL );
 		$format = param( $params, 'format', 'object' );
 
 		$ci =& get_instance();
@@ -237,7 +239,16 @@ class Store extends Base_model
 					ip.iprice_currency, ip.iprice_unit_price,
 					ts.movement, sts.sti_beginning_balance, sts.sti_ending_balance,
 					pi.item_name AS parent_item_name,
-					IF( si.parent_item_id IS NULL, 0, 1 ) AS order_col
+					CASE i.item_group
+						WHEN "SJT" THEN 1
+						WHEN "SVC" THEN 2
+						WHEN "Concessionary" THEN 3
+						WHEN "Others" THEN 4
+						WHEN "coin" THEN 10
+						WHEN "bill" THEN 11
+						WHEN "funds" THEN 20
+						ELSE 100
+					END AS order_col
 				FROM store_inventory AS si
 				LEFT JOIN items AS i
 					ON i.id = si.item_id
@@ -297,13 +308,26 @@ class Store extends Base_model
 				) AS ts
 					ON ts.store_inventory_id = si.id
 				WHERE
-					store_id = ?
-				ORDER BY order_col, si.parent_item_id, si.id';
+					store_id = ?';
+
+		$query_params[] = $this->id;
+
+		if( $group )
+		{
+			$sql .= ' AND i.item_group = ?';
+			$query_params[] = $group;
+		}
+
+		if( $class )
+		{
+			$sql .= ' AND i.item_class = ?';
+			$query_params[] = $class;
+		}
+
+		$sql .= ' ORDER BY order_col, si.parent_item_id, si.id';
 
 		// Do not show subinventories
 		//$sql .= ' AND parent_item_id IS NULL';
-
-		$query_params[] = $this->id;
 
 		$query = $ci->db->query( $sql, $query_params );
 

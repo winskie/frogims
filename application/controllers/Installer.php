@@ -876,23 +876,24 @@ class Installer extends CI_Controller {
 		$this->db->trans_start();
 		$current_shift_id = $this->session->current_shift_id;
 
+		$this->load->library( 'store' );
+		$this->load->library( 'item' );
+		$Store = new Store();
+		$Item = new Item();
+
 		// Temporary set current shift
 		$this->session->current_shift_id = 1;
 
 		if( array_key_exists( 'mode', $params ) && $params['mode'] == 'transactions' )
 		{
-			$this->load->library( 'store' );
-			$this->load->library( 'item' );
-
 			// Creating default inventory
 			echo 'Creating store inventories...';
 			$test_inventory = param( $params, 'test_inventory' );
 			flush();
 			$this->load->library( 'Inventory' );
-			$Store = new Store();
+
 			$stores = $Store->get_stores();
-			$items = new Item();
-			$items = $items->get_items();
+			$items = $Item->get_items();
 
 			/*
 			$store = $Store->get_by_id( 1 );
@@ -968,6 +969,27 @@ class Installer extends CI_Controller {
 		}
 		else
 		{
+			// Create admin user
+			echo 'Creating default admin user...';
+			flush();
+			$this->load->library( 'user' );
+			$admin_User = new User();
+			$admin_User->set( 'username', 'admin' );
+			$admin_User->set( 'full_name', 'System Administrator' );
+			$admin_User->set( 'position', 'System Administrator' );
+			$admin_User->set( 'user_status', 1 ); // active
+			$admin_User->set( 'user_role', 1 ); // administrator
+			$admin_User->set( 'created_by', 1 );
+			$admin_User->set( 'modified_by', 1 );
+			$admin_User->set_password( 'admin' );
+			$admin_User->db_save();
+
+			echo 'OK<br />';
+			flush();
+
+			// Set admin user as current user
+			$this->session->current_user_id = $admin_User->get( 'id' );
+
 			// Create system administrator group
 			echo 'Creating default system administrator group...';
 			flush();
@@ -994,24 +1016,9 @@ class Installer extends CI_Controller {
 			echo 'OK<br />';
 			flush();
 
-			// Create admin user
-			echo 'Creating default admin user...';
-			flush();
-			$this->load->library( 'user' );
-			$admin_User = new User();
-			$admin_User->set( 'username', 'admin' );
-			$admin_User->set( 'full_name', 'System Administrator' );
-			$admin_User->set( 'position', 'System Administrator' );
-			$admin_User->set( 'user_status', 1 ); // active
-			$admin_User->set( 'user_role', 1 ); // administrator
+			// Add admin user to system administrator group
 			$admin_User->set( 'group_id', $admin_Group->get( 'id' ) );
-			$admin_User->set( 'created_by', 1 );
-			$admin_User->set( 'modified_by', 1 );
-			$admin_User->set_password( 'admin' );
 			$admin_User->db_save();
-
-			echo 'OK<br />';
-			flush();
 
 			// Create default stations
 			echo 'Creating default stations...';
@@ -1181,82 +1188,733 @@ class Installer extends CI_Controller {
 			flush();
 			$this->load->library( 'Item' );
 			$items = array(
-					array( 'L2 SJT', 'Line 2 Single Journey Ticket', NULL, 0, 1, 0, 1, 'SJT', 'piece', 1, 1, 'ticket', TRUE, TRUE ), // ID: 1
-					array( 'L2 SJT - Rigid Box', 'Line 2 Single Journey Ticket in Rigid Box in 50s', 1, 1, 1, 0, 0, 'SJT', 'box', 0, 1, 'ticket', FALSE, FALSE ),
-					array( 'L2 SJT - Ticket Magazine', 'Line 2 Single Journey Ticket in Ticket Magazine in 650s', 1, 0, 0, 1, 0, 'SJT', 'magazine', 0, 1, 'ticket', FALSE, FALSE ),
-					array( 'L2 SJT - Defective', 'Defective Line 2 Single Journey Ticket', 1, 0, 1, 0, 1, 'SJT', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
-					array( 'L2 SJT - Damaged', 'Damaged Line 2 Single Journey Ticket', 1, 0, 1, 0, 1, 'SJT', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
+					// SJT
+					array(
+						'item_name'           => 'L2 SJT',
+						'item_description'    => 'Line 2 Single Journey Ticket',
+						'base_item_name'        => NULL,
+						'teller_allocatable'  => 0,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 1,
+						'item_group'          => 'SJT',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 1,
+						'item_type'           => 1,
+						'item_class'          => 'ticket',
+						'teller_saleable'     => 1,
+						'machine_saleable'    => 1,
+					),
+					array(
+						'item_name'           => 'L2 SJT - Rigid Box',
+						'item_description'    => 'Line 2 Single Journey Ticket Rigid Box in 50s',
+						'base_item_name'      => 'L2 SJT',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 0,
+						'item_group'          => 'SJT',
+						'item_unit'           => 'box',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'ticket',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'L2 SJT - Ticket Magazine',
+						'item_description'    => 'Line 2 Single Journey Ticket Magazine in 650s',
+						'base_item_name'      => 'L2 SJT',
+						'teller_allocatable'  => 0,
+						'teller_remittable'   => 0,
+						'machine_allocatable' => 1,
+						'machine_remittable'  => 0,
+						'item_group'          => 'SJT',
+						'item_unit'           => 'magazine',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'ticket',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'L2 SJT - Defective',
+						'item_description'    => 'Defective Line 2 Single Journey Ticket',
+						'base_item_name'      => 'L2 SJT',
+						'teller_allocatable'  => 0,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 1,
+						'item_group'          => 'SJT',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 1,
+						'item_type'           => 0,
+						'item_class'          => 'ticket',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'L2 SJT - Damaged',
+						'item_description'    => 'Damaged Line 2 Single Journey Ticket',
+						'base_item_name'      => 'L2 SJT',
+						'teller_allocatable'  => 0,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 1,
+						'item_group'          => 'SJT',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 1,
+						'item_type'           => 0,
+						'item_class'          => 'ticket',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
 
-					array( 'SVC', 'Stored Value Card', NULL, 0, 1, 0, 1, 'SVC', 'piece', 1, 1, 'ticket', TRUE, TRUE ), // ID: 6
-					array( 'SVC - Rigid Box', 'Stored Value Ticket in Rigid Box in 10s', 6, 1, 1, 0, 0, 'SVC', 'box', 0, 1, 'ticket', FALSE, FALSE ),
-					//array( 'SVC - 25', 'Stored Value Ticket in 25s', 6, 1, 1, 0, 0, 'SVC', 'box', 0, 1, 'ticket', FALSE, FALSE ),
-					//array( 'SVC - 150', 'Stored Value Ticket in 150s', 6, 0, 0, 1, 0, 'SVC', 'box', 0, 1, 'ticket', FALSE, FALSE ),
-					array( 'SVC - Defective', 'Defective Stored Value Card', 6, 0, 1, 0, 1, 'SVC', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
-					array( 'SVC - Damaged', 'Damaged Stored Value Card', 6, 0, 1, 0, 1, 'SVC', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
+					// SVC
+					array(
+						'item_name'           => 'SVC',
+						'item_description'    => 'Stored Value Card',
+						'base_item_name'      => NULL,
+						'teller_allocatable'  => 0,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 1,
+						'item_group'          => 'SVC',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 1,
+						'item_type'           => 1,
+						'item_class'          => 'ticket',
+						'teller_saleable'     => 1,
+						'machine_saleable'    => 1,
+					),
+					array(
+						'item_name'           => 'SVC - Rigid Box',
+						'item_description'    => 'Stored Value Card Rigid Box in 10s',
+						'base_item_name'      => 'SVC',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 0,
+						'item_group'          => 'SVC',
+						'item_unit'           => 'box',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'ticket',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'SVC - Replacement',
+						'item_description'    => 'Replacement Stored Value Card',
+						'base_item_name'      => NULL,
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 0,
+						'item_group'          => 'SVC',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'ticket',
+						'teller_saleable'     => 1,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'SVC - Defective',
+						'item_description'    => 'Defective Stored Value Card',
+						'base_item_name'      => 'SVC',
+						'teller_allocatable'  => 0,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 1,
+						'item_group'          => 'SVC',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 1,
+						'item_type'           => 0,
+						'item_class'          => 'ticket',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'SVC - Damaged',
+						'item_description'    => 'Damaged Stored Value Card',
+						'base_item_name'      => 'SVC',
+						'teller_allocatable'  => 0,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 1,
+						'item_group'          => 'SVC',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 1,
+						'item_type'           => 0,
+						'item_class'          => 'ticket',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
 
-					array( 'Senior', 'Senior Citizen Stored Value Card', NULL, 1, 0, 0, 0, 'Concessionary', 'piece', 1, 1, 'ticket', TRUE, FALSE ), // ID: 9
-					array( 'PWD', 'Passenger with Disability Store Value Card', NULL, 1, 0, 0, 0, 'Concessionary', 'piece', 1, 1, 'ticket', TRUE, FALSE ), // ID: 10
-					array( 'Senior - Defective', 'Defective Senior Citizen Stored Value Card', 9, 0, 0, 0, 0, 'Concessionary', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
-					array( 'PWD - Defective', 'Defective - Passenger with Disability Store Value Card', 10, 0, 0, 0, 0, 'Concessionary', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
+					// Concessionary
+					array(
+						'item_name'           => 'Senior',
+						'item_description'    => 'Senior Citizen Stored Value Card',
+						'base_item_name'      => NULL,
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 0,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 0,
+						'item_group'          => 'Concessionary',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 1,
+						'item_type'           => 1,
+						'item_class'          => 'ticket',
+						'teller_saleable'     => 1,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'Senior - Replacement',
+						'item_description'    => 'Replacement Senior Citizen Stored Value Card',
+						'base_item_name'      => 'Senior',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 0,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 0,
+						'item_group'          => 'Concessionary',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'ticket',
+						'teller_saleable'     => 1,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'Senior - Defective',
+						'item_description'    => 'Defective Senior Citizen Stored Value Card',
+						'base_item_name'      => 'Senior',
+						'teller_allocatable'  => 0,
+						'teller_remittable'   => 0,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 0,
+						'item_group'          => 'Concessionary',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 1,
+						'item_type'           => 0,
+						'item_class'          => 'ticket',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'PWD',
+						'item_description'    => 'Passenger with Disability Stored Value Card',
+						'base_item_name'      => NULL,
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 0,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 0,
+						'item_group'          => 'Concessionary',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 1,
+						'item_type'           => 1,
+						'item_class'          => 'ticket',
+						'teller_saleable'     => 1,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'PWD - Replacement',
+						'item_description'    => 'Replacement Passenger with Disability Stored Value Card',
+						'base_item_name'      => NULL,
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 0,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 0,
+						'item_group'          => 'Concessionary',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'ticket',
+						'teller_saleable'     => 1,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'PWD - Defective',
+						'item_description'    => 'Defective Passenger with Disability Stored Value Card',
+						'base_item_name'      => 'PWD',
+						'teller_allocatable'  => 0,
+						'teller_remittable'   => 0,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 0,
+						'item_group'          => 'Concessionary',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 1,
+						'item_type'           => 0,
+						'item_class'          => 'ticket',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
 
-					array( 'L2 Ticket Coupon', 'Line 2 Ticket Coupon', NULL, 1, 1, 0, 0, 'Coupon', 'piece', 0, 0, 'ticket', TRUE, FALSE ),
+					// Other cards
+					array(
+						'item_name'           => 'Others',
+						'item_description'    => 'Other cards',
+						'base_item_name'      => NULL,
+						'teller_allocatable'  => 0,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 0,
+						'item_group'          => 'Others',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 1,
+						'item_type'           => 0,
+						'item_class'          => 'ticket',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
 
-					array( 'Others', 'Other Cards', NULL, 0, 1, 0, 0, 'Others', 'piece', 1, 0, 'ticket', FALSE, FALSE ), // ID: 14
-					array( 'L1 SJT', 'Line 1 Single Journey Ticket', 14, 0, 1, 0, 0, 'Others', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
-					array( 'MRT SJT', 'Line 3 Single Journey Ticket', 14, 0, 1, 0, 0, 'Others', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
-					array( 'Staff Card', 'Staff Card', 17, 0, 0, 0, 0, 'Others', 'piece', 1, 0, 'ticket', FALSE, FALSE ),
+					// Cash items
+					array(
+						'item_name'           => 'Php1 Coin',
+						'item_description'    => 'One peso coin',
+						'base_item_name'      => NULL,
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 1,
+						'machine_remittable'  => 1,
+						'item_group'          => 'coin',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'cash',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'Php0.25 Coin',
+						'item_description'    => 'Twenty five centavos coin',
+						'base_item_name'      => 'Php1 Coin',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 1,
+						'machine_remittable'  => 1,
+						'item_group'          => 'coin',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'cash',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'Php5 Coin',
+						'item_description'    => 'Five pesos coin',
+						'base_item_name'      => 'Php1 Coin',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 1,
+						'machine_remittable'  => 1,
+						'item_group'          => 'coin',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'cash',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'Php10 Coin',
+						'item_description'    => 'Ten pesos coin',
+						'base_item_name'      => 'Php1 Coin',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 1,
+						'machine_remittable'  => 1,
+						'item_group'          => 'coin',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'cash',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'Php20 Bill',
+						'item_description'    => 'Twenty pesos bill',
+						'base_item_name'      => 'Php1 Coin',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 1,
+						'machine_remittable'  => 1,
+						'item_group'          => 'bill',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'cash',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'Php50 Bill',
+						'item_description'    => 'Fifty pesos bill',
+						'base_item_name'      => 'Php1 Coin',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 1,
+						'machine_remittable'  => 1,
+						'item_group'          => 'bill',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'cash',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'Php100 Bill',
+						'item_description'    => 'One hundred pesos bill',
+						'base_item_name'      => 'Php1 Coin',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 1,
+						'machine_remittable'  => 1,
+						'item_group'          => 'bill',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'cash',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'Php200 Bill',
+						'item_description'    => 'Two hundred pesos bill',
+						'base_item_name'      => 'Php1 Coin',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 1,
+						'machine_remittable'  => 1,
+						'item_group'          => 'bill',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'cash',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'Php500 Bill',
+						'item_description'    => 'Five hundred pesos bill',
+						'base_item_name'      => 'Php1 Coin',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 1,
+						'machine_remittable'  => 1,
+						'item_group'          => 'bill',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'cash',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'Php1000 Bill',
+						'item_description'    => 'One thousand pesos bill',
+						'base_item_name'      => 'Php1 Coin',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 1,
+						'machine_remittable'  => 1,
+						'item_group'          => 'bill',
+						'item_unit'           => 'piece',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'cash',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
 
-					array( 'Php1 Coin', '1 peso coin', NULL, 1, 1, 1, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ), // ID: 18
-					array( 'Php0.25 Coin', '25 centavos coin', 18, 1, 1, 0, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php5 Coin', '5 pesos coin', 18, 1, 1, 1, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ), // ID: 20
-					array( 'Php10 Coin', '10 pesos coin', 18, 1, 1, 0, 1, 'coin', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					// Php1 coin bags
+					array(
+						'item_name'           => 'Php1@100',
+						'item_description'    => 'Bag of 100 Php1 coins',
+						'base_item_name'      => 'Php1 Coin',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 1,
+						'machine_remittable'  => 0,
+						'item_group'          => 'coin',
+						'item_unit'           => 'bag',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'cash',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'Php1@200',
+						'item_description'    => 'Bag of 200 Php1 coins',
+						'base_item_name'      => 'Php1 Coin',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 1,
+						'machine_remittable'  => 0,
+						'item_group'          => 'coin',
+						'item_unit'           => 'bag',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'cash',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'Php1@500',
+						'item_description'    => 'Bag of 500 Php1 coins',
+						'base_item_name'      => 'Php1 Coin',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 1,
+						'machine_remittable'  => 0,
+						'item_group'          => 'coin',
+						'item_unit'           => 'bag',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'cash',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'Php1@2000',
+						'item_description'    => 'Bag of 2,000 Php1 coins',
+						'base_item_name'      => 'Php1 Coin',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 1,
+						'machine_remittable'  => 0,
+						'item_group'          => 'coin',
+						'item_unit'           => 'bag',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'cash',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
 
-					array( 'Php20 Bill', '20 pesos bill', 18, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php50 Bill', '50 pesos bill', 18, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php100 Bill', '100 pesos bill', 18, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php200 Bill', '200 pesos bill', 18, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php500 Bill', '500 pesos bill', 18, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php1000 Bill', '1000 pesos bill', 18, 1, 1, 0, 1, 'bill', 'piece', 0, 1, 'cash', FALSE, FALSE ),
+					// Php5 coin bags
+					array(
+						'item_name'           => 'Php5@20',
+						'item_description'    => 'Bag of 20 Php5 coins',
+						'base_item_name'      => 'Php5 Coin',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 1,
+						'machine_remittable'  => 0,
+						'item_group'          => 'coin',
+						'item_unit'           => 'bag',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'cash',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'Php5@100',
+						'item_description'    => 'Bag of 100 Php5 coins',
+						'base_item_name'      => 'Php5 Coin',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 1,
+						'machine_remittable'  => 0,
+						'item_group'          => 'coin',
+						'item_unit'           => 'bag',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'cash',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'Php5@200',
+						'item_description'    => 'Bag of 200 Php5 coins',
+						'base_item_name'      => 'Php5 Coin',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 1,
+						'machine_remittable'  => 0,
+						'item_group'          => 'coin',
+						'item_unit'           => 'bag',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'cash',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'Php5@300',
+						'item_description'    => 'Bag of 300 Php5 coins',
+						'base_item_name'      => 'Php5 Coin',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 1,
+						'machine_remittable'  => 0,
+						'item_group'          => 'coin',
+						'item_unit'           => 'bag',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'cash',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'Php5@500',
+						'item_description'    => 'Bag of 500 Php5 coins',
+						'base_item_name'      => 'Php5 Coin',
+						'teller_allocatable'  => 1,
+						'teller_remittable'   => 1,
+						'machine_allocatable' => 1,
+						'machine_remittable'  => 0,
+						'item_group'          => 'coin',
+						'item_unit'           => 'bag',
+						'turnover_item'       => 0,
+						'item_type'           => 1,
+						'item_class'          => 'cash',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
 
-					array( 'Bag Php5@100', 'Bag of Php5 coins worth Php100', 20, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Bag Php1@100', 'Bag of Php1 coins worth Php100', 18, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
-
-					array( 'Php1@100', 'Bag of Php1 coins worth Php100', 18, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php1@200', 'Bag of Php1 coins worth Php200', 18, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php1@500', 'Bag of Php1 coins worth Php500', 18, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php1@2000', 'Bag of Php1 coins worth Php2000', 18, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
-
-					array( 'Php5@500', 'Bag of Php5 coins worth Php500', 20, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php5@1000', 'Bag of Php5 coins worth Php1000', 20, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php5@1500', 'Bag of Php5 coins worth Php1500', 20, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
-					array( 'Php5@2500', 'Bag of Php5 coins worth Php2500', 20, 1, 1, 1, 0, 'coin', 'bag', 0, 1, 'cash', FALSE, FALSE ),
-
-					array( 'Change Fund', 'Change Fund', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
-					array( 'Sales', 'Sales', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
-					array( 'CA Fund', 'Coin Acceptor Fund', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
-					array( 'TVM Hopper', 'Coins in TVM', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
-					array( 'In Transit', 'In Transit Cash', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
-					array( 'CSC Card Fee', 'Concessionary Card Fee Fund', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
-					array( 'TVMIR', 'TVMIR Refund', NULL, 0, 0, 0, 0, 'fund', 'lot', 0, 0, 'fund', FALSE, FALSE ),
+					// Funds
+					array(
+						'item_name'           => 'Change Fund',
+						'item_description'    => 'Change Fund',
+						'base_item_name'      => NULL,
+						'teller_allocatable'  => 0,
+						'teller_remittable'   => 0,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 0,
+						'item_group'          => 'fund',
+						'item_unit'           => 'lot',
+						'turnover_item'       => 0,
+						'item_type'           => 0,
+						'item_class'          => 'fund',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'Sales',
+						'item_description'    => 'Sales',
+						'base_item_name'      => NULL,
+						'teller_allocatable'  => 0,
+						'teller_remittable'   => 0,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 0,
+						'item_group'          => 'fund',
+						'item_unit'           => 'lot',
+						'turnover_item'       => 0,
+						'item_type'           => 0,
+						'item_class'          => 'fund',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'CA Fund',
+						'item_description'    => 'Coin Acceptor Fund',
+						'base_item_name'      => NULL,
+						'teller_allocatable'  => 0,
+						'teller_remittable'   => 0,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 0,
+						'item_group'          => 'fund',
+						'item_unit'           => 'lot',
+						'turnover_item'       => 0,
+						'item_type'           => 0,
+						'item_class'          => 'fund',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'TVM Hopper',
+						'item_description'    => 'Coins in TVM',
+						'base_item_name'      => NULL,
+						'teller_allocatable'  => 0,
+						'teller_remittable'   => 0,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 0,
+						'item_group'          => 'fund',
+						'item_unit'           => 'lot',
+						'turnover_item'       => 0,
+						'item_type'           => 0,
+						'item_class'          => 'fund',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'In Transit',
+						'item_description'    => 'In transit cash',
+						'base_item_name'      => NULL,
+						'teller_allocatable'  => 0,
+						'teller_remittable'   => 0,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 0,
+						'item_group'          => 'fund',
+						'item_unit'           => 'lot',
+						'turnover_item'       => 0,
+						'item_type'           => 0,
+						'item_class'          => 'fund',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'CSC Card Fee',
+						'item_description'    => 'Concessionary card fee fund',
+						'base_item_name'      => NULL,
+						'teller_allocatable'  => 0,
+						'teller_remittable'   => 0,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 0,
+						'item_group'          => 'fund',
+						'item_unit'           => 'lot',
+						'turnover_item'       => 0,
+						'item_type'           => 0,
+						'item_class'          => 'fund',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
+					array(
+						'item_name'           => 'TVMIR',
+						'item_description'    => 'TVMIR refund',
+						'base_item_name'      => NULL,
+						'teller_allocatable'  => 0,
+						'teller_remittable'   => 0,
+						'machine_allocatable' => 0,
+						'machine_remittable'  => 0,
+						'item_group'          => 'fund',
+						'item_unit'           => 'lot',
+						'turnover_item'       => 0,
+						'item_type'           => 0,
+						'item_class'          => 'fund',
+						'teller_saleable'     => 0,
+						'machine_saleable'    => 0,
+					),
 				);
 
 			foreach( $items as $i )
 			{
 				$item = new Item();
-				$item->set( 'item_name', $i[0] );
-				$item->set( 'item_description', $i[1] );
-				$item->set( 'base_item_id', $i[2] );
-				$item->set( 'teller_allocatable', $i[3] );
-				$item->set( 'teller_remittable', $i[4] );
-				$item->set( 'machine_allocatable', $i[5] );
-				$item->set( 'machine_remittable', $i[6] );
-				$item->set( 'item_group', $i[7] );
-				$item->set( 'item_unit', $i[8] );
-				$item->set( 'turnover_item', $i[9] );
-				$item->set( 'item_type', $i[10] );
-				$item->set( 'item_class', $i[11] );
-				$item->set( 'teller_saleable', $i[12] );
-				$item->set( 'machine_saleable', $i[13] );
+				$base_item_id = NULL;
+				if( isset( $i['base_item_name'] ) )
+				{
+					$base_item_id = $Item->get_by_name( $i['base_item_name'] )->get( 'id' );
+				}
+				$item->set( 'item_name', $i['item_name'] );
+				$item->set( 'item_description', $i['item_description'] );
+				$item->set( 'base_item_id', $base_item_id );
+				$item->set( 'teller_allocatable', $i['teller_allocatable'] );
+				$item->set( 'teller_remittable', $i['teller_remittable'] );
+				$item->set( 'machine_allocatable', $i['machine_allocatable'] );
+				$item->set( 'machine_remittable', $i['machine_remittable'] );
+				$item->set( 'item_group', $i['item_group'] );
+				$item->set( 'item_unit', $i['item_unit'] );
+				$item->set( 'turnover_item', $i['turnover_item'] );
+				$item->set( 'item_type', $i['item_type'] );
+				$item->set( 'item_class', $i['item_class'] );
+				$item->set( 'teller_saleable', $i['teller_saleable'] );
+				$item->set( 'machine_saleable', $i['machine_saleable'] );
 				$item->db_save();
 				unset( $item );
 			}
@@ -1314,9 +1972,8 @@ class Installer extends CI_Controller {
 					'Change Fund' => array(
 						'Php1 Coin', 'Php0.25 Coin', 'Php5 Coin', 'Php10 Coin',
 						'Php20 Bill', 'Php50 Bill', 'Php100 Bill', 'Php200 Bill', 'Php500 Bill', 'Php1000 Bill',
-						'Bag Php5@100', 'Bag Php1@100',
 						'Php1@100', 'Php1@200', 'Php1@500', 'Php1@2000',
-						'Php5@500', 'Php5@1000', 'Php5@1500', 'Php5@2500',
+						'Php5@20', 'Php5@100', 'Php5@200', 'Php5@300', 'Php5@500',
 					),
 					'Sales' => array(
 						'Php1 Coin', 'Php0.25 Coin', 'Php5 Coin', 'Php10 Coin',
@@ -1327,16 +1984,14 @@ class Installer extends CI_Controller {
 					),
 					'TVM Hopper' => array(
 						'Php1 Coin', 'Php5 Coin',
-						'Bag Php5@100', 'Bag Php1@100',
 						'Php1@100', 'Php1@200', 'Php1@500', 'Php1@2000',
-						'Php5@500', 'Php5@1000', 'Php5@1500', 'Php5@2500',
+						'Php5@20', 'Php5@100', 'Php5@200', 'Php5@300', 'Php5@500',
 					),
 					'In Transit' => array(
 						'Php1 Coin', 'Php0.25 Coin', 'Php5 Coin', 'Php10 Coin',
 						'Php20 Bill', 'Php50 Bill', 'Php100 Bill', 'Php200 Bill', 'Php500 Bill', 'Php1000 Bill',
-						'Bag Php5@100', 'Bag Php1@100',
 						'Php1@100', 'Php1@200', 'Php1@500', 'Php1@2000',
-						'Php5@500', 'Php5@1000', 'Php5@1500', 'Php5@2500'
+						'Php5@20', 'Php5@100', 'Php5@200', 'Php5@300', 'Php5@500',
 					),
 					'CSC Card Fee' => array(
 						'Php1 Coin', 'Php5 Coin', 'Php10 Coin',
@@ -1432,42 +2087,38 @@ class Installer extends CI_Controller {
 				array( 'SVC', 'SVC - Rigid Box', 10 ),
 				array( 'SVC', 'SVC - Defective', 1 ),
 				array( 'SVC', 'SVC - Damaged', 1 ),
-				//array( 'SVC', 'SVC - 25', 25 ),
-				//array( 'SVC', 'SVC - 150', 150 ),
+				array( 'SVC', 'SVC - Replacement', 1 ),
 				array( 'SVC - Defective', 'SVC - Damaged', 1 ),
 
+				// Concessionary
 				array( 'Senior', 'Senior - Defective', 1 ),
+				array( 'Senior', 'Senior - Replacement', 1 ),
 				array( 'PWD', 'PWD - Defective', 1 ),
+				array( 'PWD', 'PWD - Replacement', 1 ),
 
-				// Other cards
-				array( 'L1 SJT', 'Others', 1 ),
-				array( 'MRT SJT', 'Others', 1 ),
-				array( 'Staff Card', 'Others', 1 ),
-
-				array( 'Php1 Coin', 'Bag Php1@100', 100 ),
-				array( 'Php5 Coin', 'Bag Php5@100', 20 ),
-
+				// Cash
 				array( 'Php1 Coin', 'Php1@100', 100 ),
 				array( 'Php1 Coin', 'Php1@200', 200 ),
 				array( 'Php1 Coin', 'Php1@500', 500 ),
 				array( 'Php1 Coin', 'Php1@2000', 2000 ),
 
-				array( 'Php5 Coin', 'Php5@500', 100 ),
-				array( 'Php5 Coin', 'Php5@1000', 200 ),
-				array( 'Php5 Coin', 'Php5@1500', 300 ),
-				array( 'Php5 Coin', 'Php5@2500', 500 ),
+				array( 'Php5 Coin', 'Php5@20', 20 ),
+				array( 'Php5 Coin', 'Php5@100', 100 ),
+				array( 'Php5 Coin', 'Php5@200', 200 ),
+				array( 'Php5 Coin', 'Php5@300', 300 ),
+				array( 'Php5 Coin', 'Php5@500', 500 ),
 			);
 
 			$item = new Item();
 			foreach( $values as $value )
 			{
-					$source = $item->get_by_name( $value[0] );
-					$target = $item->get_by_name( $value[1] );
+				$source = $Item->get_by_name( $value[0] );
+				$target = $Item->get_by_name( $value[1] );
 
-					$this->db->set( 'source_item_id', $source->get( 'id' ) );
-					$this->db->set( 'target_item_id', $target->get( 'id' ) );
-					$this->db->set( 'conversion_factor', $value[2] );
-					$this->db->insert( 'conversion_table' );
+				$this->db->set( 'source_item_id', $source->get( 'id' ) );
+				$this->db->set( 'target_item_id', $target->get( 'id' ) );
+				$this->db->set( 'conversion_factor', $value[2] );
+				$this->db->insert( 'conversion_table' );
 			}
 			echo 'OK<br />';
 			flush();
@@ -1976,6 +2627,11 @@ class Installer extends CI_Controller {
 					array( 'SVC - Rigid Box', 'Unsold' ),
 					array( 'SVC - Rigid Box', 'Unpack' ),
 
+					array( 'SVC - Replacement', 'IntTrans' ),
+					array( 'SVC - Replacement', 'ExtTrans' ),
+					array( 'SVC - Replacement', 'Adjust' ),
+					array( 'SVC - Replacement', 'TktIssue' ),
+
 					/*
 					array( 'SVC - 25', 'IntTrans' ),
 					array( 'SVC - 25', 'StockRep' ),
@@ -2014,6 +2670,11 @@ class Installer extends CI_Controller {
 					array( 'Senior', 'CSCIssue' ),
 					array( 'Senior', 'Blackbox' ),
 
+					array( 'Senior - Replacement', 'IntTrans' ),
+					array( 'Senior - Replacement', 'ExtTrans' ),
+					array( 'Senior - Replacement', 'Adjust' ),
+					array( 'Senior - Replacement', 'TktIssue' ),
+
 					array( 'PWD', 'IntTrans' ),
 					array( 'PWD', 'ExtTrans' ),
 					array( 'PWD', 'Adjust' ),
@@ -2021,6 +2682,12 @@ class Installer extends CI_Controller {
 					array( 'PWD', 'CSCIssue' ),
 					array( 'PWD', 'Blackbox' ),
 
+					array( 'PWD - Replacement', 'IntTrans' ),
+					array( 'PWD - Replacement', 'ExtTrans' ),
+					array( 'PWD - Replacement', 'Adjust' ),
+					array( 'PWD - Replacement', 'TktIssue' ),
+
+					/*
 					array( 'L2 Ticket Coupon', 'IntTrans' ),
 					array( 'L2 Ticket Coupon', 'ExtTrans' ),
 					array( 'L2 Ticket Coupon', 'StockRep' ),
@@ -2029,6 +2696,7 @@ class Installer extends CI_Controller {
 					array( 'L2 Ticket Coupon', 'AddAlloc' ),
 					array( 'L2 Ticket Coupon', 'Unsold' ),
 					array( 'L2 Ticket Coupon', 'TktSales' ),
+					*/
 
 					array( 'Others', 'IntTrans' ),
 					array( 'Others', 'ExtTrans' ),
@@ -2036,6 +2704,7 @@ class Installer extends CI_Controller {
 					array( 'Others', 'Blackbox' ),
 					array( 'Others', 'Conversion' ),
 
+					/*
 					array( 'L1 SJT', 'IntTrans' ),
 					array( 'L1 SJT', 'ExtTrans' ),
 					array( 'L1 SJT', 'Adjust' ),
@@ -2053,6 +2722,7 @@ class Installer extends CI_Controller {
 					array( 'Staff Card', 'Adjust' ),
 					array( 'Staff Card', 'Blackbox' ),
 					array( 'Staff Card', 'Conversion' ),
+					*/
 
 					//array( 'Php1 Coin', 'IntTrans' ),
 					//array( 'Php1 Coin', 'ExtTrans' ),
@@ -2115,6 +2785,8 @@ class Installer extends CI_Controller {
 
 					//array( 'Php20 Bill', 'IntTrans' ),
 					//array( 'Php20 Bill', 'ExtTrans' ),
+					array( 'Php20 Bill', 'InitCFund' ),
+					array( 'Php20 Bill', 'AddCFund' ),
 					array( 'Php20 Bill', 'BillToCoin' ),
 					array( 'Php20 Bill', 'BankDep' ),
 					array( 'Php20 Bill', 'AddTVMIR' ),
@@ -2127,6 +2799,8 @@ class Installer extends CI_Controller {
 
 					//array( 'Php50 Bill', 'IntTrans' ),
 					//array( 'Php50 Bill', 'ExtTrans' ),
+					array( 'Php50 Bill', 'InitCFund' ),
+					array( 'Php50 Bill', 'AddCFund' ),
 					array( 'Php50 Bill', 'BillToCoin' ),
 					array( 'Php50 Bill', 'BankDep' ),
 					array( 'Php50 Bill', 'AddTVMIR' ),
@@ -2138,6 +2812,8 @@ class Installer extends CI_Controller {
 
 					//array( 'Php100 Bill', 'IntTrans' ),
 					//array( 'Php100 Bill', 'ExtTrans' ),
+					array( 'Php100 Bill', 'InitCFund' ),
+					array( 'Php100 Bill', 'AddCFund' ),
 					array( 'Php100 Bill', 'BillToCoin' ),
 					array( 'Php100 Bill', 'BankDep' ),
 					array( 'Php100 Bill', 'AddTVMIR' ),
@@ -2149,6 +2825,8 @@ class Installer extends CI_Controller {
 
 					//array( 'Php200 Bill', 'IntTrans' ),
 					//array( 'Php200 Bill', 'ExtTrans' ),
+					array( 'Php200 Bill', 'InitCFund' ),
+					array( 'Php200 Bill', 'AddCFund' ),
 					array( 'Php200 Bill', 'BillToCoin' ),
 					array( 'Php200 Bill', 'BankDep' ),
 					array( 'Php200 Bill', 'AddTVMIR' ),
@@ -2160,6 +2838,8 @@ class Installer extends CI_Controller {
 
 					//array( 'Php500 Bill', 'IntTrans' ),
 					//array( 'Php500 Bill', 'ExtTrans' ),
+					array( 'Php500 Bill', 'InitCFund' ),
+					array( 'Php500 Bill', 'AddCFund' ),
 					array( 'Php500 Bill', 'BillToCoin' ),
 					array( 'Php500 Bill', 'BankDep' ),
 					array( 'Php500 Bill', 'AddTVMIR' ),
@@ -2171,6 +2851,8 @@ class Installer extends CI_Controller {
 
 					//array( 'Php1000 Bill', 'IntTrans' ),
 					//array( 'Php1000 Bill', 'ExtTrans' ),
+					array( 'Php1000 Bill', 'InitCFund' ),
+					array( 'Php1000 Bill', 'AddCFund' ),
 					array( 'Php1000 Bill', 'BillToCoin' ),
 					array( 'Php1000 Bill', 'BankDep' ),
 					array( 'Php1000 Bill', 'AddTVMIR' ),
@@ -2179,15 +2861,6 @@ class Installer extends CI_Controller {
 					array( 'Php1000 Bill', 'Adjust' ),
 					array( 'Php1000 Bill', 'SalesColl' ),
 					array( 'Php1000 Bill', 'CFundRet' ),
-
-					//array( 'Bag Php1@100', 'IntTrans' ),
-					//array( 'Bag Php1@100', 'ExtTrans' ),
-					array( 'Bag Php1@100', 'Adjust' ),
-					array( 'Bag Php1@100', 'InitCFund' ),
-					array( 'Bag Php1@100', 'AddCFund' ),
-					array( 'Bag Php1@100', 'HopAlloc' ),
-					array( 'Bag Php1@100', 'CFundRet' ),
-					array( 'Bag Php1@100', 'Unpack' ),
 
 					array( 'Php1@100', 'Adjust' ),
 					array( 'Php1@100', 'InitCFund' ),
@@ -2217,14 +2890,33 @@ class Installer extends CI_Controller {
 					array( 'Php1@2000', 'CFundRet' ),
 					array( 'Php1@2000', 'Unpack' ),
 
-					//array( 'Bag Php5@100', 'IntTrans' ),
-					//array( 'Bag Php5@100', 'ExtTrans' ),
-					array( 'Bag Php5@100', 'Adjust' ),
-					array( 'Bag Php5@100', 'InitCFund' ),
-					array( 'Bag Php5@100', 'AddCFund' ),
-					array( 'Bag Php5@100', 'HopAlloc' ),
-					array( 'Bag Php5@100', 'CFundRet' ),
-					array( 'Bag Php5@100', 'Unpack' ),
+					array( 'Php5@20', 'Adjust' ),
+					array( 'Php5@20', 'InitCFund' ),
+					array( 'Php5@20', 'AddCFund' ),
+					array( 'Php5@20', 'HopAlloc' ),
+					array( 'Php5@20', 'CFundRet' ),
+					array( 'Php5@20', 'Unpack' ),
+
+					array( 'Php5@100', 'Adjust' ),
+					array( 'Php5@100', 'InitCFund' ),
+					array( 'Php5@100', 'AddCFund' ),
+					array( 'Php5@100', 'HopAlloc' ),
+					array( 'Php5@100', 'CFundRet' ),
+					array( 'Php5@100', 'Unpack' ),
+
+					array( 'Php5@200', 'Adjust' ),
+					array( 'Php5@200', 'InitCFund' ),
+					array( 'Php5@200', 'AddCFund' ),
+					array( 'Php5@200', 'HopAlloc' ),
+					array( 'Php5@200', 'CFundRet' ),
+					array( 'Php5@200', 'Unpack' ),
+
+					array( 'Php5@300', 'Adjust' ),
+					array( 'Php5@300', 'InitCFund' ),
+					array( 'Php5@300', 'AddCFund' ),
+					array( 'Php5@300', 'HopAlloc' ),
+					array( 'Php5@300', 'CFundRet' ),
+					array( 'Php5@300', 'Unpack' ),
 
 					array( 'Php5@500', 'Adjust' ),
 					array( 'Php5@500', 'InitCFund' ),
@@ -2232,27 +2924,6 @@ class Installer extends CI_Controller {
 					array( 'Php5@500', 'HopAlloc' ),
 					array( 'Php5@500', 'CFundRet' ),
 					array( 'Php5@500', 'Unpack' ),
-
-					array( 'Php5@1000', 'Adjust' ),
-					array( 'Php5@1000', 'InitCFund' ),
-					array( 'Php5@1000', 'AddCFund' ),
-					array( 'Php5@1000', 'HopAlloc' ),
-					array( 'Php5@1000', 'CFundRet' ),
-					array( 'Php5@1000', 'Unpack' ),
-
-					array( 'Php5@1500', 'Adjust' ),
-					array( 'Php5@1500', 'InitCFund' ),
-					array( 'Php5@1500', 'AddCFund' ),
-					array( 'Php5@1500', 'HopAlloc' ),
-					array( 'Php5@1500', 'CFundRet' ),
-					array( 'Php5@1500', 'Unpack' ),
-
-					array( 'Php5@2500', 'Adjust' ),
-					array( 'Php5@2500', 'InitCFund' ),
-					array( 'Php5@2500', 'AddCFund' ),
-					array( 'Php5@2500', 'HopAlloc' ),
-					array( 'Php5@2500', 'CFundRet' ),
-					array( 'Php5@2500', 'Unpack' ),
 				);
 
 			$this->load->library( 'item' );
@@ -2287,16 +2958,15 @@ class Installer extends CI_Controller {
 						array( 'Php200 Bill', 'PHP', 200.00 ),
 						array( 'Php500 Bill', 'PHP', 500.00 ),
 						array( 'Php1000 Bill', 'PHP', 1000.00 ),
-						array( 'Bag Php1@100', 'PHP', 100.00 ),
-						array( 'Bag Php5@100', 'PHP', 100.00 ),
 						array( 'Php1@100', 'PHP', 100.00 ),
 						array( 'Php1@200', 'PHP', 200.00 ),
 						array( 'Php1@500', 'PHP', 500.00 ),
 						array( 'Php1@2000', 'PHP', 2000.00 ),
-						array( 'Php5@500', 'PHP', 500.00 ),
-						array( 'Php5@1000', 'PHP', 1000.00 ),
-						array( 'Php5@1500', 'PHP', 1500.00 ),
-						array( 'Php5@2500', 'PHP', 2500.00 ),
+						array( 'Php5@20', 'PHP', 100.00 ),
+						array( 'Php5@100', 'PHP', 500.00 ),
+						array( 'Php5@200', 'PHP', 1000.00 ),
+						array( 'Php5@300', 'PHP', 1500.00 ),
+						array( 'Php5@500', 'PHP', 2500.00 ),
 				);
 
 			$this->load->library( 'item' );

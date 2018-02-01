@@ -90,13 +90,13 @@ class Shift_turnover extends Base_model
 	}
 
 
-	public function get_by_store_date_shift( $store, $date, $shift )
+	public function get_by_store_date_shift( $store_id, $date, $shift_id )
 	{
 		$ci =& get_instance();
 
-		$ci->db->where( 'st_store_id', $store );
+		$ci->db->where( 'st_store_id', $store_id );
 		$ci->db->where( 'st_from_date', $date );
-		$ci->db->where( 'st_from_shift_id', $shift );
+		$ci->db->where( 'st_from_shift_id', $shift_id );
 		$ci->db->limit( 1 );
 		$query = $ci->db->get( $this->primary_table );
 

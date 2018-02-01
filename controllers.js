@@ -500,13 +500,13 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 						title: { text: 'Store Inventory Levels' },
 						xAxis: {
 							categories: null,
-							crosshair: true
+							crosshair: true,
 						},
 						yAxis: {
 							title: {
 								text: 'Inventory Levels'
 							},
-							reversedStacks: false
+							reversedStacks: false,
 						},
 						tooltip: {
 							headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
@@ -532,6 +532,7 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 
 							var currentSeries = me.chart.series;
 							var series = data.series;
+							var turnovers = data.turnovers;
 
 							var defaultItems = [ 'L2 SJT - Rigid Box', 'L2 SJT - Ticket Magazine', 'SVC - Rigid Box',
 									'L2 SJT - Rigid Box (transit)', 'L2 SJT - Ticket Magazine (transit)', 'SVC - Rigid Box (transit)' ];
@@ -555,6 +556,30 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 										linkedTo: series[j].in_transit === 1 ? ':previous' : undefined,
 										visible: defaultItems.indexOf( series[j].item ) != -1
 									}, false );
+							}
+
+							// Update turnover status
+							me.chart.xAxis[0].plotBands = []; // Clear existing
+							for( var i = 0, n = turnovers.length; i < n; i++ )
+							{
+								switch( turnovers[i] )
+								{
+									case -1:
+										me.chart.xAxis[0].addPlotBand({
+												color: '#ffdddd',
+												from: i - 0.5,
+												to: i + 0.5
+											});
+										break;
+
+									case 1:
+										me.chart.xAxis[0].addPlotBand({
+												color: '#deffdd',
+												from: i - 0.5,
+												to: i + 0.5
+											});
+										break;
+								}
 							}
 
 							me.chart.redraw()
@@ -594,7 +619,7 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 							},
 						yAxis: {
 								min: 0,
-								title: { text: 'Percent' }
+								title: { text: 'Percent' },
 							},
 						legend: { reversed: true },
 						plotOptions: {
@@ -605,7 +630,7 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 							},
 						tooltip: {
 							headerFormat: '<b>{series.name}</b>: ',
-							pointFormat: '{point.y:,.0f} of {point.total:,.0f} ({point.percentage:,.2f}%)'
+							pointFormat: '{point.y:,.0f} of {point.total:,.0f} ({point.percentage:,.2f}%)',
 						},
 						series: null
 					},
@@ -629,7 +654,15 @@ app.controller( 'DashboardController', [ '$scope', '$filter', '$http', '$state',
 										name: series[j].store,
 										data: series[j].data,
 										dataLabels: {
-											inside: true
+											inside: true,
+											formatter: function () {
+													var val = this.percentage;
+													if( val == 0 )
+													{
+														return '';
+													}
+													return Highcharts.numberFormat( val, 2 ) + '%';
+												}
 										}
 									}, false );
 							}
