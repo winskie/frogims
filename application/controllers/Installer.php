@@ -2606,6 +2606,7 @@ class Installer extends CI_Controller {
 					array( 'L2 SJT - Damaged', 'RejectBin' ),
 					array( 'L2 SJT - Damaged', 'Blackbox' ),
 					array( 'L2 SJT - Damaged', 'Conversion' ),
+					array( 'L2 SJT - Damaged', 'TktCollect' ),
 
 					array( 'SVC', 'IntTrans' ),
 					array( 'SVC', 'ExtTrans' ),
@@ -2630,7 +2631,6 @@ class Installer extends CI_Controller {
 					array( 'SVC - Replacement', 'IntTrans' ),
 					array( 'SVC - Replacement', 'ExtTrans' ),
 					array( 'SVC - Replacement', 'Adjust' ),
-					array( 'SVC - Replacement', 'TktIssue' ),
 
 					/*
 					array( 'SVC - 25', 'IntTrans' ),
@@ -2662,6 +2662,7 @@ class Installer extends CI_Controller {
 					array( 'SVC - Damaged', 'Unsold' ),
 					array( 'SVC - Damaged', 'RejectBin' ),
 					array( 'SVC - Damaged', 'Blackbox' ),
+					array( 'SVC - Damaged', 'TktCollect' ),
 
 					array( 'Senior', 'IntTrans' ),
 					array( 'Senior', 'ExtTrans' ),
@@ -2673,7 +2674,6 @@ class Installer extends CI_Controller {
 					array( 'Senior - Replacement', 'IntTrans' ),
 					array( 'Senior - Replacement', 'ExtTrans' ),
 					array( 'Senior - Replacement', 'Adjust' ),
-					array( 'Senior - Replacement', 'TktIssue' ),
 
 					array( 'PWD', 'IntTrans' ),
 					array( 'PWD', 'ExtTrans' ),
@@ -2685,7 +2685,6 @@ class Installer extends CI_Controller {
 					array( 'PWD - Replacement', 'IntTrans' ),
 					array( 'PWD - Replacement', 'ExtTrans' ),
 					array( 'PWD - Replacement', 'Adjust' ),
-					array( 'PWD - Replacement', 'TktIssue' ),
 
 					/*
 					array( 'L2 Ticket Coupon', 'IntTrans' ),
@@ -2703,6 +2702,7 @@ class Installer extends CI_Controller {
 					array( 'Others', 'Adjust' ),
 					array( 'Others', 'Blackbox' ),
 					array( 'Others', 'Conversion' ),
+					array( 'Others', 'TktCollect' ),
 
 					/*
 					array( 'L1 SJT', 'IntTrans' ),
