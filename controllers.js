@@ -1835,6 +1835,9 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 				$scope.transferItem.setDestination( $scope.data.selectedDestination );
 			};
 
+		/**
+		 * Sets the available sources and/or destinations input
+		 */
 		$scope.changeTransferCategory = function( category )
 			{
 				$scope.data.selectedCategory = category;
@@ -1848,15 +1851,31 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 							case 'receipt':
 								$scope.data.editMode = 'externalReceipt';
 							case 'externalReceipt':
-								$scope.data.selectedSource = null;
-								$scope.data.selectedDestination = session.data.currentStore;
+								if( $scope.transferItem.id )
+								{
+									$scope.data.selectedSource = { id: null, store_name: $scope.transferItem.origin_name }; // dummy external store
+									$scope.data.selectedDestination = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.destination_id }, true )[0];
+								}
+								else
+								{
+									$scope.data.selectedSource = null;
+									$scope.data.selectedDestination = session.data.currentStore;
+								}
 								break;
 
 							case 'transfer':
 								$scope.data.editMode = 'externalTransfer';
 							case 'externalTransfer':
-								$scope.data.selectedSource = session.data.currentStore;
-								$scope.data.selectedDestination = null;
+								if( $scope.transferItem.id )
+								{
+									$scope.data.selectedSource = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.origin_id }, true )[0];
+									$scope.data.selectedDestination = { id: null, store_name: $scope.transferItem.destination_name }; // dummy external store
+								}
+								else
+								{
+									$scope.data.selectedSource = session.data.currentStore;
+									$scope.data.selectedDestination = null;
+								}
 								break;
 						}
 						$scope.changeEditMode();
@@ -1887,7 +1906,14 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 								$scope.data.editMode = 'receipt';
 								console.error( 'Should not be possible! Contact the system administrator.' );
 							case 'receipt':
-								$scope.selectedDestination = session.data.currentStore;
+								if( $scope.transferItem.id )
+								{
+									$scope.data.selectedDestination = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.destination_id }, true )[0];
+								}
+								else
+								{
+									$scope.data.selectedDestination = session.data.currentStore;
+								}
 								break;
 
 							case 'externalTransfer':
@@ -1895,7 +1921,15 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 							case 'transfer':
 								$scope.data.selectedSource = session.data.currentStore;
 								$scope.data.destinations = $filter( 'filter' )( appData.data.stores, { id: '!' + session.data.currentStore.id }, function(a, e) { return angular.equals( parseInt(a), parseInt(e) ) } );
-								$scope.data.selectedDestination = $scope.data.destinations[0];
+
+								if( $scope.transferItem.id )
+								{
+									$scope.data.selectedDestination = $filter( 'filter' )( $scope.data.destinations, { id: $scope.transferItem.destination_id }, true )[0];
+								}
+								else
+								{
+									$scope.data.selectedDestination = $scope.data.destinations[0];
+								}
 								break;
 						}
 						$scope.changeEditMode();
@@ -1921,10 +1955,18 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						break;
 
 					case 'Ticket Turnover':
-						$scope.data.selectedSource = session.data.currentStore;
 						// Filter destination to stores with production store type
 						$scope.data.destinations = $filter( 'filter' )( appData.data.stores, { store_type: 2 }, true );
-						$scope.data.selectedDestination = $scope.data.destinations[0];
+						if( $scope.transferItem.id )
+						{
+							$scope.data.selectedSource = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.origin_id }, true )[0];
+							$scope.data.selectedDestination = $filter( 'filter' )( $scope.data.destinations, { id: $scope.transferItem.destination_id }, true )[0];
+						}
+						else
+						{
+							$scope.data.selectedSource = session.data.currentStore;
+							$scope.data.selectedDestination = $scope.data.destinations[0];
+						}
 						$scope.changeEditMode( 'transfer' );
 
 						var filteredItems;
@@ -1939,9 +1981,18 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						break;
 
 					case 'Stock Replenishment':
-						$scope.data.selectedSource = session.data.currentStore;
 						// Filter destination to stores with cashroom store type
 						$scope.data.destinations = $filter( 'filter' )( appData.data.stores, { store_type: 4 }, true );
+						if( $scope.transferItem.id )
+						{
+							$scope.data.selectedSource = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.origin_id }, true )[0];
+							$scope.data.selectedDestination = $filter( 'filter' )( $scope.data.destinations, { id: $scope.transferItem.destination_id }, true )[0];
+						}
+						else
+						{
+							$scope.data.selectedSource = session.data.currentStore;
+							$scope.data.selectedDestination = $scope.data.destinations[0];
+						}
 						$scope.data.selectedDestination = $scope.data.destinations[0];
 						$scope.changeEditMode( 'transfer' );
 
@@ -1957,8 +2008,16 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						break;
 
 					case 'Blackbox Receipt':
-						$scope.data.selectedSource = null;
-						$scope.data.selectedDestination = session.data.currentStore;
+						if( $scope.transferItem.id )
+						{
+							$scope.data.selectedSource = { id: null, store_name: $scope.transferItem.origin_name }; // dummy external store
+							$scope.data.selectedDestination = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.destination_id }, true )[0];
+						}
+						else
+						{
+							$scope.data.selectedSource = null;
+							$scope.data.selectedDestination = session.data.currentStore;
+						}
 						$scope.changeEditMode( 'externalReceipt' );
 
 						var filteredItems;
@@ -1978,15 +2037,31 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 							case 'receipt':
 								$scope.data.editMode = 'externalReceipt';
 							case 'externalReceipt':
-								$scope.data.selectedSource = null;
-								$scope.data.selectedDestination = session.data.currentStore;
+								if( $scope.transferItem.id )
+								{
+									$scope.data.selectedSource = { id: null, store_name: $scope.transferItem.origin_name }; // dummy external store
+									$scope.data.selectedDestination = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.destination_id }, true )[0];
+								}
+								else
+								{
+									$scope.data.selectedSource = null;
+									$scope.data.selectedDestination = session.data.currentStore;
+								}
 								break;
 
 							case 'transfer':
 								$scope.data.editMode = 'externalTransfer';
 							case 'externalTransfer':
-								$scope.data.selectedSource = session.data.currentStore;
-								$scope.data.selectedDestination = null;
+								if( $scope.transferItem.id )
+								{
+									$scope.data.selectedSource = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.origin_id }, true )[0];
+									$scope.data.selectedDestination = { id: null, store_name: $scope.transferItem.destination_name }; // dummy external store
+								}
+								else
+								{
+									$scope.data.selectedSource = session.data.currentStore;
+									$scope.data.selectedDestination = null;
+								}
 								break;
 						}
 						$scope.changeEditMode();
@@ -2009,15 +2084,31 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 							case 'receipt':
 								$scope.data.editMode = 'externalReceipt';
 							case 'externalReceipt':
-								$scope.data.selectedSource = null;
-								$scope.data.selectedDestination = session.data.currentStore;
+								if( $scope.transferItem.id )
+								{
+									$scope.data.selectedSource = { id: null, store_name: $scope.transferItem.origin_name }; // dummy external store
+									$scope.data.selectedDestination = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.destination_id }, true )[0];
+								}
+								else
+								{
+									$scope.data.selectedSource = null;
+									$scope.data.selectedDestination = session.data.currentStore;
+								}
 								break;
 
 							case 'transfer':
 								$scope.data.editMode = 'externalTransfer';
 							case 'externalTransfer':
-								$scope.data.selectedSource = session.data.currentStore;
-								$scope.data.selectedDestination = null;
+								if( $scope.transferItem.id )
+								{
+									$scope.data.selectedSource = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.origin_id }, true )[0];
+									$scope.data.selectedDestination = { id: null, store_name: $scope.transferItem.destination_name }; // dummy external store
+								}
+								else
+								{
+									$scope.data.selectedSource = session.data.currentStore;
+									$scope.data.selectedDestination = null;
+								}
 								break;
 						}
 						var filteredItems;
@@ -2033,8 +2124,16 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						break;
 
 					case 'Bank Deposit':
-						$scope.data.selectedSource = session.data.currentStore;
-						$scope.data.selectedDestination = null;
+						if( $scope.transferItem.id )
+						{
+							$scope.data.selectedSource = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.origin_id }, true )[0];
+							$scope.data.selectedDestination = { id: null, store_name: $scope.transferItem.destination_name }; // dummy external store
+						}
+						else
+						{
+							$scope.data.selectedSource = session.data.currentStore;
+							$scope.data.selectedDestination = null;
+						}
 						$scope.changeEditMode( 'externalTransfer' );
 
 						var filteredItems;
@@ -2050,8 +2149,16 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						break;
 
 					case 'Add TVMIR Refund':
-						$scope.data.selectedSource = session.data.currentStore;
-						$scope.data.selectedDestination = null;
+						if( $scope.transferItem.id )
+						{
+							$scope.data.selectedSource = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.origin_id }, true )[0];
+							$scope.data.selectedDestination = { id: null, store_name: $scope.transferItem.destination_name }; // dummy external store
+						}
+						else
+						{
+							$scope.data.selectedSource = session.data.currentStore;
+							$scope.data.selectedDestination = null;
+						}
 						$scope.changeEditMode( 'externalTransfer' );
 
 						// Limit to remitted sales collection items only
@@ -2071,8 +2178,16 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						break;
 
 					case 'Issue TVMIR Refund':
-						$scope.data.selectedSource = session.data.currentStore;
-						$scope.data.selectedDestination = null;
+						if( $scope.transferItem.id )
+						{
+							$scope.data.selectedSource = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.origin_id }, true )[0];
+							$scope.data.selectedDestination = { id: null, store_name: $scope.transferItem.destination_name }; // dummy external store
+						}
+						else
+						{
+							$scope.data.selectedSource = session.data.currentStore;
+							$scope.data.selectedDestination = null;
+						}
 						$scope.changeEditMode( 'externalTransfer' );
 
 						var filteredItems;
@@ -2088,10 +2203,17 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						break;
 
 					case 'Replenish TVM Change Fund':
-						$scope.data.selectedSource = session.data.currentStore;
-						$scope.data.selectedDestination = { id: null, store_name: session.data.currentStore.store_name };
+						if( $scope.transferItem.id )
+						{
+							$scope.data.selectedSource = $filter( 'filter' )( appData.data.stores, { id: $scope.transferItem.origin_id }, true )[0];
+							$scope.data.selectedDestination = { id: null, store_name: $scope.transferItem.destination_name }; // dummy external store
+						}
+						else
+						{
+							$scope.data.selectedSource = session.data.currentStore;
+							$scope.data.selectedDestination = { id: null, store_name: session.data.currentStore.store_name }; // dummy internal store
+						}
 						$scope.changeEditMode( 'externalTransfer' );
-						$scope.transferItem.destination_name = session.data.currentStore.store_name;
 
 						// Limit to remitted sales collection items only
 						var filteredItems = [];
@@ -2555,28 +2677,6 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 						$scope.transferItem = Transfer.createFromData( response.data );
 						$scope.transferItem.setMode( $scope.data.editMode );
 
-						// Set origin input
-						if( $scope.transferItem.origin_id )
-						{
-							$scope.data.selectedSource = $filter( 'filter')( appData.data.stores, { id: $scope.transferItem.origin_id }, true )[0];
-						}
-						else
-						{
-							$scope.data.selectedSource = null;
-							$scope.data.isExternalSource = true;
-						}
-
-						// Set destination input
-						if( $scope.transferItem.destination_id )
-						{
-							$scope.data.selectedDestination = $filter( 'filter')( appData.data.stores, { id: $scope.transferItem.destination_id }, true )[0];
-						}
-						else
-						{
-							$scope.data.selectedDestination = null;
-							$scope.data.isExternalDestination = true;
-						}
-
 						// Set recipient name
 						if( ! $scope.transferItem.recipient_name && $scope.data.editMode == 'receipt' )
 						{
@@ -2597,13 +2697,16 @@ app.controller( 'TransferController', [ '$scope', '$filter', '$state', '$statePa
 							}
 						}
 
-						// Set transfer category
-						var category = getCategoryById( $scope.transferItem.transfer_category );
-						$scope.data.selectedCategory = category;
-						$scope.data.isTVMTransfer = ( ['Add TVMIR Refund', 'Issue TVMIR Refund', 'Replenish TVM Change Fund'].indexOf( category.categoryName ) != -1 );
+						if( $scope.data.editMode != 'view' )
+						{
+							// Set transfer category
+							var category = getCategoryById( $scope.transferItem.transfer_category );
+							$scope.data.selectedCategory = category;
+							$scope.data.isTVMTransfer = ( ['Add TVMIR Refund', 'Issue TVMIR Refund', 'Replenish TVM Change Fund'].indexOf( category.categoryName ) != -1 );
 
-						$scope.changeEditMode();
-						$scope.data.autoCategory = true;
+							// Update sources/destinations based on transfer category
+							$scope.changeTransferCategory( category );
+						}
 					}
 					else
 					{
