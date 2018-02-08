@@ -4133,11 +4133,16 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 					{
 						$scope.allocationItem = Allocation.createFromData( response.data );
 
-						// Set selected assignee shift
-						$scope.data.selectedAssigneeShift = $filter( 'filter')( assigneeShifts, { id: $scope.allocationItem.shift_id }, true )[0];
-
 						// Set selected assignee type
 						$scope.data.selectedAssigneeType = $filter( 'filter')( $scope.data.assigneeTypes, { id: $scope.allocationItem.assignee_type }, true )[0];
+
+						if( $scope.data.selectedAssigneeType.id == 2 )
+						{
+							$scope.data.selectedTVM = $filter( 'filter' )( $scope.data.tvms, { description: $scope.allocationItem.assignee }, true )[0];
+						}
+
+						// Set selected assignee shift
+						$scope.data.selectedAssigneeShift = $filter( 'filter')( assigneeShifts, { id: $scope.allocationItem.shift_id }, true )[0];
 
 						if( $scope.data.editMode == 'auto' )
 						{
