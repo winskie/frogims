@@ -261,6 +261,90 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 			};
 
 
+		Allocation.prototype.getRemittedCash = function()
+			{
+				var me = this;
+				var amount = 0;
+
+				for( var i = 0, n = me.cash_remittances.length; i < n; i++ )
+				{
+					if( me.cash_remittances[i].allocation_item_status != 22 ) // REMITTANCE_ITEM_VOIDED
+					{
+						amount += me.cash_remittances[i].allocated_quantity * me.cash_remittances[i].iprice_unit_price;
+					}
+				}
+
+				return amount;
+			};
+
+
+		Allocation.prototype.getAmountForRemittance = function()
+			{
+				var me = this;
+				var amount = 0;
+
+				// Get shift detail cash report balances
+				for( var i = 0, n = me.cash_reports.length; i < n; i++ )
+				{
+					amount += me.cash_reports[i].getBalance();
+				}
+
+				// Add allocated change fund
+				for( var i = 0, n = me.cash_allocations.length; i < n; i++ )
+				{
+					if( me.cash_allocations[i].allocation_item_status != 12 || me.cash_allocations[i].allocation_item_status != 13 ) // ALLOCATION_ITEM_CANCELLED, ALLOCATION_ITEM_VOIDED
+					{
+						amount += ( me.cash_allocations[i].allocated_quantity * me.cash_allocations[i].iprice_unit_price );
+					}
+				}
+
+				// Deductions
+				for( var i = 0, n = me.sales.length; i < n; i++ )
+				{
+					if( me.sales[i].slitem_group == 'Deductions' && me.sales[i].alsale_sales_item_status != 12 ) // SALES_ITEM_VOIDED
+					{
+						amount += ( me.sales[i].alsale_amount );
+					}
+				}
+
+				return amount;
+			};
+
+
+		Allocation.prototype.getDeductions = function()
+			{
+				var me = this;
+				var amount = 0;
+
+				for( var i = 0, n = me.sales.length; i < n; i++ )
+				{
+					if( me.sales[i].slitem_group == 'Deductions' && me.sales[i].alsale_sales_item_status != 12 ) // SALES_ITEM_VOIDED
+					{
+						amount += ( me.sales[i].alsale_amount );
+					}
+				}
+
+				return amount;
+			};
+
+
+		Allocation.prototype.getShortOver = function()
+			{
+				var me = this;
+				var amount = 0;
+
+				for( var i = 0, n = me.sales.length; i < n; i++ )
+				{
+					if( me.sales[i].slitem_group == 'Short Over' && me.sales[i].alsale_sales_item_status != 12 ) // SALES_ITEM_VOIDED
+					{
+						amount += ( me.sales[i].alsale_amount );
+					}
+				}
+
+				return amount;
+			};
+
+
 		Allocation.prototype.canEdit = function()
 			{
 				return ( this.allocation_status == 1 || this.allocation_status == 2 ) &&
@@ -673,7 +757,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 						}
 						break;
 
-					case 2: //
+					case 2: // TVM
 						// Ticket allocations
 						for( var i = 0; i < n; i++ )
 						{
@@ -726,22 +810,20 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 							}
 
 							var rowObject;
-
 							switch( this.cash_allocations[i].cat_description )
 							{
 								case 'Hopper Replenishment':
 									switch( this.cash_allocations[i].item_name )
-									{
-										case 'Bag Php5@100':
+									{ // TODO: settings
 										case 'Php5 Coin':
+										case 'Php5@20':
+										case 'Php5@100':
+										case 'Php5@200':
+										case 'Php5@300':
 										case 'Php5@500':
-										case 'Php5@1000':
-										case 'Php5@1500':
-										case 'Php5@2500':
 											rowObject = 'Hopper Php5';
 											break;
 
-										case 'Bag Php1@100':
 										case 'Php1 Coin':
 										case 'Php1@100':
 										case 'Php1@200':
@@ -966,6 +1048,8 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 
 		Allocation.prototype.removeSalesItem = function( item )
 			{
+				var me = this;
+
 				if( item.id == undefined )
 				{
 					var index = this.sales.indexOf( item );
@@ -996,26 +1080,27 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 
 		Allocation.prototype.checkAllocation = function( action )
 			{
-				var allocationCount = this.allocations.length;
-				var cashAllocationCount = this.cash_allocations.length;
-				var remittanceCount = this.remittances.length;
-				var cashRemittanceCount = this.cash_remittances.length;
-				var ticketSalesCount = this.ticket_sales.length;
-				var salesCount = this.sales.length;
+				var me = this;
+				var allocationCount = me.allocations.length;
+				var cashAllocationCount = me.cash_allocations.length;
+				var remittanceCount = me.remittances.length;
+				var cashRemittanceCount = me.cash_remittances.length;
+				var ticketSalesCount = me.ticket_sales.length;
+				var salesCount = me.sales.length;
 
 				var preAllocationCategories = [ 'Initial Allocation', 'Magazine Load', 'Change Fund' ];
 				var postAllocationCategories = [ 'Additional Allocation', 'Magazine Load', 'Change Fund' ];
 
-				var hasValidAllocationItem = this.getValidAllocations().length > 0 || this.getValidCashAllocations().length > 0;
-				var hasValidRemittanceItem = this.getValidRemittances().length > 0 || this.getValidCashRemittances().length > 0;
-				var hasValidTicketSaleItem = this.getValidTicketSales().length > 0;
-				var hasValidSalesItem = this.getValidSales().length > 0;
+				var hasValidAllocationItem = me.getValidAllocations().length > 0 || me.getValidCashAllocations().length > 0;
+				var hasValidRemittanceItem = me.getValidRemittances().length > 0 || me.getValidCashRemittances().length > 0;
+				var hasValidTicketSaleItem = me.getValidTicketSales().length > 0;
+				var hasValidSalesItem = me.getValidSales().length > 0;
 
 				switch( action )
 				{
 					case 'schedule':
 					case 'allocate':
-						if( this.assignee_type == 1 && allocationCount == 0 && cashAllocationCount == 0 ) // ALLOCATION_ASSIGNEE_TELLER
+						if( me.assignee_type == 1 && allocationCount == 0 && cashAllocationCount == 0 ) // ALLOCATION_ASSIGNEE_TELLER
 						{
 							notifications.alert( 'Allocation does not contain any items', 'warning' );
 							return false;
@@ -1033,7 +1118,7 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 							return false;
 						}
 
-						if( action == 'allocate' && ! this.assignee )
+						if( action == 'allocate' && ! me.assignee )
 						{
 							notifications.alert( 'Please enter ' + $scope.data.assigneeLabel, 'warning' );
 							return false;
@@ -1050,6 +1135,15 @@ angular.module( 'coreModels' ).factory( 'Allocation', [ '$http', '$q', '$filter'
 
 					case 'complete':
 						// TODO: Do we need to check if allocated item count - sold item count == remitted item count?
+
+						/*
+						if( me.assignee_type == 1 && ( me.getAmountForRemittance() !=  ( me.getRemittedCash() - me.getDeductions() - me.getShortOver() ) ) )
+						{
+							notifications.alert( 'Amount for remittance does not equal remitted amount', 'error' );
+							return false;
+						}
+						*/
+
 						if( !hasValidAllocationItem && !hasValidRemittanceItem && !hasValidTicketSaleItem )
 						{
 							notifications.alert( 'Record does not contain any valid allocation, remittance or ticket sale items', 'warning' );

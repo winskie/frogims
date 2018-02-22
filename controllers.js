@@ -3611,15 +3611,15 @@ app.controller( 'AllocationController', [ '$scope', '$filter', '$state', '$state
 
 		$scope.salesTotalFilter = function( v, i, a )
 			{
-				return [10,11].indexOf( v.alsale_sales_item_status ) != -1;
+				return [10,11].indexOf( v.alsale_sales_item_status ) != -1; // SALE_ITEM_PENDING, SALE_ITEM_RECORDED
 			};
 		$scope.remittanceTotalFilter = function( v, i, a )
 			{
-				return [20,21].indexOf( v.allocation_item_status ) != -1;
+				return [20,21].indexOf( v.allocation_item_status ) != -1; // REMITTANCE_ITEM_PENDING, REMITTANCE_ITEM_REMITTED
 			};
 		$scope.allocationTotalFilter = function( v, i, a )
 			{
-				return [10,11].indexOf( v.allocation_item_status ) != -1;
+				return [10,11].indexOf( v.allocation_item_status ) != -1; // ALLOCATION_ITEM_SCHEDULED, ALLOCATION_ITEM_PENDING
 			};
 
 		$scope.pendingAction = false;

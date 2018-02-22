@@ -722,6 +722,8 @@ CREATE TABLE IF NOT EXISTS item_prices
 )
 ENGINE=InnoDB;
 
+
+-- tvmr_type: hopper_php1, hopper_php5, magazine_sjt, magazine_svc, coin_box, note_box
 CREATE TABLE IF NOT EXISTS tvm_readings
 (
 	id INTEGER AUTO_INCREMENT NOT NULL,

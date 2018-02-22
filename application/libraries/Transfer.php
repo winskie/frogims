@@ -1465,7 +1465,7 @@ class Transfer extends Base_model {
 
 		$ci->db->trans_start();
 		$this->set( 'transfer_status', TRANSFER_APPROVED );
-		$this->set( 'transfer_datetime', date( TIMESTAMP_FORMAT ) );
+		//$this->set( 'transfer_datetime', date( TIMESTAMP_FORMAT ) );
 		$this->_save_action = 'transfer_approve';
 		$result = $this->db_save();
 		if( $result )

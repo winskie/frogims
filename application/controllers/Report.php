@@ -284,9 +284,11 @@ class Report extends MY_Controller {
 		$this->load->library( 'store' );
 		$this->load->library( 'shift' );
 		$this->load->library( 'category' );
+		$this->load->library( 'item' );
 		$Store = new Store();
 		$Shift = new Shift();
 		$Category = new Category();
+		$Item = new Item();
 
 		$business_date = param_type( $this->input->get( 'date' ), 'date', time() );
 		$store_id = param_type( $this->input->get( 'store' ), 'integer', current_store( TRUE ) );
@@ -432,6 +434,34 @@ class Report extends MY_Controller {
 		// Hopper Pullout
 		$hopper_category = $Category->get_by_name( 'HopAlloc' );
 
+		$php1_coin = $Item->get_by_name( 'Php1 Coin' );
+		$php1_100 = $Item->get_by_name( 'Php1@100' );
+		$php1_200 = $Item->get_by_name( 'Php1@200' );
+		$php1_500 = $Item->get_by_name( 'Php1@500' );
+		$php1_2000 = $Item->get_by_name( 'Php1@2000' );
+
+		$php5_coin = $Item->get_by_name( 'Php5 Coin' );
+		$php5_20 = $Item->get_by_name( 'Php5@20' );
+		$php5_100 = $Item->get_by_name( 'Php5@100' );
+		$php5_200 = $Item->get_by_name( 'Php5@200' );
+		$php5_300 = $Item->get_by_name( 'Php5@300' );
+		$php5_500 = $Item->get_by_name( 'Php5@500' );
+
+
+		$php1_hopper_items = array();
+		$php1_hopper_items[] = $php1_coin->get( 'id' );
+		$php1_hopper_items[] = $php1_100->get( 'id' );
+		$php1_hopper_items[] = $php1_200->get( 'id' );
+		$php1_hopper_items[] = $php1_500->get( 'id' );
+		$php1_hopper_items[] = $php1_2000->get( 'id' );
+
+		$php5_hopper_items = array();
+		$php5_hopper_items[] = $php5_coin->get( 'id' );
+		$php5_hopper_items[] = $php5_100->get( 'id' );
+		$php5_hopper_items[] = $php5_200->get( 'id' );
+		$php5_hopper_items[] = $php5_300->get( 'id' );
+		$php5_hopper_items[] = $php5_500->get( 'id' );
+
 		$sql = "SELECT
 					CONCAT( 'T', LPAD( ints.i, 2, '0' ) ) AS tvm_num,
 					allocation.php1_amount, allocation.php5_amount, allocation.allocation_time, allocation.total_replenishment
@@ -439,9 +469,9 @@ class Report extends MY_Controller {
 				LEFT JOIN
 				(
 					SELECT a.id, a.assignee,
-						SUM( IF( ai.allocated_item_id IN (21, 32) AND ai.allocation_item_type = 1, ip.iprice_unit_price * ai.allocated_quantity, NULL ) ) AS php1_amount,
-						SUM( IF( ai.allocated_item_id IN (23, 31) AND ai.allocation_item_type = 1, ip.iprice_unit_price * ai.allocated_quantity, NULL ) ) AS php5_amount,
-						SUM( IF( ai.allocated_item_id IN (21, 23, 31, 32) AND ai.allocation_item_type = 1, ip.iprice_unit_price * ai.allocated_quantity, 0 ) ) AS total_replenishment,
+						SUM( IF( ai.allocated_item_id IN (".implode( ',', $php1_hopper_items ).") AND ai.allocation_item_type = 1, ip.iprice_unit_price * ai.allocated_quantity, 0 ) ) AS php1_amount,
+						SUM( IF( ai.allocated_item_id IN (".implode( ',', $php5_hopper_items ).") AND ai.allocation_item_type = 1, ip.iprice_unit_price * ai.allocated_quantity, 0 ) ) AS php5_amount,
+						SUM( IF( ai.allocated_item_id IN (".implode( ',', array_merge( $php1_hopper_items, $php5_hopper_items ) ).") AND ai.allocation_item_type = 1, ip.iprice_unit_price * ai.allocated_quantity, 0 ) ) AS total_replenishment,
 						MIN( TIME( ai.allocation_datetime ) ) AS allocation_time
 					FROM allocations a
 					LEFT JOIN allocation_items ai
@@ -632,11 +662,9 @@ class Report extends MY_Controller {
 									SUM( IF( ai.allocation_item_type = 1 AND i.item_group = 'SJT', IF( ct.id IS NULL, ai.allocated_quantity, ai.allocated_quantity * ct.conversion_factor), 0 ) ) AS sjt_replenishment,
 									SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SJT' AND i.item_type = 0, ai.allocated_quantity, 0 ) ) AS sjt_reject_bin,
 									SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SJT' AND i.item_type = 1, ai.allocated_quantity, 0 ) ) AS sjt_excess,
-									SUM( IF( ai.allocation_item_type = 3 AND i.item_group = 'SJT', ai.allocated_quantity, 0 ) ) AS sjt_allocation_sold_ticket,
 									SUM( IF( ai.allocation_item_type = 1 AND i.item_group = 'SVC', IF( ct.id IS NULL, ai.allocated_quantity, ai.allocated_quantity * ct.conversion_factor), 0 ) ) AS svc_replenishment,
 									SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SVC' AND i.item_type = 0, ai.allocated_quantity, 0 ) ) AS svc_reject_bin,
-									SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SVC' AND i.item_type = 1, ai.allocated_quantity, 0 ) ) AS svc_excess,
-									SUM( IF( ai.allocation_item_type = 3 AND i.item_group = 'SVC', ai.allocated_quantity, 0 ) ) AS svc_allocation_sold_ticket
+									SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SVC' AND i.item_type = 1, ai.allocated_quantity, 0 ) ) AS svc_excess
 								FROM allocations a
 								LEFT JOIN allocation_items ai ON ai.allocation_id = a.id
 								LEFT JOIN items i ON i.id = ai.allocated_item_id
@@ -649,7 +677,7 @@ class Report extends MY_Controller {
 									AND ai.cashier_shift_id = ?
 									AND i.item_class = 'ticket'
 									AND i.item_group IN ('SJT', 'SVC')
-									AND ai.allocation_item_status != ".TICKET_SALE_ITEM_VOIDED."
+									AND ai.allocation_item_status NOT IN (".implode( ',', array( ALLOCATION_ITEM_CANCELLED, ALLOCATION_ITEM_VOIDED, REMITTANCE_ITEM_VOIDED ) ).")
 								GROUP BY a.assignee
 							) AS tkt_sales
 								ON tkt_sales.assignee = CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) )

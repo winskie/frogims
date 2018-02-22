@@ -169,6 +169,35 @@ angular.module( 'coreModels' ).factory( 'ShiftDetailCashReport', [ '$http', '$q'
 				}
 			};
 
+
+		ShiftDetailCashReport.prototype.getBalance = function()
+			{
+				var me = this;
+				var balance = 0;
+				var itemProperties = {
+					'issued': 'issued',
+					'add_value': 'add_value',
+					'refund': 'refund',
+					'nxmismatch': 'entry_exit_mismatch',
+					'xcess_time': 'excess_time',
+					'prod_sales': 'product_sales'
+				};
+
+				for( var profile in me.items )
+				{
+					for( var prop in itemProperties )
+					{
+						if( me.items[profile][prop + '_property'] )
+						{
+							balance += me.items[profile][prop + '_property']['sdcri_amount'];
+						}
+					}
+				}
+
+				return balance;
+			};
+
+
 		ShiftDetailCashReport.prototype.set = function( field, value )
 			{
 				switch( field )

@@ -553,6 +553,589 @@ class Shift_turnover extends Base_model
 		return $r;
 	}
 
+
+	/**
+	 * Get TVM number of sold tickets
+	 */
+	public function get_tvm_tickets_sold()
+	{
+		$ci =& get_instance();
+
+		$sql = "SELECT
+							a.i * 10 + b.i AS tvm_id, CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) ) AS tvm_num,
+							readings.sjt_reading, readings.sjt_previous_reading,
+							allocations.sjt_replenishment, allocations.sjt_reject_bin, allocations.sjt_excess,
+							readings.sjt_previous_reading + allocations.sjt_replenishment - allocations.sjt_reject_bin - allocations.sjt_excess - readings.sjt_reading AS sjt_sold,
+							readings.svc_reading, readings.svc_previous_reading,
+							allocations.svc_replenishment, allocations.svc_reject_bin, allocations.svc_excess,
+							readings.svc_previous_reading + allocations.svc_replenishment - allocations.svc_reject_bin - allocations.svc_excess - readings.svc_reading AS svc_sold
+						FROM ints a JOIN ints b
+						LEFT JOIN
+						(
+							SELECT tvmr_machine_id,
+								SUM(IF(tvmr_type = 'magazine_sjt', tvmr_reading, NULL)) AS sjt_reading,
+								SUM(IF(tvmr_type = 'magazine_svc', tvmr_reading, NULL)) AS svc_reading,
+								SUM(IF(tvmr_type = 'magazine_sjt', tvmr_previous_reading, NULL)) AS sjt_previous_reading,
+								SUM(IF(tvmr_type = 'magazine_svc', tvmr_previous_reading, NULL)) AS svc_previous_reading
+							FROM tvm_readings
+							WHERE
+								tvmr_type IN ('magazine_sjt', 'magazine_svc')
+								AND tvmr_date = ?
+								AND tvmr_store_id = ?
+								AND tvmr_shift_id = ?
+							GROUP BY tvmr_machine_id
+						) AS readings
+							ON readings.tvmr_machine_id = CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) )
+						LEFT JOIN
+						(
+							SELECT a.assignee,
+								SUM( IF( ai.allocation_item_type = 1 AND i.item_group = 'SJT', IF( ct.id IS NULL, ai.allocated_quantity, ai.allocated_quantity * ct.conversion_factor), 0 ) ) AS sjt_replenishment,
+								SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SJT' AND i.item_type = 0, ai.allocated_quantity, 0 ) ) AS sjt_reject_bin,
+								SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SJT' AND i.item_type = 1, ai.allocated_quantity, 0 ) ) AS sjt_excess,
+								SUM( IF( ai.allocation_item_type = 1 AND i.item_group = 'SVC', IF( ct.id IS NULL, ai.allocated_quantity, ai.allocated_quantity * ct.conversion_factor), 0 ) ) AS svc_replenishment,
+								SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SVC' AND i.item_type = 0, ai.allocated_quantity, 0 ) ) AS svc_reject_bin,
+								SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'SVC' AND i.item_type = 1, ai.allocated_quantity, 0 ) ) AS svc_excess
+							FROM allocations a
+							LEFT JOIN allocation_items ai ON ai.allocation_id = a.id
+							LEFT JOIN items i ON i.id = ai.allocated_item_id
+							LEFT JOIN item_prices ip ON ip.iprice_item_id = i.id
+							LEFT JOIN conversion_table ct ON ct.target_item_id = ai.allocated_item_id
+							WHERE
+								business_date = ?
+								AND a.store_id = ?
+								AND a.assignee_type = ?
+								AND ai.cashier_shift_id = ?
+								AND i.item_class = 'ticket'
+								AND i.item_group IN ('SJT', 'SVC')
+								AND ai.allocation_item_status NOT IN (".implode( ',', array( ALLOCATION_ITEM_CANCELLED, ALLOCATION_ITEM_VOIDED, REMITTANCE_ITEM_VOIDED ) ).")
+							GROUP BY a.assignee
+						) AS allocations
+							ON allocations.assignee = CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) )
+						WHERE (a.i * 10 + b.i) > 0 AND (a.i * 10 + b.i) < 17
+						AND ( readings.tvmr_machine_id IS NOT NULL OR allocations.assignee IS NOT NULL )
+						ORDER BY tvm_id";
+
+		$sql_params = array(
+				// readings
+				$this->st_from_date,
+				$this->st_store_id,
+				$this->st_from_shift_id,
+				// allocations
+				$this->st_from_date,
+				$this->st_store_id,
+				ALLOCATION_ASSIGNEE_MACHINE,
+				$this->st_from_shift_id,
+			);
+
+		$query = $ci->db->query( $sql, $sql_params );
+
+		return $query->result_array();
+	}
+
+	/**
+	 * Get TVM cash collection
+	 */
+	public function get_tvm_cash_collection()
+	{
+		$ci =& get_instance();
+
+		$ci->load->library( 'category' );
+		$Category = new Category();
+		$sales_collection_cat = $Category->get_by_name( 'SalesColl' );
+
+		$sql = "SELECT
+							a.i * 10 + b.i AS tvm_id, CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) ) AS tvm_num,
+							collections.coin_box, collections.note_box,
+							COALESCE( collections.coin_box, 0 ) + COALESCE( collections.note_box, 0 ) AS gross_sales,
+							readings.coin_box_reading, readings.note_box_reading,
+							( COALESCE( readings.coin_box_reading, 0 ) + COALESCE( readings.note_box_reading, 0 ) ) - ( COALESCE( collections.coin_box, 0 ) + COALESCE( collections.note_box, 0 ) ) AS short_over
+						FROM ints a JOIN ints b
+						LEFT JOIN
+						(
+							SELECT a.assignee,
+								SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'coin' AND ai.allocation_category_id = ".$sales_collection_cat->get( 'id' ).", ai.allocated_quantity * ip.iprice_unit_price, NULL ) ) AS coin_box,
+								SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'bill' AND ai.allocation_category_id = ".$sales_collection_cat->get( 'id' ).", ai.allocated_quantity * ip.iprice_unit_price, NULL ) ) AS note_box
+							FROM allocations a
+							LEFT JOIN allocation_items ai ON ai.allocation_id = a.id
+							LEFT JOIN items i ON i.id = ai.allocated_item_id
+							LEFT JOIN item_prices ip ON ip.iprice_item_id = i.id
+							LEFT JOIN conversion_table ct ON ct.target_item_id = ai.allocated_item_id
+							WHERE
+								business_date = ?
+								AND a.store_id = ?
+								AND a.assignee_type = ?
+								AND ai.cashier_shift_id = ?
+								AND i.item_class = 'cash'
+								AND ai.allocation_item_status != ".REMITTANCE_ITEM_VOIDED."
+							GROUP BY a.assignee
+						) AS collections
+							ON collections.assignee = CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) )
+
+						LEFT JOIN
+						(
+							SELECT tvmr_machine_id,
+								SUM(IF(tvmr_type = 'coin_box', tvmr_reading, 0)) AS coin_box_reading,
+								SUM(IF(tvmr_type = 'note_box', tvmr_reading, 0)) AS note_box_reading
+							FROM tvm_readings
+							WHERE
+								tvmr_type IN ('coin_box', 'note_box')
+								AND tvmr_date = ?
+								AND tvmr_store_id = ?
+								AND tvmr_shift_id = ?
+							GROUP BY tvmr_machine_id
+						) AS readings
+							ON readings.tvmr_machine_id = CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) )
+
+						WHERE (a.i * 10 + b.i) > 0 AND (a.i * 10 + b.i) < 17
+						AND collections.assignee IS NOT NULL
+						ORDER BY tvm_id";
+
+		$sql_params = array(
+				// collections
+				$this->st_from_date,
+				$this->st_store_id,
+				ALLOCATION_ASSIGNEE_MACHINE,
+				$this->st_from_shift_id,
+				// readings
+				$this->st_from_date,
+				$this->st_store_id,
+				$this->st_from_shift_id,
+			);
+
+		$query = $ci->db->query( $sql, $sql_params );
+
+		return $query->result_array();
+	}
+
+	/**
+	 * Get TVM hopper change fund
+	 */
+	public function get_tvm_hopper_change_fund()
+	{
+		$ci =& get_instance();
+
+		$ci->load->library( 'item' );
+		$Item = new Item();
+
+		//TODO: settings - tvm_hopper_php1_items, tvm_hopper_php5_items
+		$php1_coin = $Item->get_by_name( 'Php1 Coin' );
+		$php1_100 = $Item->get_by_name( 'Php1@100' );
+		$php1_200 = $Item->get_by_name( 'Php1@200' );
+		$php1_500 = $Item->get_by_name( 'Php1@500' );
+		$php1_2000 = $Item->get_by_name( 'Php1@2000' );
+
+		$php5_coin = $Item->get_by_name( 'Php5 Coin' );
+		$php5_20 = $Item->get_by_name( 'Php5@20' );
+		$php5_100 = $Item->get_by_name( 'Php5@100' );
+		$php5_200 = $Item->get_by_name( 'Php5@200' );
+		$php5_300 = $Item->get_by_name( 'Php5@300' );
+		$php5_500 = $Item->get_by_name( 'Php5@500' );
+
+		$php1_hopper_items = array();
+		$php1_hopper_items[] = $php1_coin->get( 'id' );
+		$php1_hopper_items[] = $php1_100->get( 'id' );
+		$php1_hopper_items[] = $php1_200->get( 'id' );
+		$php1_hopper_items[] = $php1_500->get( 'id' );
+		$php1_hopper_items[] = $php1_2000->get( 'id' );
+
+		$php5_hopper_items = array();
+		$php5_hopper_items[] = $php5_coin->get( 'id' );
+		$php5_hopper_items[] = $php5_100->get( 'id' );
+		$php5_hopper_items[] = $php5_200->get( 'id' );
+		$php5_hopper_items[] = $php5_300->get( 'id' );
+		$php5_hopper_items[] = $php5_500->get( 'id' );
+
+		$ci->load->library( 'category' );
+		$Category = new Category();
+		$hopper_category = $Category->get_by_name( 'HopAlloc' );
+
+		$sql = "SELECT
+							a.i * 10 + b.i AS tvm_id, CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) ) AS tvm_num,
+							readings.php1_reading, readings.php1_previous_reading,
+							readings.php5_reading, readings.php5_previous_reading,
+							allocations.php1_replenishment,
+							allocations.php5_replenishment,
+							cfund_replenish.replenished_change_fund
+						FROM ints a JOIN ints b
+
+						LEFT JOIN
+						(
+							SELECT tvmr_machine_id,
+								SUM(IF(tvmr_type = 'hopper_php1', tvmr_reading, 0)) AS php1_reading,
+								SUM(IF(tvmr_type = 'hopper_php5', tvmr_reading, 0)) AS php5_reading,
+								SUM(IF(tvmr_type = 'hopper_php1', tvmr_previous_reading, 0 )) AS php1_previous_reading,
+								SUM(IF(tvmr_type = 'hopper_php5', tvmr_previous_reading, 0 )) AS php5_previous_reading
+							FROM tvm_readings
+							WHERE
+								tvmr_type IN ('hopper_php1', 'hopper_php5')
+								AND tvmr_date = ?
+								AND tvmr_store_id = ?
+								AND tvmr_shift_id = ?
+							GROUP BY tvmr_machine_id
+						) AS readings
+							ON readings.tvmr_machine_id = CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) )
+
+						LEFT JOIN
+						(
+							SELECT a.assignee,
+								SUM( IF( ai.allocated_item_id IN (".implode( ',', $php1_hopper_items ).") AND ai.allocation_item_type = 1, ip.iprice_unit_price * ai.allocated_quantity, 0 ) ) AS php1_replenishment,
+								SUM( IF( ai.allocated_item_id IN (".implode( ',', $php5_hopper_items ).") AND ai.allocation_item_type = 1, ip.iprice_unit_price * ai.allocated_quantity, 0 ) ) AS php5_replenishment
+							FROM allocations a
+							LEFT JOIN allocation_items ai
+								ON ai.allocation_id = a.id
+							LEFT JOIN items i
+								ON i.id = ai.allocated_item_id
+							LEFT JOIN item_prices ip
+								ON ip.iprice_item_id = i.id
+							WHERE
+								business_date = ?
+								AND a.store_id = ?
+								AND a.assignee_type = ?
+								AND ai.cashier_shift_id = ?
+								AND i.item_class = 'cash'
+								AND ai.allocation_category_id = ?
+								AND ai.allocation_item_status NOT IN (".implode( ',', array( ALLOCATION_ITEM_CANCELLED, ALLOCATION_ITEM_VOIDED ) ).")
+							GROUP BY a.assignee
+						) AS allocations
+							ON allocations.assignee = CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) )
+
+						LEFT JOIN
+						(
+							SELECT t.transfer_tvm_id AS tvm_num,
+								SUM( ti.quantity * ip.iprice_unit_price ) AS replenished_change_fund
+							FROM transfers t
+							LEFT JOIN transfer_items ti
+								ON ti.transfer_id = t.id
+							LEFT JOIN items i
+								ON i.id = ti.item_id
+							LEFT JOIN item_prices ip
+								ON ip.iprice_item_id = i.id
+							WHERE
+								t.transfer_datetime BETWEEN ? AND ?
+								AND t.origin_id = ?
+								AND t.sender_shift = ?
+								AND t.transfer_category = ".TRANSFER_CATEGORY_REPLENISH_TVM_CFUND."
+								AND ti.transfer_item_status NOT IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")
+							GROUP BY t.transfer_tvm_id
+						) AS cfund_replenish
+							ON cfund_replenish.tvm_num = CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) )
+
+					WHERE (a.i * 10 + b.i) > 0 AND (a.i * 10 + b.i) < 17
+					AND ( readings.tvmr_machine_id IS NOT NULL OR allocations.assignee IS NOT NULL )
+					ORDER BY tvm_id";
+
+		$sql_params = array(
+				// readings
+				$this->st_from_date,
+				$this->st_store_id,
+				$this->st_from_shift_id,
+				// allocations
+				$this->st_from_date,
+				$this->st_store_id,
+				ALLOCATION_ASSIGNEE_MACHINE,
+				$this->st_from_shift_id,
+				$hopper_category->get( 'id' ),
+				// cfund_replenish
+				$this->st_from_date.' 00:00:00', $this->st_from_date.' 23:59:59',
+				$this->st_store_id,
+				$this->st_from_shift_id,
+			);
+
+
+		$query = $ci->db->query( $sql, $sql_params );
+
+		return $query->result_array();
+	}
+
+	/**
+	 * Get refunded TVMIR
+	 */
+	public function get_refunded_tvmir()
+	{
+		$ci =& get_instance();
+
+		$sql = "SELECT
+							a.i * 10 + b.i AS tvm_id, CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) ) AS tvm_num,
+							tvmir.refunded_tvmir
+						FROM ints a JOIN ints b
+
+						LEFT JOIN
+							(
+								SELECT t.transfer_tvm_id AS tvm_num,
+									SUM( ti.quantity * ip.iprice_unit_price ) AS refunded_tvmir
+								FROM transfers t
+								LEFT JOIN transfer_items ti
+									ON ti.transfer_id = t.id
+								LEFT JOIN items i
+									ON i.id = ti.item_id
+								LEFT JOIN item_prices ip
+									ON ip.iprice_item_id = i.id
+								WHERE
+									t.transfer_datetime BETWEEN ? AND ?
+									AND t.origin_id = ?
+									AND t.sender_shift = ?
+									AND t.transfer_category = ".TRANSFER_CATEGORY_ADD_TVMIR."
+									AND ti.transfer_item_status NOT IN (".implode( ',', array( TRANSFER_ITEM_CANCELLED, TRANSFER_ITEM_VOIDED ) ).")
+								GROUP BY t.transfer_tvm_id
+							) AS tvmir
+								ON tvmir.tvm_num = CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) )
+
+						WHERE (a.i * 10 + b.i) > 0 AND (a.i * 10 + b.i) < 17
+							AND tvmir.tvm_num IS NOT NULL
+						ORDER BY tvm_id";
+
+		$sql_params = array(
+				// TVMIR
+				$this->st_from_date.' 00:00:00', $this->st_from_date.' 23:59:59',
+				$this->st_store_id,
+				$this->st_from_shift_id,
+			);
+
+		$query = $ci->db->query( $sql, $sql_params );
+
+		return $query->result_array();
+	}
+
+	/**
+	 * Get TVM shortage/overage
+	 */
+	public function get_tvm_shortage_overage()
+	{
+		$ci =& get_instance();
+
+		//TODO: settings - shortage_sales_items, overage_sales_items
+		$ci->load->library( 'category' );
+		$Category = new Category();
+
+		$sql = "SELECT
+							a.i * 10 + b.i AS tvm_id, CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) ) AS tvm_num,
+							short_over.shortage, short_over.overage
+						FROM ints a JOIN ints b
+						LEFT JOIN
+						(
+							SELECT a.assignee,
+								SUM( IF( si.slitem_name = 'Shortage', asi.alsale_amount, 0 ) ) AS shortage,
+								SUM( IF( si.slitem_name = 'Overage', asi.alsale_amount, 0 ) ) AS overage
+							FROM allocations a
+							LEFT JOIN allocation_sales_items asi ON asi.alsale_allocation_id = a.id
+							LEFT JOIN sales_items si ON si.id = asi.alsale_sales_item_id
+							WHERE
+								business_date = ?
+								AND a.store_id = ?
+								AND a.assignee_type = ?
+								AND asi.alsale_shift_id = ?
+								AND si.slitem_group = 'Short Over'
+								AND asi.alsale_sales_item_status != ".SALES_ITEM_VOIDED."
+							GROUP BY a.assignee
+						) AS short_over
+							ON short_over.assignee = CONCAT( 'T', LPAD( a.i * 10 + b.i, 2, '0' ) )
+
+						WHERE (a.i * 10 + b.i) > 0 AND (a.i * 10 + b.i) < 17
+						AND short_over.assignee IS NOT NULL
+						ORDER BY tvm_id";
+
+		$sql_params = array(
+				// collections
+				$this->st_from_date,
+				$this->st_store_id,
+				ALLOCATION_ASSIGNEE_MACHINE,
+				$this->st_from_shift_id,
+			);
+
+		$query = $ci->db->query( $sql, $sql_params );
+
+		return $query->result_array();
+	}
+
+
+	/**
+	 * Get teller number of sold tickets
+	 */
+	public function get_teller_tickets_sold()
+	{
+		$ci =& get_instance();
+
+		$ci->load->library( 'category' );
+		$Category = new Category();
+		$ticket_sale_cat = $Category->get_by_name( 'TktSales' );
+		$csc_issue_cat = $Category->get_by_name( 'CSCIssue' );
+		$paid_exit_cat = $Category->get_by_name( 'SalePdExt' );
+		$free_exit_cat = $Category->get_by_name( 'SaleFrExt' );
+		$unconfirmed_cat = $Category->get_by_name( 'SaleUncfrm' );
+
+		$sql = "SELECT a.id, a.assignee,
+							SUM( IF( ai.allocation_item_type = 3 AND ai.allocation_category_id = ".$ticket_sale_cat->get( 'id' )." AND i.item_group = 'SJT', ai.allocated_quantity, 0 ) ) AS sjt_sold,
+							SUM( IF( ai.allocation_item_type = 3 AND ai.allocation_category_id = ".$ticket_sale_cat->get( 'id' )." AND i.item_group = 'SVC', ai.allocated_quantity, 0 ) ) AS svc_sold,
+							SUM( IF( ai.allocation_item_type = 3 AND ai.allocation_category_id = ".$csc_issue_cat->get( 'id' )." AND i.item_group = 'Concessionary', ai.allocated_quantity, 0 ) ) AS csc_issued,
+							SUM( IF( ai.allocation_item_type = 3 AND ai.allocation_category_id = ".$free_exit_cat->get( 'id' ).", ai.allocated_quantity, 0 ) ) AS free_exit,
+							SUM( IF( ai.allocation_item_type = 3 AND ai.allocation_category_id = ".$paid_exit_cat->get( 'id' ).", ai.allocated_quantity, 0 ) ) AS paid_exit,
+							SUM( IF( ai.allocation_item_type = 3 AND ai.allocation_category_id = ".$unconfirmed_cat->get( 'id' ).", ai.allocated_quantity, 0 ) ) AS unconfirmed
+						FROM allocations a
+						LEFT JOIN allocation_items ai ON ai.allocation_id = a.id
+						LEFT JOIN items i ON i.id = ai.allocated_item_id
+						WHERE
+							business_date = ?
+							AND a.store_id = ?
+							AND a.assignee_type = ?
+							AND ai.cashier_shift_id = ?
+							AND i.item_class = 'ticket'
+							AND i.item_group IN ('SJT', 'SVC', 'Concessionary')
+							AND ai.allocation_item_status NOT IN (".implode( ',', array( ALLOCATION_ITEM_CANCELLED, ALLOCATION_ITEM_VOIDED, REMITTANCE_ITEM_VOIDED ) ).")
+						GROUP BY a.id, a.assignee
+						ORDER BY a.assignee";
+
+		$sql_params = array(
+				// allocations
+				$this->st_from_date,
+				$this->st_store_id,
+				ALLOCATION_ASSIGNEE_TELLER,
+				$this->st_from_shift_id,
+			);
+
+		$query = $ci->db->query( $sql, $sql_params );
+
+		return $query->result_array();
+	}
+
+	/**
+	 * Get teller cash collection
+	 */
+	public function get_teller_cash_collection()
+	{
+		$ci =& get_instance();
+
+		$ci->load->library( 'category' );
+		$Category = new Category();
+		$sales_collection_cat = $Category->get_by_name( 'SalesColl' );
+		$change_fund_return_cat = $Category->get_by_name( 'CFundRet' );
+
+		// others.penalties and others.short_over are for reference only and should not be included in balance computations
+		$sql = "SELECT
+							a.id, a.assignee,
+							collection.coins, collection.bills, collection.gross_sales, collection.change_fund_returned,
+							cash_reports.cash_received,
+							others.deductions,
+							COALESCE( cash_reports.cash_received, 0 ) - COALESCE( collection.gross_sales, 0 ) + COALESCE( others.deductions, 0 ) AS short_over
+						FROM allocations a
+
+						LEFT JOIN
+						(
+							SELECT ai.allocation_id, ai.cashier_shift_id,
+								SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'coin' AND ai.allocation_category_id = ".$sales_collection_cat->get( 'id' ).", ai.allocated_quantity * ip.iprice_unit_price, NULL ) ) AS coins,
+								SUM( IF( ai.allocation_item_type = 2 AND i.item_group = 'bill' AND ai.allocation_category_id = ".$sales_collection_cat->get( 'id' ).", ai.allocated_quantity * ip.iprice_unit_price, NULL ) ) AS bills,
+								SUM( IF( ai.allocation_item_type = 2 AND ai.allocation_category_id = ".$sales_collection_cat->get( 'id' ).", ai.allocated_quantity * ip.iprice_unit_price, NULL ) ) AS gross_sales,
+								SUM( IF( ai.allocation_item_type = 2 AND ai.allocation_category_id = ".$change_fund_return_cat->get( 'id' ).", ai.allocated_quantity * ip.iprice_unit_price, NULL ) ) AS change_fund_returned
+							FROM allocation_items ai
+							LEFT JOIN items i ON i.id = ai.allocated_item_id
+							LEFT JOIN item_prices ip ON ip.iprice_item_id = i.id
+							LEFT JOIN conversion_table ct ON ct.target_item_id = ai.allocated_item_id
+							WHERE
+								i.item_class = 'cash'
+								AND ai.allocation_item_status != ".REMITTANCE_ITEM_VOIDED."
+							GROUP BY ai.allocation_id, ai.cashier_shift_id
+						) AS collection
+							ON collection.allocation_id = a.id AND collection.cashier_shift_id = ?
+
+						LEFT JOIN
+						(
+							SELECT
+								sdcr.sdcr_allocation_id, sdcr.sdcr_shift_id,
+								SUM( sdcri.sdcri_amount ) AS cash_received
+							FROM shift_detail_cash_reports sdcr
+							LEFT JOIN shift_detail_cash_report_items sdcri
+								ON sdcri.sdcri_sdcr_id = sdcr.id
+							GROUP BY sdcr.sdcr_allocation_id, sdcr.sdcr_shift_id
+						) AS cash_reports
+							ON cash_reports.sdcr_allocation_id = a.id AND cash_reports.sdcr_shift_id = ?
+
+						LEFT JOIN
+						(
+							SELECT
+								asi.alsale_allocation_id, asi.alsale_shift_id,
+								SUM( IF( si.slitem_group = 'Penalties', asi.alsale_amount, 0 ) ) AS penalties,
+								SUM( IF( si.slitem_group = 'Deductions', asi.alsale_amount, 0 ) ) AS deductions,
+								SUM( IF( si.slitem_group = 'Short Over', asi.alsale_amount, 0 ) ) AS short_over
+							FROM allocation_sales_items asi
+							LEFT JOIN sales_items si ON si.id = asi.alsale_sales_item_id
+							WHERE
+								asi.alsale_sales_item_status != ".SALES_ITEM_VOIDED."
+							GROUP BY asi.alsale_allocation_id, asi.alsale_shift_id
+						) AS others
+							ON others.alsale_allocation_id = a.id AND others.alsale_shift_id = ?
+
+						WHERE
+							a.business_date = ?
+							AND a.store_id = ?
+							AND a.assignee_type = ?
+
+						ORDER BY a.assignee";
+
+		$sql_params = array(
+				// collection
+				$this->st_from_shift_id,
+
+				// cash_reports
+				$this->st_from_shift_id,
+
+				// others
+				$this->st_from_shift_id,
+
+				// allocation
+				$this->st_from_date,
+				$this->st_store_id,
+				ALLOCATION_ASSIGNEE_TELLER,
+			);
+
+		$query = $ci->db->query( $sql, $sql_params );
+		//var_dump( $ci->db->last_query() );
+		return $query->result_array();
+	}
+
+	/**
+	 * Get teller additions and deductions
+	 */
+	public function get_teller_additions_deductions()
+	{
+		$ci =& get_instance();
+
+		$ci->load->library( 'category' );
+		$Category = new Category();
+		$sales_collection_cat = $Category->get_by_name( 'SalesColl' );
+		$change_fund_return_cat = $Category->get_by_name( 'CFundRet' );
+
+		$sql = "SELECT a.id, a.assignee,
+							SUM( IF( si.slitem_group = 'Penalties', asi.alsale_amount, 0 ) ) AS penalties,
+							SUM( IF( si.slitem_group = 'Deductions', asi.alsale_amount, 0 ) ) AS deductions,
+							SUM( IF( si.slitem_group = 'Short Over', asi.alsale_amount, 0 ) ) AS short_over
+						FROM allocations a
+						LEFT JOIN allocation_sales_items asi ON asi.alsale_allocation_id = a.id
+						LEFT JOIN sales_items si ON si.id = asi.alsale_sales_item_id
+						WHERE
+							business_date = ?
+							AND a.store_id = ?
+							AND a.assignee_type = ?
+							AND asi.alsale_shift_id = ?
+							AND asi.alsale_sales_item_status != ".SALES_ITEM_VOIDED."
+						GROUP BY a.id, a.assignee
+						ORDER BY a.assignee";
+
+		$sql_params = array(
+				// allocations
+				$this->st_from_date,
+				$this->st_store_id,
+				ALLOCATION_ASSIGNEE_TELLER,
+				$this->st_from_shift_id,
+			);
+
+		$query = $ci->db->query( $sql, $sql_params );
+
+		return $query->result_array();
+	}
+
+
+
+
+
 	/**
 	 * Cash Beginning Balance
 	 */

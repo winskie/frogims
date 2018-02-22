@@ -3,16 +3,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Test extends CI_Controller
 {
-    public function __construct()
-    {
-        $public_methods = array( 'segment', 'session_data' );
-        parent::__construct( $public_methods );
-    }
+	public function __construct()
+	{
+		$public_methods = array( 'segment', 'session_data' );
+		parent::__construct( $public_methods );
+	}
 
 	public function index()
 	{
-		$this->load->library( 'BaseModel' );
-		$this->load->library( 'Item' );
+		$this->load->library( 'base_model' );
+		$this->load->library( 'item' );
 
 
 		$i = new Item();
@@ -21,212 +21,241 @@ class Test extends CI_Controller
 		var_dump( $i );
 	}
 
-    public function segment()
-    {
-        echo $this->uri->segment(2);
-    }
+	public function segment()
+	{
+		echo $this->uri->segment(2);
+	}
 
 	public function session_data()
 	{
 		var_dump( $this->session->userdata() );
 	}
 
-    public function is_logged_in()
-    {
-        if( ! $this->session->current_user_id )
-        {
-            echo 'Not logged in!';
-        }
-        else
-        {
-            echo 'Logged in';
-        }
-    }
+	public function is_logged_in()
+	{
+		if( ! $this->session->current_user_id )
+		{
+			echo 'Not logged in!';
+		}
+		else
+		{
+			echo 'Logged in';
+		}
+	}
 
-    public function test_conversion()
-    {
-        $src = 'L2 SJT';
-        $tgt = 'L2 SJT - Rigid Box';
-        $this->_convert( $src, $tgt, 10, 5000 );
+	public function test_conversion()
+	{
+		$src = 'L2 SJT';
+		$tgt = 'L2 SJT - Rigid Box';
+		$this->_convert( $src, $tgt, 10, 5000 );
 
-        $src = 'L2 SJT - Rigid Box';
-        $tgt = 'L2 SJT';
-        $this->_convert( $src, $tgt );
+		$src = 'L2 SJT - Rigid Box';
+		$tgt = 'L2 SJT';
+		$this->_convert( $src, $tgt );
 
-        $src = 'L2 SJT';
-        $tgt = 'L2 SJT - Ticket Magazine';
-        $this->_convert( $src, $tgt, 10, 5000 );
+		$src = 'L2 SJT';
+		$tgt = 'L2 SJT - Ticket Magazine';
+		$this->_convert( $src, $tgt, 10, 5000 );
 
-        $src = 'L2 SJT - Ticket Magazine';
-        $tgt = 'L2 SJT';
-        $this->_convert( $src, $tgt, 10, 20 );
-    }
+		$src = 'L2 SJT - Ticket Magazine';
+		$tgt = 'L2 SJT';
+		$this->_convert( $src, $tgt, 10, 20 );
+	}
 
-    public function _convert( $src, $tgt, $n = 10, $qty_max = 100 )
-    {
-        $this->load->library( 'conversion' );
-        $cv = new Conversion();
+	public function _convert( $src, $tgt, $n = 10, $qty_max = 100 )
+	{
+		$this->load->library( 'conversion' );
+		$cv = new Conversion();
 
-        $this->load->library( 'item' );
-        $item = new Item();
+		$this->load->library( 'item' );
+		$item = new Item();
 
-        echo 'Converting '.$src.' to '.$tgt.'...<br />';
-        $src_item = $item->get_by_name( $src );
-        $tgt_item = $item->get_by_name( $tgt );
+		echo 'Converting '.$src.' to '.$tgt.'...<br />';
+		$src_item = $item->get_by_name( $src );
+		$tgt_item = $item->get_by_name( $tgt );
 
-        for( $i = 0; $i < $n; $i++ )
-        {
-            $qty = rand( 1, $qty_max );
-            $result = $cv->convert( $src_item->get( 'id' ), $tgt_item->get( 'id' ), $qty );
-            $r_str = '';
-            if( $result )
-            {
-                $r_str = $qty.' '.$src.' => ';
-            }
-            else
-            {
-                $r_str = 'No conversion possible';
-            }
+		for( $i = 0; $i < $n; $i++ )
+		{
+			$qty = rand( 1, $qty_max );
+			$result = $cv->convert( $src_item->get( 'id' ), $tgt_item->get( 'id' ), $qty );
+			$r_str = '';
+			if( $result )
+			{
+				$r_str = $qty.' '.$src.' => ';
+			}
+			else
+			{
+				$r_str = 'No conversion possible';
+			}
 
-            $r_array = array();
-            foreach( $result as $k => $v )
-            {
-                $r_item = $item->get_by_id( $k );
-                $r_array[] = $v.' '.$r_item->get( 'item_name' );
-            }
+			$r_array = array();
+			foreach( $result as $k => $v )
+			{
+				$r_item = $item->get_by_id( $k );
+				$r_array[] = $v.' '.$r_item->get( 'item_name' );
+			}
 
-            $r_str .= implode( ' + ', $r_array );
+			$r_str .= implode( ' + ', $r_array );
 
-            echo $r_str.'<br />';
-        }
+			echo $r_str.'<br />';
+		}
 
-        echo '<br />';
-    }
+		echo '<br />';
+	}
 
-    function test_report( $report, $format = 'pdf', $params = array() )
-    {
-        // Set format defaults
-        switch( $format )
-        {
-            case 'pdf':
-                $format_ext = 'pdf';
-                $content_type = 'application/pdf';
-                break;
+	function test_report( $report, $format = 'pdf', $params = array() )
+	{
+		// Set format defaults
+		switch( $format )
+		{
+			case 'pdf':
+				$format_ext = 'pdf';
+				$content_type = 'application/pdf';
+				break;
 
-            default:
-                return FALSE;
-        }
+			default:
+				return FALSE;
+		}
 
-        // Set report defaults
-        switch( $report )
-        {
-            case 'delivery_receipt':
-                $prefix = 'dr_';
-                $report_path = '/TMIS/delivery_receipt';
-                $params = array_merge( array(
-                        'TRANSFER_ID' => 1,
-                        'PREPARED_BY' => NULL,
-                        'PREPARED_BY_POSITION' => NULL,
-                        'CHECKED_BY' => NULL,
-                        'CHECKED_BY_POSITION' => NULL,
-                        'BEARER' => NULL,
-                        'BEARER_ID' => NULL,
-                        'ISSUED_BY' => NULL,
-                        'ISSUED_BY_POSITION' => NULL,
-                        'APPROVED_BY' => NULL,
-                        'APPROVED_BY_POSITION' => NULL
-                    ), $params );
-                break;
+		// Set report defaults
+		switch( $report )
+		{
+			case 'delivery_receipt':
+				$prefix = 'dr_';
+				$report_path = '/TMIS/delivery_receipt';
+				$params = array_merge( array(
+						'TRANSFER_ID' => 1,
+						'PREPARED_BY' => NULL,
+						'PREPARED_BY_POSITION' => NULL,
+						'CHECKED_BY' => NULL,
+						'CHECKED_BY_POSITION' => NULL,
+						'BEARER' => NULL,
+						'BEARER_ID' => NULL,
+						'ISSUED_BY' => NULL,
+						'ISSUED_BY_POSITION' => NULL,
+						'APPROVED_BY' => NULL,
+						'APPROVED_BY_POSITION' => NULL
+					), $params );
+				break;
 
-            default:
-                return FALSE;
-        }
+			default:
+				return FALSE;
+		}
 
-        // Set report server user credentials
-        $params = array_merge( array(
-                'j_username' => 'jasperadmin',
-                'j_password' => 'jasperadmin',
-            ), $params );
+		// Set report server user credentials
+		$params = array_merge( array(
+				'j_username' => 'jasperadmin',
+				'j_password' => 'jasperadmin',
+			), $params );
 
-        $temp_file = tempnam(sys_get_temp_dir(), 'delivery_receipt_').'.'.$format_ext;
-        $url = 'http://db.afcs.lan:8080/jasperserver/rest_v2/reports/Reports/'.$report_path.'.'.$format;
-        $url = $url.'?'.http_build_query( $params);
+		$temp_file = tempnam(sys_get_temp_dir(), 'delivery_receipt_').'.'.$format_ext;
+		$url = 'http://db.afcs.lan:8080/jasperserver/rest_v2/reports/Reports/'.$report_path.'.'.$format;
+		$url = $url.'?'.http_build_query( $params);
 
-        try
-        {
-            $fp = fopen( $temp_file, 'w+' );
-            $ch = curl_init( $url );
-            curl_setopt_array($ch, array(
-                    CURLOPT_URL => $url,
-                    CURLOPT_BINARYTRANSFER => 1,
-                    CURLOPT_RETURNTRANSFER => 1,
-                    CURLOPT_FILE => $fp,
-                    CURLOPT_TIMEOUT => 50,
-                    CURLOPT_USERAGENT => 'Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)'
-                ) );
+		try
+		{
+			$fp = fopen( $temp_file, 'w+' );
+			$ch = curl_init( $url );
+			curl_setopt_array($ch, array(
+					CURLOPT_URL => $url,
+					CURLOPT_BINARYTRANSFER => 1,
+					CURLOPT_RETURNTRANSFER => 1,
+					CURLOPT_FILE => $fp,
+					CURLOPT_TIMEOUT => 50,
+					CURLOPT_USERAGENT => 'Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)'
+				) );
 
-            $results = curl_exec( $ch );
+			$results = curl_exec( $ch );
 
-            if( curl_exec( $ch ) === false )
-            {
-                echo 'error: '.curl_error( $ch );
-                return FALSE;
-            }
-            else
-            {
-                // Output the file
-                header( 'Content-type: '.$content_type );
-                header( 'Content-Disposition: inline; filename="' . $filename . '"' );
-                header( 'Content-Transfer-Encoding: binary' );
-                header( 'Accept-Ranges: bytes' );
-                readfile( $temp_file );
-            }
-        }
-        catch ( Exception $e )
-        {
-            echo 'exception: '.$e;
-            return FALSE;
-        }
-        finally
-        {
-            fclose( $fp );
-        }
-    }
+			if( curl_exec( $ch ) === false )
+			{
+				echo 'error: '.curl_error( $ch );
+				return FALSE;
+			}
+			else
+			{
+				// Output the file
+				header( 'Content-type: '.$content_type );
+				header( 'Content-Disposition: inline; filename="' . $filename . '"' );
+				header( 'Content-Transfer-Encoding: binary' );
+				header( 'Accept-Ranges: bytes' );
+				readfile( $temp_file );
+			}
+		}
+		catch ( Exception $e )
+		{
+			echo 'exception: '.$e;
+			return FALSE;
+		}
+		finally
+		{
+			fclose( $fp );
+		}
+	}
 
-    function tcpdf_test()
-    {
+	function tcpdf_test()
+	{
 
-        $this->load->library( 'pdf' );
-        $pdf = new Pdf( 'P', 'mm', 'A4', true, 'UTF-8', false );
-        $pdf->SetCreator( PDF_CREATOR );
+		$this->load->library( 'pdf' );
+		$pdf = new Pdf( 'P', 'mm', 'A4', true, 'UTF-8', false );
+		$pdf->SetCreator( PDF_CREATOR );
 
-        // Add a page
-        $pdf->AddPage();
-        $html = '<h1>Hello World</h1><p>The quick brown fox jumps over the lazy dog.</p>';
-        $pdf->writeHTML( $html, true, false, true, false, '' );
-        $pdf->Output();
-    }
+		// Add a page
+		$pdf->AddPage();
+		$html = '<h1>Hello World</h1><p>The quick brown fox jumps over the lazy dog.</p>';
+		$pdf->writeHTML( $html, true, false, true, false, '' );
+		$pdf->Output();
+	}
 
-    function shift_summary( $store_id, $date = NULL, $shift_id = NULL )
-    {
-        if( is_null( $date ) ) $date = date( DATE_FORMAT );
+	function shift_summary( $store_id, $date = NULL, $shift_id = NULL )
+	{
+		if( is_null( $date ) ) $date = date( DATE_FORMAT );
 
-        $this->load->library( 'store' );
+		$this->load->library( 'store' );
 
-        $Store = new Store();
-        $store = $Store->get_by_id( $store_id );
+		$Store = new Store();
+		$store = $Store->get_by_id( $store_id );
 
-        $data = $store->get_turnover_summary( $date, $shift_id );
+		$data = $store->get_turnover_summary( $date, $shift_id );
 
-        $this->output->set_content_type( 'application/json' );
+		$this->output->set_content_type( 'application/json' );
 		$this->output->set_output( json_encode( $data ) );
-    }
+	}
 
-    function convert()
-    {
-        $this->load->library( 'conversion_table' );
-        $c = new Conversion_table();
+	function convert()
+	{
+		$this->load->library( 'conversion_table' );
+		$c = new Conversion_table();
 
-        echo $c->convert( 2, 9, 500 );
-    }
+		echo $c->convert( 2, 9, 500 );
+	}
+
+	function test_shift_turnover( $store_id, $date = NULL, $shift_id = NULL )
+	{
+		if( is_null( $date ) ) $date = date( DATE_FORMAT );
+		if( is_null( $shift_id ) ) $shift_id = current_shift()->get( 'id' );
+
+		$this->load->library( 'shift_turnover' );
+		$Shift_Turnover = new Shift_turnover();
+
+		$shift_turnover = $Shift_Turnover->get_by_store_date_shift( $store_id, $date, $shift_id );
+
+		$data = array(
+			'TVM' => array(
+					'tickets_sold' => $shift_turnover->get_tvm_tickets_sold(),
+					'collection' => $shift_turnover->get_tvm_cash_collection(),
+					'hopper' => $shift_turnover->get_tvm_hopper_change_fund(),
+					'TVMIR' => $shift_turnover->get_refunded_tvmir(),
+					'shortover' => $shift_turnover->get_tvm_shortage_overage()
+				),
+			'Teller' => array(
+					'tickets_sold' => $shift_turnover->get_teller_tickets_sold(),
+					'collection' => $shift_turnover->get_teller_cash_collection(),
+					'additions_deductions' => $shift_turnover->get_teller_additions_deductions()
+				)
+			);
+
+		$this->output->set_content_type( 'application/json' );
+		$this->output->set_output( json_encode( $data ) );
+	}
 }

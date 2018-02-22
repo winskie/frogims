@@ -264,8 +264,14 @@
 							</td>
 						</tr>
 						<tr ng-if="allocationItem.cash_remittances.length">
-							<th colspan="5" class="text-right">Total Amount</th>
+							<th colspan="5" class="text-right">Total Amount Remitted</th>
 							<td class="text-right">{{ allocationItem.cash_remittances | filter : remittanceTotalFilter | sumItemPrice: 'iprice_unit_price':'allocated_quantity' | number: 2 }}</td>
+							<td></td>
+							<td></td>
+						</tr>
+						<tr ng-if="allocationItem.cash_remittances.length">
+							<th colspan="5" class="text-right">Balance to Remit</th>
+							<td class="text-right">{{ allocationItem.getAmountForRemittance() | number: 2 }}</td>
 							<td></td>
 							<td></td>
 						</tr>
@@ -499,15 +505,17 @@
 					<input type="time" class="form-control" ng-model="input.time">
 				</div>
 
+				<!--
 				<div class="form-group col-sm-6 col-md-2">
 					<label class="control-label">Gross Sales</label>
-					<p class="form-control-static">{{ allocationItem.grossSales  }}</p>
+					<p class="form-control-static">{{ allocationItem.grossSales | filter: number: 2  }}</p>
 				</div>
 
 				<div class="form-group col-sm-6 col-md-2">
 					<label class="control-label">Change Fund</label>
-					<p class="form-control-static">{{ allocationItem.changeFund  }}</p>
+					<p class="form-control-static">{{ allocationItem.changeFund | filter: number: 2 }}</p>
 				</div>
+				-->
 			</div>
 		</div>
 	</form>

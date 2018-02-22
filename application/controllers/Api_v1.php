@@ -308,7 +308,15 @@ class Api_v1 extends MY_Controller {
 								// Cash reports
 								foreach( $cash_reports as $report )
 								{
-									$cash_reports_data[] = $report->as_array();
+									$report_items = $report->get_items();
+									$report_items_data = array();
+									foreach( $report_items as $item )
+									{
+										$report_items_data[] = $item->as_array();
+									}
+									$temp_cash_report = $report->as_array();
+									$temp_cash_report['report_items'] = $report_items_data;
+									$cash_reports_data[] = $temp_cash_report;
 								}
 								$allocation_data['cash_reports'] = $cash_reports_data;
 

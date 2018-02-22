@@ -240,24 +240,41 @@ class Allocation extends Base_model {
 		if( !isset( $this->gross_sales ) || $force )
 		{
 			$gross_sales = 0.00;
-			$cash_remittances = $this->get_cash_remittances( $force );
-
-			foreach( $cash_remittances as $cash_remittance )
+			$this->get_cash_remittances( $force );
+			foreach( $this->cash_remittances as $cash_remittance )
 			{
 				if( $cash_remittance->get( 'allocation_item_status') == REMITTANCE_ITEM_VOIDED )
 				{
 					continue;
 				}
 
-				if( $cash_remittance->get( 'allocation_item_category_id' ) == $sales_collection_cat->get( 'id' ) )
+				if( $cash_remittance->get( 'allocation_category_id' ) == $sales_collection_cat->get( 'id' ) )
 				{
-					$gross_sales += $cash_remittance->get( 'allocated_quantity' ) * $cash_remittance->get( 'iprice_unit_price' );
+					$remittance_item = $cash_remittance->get_item();
+					$gross_sales += $cash_remittance->get( 'allocated_quantity' ) * $remittance_item->get( 'iprice_unit_price' );
 				}
 			}
 			$this->gross_sales = $gross_sales;
 		}
 
 		return $this->gross_sales;
+	}
+
+	public function get_allocated_change_fund()
+	{
+		$allocated_change_fund = 0.00;
+
+		$this->get_cash_allocations();
+		foreach( $this->cash_allocations as $allocation )
+		{
+			if( $allocation->get( 'allocation_item_status' ) == ALLOCATION_ITEM_ALLOCATED )
+			{
+				$item = $allocation->get_item();
+				$allocated_change_fund += $allocation->get( 'allocated_quantity' ) * $item->get( 'iprice_unit_price' );
+			}
+		}
+
+		return $allocated_change_fund;
 	}
 
 	public function get_change_fund( $force = FALSE )
@@ -271,23 +288,74 @@ class Allocation extends Base_model {
 		if( !isset( $this->change_fund ) || $force )
 		{
 			$change_fund = 0.00;
-			$cash_remittances = $this->get_cash_remittances( $force );
-			foreach( $cash_remittances as $cash_remittance )
+			$this->get_cash_remittances( $force );
+			foreach( $this->cash_remittances as $cash_remittance )
 			{
 				if( $cash_remittance->get( 'allocation_item_status') == REMITTANCE_ITEM_VOIDED )
 				{
 					continue;
 				}
 
-				if( $cash_remittance->get( 'allocation_item_category_id' ) == $change_fund_return_cat->get( 'id' ) )
+				if( $cash_remittance->get( 'allocation_category_id' ) == $change_fund_return_cat->get( 'id' ) )
 				{
-					$change_fund += $cash_remittance->get( 'allocated_quantity' ) * $cash_remittance->get( 'iprice_unit_price' );
+					$remittance_item = $cash_remittance->get_item();
+					$change_fund += $cash_remittance->get( 'allocated_quantity' ) * $remittance_item->get( 'iprice_unit_price' );
 				}
 			}
 			$this->change_fund = $change_fund;
 		}
 
 		return $this->change_fund;
+	}
+
+	public function get_afcs_sales()
+	{
+		$sales = $this->get_cash_reports();
+		$afcs_sales = 0.00;
+		foreach( $sales as $sale )
+		{
+			$sales_items = $sale->get_items();
+			foreach( $sales_items as $item )
+			{
+				$afcs_sales += $item->get( 'sdcri_amount' );
+			}
+		}
+
+		return $afcs_sales;
+	}
+
+	public function get_deductions()
+	{
+		$sales = $this->get_sales();
+		$deductions = 0.00;
+		foreach( $sales as $sale )
+		{
+			$sales_item = $sale->get_sales_item();
+			if( $sale->get( 'alsale_sales_item_status' ) != SALES_ITEM_VOIDED && $sales_item->get( 'slitem_group' ) == 'Deductions' )
+			{
+				$deductions += $sale->get( 'alsale_amount' );
+			}
+		}
+
+		return $deductions;
+	}
+
+	public function get_shortage()
+	{
+		$sales = $this->get_sales();
+		$deductions = 0.00;
+		foreach( $sales as $sale )
+		{
+			$sales_item = $sale->get_sales_item();
+			if( ( $sale->get( 'alsale_sales_item_status' ) != SALES_ITEM_VOIDED ) &&
+					 ( $sales_item->get( 'slitem_group' ) == 'Short Over' ) &&
+					 ( $sales_item->get( 'slitem_mode' ) === 0 ) )
+			{
+				$deductions += $sale->get( 'alsale_amount' );
+			}
+		}
+
+		return $deductions;
 	}
 
 	public function get_net_sales( $shift = 'all', $force = FALSE )
@@ -1556,6 +1624,17 @@ class Allocation extends Base_model {
 			if( $allocated_change_fund != $returned_change_fund )
 			{
 				set_message( sprintf( 'The returned change fund [%d] does not match the allocated change fund [%d]', $returned_change_fund, $allocated_change_fund ), 'error' );
+				return FALSE;
+			}
+
+			// Amount remitted must match allocated change fund + sales collection as per SC
+			$remitted_amount = $this->get_gross_sales() + $this->get_change_fund();
+			$balance_for_remittance = $this->get_afcs_sales() + $this->get_allocated_change_fund() + $this->get_deductions() + $this->get_shortage();
+			if( $balance_for_remittance != $remitted_amount )
+			{
+				set_message( sprintf( 'The remittted amount [%d] does not match the balance amount for remittance [%d]', $remitted_amount, $balance_for_remittance ), 'error' );
+				//set_message( sprintf( 'Gross: [%d], Returned CF: [%d], AFCS Sale: [%d], Allocated CF: [%d], Deductions: [%d], Shortage: [%d]',
+				//		$this->get_gross_sales(), $this->get_change_fund(), $this->get_afcs_sales(), $this->get_allocated_change_fund(), $this->get_deductions(), $this->get_shortage() ), 'error' );
 				return FALSE;
 			}
 		}
